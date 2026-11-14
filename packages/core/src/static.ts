@@ -988,6 +988,9 @@ export class StaticCheckRunner {
       case "static.more_category":
         return this.checkStaticMoreCategory(check);
       default:
+        if (typeof check.id === "string" && check.id.startsWith("static.category.")) {
+          return this.checkStaticCategoryScope(check);
+        }
         return new CheckOutcome({
           status: CheckStatus.ERROR,
           actual: `No static runner is registered for check '${check.id}'.`,
@@ -1466,6 +1469,39 @@ export class StaticCheckRunner {
       actual: `Full category assessment recorded for ${this.inventory.source_files.length} source file(s).`,
       evidence: [evidence],
       metadata: { category: "full" },
+    });
+  }
+
+  async checkStaticCategoryScope(check: StaticCheckLike): Promise<CheckOutcome> {
+    const id = (check as { id?: unknown }).id;
+    const label = typeof id === "string" && id.startsWith("static.category.")
+      ? id.slice("static.category.".length)
+      : "unknown";
+    const payload = {
+      category: label,
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      markup_files: this.inventory.markup_files.length,
+      manifests: this.inventory.manifests.length,
+      mode: "scope_only",
+      documented_noop: true,
+      rationale:
+        "No deeper deterministic automated check is owned in core for this category; scope recorded as a documented no-op/rationale.",
+    };
+    const evidence = await this.save(
+      "category-scope",
+      payload,
+      check,
+      `${label} category assessment scope and rationale.`,
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `${label} category assessment scope recorded (${this.inventory.source_files.length} source file(s) inventoried).`,
+      evidence: [evidence],
+      metadata: { category: label, documented_noop: true },
     });
   }
 

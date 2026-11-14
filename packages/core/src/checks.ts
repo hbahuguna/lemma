@@ -30,6 +30,167 @@ export interface PersonaLike {
   owns?: readonly string[] | string[];
 }
 
+export const ASSAY_CATEGORY_LABELS = [
+  "manager",
+  "full",
+  "test",
+  "functionality",
+  "browser",
+  "issues",
+  "demo",
+  "more",
+  "help",
+  "accessibility",
+  "ui",
+  "ux",
+  "usability",
+  "personas",
+  "compatibility",
+  "intl",
+  "localization",
+  "content",
+  "geo",
+  "security",
+  "security-review",
+  "privacy",
+  "state",
+  "reliability",
+  "performance",
+  "load",
+  "stress",
+  "networking",
+  "api",
+  "data",
+  "failure",
+  "proof",
+  "confidence",
+  "confidence-init",
+  "confidence-plan",
+  "review",
+  "skeptical-review",
+  "release",
+  "release-review",
+  "incident",
+  "eval",
+  "eval-design-review",
+  "statistical-review",
+  "agentic",
+  "chatbot",
+  "bias",
+  "tests",
+  "generate",
+  "map",
+  "full-report",
+  "stats",
+  "integrations",
+  "ai-upgrade",
+  "auto",
+  "background",
+  "forever",
+  "settings",
+  "human",
+  "pro",
+] as const;
+
+export type AssayCategoryLabel = (typeof ASSAY_CATEGORY_LABELS)[number];
+
+export const ASSAY_CATEGORY_INTENT_PREFIX = "Assay ";
+export const ASSAY_CATEGORY_INTENT_SUFFIX = " assessment";
+
+export function assayCategoryIntent(label: string): string {
+  return `${ASSAY_CATEGORY_INTENT_PREFIX}${label}${ASSAY_CATEGORY_INTENT_SUFFIX}`;
+}
+
+export const ASSAY_CATEGORY_INTENTS: readonly string[] = ASSAY_CATEGORY_LABELS.map((label) =>
+  assayCategoryIntent(label),
+);
+
+export const SPECIAL_CATEGORY_CHECK_IDS: Readonly<Record<string, string>> = {
+  full: "static.full_assessment",
+  test: "static.test_category",
+  functionality: "static.functionality_category",
+  browser: "static.browser_category",
+  issues: "static.issues_category",
+  demo: "static.demo_category",
+  more: "static.more_category",
+};
+
+export function isGenericCategoryCheckId(id: string): boolean {
+  return id.startsWith("static.category.");
+}
+
+export function categoryLabelFromCheckId(id: string): string | null {
+  if (isGenericCategoryCheckId(id)) return id.slice("static.category.".length);
+  for (const [label, checkId] of Object.entries(SPECIAL_CATEGORY_CHECK_IDS)) {
+    if (checkId === id) return label;
+  }
+  return null;
+}
+
+export function categoryCheckIdForLabel(label: string): string | null {
+  const special = (SPECIAL_CATEGORY_CHECK_IDS as Record<string, string | undefined>)[label];
+  if (special) return special;
+  if ((ASSAY_CATEGORY_LABELS as readonly string[]).includes(label)) {
+    return `static.category.${label}`;
+  }
+  return null;
+}
+
+function normIntent(intent: string): string {
+  return (intent || "").toLowerCase();
+}
+
+function matchesAssayLabelIntent(textLower: string, label: string): boolean {
+  const phrase = `assay ${label} assessment`;
+  if (textLower.includes(phrase)) return true;
+  if (textLower.includes(`${label} category assessment`)) return true;
+  return false;
+}
+
+export function matchedAssayCategoryLabel(intent: string): AssayCategoryLabel | null {
+  const text = normIntent(intent);
+  for (const label of ASSAY_CATEGORY_LABELS) {
+    if (matchesAssayLabelIntent(text, label)) return label;
+  }
+  // backward-compat aliases used by existing helpers/tests
+  if (text.includes("full assessment") || text.trim() === "full") return "full";
+  return null;
+}
+
+export function isFullCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "full";
+}
+
+export function isTestCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "test";
+}
+
+export function isFunctionalityCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "functionality";
+}
+
+export function isBrowserCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "browser";
+}
+
+export function isIssuesCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "issues";
+}
+
+export function isDemoCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "demo";
+}
+
+export function isMoreCategoryIntent(intent: string): boolean {
+  return matchedAssayCategoryLabel(intent) === "more";
+}
+
+export function categoryCheckIdForIntent(intent: string): string | null {
+  const label = matchedAssayCategoryLabel(intent);
+  if (!label) return null;
+  return categoryCheckIdForLabel(label);
+}
+
 export const CHECK_CATALOG: readonly CheckDefinition[] = [
   {
     id: "static.full_assessment",
@@ -117,6 +278,682 @@ export const CHECK_CATALOG: readonly CheckDefinition[] = [
       "Confirm that the more/extended assessment category was requested and represented.",
     expected:
       "The run intent explicitly requests the more category and an extended inventory of additional assessment surfaces is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.manager",
+    title: "Manager category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the manager category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the manager category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.help",
+    title: "Help category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the help category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the help category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.accessibility",
+    title: "Accessibility category assessment scope is recorded",
+    domain: "accessibility",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the accessibility category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the accessibility category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.ui",
+    title: "Ui category assessment scope is recorded",
+    domain: "accessibility",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the ui category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the ui category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.ux",
+    title: "Ux category assessment scope is recorded",
+    domain: "accessibility",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the ux category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the ux category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.usability",
+    title: "Usability category assessment scope is recorded",
+    domain: "accessibility",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the usability category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the usability category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.personas",
+    title: "Personas category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the personas category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the personas category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.compatibility",
+    title: "Compatibility category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the compatibility category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the compatibility category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.intl",
+    title: "Intl category assessment scope is recorded",
+    domain: "content",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the intl category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the intl category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.localization",
+    title: "Localization category assessment scope is recorded",
+    domain: "content",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the localization category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the localization category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.content",
+    title: "Content category assessment scope is recorded",
+    domain: "content",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the content category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the content category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.geo",
+    title: "Geo category assessment scope is recorded",
+    domain: "content",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the geo category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the geo category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.security",
+    title: "Security category assessment scope is recorded",
+    domain: "security",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the security category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the security category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.security-review",
+    title: "Security review category assessment scope is recorded",
+    domain: "security",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the security review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the security review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.privacy",
+    title: "Privacy category assessment scope is recorded",
+    domain: "security",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the privacy category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the privacy category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.state",
+    title: "State category assessment scope is recorded",
+    domain: "security",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the state category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the state category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.reliability",
+    title: "Reliability category assessment scope is recorded",
+    domain: "reliability",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the reliability category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the reliability category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.performance",
+    title: "Performance category assessment scope is recorded",
+    domain: "performance",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the performance category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the performance category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.load",
+    title: "Load category assessment scope is recorded",
+    domain: "performance",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the load category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the load category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.stress",
+    title: "Stress category assessment scope is recorded",
+    domain: "performance",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the stress category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the stress category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.networking",
+    title: "Networking category assessment scope is recorded",
+    domain: "reliability",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the networking category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the networking category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.api",
+    title: "Api category assessment scope is recorded",
+    domain: "data_integrity",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the api category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the api category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.data",
+    title: "Data category assessment scope is recorded",
+    domain: "data_integrity",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the data category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the data category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.failure",
+    title: "Failure category assessment scope is recorded",
+    domain: "reliability",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the failure category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the failure category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.proof",
+    title: "Proof category assessment scope is recorded",
+    domain: "data_integrity",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the proof category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the proof category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.confidence",
+    title: "Confidence category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the confidence category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the confidence category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.confidence-init",
+    title: "Confidence init category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the confidence init category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the confidence init category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.confidence-plan",
+    title: "Confidence plan category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the confidence plan category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the confidence plan category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.review",
+    title: "Review category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.skeptical-review",
+    title: "Skeptical review category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the skeptical review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the skeptical review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.release",
+    title: "Release category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the release category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the release category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.release-review",
+    title: "Release review category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the release review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the release review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.incident",
+    title: "Incident category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the incident category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the incident category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.eval",
+    title: "Eval category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the eval category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the eval category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.eval-design-review",
+    title: "Eval design review category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the eval design review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the eval design review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.statistical-review",
+    title: "Statistical review category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the statistical review category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the statistical review category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.agentic",
+    title: "Agentic category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the agentic category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the agentic category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.chatbot",
+    title: "Chatbot category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the chatbot category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the chatbot category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.bias",
+    title: "Bias category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the bias category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the bias category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.tests",
+    title: "Tests category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the tests category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the tests category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.generate",
+    title: "Generate category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the generate category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the generate category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.map",
+    title: "Map category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the map category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the map category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.full-report",
+    title: "Full report category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the full report category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the full report category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.stats",
+    title: "Stats category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the stats category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the stats category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.integrations",
+    title: "Integrations category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the integrations category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the integrations category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.ai-upgrade",
+    title: "Ai upgrade category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the ai upgrade category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the ai upgrade category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.auto",
+    title: "Auto category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the auto category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the auto category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.background",
+    title: "Background category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the background category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the background category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.forever",
+    title: "Forever category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the forever category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the forever category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.settings",
+    title: "Settings category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the settings category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the settings category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.human",
+    title: "Human category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the human category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the human category and the planned scope/rationale is recorded as evidence.",
+    base_weight: 0.5,
+    requires: "any",
+    persona: "",
+  },
+  {
+    id: "static.category.pro",
+    title: "Pro category assessment scope is recorded",
+    domain: "functional",
+    kind: "static",
+    intent:
+      "Record deterministic scope for the pro category assessment (documented no-op/rationale where no deeper automated check is owned).",
+    expected:
+      "The run intent explicitly requests the pro category and the planned scope/rationale is recorded as evidence.",
     base_weight: 0.5,
     requires: "any",
     persona: "",
@@ -351,48 +1188,6 @@ export function registryFingerprint(registry?: CheckRegistryLike | null): string
   return sha256Bytes(JSON.stringify(payload));
 }
 
-function normIntent(intent: string): string {
-  return (intent || "").toLowerCase();
-}
-
-export function isFullCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("full assessment") || text.includes("full category") || text.trim() === "full";
-}
-
-export function isTestCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("assay test assessment") || text.includes("test category assessment");
-}
-
-export function isFunctionalityCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return (
-    text.includes("assay functionality assessment") ||
-    text.includes("functionality category assessment")
-  );
-}
-
-export function isBrowserCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("assay browser assessment") || text.includes("browser category assessment");
-}
-
-export function isIssuesCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("assay issues assessment") || text.includes("issues category assessment");
-}
-
-export function isDemoCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("assay demo assessment") || text.includes("demo category assessment");
-}
-
-export function isMoreCategoryIntent(intent: string): boolean {
-  const text = normIntent(intent);
-  return text.includes("assay more assessment") || text.includes("more category assessment");
-}
-
 export interface PlanChecksInput {
   target: Target;
   inventory: Record<string, unknown>;
@@ -425,18 +1220,21 @@ function isApplicable(
 ): boolean {
   const textIntent = intent || "";
   const liveBrowserAvailable = target.kind === "url" && !noBrowser;
-  if (definition.id === "static.full_assessment") return isFullCategoryIntent(textIntent);
-  if (definition.id === "static.test_category") return isTestCategoryIntent(textIntent);
-  if (definition.id === "static.functionality_category")
-    return isFunctionalityCategoryIntent(textIntent);
-  if (definition.id === "static.browser_category") {
-    return isBrowserCategoryIntent(textIntent) && !liveBrowserAvailable;
+  const matchedLabel = matchedAssayCategoryLabel(textIntent);
+  const categoryLabel = categoryLabelFromCheckId(definition.id);
+
+  // category scope checks (specialized and generic) are intent-gated
+  if (categoryLabel != null) {
+    if (matchedLabel !== categoryLabel) return false;
+    if (definition.id === "static.browser_category") {
+      return !liveBrowserAvailable;
+    }
+    if (definition.id === "static.demo_category") {
+      return !liveBrowserAvailable;
+    }
+    return true;
   }
-  if (definition.id === "static.issues_category") return isIssuesCategoryIntent(textIntent);
-  if (definition.id === "static.demo_category") {
-    return isDemoCategoryIntent(textIntent) && !liveBrowserAvailable;
-  }
-  if (definition.id === "static.more_category") return isMoreCategoryIntent(textIntent);
+
   if (definition.id === "browser.steps") return scenario;
 
   const sourceAvailable = Boolean(inventory.available);

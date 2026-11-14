@@ -148,7 +148,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Done |
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Done |
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Done |
-| LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Backlog |
+| LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Done |
 | LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Backlog |
 | LEM-039 | Build the static precision and recall corpus | P1 | 5 | LEM-031, LEM-032 | Backlog |
 | LEM-040 | Verify static finding-to-evidence linkage and report totals | P1 | 3 | LEM-016, LEM-020 | Backlog |
@@ -780,6 +780,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-034** — Port full-assessment markers (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/full-assessment/full-assessment.test.ts`, `docs/parity/evidence/LEM-034-full-assessment-test-output.txt` (`pnpm --filter @lemma/core test -- full-assessment`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-035** — Port CI root-scoping precision (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts`, `docs/parity/evidence/LEM-035-ci-root-scoping-test-output.txt` (`pnpm --filter @lemma/core test -- ci-root-scoping`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-036** — Port risk tracked-file parity (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`, `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt` (`pnpm --filter @lemma/core test -- risk-tracked-parity`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-037** — Cover the remaining 50+ category commands with owned checks or documented no-ops (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/src/static.ts`, `packages/core/src/index.ts`, `packages/core/test/checks/checks.test.ts`, `packages/core/test/category-coverage/category-coverage.test.ts`, `docs/parity/evidence/LEM-037-category-coverage-test-output.txt` (`pnpm --filter @lemma/core test -- category-coverage` and `-- checks`, 7/7). Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 
@@ -804,7 +805,43 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `{ category: "full" }`; API exported from `@lemma/core` with tests covering
     payload/actual/metadata/evidence linkage.
 - **Verification:** `pnpm --filter @lemma/core test -- full-assessment` (targeted file: `packages/core/test/full-assessment/full-assessment.test.ts`) — **PASS** (1 test). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
-- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.
+- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.### LEM-037 — Cover the remaining 50+ category commands with owned checks or documented no-ops
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-033
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- category-coverage`.
+- **Description:** Cover all assay category commands with deterministic owned
+  checks or documented no-ops so every category intent is explicitly represented
+  in planning/execution and evidence.
+- **Acceptance Criteria:**
+  - Core defines a canonical, deterministic list of all 59 assay category
+    command labels and their intent strings (`Assay <label> assessment`,
+    matching assay command semantics) with exported coverage/mapping APIs.
+  - For every category intent, planning yields an owned deterministic static
+    scope check: existing specialized checks remain for `full`
+    (`static.full_assessment`), `test`, `functionality`, `browser` (scope marker
+    when live browser unavailable), `issues`, `demo` (scope marker when live
+    browser unavailable), and `more`; all remaining category intents plan a
+    generic `static.category.<label>` scope-marker check (documented no-op /
+    rationale) with stable check definitions in the catalog.
+  - Generic category scope checks are executable by `StaticCheckRunner`, saving
+    deterministic `static_analysis` evidence (category-scope artifact) recording
+    category/label, intent, expected/rationale, source/inventory summary, and
+    documented-no-op metadata as applicable; outcomes are passed, evidence-backed,
+    and do not invent findings.
+  - Intent detection and planning are intent-gated and deterministic: each
+    category intent plans its corresponding scope check (and not unrelated
+    category scope checks), existing non-category checks continue to plan per
+    applicability, and catalog/registry/planning tests are updated accordingly.
+  - Tests verify full 59-category intent coverage/mapping and representative
+    planning+execution/evidence for generic and specialized categories.
+- **Verification:** `pnpm --filter @lemma/core test -- category-coverage` (targeted: `packages/core/test/category-coverage/category-coverage.test.ts`, 3/3) and `pnpm --filter @lemma/core test -- checks` (`packages/core/test/checks/checks.test.ts`, 4/4) — **PASS** (7 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/checks.ts` (canonical `ASSAY_CATEGORY_LABELS`/intents, mapping helpers, generic `static.category.<label>` definitions, intent-gated planning/applicability), `packages/core/src/static.ts` (`StaticCheckRunner` generic category-scope handler with documented no-op `static_analysis` evidence), exports via `packages/core/src/index.ts`; `packages/core/test/checks/checks.test.ts` (catalog/registry/planning compatibility updates), `packages/core/test/category-coverage/category-coverage.test.ts` (full 59-category mapping, intent-gated planning, representative generic execution/evidence). Test output: `docs/parity/evidence/LEM-037-category-coverage-test-output.txt`. Commit/remote recorded in completion summary.
+
+
 ### LEM-036 — Port risk tracked-file parity
 
 - **Epic:** E3 Evidence Checks and Personas

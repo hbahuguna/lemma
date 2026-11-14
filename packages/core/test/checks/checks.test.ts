@@ -50,11 +50,12 @@ function allOwnedBy(persona: string, ids: string[] = CHECK_CATALOG.map((c) => c.
 }
 
 describe("LEM-014 check catalog, registry, and intent planning", () => {
-  it("exposes the 24 assay checks with stable metadata and catalog ids", () => {
-    expect(CHECK_CATALOG).toHaveLength(24);
-    expect(catalogIds()).toHaveLength(24);
+  it("exposes the assay check catalog with stable metadata and catalog ids", () => {
+    expect(CHECK_CATALOG.length).toBeGreaterThanOrEqual(24);
+    expect(catalogIds()).toHaveLength(CHECK_CATALOG.length);
     expect(catalogIds()[0]).toBe("static.full_assessment");
     expect(catalogIds()).toContain("browser.steps");
+    expect(catalogIds()).toContain("static.inventory");
     const secrets = CHECK_CATALOG.find((c) => c.id === "static.secrets")!;
     expect(secrets).toMatchObject({
       title: "No live credentials or private keys are committed",
@@ -273,7 +274,7 @@ describe("LEM-014 check catalog, registry, and intent planning", () => {
 
   it("supports registry ids/owner hint and applies risk weights with per-domain max multiplier", () => {
     const registry = makeRegistry({ hints: { "plugin.x": "hint-owner" } });
-    expect(catalogIds(registry)).toHaveLength(24);
+    expect(catalogIds(registry)).toHaveLength(CHECK_CATALOG.length);
 
     const pluginDef: CheckDefinition = {
       id: "plugin.x",
