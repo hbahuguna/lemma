@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/static-checks/static-checks.test.ts (6 tests) 1090ms
+   ✓ LEM-029 inventory, tests, CI, and dependency checks > runs static.dependencies with git-aware tracked/ignored env reporting  434ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  23:40:05
+   Duration  3.50s (transform 519ms, setup 0ms, collect 840ms, tests 1.09s, environment 0ms, prepare 269ms)
+

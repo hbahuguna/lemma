@@ -140,7 +140,7 @@ covers every assay category command with an owned check or a documented no-op.
 | --- | --- | --- | --- | --- | --- |
 | LEM-027 | Port source inventory and git-aware tracked/ignored scanning | P0 | 5 | LEM-013 | Done |
 | LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Done |
-| LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Backlog |
+| LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Done |
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Backlog |
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Backlog |
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Backlog |
@@ -772,6 +772,45 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-026** — Build the orchestrator conformance suite (2026-11-14). Evidence: `packages/core/test/conformance/orchestrator-conformance.test.ts`, `docs/parity/evidence/LEM-026-conformance-test-output.txt` (`pnpm --filter @lemma/core test -- conformance`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-027** — Port source inventory and git-aware tracked/ignored scanning (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/inventory/inventory.test.ts`, `docs/parity/evidence/LEM-027-inventory-test-output.txt` (`pnpm --filter @lemma/core test -- inventory`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-028** — Port `.harnessignore`-equivalent scoping (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/harnessignore/harnessignore.test.ts`, `docs/parity/evidence/LEM-028-harnessignore-test-output.txt` (`pnpm --filter @lemma/core test -- harnessignore`, 4/4). Commit/remote recorded in completion summary.
+- **LEM-029** — Port inventory, tests, CI, and dependency checks (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/static-checks/static-checks.test.ts`, `docs/parity/evidence/LEM-029-static-checks-test-output.txt` (`pnpm --filter @lemma/core test -- static-checks`, 6/6). Commit/remote recorded in completion summary.
+
+### LEM-029 — Port inventory, tests, CI, and dependency checks
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-014, LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- static-checks`.
+- **Description:** Port static analysis checks for repository inventory, automated
+  test signal, CI configuration, and dependency/environment hygiene with
+  assay-compatible evidence and findings.
+- **Acceptance Criteria:**
+  - Core exposes a static check runner (e.g. `StaticCheckRunner`) for `InventoryData`
+    + `EvidenceStore` that executes `static.inventory`, `static.tests`, `static.ci`,
+    and `static.dependencies`, saving evidence artifacts with kind `static_analysis`
+    and assay-compatible names/descriptions (`source-inventory`, `test-inventory`,
+    `ci-inventory`, `dependency-and-env-inventory`), and returning `CheckOutcome`
+    with correct status/actual/evidence/metadata.
+  - `static.inventory`: persists full inventory payload, reports actual as
+    `${total_files} files, ${total_bytes} bytes; languages: ${sorted or "none"};
+    manifests: ${count}; tests: ${count}; CI: ${count}` and includes inventory in
+    metadata; passes when inventory is produced.
+  - `static.tests`: persists `{test_files,test_frameworks}`, reports actual as
+    `${count} test file(s) found; frameworks: ${joined or "not detected"}`; when no
+    test files adds a MEDIUM/functional/source-proven coverage-gap finding with
+    assay-compatible title/consequence/location/reproduction/remediation/verification/tags.
+  - `static.ci`: persists `{ci_files}`, reports actual as `CI files: ${joined or "none"}`;
+    when no CI config adds a LOW/reliability coverage-gap finding with
+    assay-compatible fields.
+  - `static.dependencies`: computes reported committed env files from tracked
+    availability, persists dependency/env payload including tracked/ignored fields,
+    reports actual/metadata per tracked semantics, adds HIGH/data_integrity findings
+    for first 3 reported env files and LOW/reproducibility finding when manifests
+    exist without lockfiles (assay-compatible fields); APIs exported from
+    `@lemma/core` with tests covering each check and git-aware env reporting.
+- **Verification:** `pnpm --filter @lemma/core test -- static-checks` (targeted file: `packages/core/test/static-checks/static-checks.test.ts`) — **PASS** (6 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner`/`StaticCheckLike` executing `static.inventory`, `static.tests`, `static.ci`, `static.dependencies` with assay-compatible evidence artifacts, actual/metadata, and findings including git-aware dependency/env reporting), exported via `@lemma/core`; `packages/core/test/static-checks/static-checks.test.ts` (inventory/tests/CI/dependencies outcomes and evidence, missing-signal findings, and git tracked/ignored env reporting). Test output: `docs/parity/evidence/LEM-029-static-checks-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-028 — Port `.harnessignore`-equivalent scoping
 

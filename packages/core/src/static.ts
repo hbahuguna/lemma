@@ -2,6 +2,9 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 
+import type { EvidenceStore } from "./evidence.js";
+import { CheckOutcome, CheckStatus, Severity, Strength } from "./models.js";
+
 export const SKIP_DIRS = new Set([
   ".git",
   ".hg",
@@ -530,4 +533,190 @@ export function inventoryFromDict(data: Record<string, unknown>): InventoryData 
   inv.has_ci = Boolean(inv.has_ci ?? inv.ci_files.length > 0);
   inv.has_lockfile = Boolean(inv.has_lockfile ?? inv.lockfiles.length > 0);
   return inv;
+}
+
+export interface StaticCheckLike {
+  id: string;
+  [key: string]: unknown;
+}
+
+export class StaticCheckRunner {
+  readonly root: string;
+  readonly inventory: InventoryData;
+  readonly evidence: EvidenceStore;
+
+  constructor(root: string, inventory: InventoryData, evidence: EvidenceStore) {
+    this.root = path.resolve(root);
+    this.inventory = inventory;
+    this.evidence = evidence;
+  }
+
+  async run(check: StaticCheckLike): Promise<CheckOutcome> {
+    switch (check.id) {
+      case "static.inventory":
+        return this.checkStaticInventory(check);
+      case "static.tests":
+        return this.checkStaticTests(check);
+      case "static.ci":
+        return this.checkStaticCi(check);
+      case "static.dependencies":
+        return this.checkStaticDependencies(check);
+      default:
+        return new CheckOutcome({
+          status: CheckStatus.ERROR,
+          actual: `No static runner is registered for check '${check.id}'.`,
+        });
+    }
+  }
+
+  private async save(
+    name: string,
+    payload: unknown,
+    check: StaticCheckLike,
+    description: string,
+  ): Promise<string> {
+    return this.evidence.saveJson(name, payload, "static_analysis", description, check.id);
+  }
+
+  async checkStaticInventory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const evidence = await this.save(
+      "source-inventory",
+      this.inventory,
+      check,
+      "Source inventory: file counts, languages, manifests, tests, and CI configuration.",
+    );
+    const languages = Object.keys(this.inventory.languages).sort().join(", ") || "none";
+    const actual = `${this.inventory.total_files} files, ${this.inventory.total_bytes} bytes; languages: ${languages}; manifests: ${this.inventory.manifests.length}; tests: ${this.inventory.test_files.length}; CI: ${this.inventory.ci_files.length}`;
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual,
+      evidence: [evidence],
+      metadata: { inventory: this.inventory },
+    });
+  }
+
+  async checkStaticTests(check: StaticCheckLike): Promise<CheckOutcome> {
+    const evidence = await this.save(
+      "test-inventory",
+      {
+        test_files: this.inventory.test_files,
+        test_frameworks: this.inventory.test_frameworks,
+      },
+      check,
+      "Automated test inventory.",
+    );
+    const frameworks = this.inventory.test_frameworks.join(", ") || "not detected";
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `${this.inventory.test_files.length} test file(s) found; frameworks: ${frameworks}`,
+      evidence: [evidence],
+    });
+    if (this.inventory.test_files.length === 0) {
+      outcome.addFinding(
+        "No automated tests detected in the release",
+        Severity.MEDIUM,
+        "functional",
+        "Change safety depends on unrecorded manual exploration, so regressions can ship silently.",
+        "repository root",
+        "Search the source tree for test/spec files and a runnable test command.",
+        Strength.SOURCE_PROVEN,
+        "Add a focused test suite around the highest-risk customer outcome and run it in CI.",
+        "Confirm the suite fails on a seeded regression and passes after the fix.",
+        ["coverage-gap"],
+      );
+    }
+    return outcome;
+  }
+
+  async checkStaticCi(check: StaticCheckLike): Promise<CheckOutcome> {
+    const evidence = await this.save(
+      "ci-inventory",
+      { ci_files: this.inventory.ci_files },
+      check,
+      "Continuous integration inventory.",
+    );
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `CI files: ${this.inventory.ci_files.join(", ") || "none"}`,
+      evidence: [evidence],
+    });
+    if (this.inventory.ci_files.length === 0) {
+      outcome.addFinding(
+        "No continuous integration configuration detected",
+        Severity.LOW,
+        "reliability",
+        "Test evidence is not refreshed automatically and can drift from the release.",
+        "repository root",
+        "Inspect for .github/workflows, .gitlab-ci.yml, Jenkinsfile, or another CI config.",
+        Strength.SOURCE_PROVEN,
+        "Run the test suite and this harness on pull requests.",
+        "Open a pull request and confirm the checks execute and report.",
+        ["coverage-gap"],
+      );
+    }
+    return outcome;
+  }
+
+  async checkStaticDependencies(check: StaticCheckLike): Promise<CheckOutcome> {
+    const reportedEnvFiles = this.inventory.tracked_available
+      ? this.inventory.env_files_tracked
+      : this.inventory.env_files;
+    const payload = {
+      manifests: this.inventory.manifests,
+      lockfiles: this.inventory.lockfiles,
+      env_files: this.inventory.env_files,
+      env_files_tracked: this.inventory.env_files_tracked,
+      env_files_ignored: this.inventory.env_files_ignored,
+      tracked_available: this.inventory.tracked_available,
+    };
+    const evidence = await this.save(
+      "dependency-and-env-inventory",
+      payload,
+      check,
+      "Dependency lockfile and committed environment-file inventory.",
+    );
+    let actual = `Manifests: ${this.inventory.manifests.length}; lockfiles: ${this.inventory.lockfiles.length}; committed env files: ${reportedEnvFiles.length}`;
+    if (this.inventory.tracked_available && this.inventory.env_files_ignored.length > 0) {
+      actual += `; ${this.inventory.env_files_ignored.length} ignored/untracked env file(s) excluded from the committed claim`;
+    }
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual,
+      evidence: [evidence],
+      metadata: {
+        env_files_tracked: this.inventory.env_files_tracked.length,
+        env_files_ignored: this.inventory.env_files_ignored.length,
+        tracked_available: this.inventory.tracked_available,
+      },
+    });
+    for (const rel of reportedEnvFiles.slice(0, 3)) {
+      outcome.addFinding(
+        "Local environment file is present in the repository",
+        Severity.HIGH,
+        "data_integrity",
+        "The file may contain live credentials, customer endpoints, or machine-specific settings.",
+        rel,
+        "Inspect the file's tracked status and confirm whether it contains secrets.",
+        Strength.SOURCE_PROVEN,
+        "Remove the file from tracking, rotate any exposed values, and ship a .env.example instead.",
+        "Confirm .gitignore covers local env files and the value is revoked.",
+        ["secrets", "configuration"],
+      );
+    }
+    if (this.inventory.manifests.length > 0 && this.inventory.lockfiles.length === 0) {
+      outcome.addFinding(
+        "Package manifests exist without a lockfile",
+        Severity.LOW,
+        "data_integrity",
+        "Builds can resolve different dependency versions and produce non-reproducible evidence.",
+        this.inventory.manifests.slice(0, 4).join(", "),
+        "Compare the manifest inventory with the lockfile inventory.",
+        Strength.SOURCE_PROVEN,
+        "Commit the ecosystem lockfile and use a frozen install in CI.",
+        "Run two clean installs and confirm the resolved dependency set is identical.",
+        ["reproducibility"],
+      );
+    }
+    return outcome;
+  }
 }
