@@ -20,7 +20,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/cli.py` | Machine-first CLI, all subcommands, exit codes | `@lemma/cli` | LEM-083–LEM-085 |
 | `harness/orchestrator.py` | Five-phase state machine, budget, kill, resume, finalization | `@lemma/core/orchestrator` | LEM-015, LEM-026 |
 | `harness/determinism.py` | Injectable clock/entropy, seeded ids, frozen clock (`packages/core/src/determinism.ts`: `Clock`/`Entropy`, `RealClock`/`FrozenClock`, `RealEntropy`/`SeededEntropy`, `makeDeterminism`, active helpers, typed validation) | `@lemma/core/determinism` | LEM-006 |
-| `harness/workflows.py` | Versioned workflow loader, phase validation | `@lemma/core/workflows` | LEM-012 |
+| `harness/workflows.py` | Versioned workflow loader, phase validation (`packages/core/src/workflows.ts`: dependency-free YAML subset parser, typed validation/errors, `PHASE_ORDER` invariant, built-in `release-confidence`, `loadWorkflowFile`/`loadWorkflows`; tests `packages/core/test/workflows/workflows.test.ts`, output `docs/parity/evidence/LEM-012-workflows-test-output.txt`) | `@lemma/core/workflows` | LEM-012 |
 | `harness/checks.py` | Check catalog, definitions, intent planning | `@lemma/core/checks` | LEM-014 |
 | `harness/plugins.py` | Signed entry-point registry, plugin context, blocked failures | `@lemma/core/plugins` | LEM-075–LEM-082 |
 | `harness/personas.py` | Frontmatter parsing, schema validation, ownership | `@lemma/core/personas` | LEM-041–LEM-049 |

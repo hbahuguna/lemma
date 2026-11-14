@@ -1,0 +1,25 @@
+$ vitest run --config vitest.config.ts -- workflows
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/dependency-direction.test.ts (1 test) 25ms
+ ✓ test/parity.test.ts (3 tests) 656ms
+   ✓ parity manifest > passes parity:check  477ms
+ ✓ test/redaction/redaction.test.ts (5 tests) 34ms
+ ✓ test/determinism/determinism.test.ts (5 tests) 13ms
+ ✓ test/schemas/schemas.test.ts (5 tests) 55ms
+ ✓ test/workspace.test.ts (14 tests) 35ms
+ ✓ test/errors/errors.test.ts (4 tests) 12ms
+ ✓ test/workflows/workflows.test.ts (5 tests) 377ms
+ ✓ test/state/state-store.test.ts (5 tests) 3135ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > prune supports keepRuns/olderThanDays/dryRun, protects required runs, and safely removes evidence  316ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > kill-file store semantics support request/read/clear and cross-process observation  2273ms
+ ✓ test/state/state.test.ts (5 tests) 3219ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > advisory file lock is exclusive across processes and released on crash  765ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > kill file written from another process is observed between checks  2202ms
+
+ Test Files  10 passed (10)
+      Tests  52 passed (52)
+   Start at  21:16:42
+   Duration  5.34s (transform 1.11s, setup 0ms, collect 5.74s, tests 7.56s, environment 3ms, prepare 5.11s)
+

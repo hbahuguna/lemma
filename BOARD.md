@@ -115,7 +115,7 @@ inputs.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-011 | Port progress state, events, history, retention, and kill file | P0 | 5 | LEM-010 | Done |
-| LEM-012 | Port the versioned workflow loader and phase invariant | P0 | 5 | LEM-004, LEM-007 | Backlog |
+| LEM-012 | Port the versioned workflow loader and phase invariant | P0 | 5 | LEM-004, LEM-007 | Done |
 | LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | Backlog |
 | LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Backlog |
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Backlog |
@@ -610,6 +610,44 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/core test -- state` — **PASS** (10 state tests incl. store; core suite 47/47 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/state-store.ts` (`StateStore` over `.lemma/` for progress/events/history/kill/evidence root using shared atomic primitives; `saveProgress`/`loadProgress`/`clearProgress`, `appendEvent` JSONL with timestamp and non-fatal logging, versioned history load/save/`recordRun` upsert+deterministic sort, `prune` with `keepRuns`/`olderThanDays`/`dryRun` + protected runs and safe evidence removal, `requestKill`/`killRequest`/`clearKill`), exported from `@lemma/core`; `packages/core/test/state/state-store.test.ts` (progress save/load + missing/corrupt typed errors, JSONL append, history record/sort/upsert, prune dry-run/retention/safe deletion, cross-process kill request observation). Test output: `docs/parity/evidence/LEM-011-state-store-test-output.txt`. Commit/remote recorded in completion summary.
 
+### LEM-012 — Port the versioned workflow loader and phase invariant
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-004, LEM-007
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- workflows`.
+- **Description:** Port assay's versioned workflow definitions and loader with
+  the fixed five-phase invariant, using a small dependency-free YAML subset and
+  typed workflow validation/errors.
+- **Acceptance Criteria:**
+  - Built-in `release-confidence` workflow defines the canonical five phases in
+    fixed order: `risk_analysis`, `test_planning`, `execution`,
+    `evidence_collection`, `confidence_scoring` (with stable titles/descriptions
+    or equivalent deterministic metadata).
+  - A dependency-free YAML subset loader parses workflow files (nested mappings,
+    lists/mappings, scalars, comments, quoted strings, ints/floats/bools/null)
+    and rejects unsupported YAML features, tabs/indentation errors, duplicates,
+    and malformed structures with typed `WorkflowError`/`MalformedWorkflowError`.
+  - Workflow validation enforces: object root, allowed top-level keys
+    (`schema_version`, `id`, `name`, `version`, `description`, `phases`),
+    non-empty `id`/`name`, valid `version`, allowed phase keys (`name`, `title`,
+    `description`), exactly 5 phases, known phase names only, and **exact phase
+    order matching the invariant**.
+  - `loadWorkflowFile` reads/validates a file and raises typed workflow errors
+    on IO/parse/validation failures; `loadWorkflows(dir)` loads `*.yaml`/`*.yml`
+    from `.lemma/workflows` (or provided directory), returns empty for missing
+    directory, and fails on malformed present files; duplicate workflow ids are
+    rejected.
+  - Public APIs/types are exported from `@lemma/core` and use shared typed errors
+    (no package-local error classes).
+  - Tests cover built-in workflow/invariant, valid file/directory loading,
+    missing directory behavior, malformed/unsupported YAML cases, and phase/order
+    validation failures.
+- **Verification:** `pnpm --filter @lemma/core test -- workflows` — **PASS** (5 tests; core suite 52/52 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/workflows.ts` (dependency-free YAML subset parser, typed validation/errors, `PHASE_ORDER` invariant, built-in `RELEASE_CONFIDENCE`, `loadWorkflowFile`, `loadWorkflows` with missing-dir-empty/duplicate-id rejection), exported from `@lemma/core`; `packages/core/test/workflows/workflows.test.ts` (built-in invariant, valid file/dir loading, missing dir, malformed/unsupported YAML, validation/order/duplicate/non-dir cases). Test output: `docs/parity/evidence/LEM-012-workflows-test-output.txt`. Commit/remote recorded in completion summary.
+
 ---
 
 ## In Progress
@@ -655,3 +693,4 @@ No task is claimed.
 - **LEM-009** — Decide package naming, release flow, and consumer contracts (2026-11-14). Evidence: ADR 0002 (`@lemma/*` scope, `lemma` CLI, exports/optional browser+cloud subpaths, semver/Changesets/provenance, peer-dependency policy), updated package manifests, `.github/workflows/release-dry-run.yml`, `SECURITY.md`; `pnpm publish --dry-run --recursive --no-git-checks` passed for all workspace packages. Commit/remote recorded in completion summary.
 - **LEM-010** — Port atomic state, JSON, and file-lock primitives (2026-11-14). Evidence: `packages/core/src/state.ts` (atomic write temp+fsync+rename, typed JSON read with `CorruptStateError`/`StateError`, advisory file lock with cross-process stale/crash recovery, `ensureDir`, kill-file write/read/clear), `packages/core/test/state/state.test.ts`; crash-injection and cross-process tests passed (`pnpm --filter @lemma/core test -- state`, 42/42). Cross-platform CI matrix added (`.github/workflows/ci.yml` `state-primitives` on ubuntu/macos/windows). Output: `docs/parity/evidence/LEM-010-state-test-output.txt`. Commit/remote recorded in completion summary.
 - **LEM-011** — Port progress state, events, history, retention, and kill file (2026-11-14). Created acceptance criteria and delivered `StateStore` over `.lemma/` (progress save/load, JSONL events, versioned history record/upsert/sort, prune with protections/safe evidence removal, kill request/observe/clear) using shared primitives. Evidence: `packages/core/src/state-store.ts`, `packages/core/test/state/state-store.test.ts`, `docs/parity/evidence/LEM-011-state-store-test-output.txt` (`pnpm --filter @lemma/core test -- state`, 47/47). Commit/remote recorded in completion summary.
+- **LEM-012** — Port the versioned workflow loader and phase invariant (2026-11-14). Created acceptance criteria and delivered dependency-free YAML subset workflow loader with typed validation/errors and fixed five-phase invariant. Evidence: `packages/core/src/workflows.ts`, `packages/core/test/workflows/workflows.test.ts`, `docs/parity/evidence/LEM-012-workflows-test-output.txt` (`pnpm --filter @lemma/core test -- workflows`, 52/52). Commit/remote recorded in completion summary.
