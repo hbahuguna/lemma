@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/seeded-resume/seeded-resume.test.ts (3 tests) 3277ms
+   ✓ LEM-022 seeded resume and id-sequence continuity > persists determinism and id sequence in progress/options  654ms
+   ✓ LEM-022 seeded resume and id-sequence continuity > restores saved determinism options and continues id sequence on resume  910ms
+   ✓ LEM-022 seeded resume and id-sequence continuity > produces same seeded IDs as uninterrupted run and keeps completed-run ids stable on resume  1710ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:38:12
+   Duration  4.78s (transform 317ms, setup 0ms, collect 466ms, tests 3.28s, environment 0ms, prepare 141ms)
+

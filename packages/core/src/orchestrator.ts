@@ -1,6 +1,14 @@
 import { HarnessError, KillSwitchHaltError, StateError } from "./errors.js";
 import { registryFingerprint } from "./checks.js";
-import { now } from "./determinism.js";
+import {
+  currentDeterminism,
+  entropyCounter,
+  makeDeterminism,
+  now,
+  resetDeterminism,
+  setDeterminism,
+  type ClockMode,
+} from "./determinism.js";
 import { EvidenceStore } from "./evidence.js";
 import {
   CheckStatus,
@@ -44,6 +52,9 @@ export interface OrchestratorRunOptions {
   registryFingerprint?: string;
   evidenceStore?: EvidenceStore;
   stateDirName?: string;
+  seed?: number | null;
+  clockMode?: ClockMode;
+  frozenClock?: unknown;
 }
 
 export interface PhaseHandlerContext {
@@ -227,13 +238,25 @@ export class Orchestrator {
     return this.runNew(options);
   }
 
+  private wantsDeterminism(options: OrchestratorRunOptions): boolean {
+    return options.seed !== undefined || options.clockMode !== undefined || options.frozenClock !== undefined;
+  }
+
+  private persistSequence(state: RunStateDomain): void {
+    state.options = { ...(state.options ?? {}) };
+    if (state.seed !== null && state.seed !== undefined) {
+      const seq = entropyCounter();
+      state.options.id_sequence = seq;
+      state.options.entropy_counter = seq;
+    }
+  }
+
   async resume(options: OrchestratorRunOptions): Promise<RunStateDomain> {
     const loadedRaw = await this.store.loadProgress<unknown>();
     const state = normalizeRunState(loadedRaw);
     const workflow = options.workflow ?? RELEASE_CONFIDENCE;
     const requestedTarget = normalizeTarget(options.target ?? state.target);
 
-    // Guard: workflow version compatibility (if saved version present)
     if (state.workflow_version && state.workflow_version !== workflow.version) {
       throw new StateError(
         `Workflow '${state.workflow_id}' changed since this run started (saved version ${state.workflow_version}, current version ${workflow.version}). Start a new run instead of resuming.`,
@@ -254,10 +277,8 @@ export class Orchestrator {
       );
     }
 
-    // This mutates in-memory copy and will throw on target/halted mismatch without persisting.
     prepareResumeState(state, requestedTarget);
 
-    // Reconcile evidence manifest against checkpointed/completed check state before continuing.
     const evidenceStore = options.evidenceStore ?? new EvidenceStore(
       this.store.root,
       state.run_id,
@@ -277,9 +298,30 @@ export class Orchestrator {
     const intent = options.intent ?? state.intent ?? "";
     state.intent = intent;
     state.options = { ...(state.options ?? {}), ...(options.options ?? {}), maxChecks: budget.maxChecks };
-    // ensure fingerprints recorded for future resumes
     state.options.registry_fingerprint = currentFingerprint;
     state.options.plugin_registry_fingerprint = currentFingerprint;
+
+    // Restore saved determinism on seeded runs (saved state wins).
+    const useDeterminism = state.seed !== null && state.seed !== undefined || this.wantsDeterminism(options);
+    let previous: ReturnType<typeof currentDeterminism> | null = null;
+    if (useDeterminism) {
+      const savedSeqRaw = state.options.id_sequence ?? state.options.entropy_counter ?? 0;
+      const savedSeq = typeof savedSeqRaw === "number" && Number.isFinite(savedSeqRaw) ? Math.max(0, Math.trunc(savedSeqRaw)) : 0;
+      const seed = state.seed ?? options.seed ?? null;
+      const clockMode = (state.clock_mode as ClockMode | undefined) ?? options.clockMode ?? "real";
+      const frozenClock = state.options.frozen_clock ?? options.frozenClock;
+      const det = makeDeterminism({
+        seed,
+        clockMode,
+        ...(frozenClock !== undefined ? { frozenClock } : {}),
+        entropyCounter: savedSeq,
+      });
+      previous = setDeterminism(det);
+      state.seed = det.seed;
+      state.clock_mode = det.clockMode;
+      if (clockMode === "frozen" && frozenClock !== undefined) state.options.frozen_clock = frozenClock;
+      this.persistSequence(state);
+    }
 
     const resolvedOptions: Required<Pick<OrchestratorRunOptions, "intent" | "maxChecks">> &
       Omit<OrchestratorRunOptions, "intent" | "maxChecks"> = {
@@ -291,10 +333,14 @@ export class Orchestrator {
       workflow,
     };
 
-    await this.store.saveProgress(state as unknown as Record<string, unknown>);
-    await this.store.appendEvent({ run_id: state.run_id, event: "run_resumed", timestamp: now() });
-
-    return this.executeFromState(state, workflow, resolvedOptions, budget);
+    try {
+      this.persistSequence(state);
+      await this.store.saveProgress(state as unknown as Record<string, unknown>);
+      await this.store.appendEvent({ run_id: state.run_id, event: "run_resumed", timestamp: now() });
+      return await this.executeFromState(state, workflow, resolvedOptions, budget);
+    } finally {
+      if (previous) resetDeterminism(previous);
+    }
   }
 
   private async runNew(options: OrchestratorRunOptions): Promise<RunStateDomain> {
@@ -310,25 +356,50 @@ export class Orchestrator {
       workflow,
     };
 
-    const state = createRunState({
-      ...(options.runId !== undefined ? { run_id: options.runId } : {}),
-      workflow_id: workflow.id,
-      workflow_version: workflow.version,
-      target: options.target,
-      intent,
-      options: { ...(options.options ?? {}), maxChecks: budget.maxChecks },
-    });
-    state.phases = PHASE_ORDER.map((name) => phaseFromWorkflow(name, workflow));
-    state.current_phase = DomainPhaseName.RISK_ANALYSIS;
-    state.status = RunStatus.RUNNING;
-    state.kill_switch = { ...state.kill_switch, armed: true, triggered: false, reason: "", manual: false };
-    const fingerprint = computeCurrentRegistryFingerprint(options);
-    state.options.registry_fingerprint = fingerprint;
-    state.options.plugin_registry_fingerprint = fingerprint;
+    const useDeterminism = this.wantsDeterminism(options);
+    let previous: ReturnType<typeof currentDeterminism> | null = null;
+    if (useDeterminism) {
+      const det = makeDeterminism({
+        seed: options.seed ?? null,
+        clockMode: options.clockMode ?? "real",
+        ...(options.frozenClock !== undefined ? { frozenClock: options.frozenClock } : {}),
+      });
+      previous = setDeterminism(det);
+    }
 
-    await this.store.appendEvent({ run_id: state.run_id, event: "run_started", workflow_id: state.workflow_id, workflow_version: state.workflow_version });
-    await this.store.saveProgress(state as unknown as Record<string, unknown>);
-    return this.executeFromState(state, workflow, resolvedOptions, budget);
+    try {
+      const state = createRunState({
+        ...(options.runId !== undefined ? { run_id: options.runId } : {}),
+        workflow_id: workflow.id,
+        workflow_version: workflow.version,
+        target: options.target,
+        intent,
+        options: { ...(options.options ?? {}), maxChecks: budget.maxChecks },
+      });
+      state.phases = PHASE_ORDER.map((name) => phaseFromWorkflow(name, workflow));
+      state.current_phase = DomainPhaseName.RISK_ANALYSIS;
+      state.status = RunStatus.RUNNING;
+      state.kill_switch = { ...state.kill_switch, armed: true, triggered: false, reason: "", manual: false };
+      if (useDeterminism) {
+        const det = currentDeterminism();
+        state.seed = det.seed;
+        state.clock_mode = det.clockMode;
+        if (options.clockMode === "frozen" && options.frozenClock !== undefined) {
+          state.options.frozen_clock = options.frozenClock;
+        }
+        this.persistSequence(state);
+      }
+      const fingerprint = computeCurrentRegistryFingerprint(options);
+      state.options.registry_fingerprint = fingerprint;
+      state.options.plugin_registry_fingerprint = fingerprint;
+
+      await this.store.appendEvent({ run_id: state.run_id, event: "run_started", workflow_id: state.workflow_id, workflow_version: state.workflow_version });
+      this.persistSequence(state);
+      await this.store.saveProgress(state as unknown as Record<string, unknown>);
+      return await this.executeFromState(state, workflow, resolvedOptions, budget);
+    } finally {
+      if (previous) resetDeterminism(previous);
+    }
   }
 
   private async executeFromState(
@@ -339,6 +410,7 @@ export class Orchestrator {
     budget: OrchestratorBudget,
   ): Promise<RunStateDomain> {
     const persist = async (): Promise<void> => {
+      this.persistSequence(state);
       state.updated_at = now();
       await this.store.saveProgress(state as unknown as Record<string, unknown>);
     };

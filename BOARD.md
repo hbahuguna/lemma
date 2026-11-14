@@ -125,7 +125,7 @@ inputs.
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Done |
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Done |
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Done |
-| LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Backlog |
+| LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Done |
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Backlog |
 | LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Backlog |
 | LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Backlog |
@@ -765,6 +765,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-019** — Port versioned policy files and gate evaluation (2026-11-14). Evidence: `policies/advisory-v1.json`, `packages/core/src/scoring.ts`, `packages/core/test/policy/policy.test.ts`, `docs/parity/evidence/LEM-019-policy-test-output.txt` (`pnpm --filter @lemma/core test -- policy`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-020** — Port the report builder and JSON Schema validation (2026-11-14). Evidence: `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/src/schemas/report.ts`, `packages/core/test/report/report.test.ts`, `docs/parity/evidence/LEM-020-report-test-output.txt` (`pnpm --filter @lemma/core test -- report`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-021** — Port resume, crash safety, and registry fingerprint (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/src/checks.ts`, `packages/core/test/resume/resume.test.ts`, `docs/parity/evidence/LEM-021-resume-test-output.txt` (`pnpm --filter @lemma/core test -- resume`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-022** — Port seeded resume and id-sequence continuity (2026-11-14). Evidence: `packages/core/src/determinism.ts`, `packages/core/src/orchestrator.ts`, `packages/core/test/seeded-resume/seeded-resume.test.ts`, `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt` (`pnpm --filter @lemma/core test -- seeded-resume`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-022 — Port seeded resume and id-sequence continuity
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-006, LEM-021
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- seeded-resume`.
+- **Description:** Port seeded determinism continuity across resume so run/finding
+  IDs remain stable and sequence counters continue from saved state.
+- **Acceptance Criteria:**
+  - Seeded runs record determinism and sequence state in progress/options
+    (`seed`, `clock_mode`, `frozen_clock` when applicable, `id_sequence` and/or
+    `entropy_counter`) and surface it in persisted run state.
+  - On `resume`, orchestrator restores saved determinism options (seed/clock mode/
+    frozen clock) and continues the seeded ID/entropy sequence from saved counter,
+    even if caller provides different determinism options.
+  - Simulated crash + seeded resume produces the same run identity and generated
+    finding/check IDs as an uninterrupted seeded run for equivalent execution; a
+    resumed completed seeded run does not rewrite existing IDs/evidence artifacts.
+  - APIs/types updated as needed and tests cover sequence persistence, restore-on-
+    resume precedence, and continuity/stability.
+- **Verification:** `pnpm --filter @lemma/core test -- seeded-resume` (targeted file: `packages/core/test/seeded-resume/seeded-resume.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/determinism.ts` (`entropyCounter` helper), `packages/core/src/orchestrator.ts` (seeded determinism context setup/restore, sequence persistence in state/options, saved-determinism precedence and counter continuation on resume), `packages/core/test/seeded-resume/seeded-resume.test.ts` (sequence persistence, saved-options precedence/continuity, crash+resume ID parity and completed-run stability). Test output: `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-021 — Port resume, crash safety, and registry fingerprint
 

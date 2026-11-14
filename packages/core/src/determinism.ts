@@ -192,6 +192,11 @@ export function currentDeterminism(): Determinism {
   return activeDeterminism;
 }
 
+export function entropyCounter(determinism: Determinism = currentDeterminism()): number {
+  const e = determinism.entropy as Partial<SeededEntropy> & Entropy;
+  return typeof e.getCounter === "function" ? e.getCounter() : 0;
+}
+
 export function now(): string {
   return currentDeterminism().now();
 }

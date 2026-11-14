@@ -214,7 +214,7 @@ with rationale.
 | --- | --- |
 | `test_orchestrator_cli.py` | LEM-026, LEM-084 |
 | `test_workflows.py` | LEM-012 |
-| `test_resume.py`, `test_resume_registry.py`, `test_seeded_resume.py` | LEM-021, LEM-022 (core crash-safe resume/rerun-preservation and registry-fingerprint/target guards covered by `packages/core/test/resume/resume.test.ts`; CLI behavior, plugin-registry removal cases, and seeded id-sequence continuity covered in follow-on tasks) | LEM-021, LEM-022 |
+| `test_resume.py`, `test_resume_registry.py`, `test_seeded_resume.py` | LEM-021, LEM-022 (core crash-safe resume/rerun-preservation and registry-fingerprint/target guards covered by `packages/core/test/resume/resume.test.ts`; seeded determinism/id-sequence persistence, restore-precedence, and crash-resume continuity/stability covered by `packages/core/test/seeded-resume/seeded-resume.test.ts`, output `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt`; CLI behavior and plugin-registry removal cases continue in follow-on tasks) | LEM-021, LEM-022 |
 | `test_determinism.py` | LEM-006 |
 | `test_history.py` | LEM-023 |
 | `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 |
