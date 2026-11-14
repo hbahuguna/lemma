@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/inventory/inventory.test.ts (3 tests) 551ms
+   ✓ LEM-027 source inventory and git-aware tracked/ignored scanning > records git-aware tracked/ignored env and tracked-only CI when repository is tracked  347ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:21:20
+   Duration  2.81s (transform 542ms, setup 0ms, collect 876ms, tests 551ms, environment 0ms, prepare 210ms)
+

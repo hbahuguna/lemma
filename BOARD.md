@@ -138,7 +138,7 @@ covers every assay category command with an owned check or a documented no-op.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-027 | Port source inventory and git-aware tracked/ignored scanning | P0 | 5 | LEM-013 | Backlog |
+| LEM-027 | Port source inventory and git-aware tracked/ignored scanning | P0 | 5 | LEM-013 | Done |
 | LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Backlog |
 | LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Backlog |
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Backlog |
@@ -770,6 +770,40 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-024** — Port risk analysis (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk/risk.test.ts`, `docs/parity/evidence/LEM-024-risk-test-output.txt` (`pnpm --filter @lemma/core test -- risk`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-025** — Port the scenario step planner and runner (2026-11-14). Evidence: `packages/core/src/steps.ts`, `packages/core/test/steps/steps.test.ts`, `docs/parity/evidence/LEM-025-steps-test-output.txt` (`pnpm --filter @lemma/core test -- steps`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-026** — Build the orchestrator conformance suite (2026-11-14). Evidence: `packages/core/test/conformance/orchestrator-conformance.test.ts`, `docs/parity/evidence/LEM-026-conformance-test-output.txt` (`pnpm --filter @lemma/core test -- conformance`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-027** — Port source inventory and git-aware tracked/ignored scanning (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/inventory/inventory.test.ts`, `docs/parity/evidence/LEM-027-inventory-test-output.txt` (`pnpm --filter @lemma/core test -- inventory`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-027 — Port source inventory and git-aware tracked/ignored scanning
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- inventory`.
+- **Description:** Port deterministic source inventory discovery and git-aware
+  tracked/ignored classification for repository scanning.
+- **Acceptance Criteria:**
+  - `Inventory`/`SourceInspector` (or equivalent core APIs) discover repository
+    files deterministically: walk with sorted traversal, skip built-in ignored
+    directories/hidden dirs (except `.github`/`.circleci`), respect ignore-file
+    scoping patterns (`.lemmaignore` equivalent to assay `.harnessignore`,
+    including negations and directory/file pattern matching), and record
+    `excluded_paths`/`excluded_file_count`/`excluded_patterns` and `skipped_dirs`.
+  - Inventory classifies files and metadata: `files`, `source_files`,
+    `markup_files`, `manifests`, `test_files`, `ci_files`, `lockfiles`,
+    `env_files`, `languages`, `total_files`/`total_bytes`, truncation flags/limits
+    (`MAX_*` parity), and derived booleans/summary fields compatible with assay
+    inventory shape.
+  - Git-aware scanning uses `git ls-files -z` when available to set
+    `tracked_available`/`tracked_file_count`, split `env_files_tracked` vs
+    `env_files_ignored`, and filter `ci_files` to tracked files; non-git targets
+    fall back to filesystem-only inventory without tracked claims.
+  - Test framework detection is derived from manifests/test file hints, and
+    APIs/types are exported from `@lemma/core` with tests covering filesystem
+    discovery, ignore/exclusion behavior, git-tracked classification, and
+    deterministic ordering/limits.
+- **Verification:** `pnpm --filter @lemma/core test -- inventory` (targeted file: `packages/core/test/inventory/inventory.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`SourceInspector`/`InventoryData` discovery with sorted deterministic traversal, skip/exclude handling via `.lemmaignore`/`.harnessignore` patterns including negations, classification/limits/summary flags, git-aware `ls-files -z` tracked/env/CI classification, framework detection; exported from `@lemma/core`), `packages/core/test/inventory/inventory.test.ts` (filesystem discovery/classification, ignore+negation scoping, git tracked/ignored env and tracked-only CI). Test output: `docs/parity/evidence/LEM-027-inventory-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-026 — Build the orchestrator conformance suite
 
