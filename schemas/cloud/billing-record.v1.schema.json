@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/cloud/billing-record.v1.schema.json",
+  "title": "Lemma billing record v1",
+  "$ref": "#/definitions/BillingRecord",
+  "definitions": {
+    "BillingRecord": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "lemma.billing/v1"
+            },
+            {
+              "type": "string",
+              "const": "quality-harness.billing/v1"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

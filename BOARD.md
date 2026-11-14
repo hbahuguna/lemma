@@ -98,7 +98,7 @@ parity with assay.
 | LEM-001 | Initialize the pnpm/TypeScript monorepo and quality gates | P0 | 3 | None | Done |
 | LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Done |
 | LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Done |
-| LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Backlog |
+| LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Done |
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Backlog |
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Backlog |
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Backlog |
@@ -422,7 +422,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 5
 - **Depends on:** LEM-003
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test --filter @lemma/core -- schemas`.
 - **Description:** Port assay's dataclasses and JSON Schemas into zod-first
   contracts. Export inferred TypeScript types and generated JSON Schemas.
 - **Acceptance Criteria:**
@@ -436,8 +437,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Public types are inferred from schemas; no hand-written duplicate interface.
   - Contract tests reject removed/typed-wrong fields and allow additive optional
     fields.
-- **Verification:** `pnpm test --filter @lemma/core -- schemas`
-- **Evidence to record:** schema files, compatibility fixtures, test output.
+- **Verification:** Schema contract tests passed: `pnpm exec vitest run packages/core/test/schemas` (5 tests) and `pnpm --filter @lemma/core test -- schemas` (core suite incl. schemas passed). `pnpm --filter @lemma/core typecheck`/`build`/`lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/schemas/*` (zod + inferred exports), `scripts/schemas/generate.ts`, committed `schemas/**` (23 files, including report/state/evidence/persona/plugin/policy/metering/cloud contracts), `packages/core/test/schemas/schemas.test.ts` (assay report compatibility completed/halted/failed, generated-vs-committed parity, removed/typed-wrong rejection, additive optional acceptance). Commit/remote recorded in completion summary.
 
 ### LEM-005 — Build the assay↔lemma golden parity harness
 
@@ -604,3 +605,4 @@ No task is claimed.
 - **LEM-001** — Initialize the pnpm/TypeScript monorepo and quality gates (2026-11-14). Evidence: `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test` passed; 11 workspace package shells, strict TS/ESM config, CI workflow (Node 20/22), and required repo docs/config present. Commit/remote recorded in completion summary.
 - **LEM-002** — Publish the machine-readable assay parity manifest and check (2026-11-14). Evidence: `docs/parity/assay.manifest.json` (281 assets, 10 kinds), `scripts/parity/check.mjs` (`pnpm parity:check`), CI step, and parity drift/validation tests; `pnpm parity:check` exit 0 on complete manifest and nonzero on removed owner. Commit/remote recorded in completion summary.
 - **LEM-003** — Ratify the architecture, package graph, and adapter contract (2026-11-14). Evidence: `docs/architecture.md` ratified (graph/module map/`AgentHost` interfaces/capability matrix/degradation/adapter ownership, OpenCode+Claude Code first), `docs/adr/0001-typescript-monorepo-and-contracts.md`, `packages/core/test/dependency-direction.test.ts`; `pnpm typecheck` and dependency-direction test passed. Operator sign-off: DL11. Commit/remote recorded in completion summary.
+- **LEM-004** — Define versioned zod schemas and inferred core types (2026-11-14). Evidence: zod contract modules in `@lemma/core` for report v1, state/progress/history, evidence manifest, persona, plugin, policy, metering envelope/events, quota plan, price book, entitlement, queue job, billing record, retention; generated/committed `schemas/**` (23 files) match generator output; schema tests cover assay report compatibility (completed/halted/failed), contract rejection/additive fields. Commit/remote recorded in completion summary.

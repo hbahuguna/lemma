@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/plugin/definition.v1.schema.json",
+  "title": "Lemma plugin definition v1",
+  "$ref": "#/definitions/PluginDefinition",
+  "definitions": {
+    "PluginDefinition": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "anyOf": [
+            {
+              "type": "string",
+              "const": "lemma.check-plugin/v1"
+            },
+            {
+              "type": "string",
+              "const": "quality-harness.check-plugin/v1"
+            },
+            {
+              "type": "string"
+            }
+          ]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "signature": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "id"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

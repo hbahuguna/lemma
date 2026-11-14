@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/cloud/price-book.v1.schema.json",
+  "title": "Lemma price book v1",
+  "$ref": "#/definitions/PriceBook",
+  "definitions": {
+    "PriceBook": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.price-book/v1",
+            "quality-harness.price-book/v1"
+          ]
+        },
+        "version": {
+          "type": "string"
+        },
+        "currency": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    }
+  }
+}

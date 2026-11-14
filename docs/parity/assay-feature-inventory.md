@@ -30,7 +30,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/evidence.py` | Hashed artifact store, manifest, checkpoint, verify | `@lemma/core/evidence` | LEM-016, LEM-017 |
 | `harness/state.py` | Atomic progress, events, run history, retention, kill file | `@lemma/core/state` | LEM-010, LEM-011, LEM-023 |
 | `harness/report.py` | `quality-harness.report/v1` builder and schema | `@lemma/core/report` | LEM-020 |
-| `harness/models.py` | Domain enums and records | `@lemma/core/models` | LEM-004, LEM-013 |
+| `harness/models.py` | Domain enums and records (zod schema/type foundations landed; domain enums/normalization pending LEM-013) | `@lemma/core/models` | LEM-004, LEM-013 |
 | `harness/errors.py` | Typed error model | `@lemma/core/errors` | LEM-007 |
 | `harness/outcomes.py` | Finding/blocker drafts and check outcomes | `@lemma/core/outcomes` | LEM-013, LEM-046 |
 | `harness/risk.py` | Risk ranking from inventory | `@lemma/core/risk` | LEM-024, LEM-036 |
@@ -167,7 +167,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | Assay asset | Capability | Lemma task |
 | --- | --- | --- |
 | `schemas/report/report.v1.schema.json` | Published report contract | LEM-020, LEM-073 |
-| `schemas/report/index.json` | Report schema index | LEM-004, LEM-020 |
+| `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` generated/committed) | LEM-004, LEM-020 |
 | `schemas/metering/envelope.v1.schema.json` | Event envelope | LEM-113 |
 | `schemas/metering/run_started.v1.schema.json` | Run event | LEM-113 |
 | `schemas/metering/check_executed.v1.schema.json` | Check event | LEM-113 |
@@ -298,7 +298,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | Host-neutral agent SDK | Avoid five copies of the loop and prompts | LEM-098 |
 | Capability negotiation | Hosts differ; silent emulation would be dishonest | LEM-099 |
 | Installer CLI | One-command install per host | LEM-107 |
-| Core runtime deps (`zod`, YAML parser) | Typed schemas and workflow parsing without hand-rolled validation | LEM-004, LEM-012 |
+| Core runtime deps (`zod`, YAML parser) | Typed schemas and workflow parsing without hand-rolled validation (`zod` added to `@lemma/core`; YAML parser pending LEM-012) | LEM-004, LEM-012 |
 
 ## 10. Completeness checklist
 

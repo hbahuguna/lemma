@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/cloud/retention-policy.v1.schema.json",
+  "title": "Lemma retention policy v1",
+  "$ref": "#/definitions/RetentionPolicy",
+  "definitions": {
+    "RetentionPolicy": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.retention/v1",
+            "quality-harness.retention/v1"
+          ]
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "retention_days": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "grace_period_days": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "plan_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "default": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/policy/policy.v1.schema.json",
+  "title": "Lemma policy v1",
+  "$ref": "#/definitions/Policy",
+  "definitions": {
+    "Policy": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.policy/v1",
+            "quality-harness.policy/v1"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "gates": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

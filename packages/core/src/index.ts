@@ -1,6 +1,5 @@
-/**
- * @lemma/core — Host-neutral deterministic release-confidence engine.
- *
- * See docs/architecture.md for the package graph and dependency direction.
- */
-export const PACKAGE_NAME = "@lemma/core" as const;
+export const PACKAGE_NAME = "@lemma/core";
+export const PACKAGE_STATUS = "foundation";
+export const STATE_ROOT = ".lemma";
+
+export * from "./schemas/index.js";

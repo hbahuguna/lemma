@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/state/history.v1.schema.json",
+  "title": "Lemma history v1",
+  "$ref": "#/definitions/History",
+  "definitions": {
+    "History": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.history/v1",
+            "quality-harness.history/v1"
+          ]
+        },
+        "runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "run_id": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string"
+              },
+              "decision": {
+                "type": "string"
+              },
+              "score": {
+                "type": "number"
+              },
+              "started_at": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "completed_at": {
+                "anyOf": [
+                  {
+                    "$ref": "#/definitions/History/properties/runs/items/properties/started_at/anyOf/0"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "recorded_at": {
+                "$ref": "#/definitions/History/properties/runs/items/properties/started_at/anyOf/0"
+              }
+            },
+            "required": [
+              "run_id",
+              "status"
+            ],
+            "additionalProperties": true
+          }
+        }
+      },
+      "required": [
+        "runs"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

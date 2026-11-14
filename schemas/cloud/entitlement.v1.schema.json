@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/cloud/entitlement.v1.schema.json",
+  "title": "Lemma entitlement v1",
+  "$ref": "#/definitions/Entitlement",
+  "definitions": {
+    "Entitlement": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.entitlement/v1",
+            "quality-harness.entitlement/v1"
+          ]
+        },
+        "workspace_id": {
+          "type": "string"
+        },
+        "plan": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "issued_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expires_at": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Entitlement/properties/issued_at"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "schema_version"
+      ],
+      "additionalProperties": true
+    }
+  }
+}

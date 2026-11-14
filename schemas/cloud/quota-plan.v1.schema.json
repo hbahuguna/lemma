@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://lemma.dev/schemas/cloud/quota-plan.v1.schema.json",
+  "title": "Lemma quota plan v1",
+  "$ref": "#/definitions/QuotaPlan",
+  "definitions": {
+    "QuotaPlan": {
+      "type": "object",
+      "properties": {
+        "schema_version": {
+          "type": "string",
+          "enum": [
+            "lemma.quota-plan/v1",
+            "quality-harness.quota-plan/v1"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "period": {
+          "type": "string",
+          "const": "monthly"
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "soft": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "hard": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}

@@ -20,10 +20,19 @@
   "scripts": {
     "build": "tsup src/index.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts",
+    "schemas:generate": "tsx ../../scripts/schemas/generate.ts",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
-  "dependencies": {},
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.23.15",
+    "vitest": "^3.2.0",
+    "zod-to-json-schema": "^3.25.2"
   }
 }
