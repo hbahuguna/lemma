@@ -195,7 +195,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `policies/advisory-v1.json` | Default gate policy | LEM-019 |
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
-| `pyproject.toml` | Package metadata and console script | LEM-009, LEM-134 |
+| `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance release dry-run — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`) | LEM-009, LEM-134 |
 | `requirements.txt` | Dependency declaration (replaced by pnpm workspace manifests and committed `pnpm-lock.yaml`) | LEM-001 | LEM-001 |
 | `.github/workflows/ci.yml` | Test + browser matrix | LEM-132, LEM-133 |
 | `.github/workflows/release.yml` | Signed release and publish | LEM-134 |

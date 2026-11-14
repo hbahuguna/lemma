@@ -1,7 +1,7 @@
 {
   "name": "@lemma/browser",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Optional Playwright-backed Operate layer.",
   "license": "MIT",
@@ -27,5 +27,22 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/browser"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "peerDependencies": {
+    "playwright": ">=1.40.0"
+  },
+  "peerDependenciesMeta": {
+    "playwright": {
+      "optional": true
+    }
   }
 }

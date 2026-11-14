@@ -1,7 +1,7 @@
 {
   "name": "@lemma/cli",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Machine-first lemma CLI.",
   "license": "MIT",
@@ -10,7 +10,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    }
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -18,7 +22,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
@@ -28,5 +32,17 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/cli"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "lemma": "./dist/cli.js"
   }
 }

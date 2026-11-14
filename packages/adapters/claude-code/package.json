@@ -1,7 +1,7 @@
 {
   "name": "@lemma/adapters-claude-code",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Claude Code host adapter.",
   "license": "MIT",
@@ -27,5 +27,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/adapters/claude-code"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

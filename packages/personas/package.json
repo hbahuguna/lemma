@@ -1,7 +1,7 @@
 {
   "name": "@lemma/personas",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Persona contracts and ownership validation.",
   "license": "MIT",
@@ -27,5 +27,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/personas"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

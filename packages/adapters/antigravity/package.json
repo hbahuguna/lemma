@@ -1,7 +1,7 @@
 {
   "name": "@lemma/adapters-antigravity",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Antigravity host adapter.",
   "license": "MIT",
@@ -27,5 +27,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/adapters/antigravity"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@lemma/agent",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Host-neutral agent loop and command catalog.",
   "license": "MIT",
@@ -27,5 +27,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/agent"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }

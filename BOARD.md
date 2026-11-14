@@ -103,7 +103,7 @@ parity with assay.
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Done |
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Done |
 | LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Done |
-| LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Backlog |
+| LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Done |
 | LEM-010 | Port atomic state, JSON, and file-lock primitives | P0 | 5 | LEM-001, LEM-007 | Backlog |
 
 ### E2: Deterministic Core Engine
@@ -534,7 +534,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 3
 - **Depends on:** LEM-001, LEM-003
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm publish --dry-run --recursive`.
 - **Description:** Choose the npm scope and CLI name, define semver policy,
   Changesets release flow, provenance, peer-dependency policy, and the install
   contract for each host.
@@ -547,8 +548,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Peer-dependency policy prevents Playwright and host SDKs from becoming
     required installs.
   - `SECURITY.md` and a vulnerability disclosure path exist.
-- **Verification:** `pnpm publish --dry-run --recursive`
-- **Evidence to record:** ADR, dry-run output, package manifests.
+- **Verification:** `pnpm publish --dry-run --recursive --no-git-checks` — **PASS** (dry-run exercised all 11 `@lemma/*` workspace packages; each reported `Skip publishing ... (dry run)` with exit 0). `pnpm build`, `pnpm lint`, `pnpm typecheck`, and `pnpm test` passed (2026-11-14).
+- **Evidence:** ADR `docs/adr/0002-package-scope-release-and-consumer-contracts.md` (scope `@lemma/*`, CLI binary `lemma`, semver/Changesets/provenance/dry-run/release flow, exports/optionality policy), package manifests updated across `packages/*` and `packages/adapters/*` (public publish metadata, explicit exports maps, `@lemma/core` optional subpaths `./browser` and `./cloud`, `@lemma/cli` `bin.lemma`, Playwright as optional peer on browser surface only, no host SDK required in core), `.changeset/config.json` + `.changeset/README.md` (Changesets flow), `.github/workflows/release-dry-run.yml` (CI dry-run publish job with npm provenance/OIDC permissions), `SECURITY.md` (private vulnerability reporting/disclosure path). Commit/remote recorded in completion summary.
 
 ### LEM-010 — Port atomic state, JSON, and file-lock primitives
 
@@ -614,3 +615,4 @@ No task is claimed.
 - **LEM-006** — Port deterministic clock, entropy, and seeded id providers (2026-11-14). Evidence: `packages/core/src/determinism.ts` and `packages/core/test/determinism/determinism.test.ts`; seeded/frozen byte-identical outputs, real UTC/random defaults, report-only `generated_at` override semantics, and typed validation errors verified (`pnpm --filter @lemma/core test -- determinism`). Commit/remote recorded in completion summary.
 - **LEM-007** — Port the typed error model and exit-code contract (2026-11-14). Evidence: `packages/core/src/errors.ts`, `packages/cli/src/errors.ts`, `packages/core/test/errors/errors.test.ts`; typed domain errors, exit codes 0/1/2/3/130, stable malformed-workflow/corrupt-state payloads, JSON-only stdout/stderr separation verified (`pnpm --filter @lemma/core test -- errors`). Commit/remote recorded in completion summary.
 - **LEM-008** — Port the redaction engine and synthetic corpus (2026-11-14). Evidence: `packages/core/src/redaction.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json` (30 shapes incl. Jira/storage state), `packages/core/test/redaction/redaction.test.ts`, `docs/parity/evidence/LEM-008-artifact-scan-output.json` (`leaked_count: 0`); idempotence, broken-redactor detection, and no-original-in-failure behavior verified (`pnpm --filter @lemma/core test -- redaction`). Commit/remote recorded in completion summary.
+- **LEM-009** — Decide package naming, release flow, and consumer contracts (2026-11-14). Evidence: ADR 0002 (`@lemma/*` scope, `lemma` CLI, exports/optional browser+cloud subpaths, semver/Changesets/provenance, peer-dependency policy), updated package manifests, `.github/workflows/release-dry-run.yml`, `SECURITY.md`; `pnpm publish --dry-run --recursive --no-git-checks` passed for all workspace packages. Commit/remote recorded in completion summary.

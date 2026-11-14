@@ -1,7 +1,7 @@
 {
   "name": "@lemma/cloud",
   "version": "0.0.0",
-  "private": true,
+  "private": false,
   "type": "module",
   "description": "Optional cloud-tier services (metering, quota, billing).",
   "license": "MIT",
@@ -27,5 +27,14 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hbahuguna/lemma.git",
+    "directory": "packages/cloud"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
   }
 }
