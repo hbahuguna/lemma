@@ -128,7 +128,7 @@ inputs.
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Done |
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Done |
 | LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Done |
-| LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Backlog |
+| LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Done |
 | LEM-026 | Build the orchestrator conformance suite | P0 | 5 | LEM-015, LEM-016, LEM-018, LEM-020, LEM-021 | Backlog |
 
 ### E3: Static Analysis and Category Coverage
@@ -768,6 +768,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-022** — Port seeded resume and id-sequence continuity (2026-11-14). Evidence: `packages/core/src/determinism.ts`, `packages/core/src/orchestrator.ts`, `packages/core/test/seeded-resume/seeded-resume.test.ts`, `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt` (`pnpm --filter @lemma/core test -- seeded-resume`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-023** — Port run history, retention, and prune (2026-11-14). Evidence: `packages/core/src/state-store.ts`, `packages/core/test/history/history.test.ts`, `docs/parity/evidence/LEM-023-history-test-output.txt` (`pnpm --filter @lemma/core test -- history`, 3/3; `test/state/state-store.test.ts`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-024** — Port risk analysis (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk/risk.test.ts`, `docs/parity/evidence/LEM-024-risk-test-output.txt` (`pnpm --filter @lemma/core test -- risk`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-025** — Port the scenario step planner and runner (2026-11-14). Evidence: `packages/core/src/steps.ts`, `packages/core/test/steps/steps.test.ts`, `docs/parity/evidence/LEM-025-steps-test-output.txt` (`pnpm --filter @lemma/core test -- steps`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-025 — Port the scenario step planner and runner
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-024
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- steps`.
+- **Description:** Port scenario step planning and core execution/result
+  evaluation contracts for natural-language ticket scenarios.
+- **Acceptance Criteria:**
+  - Core exposes scenario step models and planner APIs: `StepAction`,
+    `ScenarioPlan`, `StepPlanner`, deterministic `HeuristicStepPlanner`, and
+    `LLMStepPlanner`/`createStepPlanner` with LLM-compatible compilation and safe
+    fallback to heuristic parsing (no non-stdlib runtime deps in core).
+  - Heuristic planner parses numbered/bulleted/prose instructions into structured
+    actions (goto/click/fill/toggle/assertions including no-errors/plan-cards/text
+    variants and fallbacks) with normalized targets/values and base-URL
+    resolution for navigation.
+  - Core exposes scenario execution result contracts and check evaluation:
+    `StepResult`, `ScenarioExecutionResult`, and `evaluateScenarioCheck(...)`
+    producing pass/fail/blocked outcomes, evidence refs, counts/metadata, and
+    deterministic finding details for failed scenarios (Playwright/browser driving
+    remains outside core).
+  - APIs/types exported from `@lemma/core` with tests covering heuristic
+    compilation cases, LLM planner parse/fallback behavior (mocked transport),
+    and scenario-check evaluation outcomes.
+- **Verification:** `pnpm --filter @lemma/core test -- steps` (targeted file: `packages/core/test/steps/steps.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/steps.ts` (`StepAction`/`ScenarioPlan`, `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch+fallback, `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck`; exported from `@lemma/core`), `packages/core/test/steps/steps.test.ts` (heuristic compilation/base-URL resolution, LLM parse/fallback and factory, execution-result evaluation outcomes). Test output: `docs/parity/evidence/LEM-025-steps-test-output.txt`. Commit/remote recorded in completion summary. Note: Playwright page-driving scenario execution remains in browser integration (outside core).
 
 ### LEM-024 — Port risk analysis
 

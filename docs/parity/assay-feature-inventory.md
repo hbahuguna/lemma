@@ -38,8 +38,8 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/exports.py` | SARIF and JUnit exporters | `@lemma/core/exports` | LEM-065, LEM-066 |
 | `harness/calibration.py` | Labeled fixture calibration | `@lemma/core/calibration` | LEM-070, LEM-074 |
 | `harness/ssrf.py` | SSRF validation, DNS, allowlists, redirects | `@lemma/core/ssrf` | LEM-059, LEM-125 |
-| `harness/step_planner.py` | Scenario step planning | `@lemma/core/steps` | LEM-025 |
-| `harness/step_runner.py` | Scenario step execution | `@lemma/core/steps` | LEM-025 |
+| `harness/step_planner.py` | Scenario step planning (`packages/core/src/steps.ts`: `StepAction`/`ScenarioPlan`, deterministic `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch and heuristic fallback; tests `packages/core/test/steps/steps.test.ts`, output `docs/parity/evidence/LEM-025-steps-test-output.txt`) | `@lemma/core/steps` | LEM-025 |
+| `harness/step_runner.py` | Scenario step execution/result contracts (`packages/core/src/steps.ts`: `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck` pass/fail/blocked outcomes, evidence/count metadata, deterministic failed-scenario findings; tests `packages/core/test/steps/steps.test.ts`; Playwright page-driving execution remains in browser integration outside core) | `@lemma/core/steps` | LEM-025 |
 | `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113 |
 | `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 |
 | `harness/quota.py` | Monthly soft/hard allowance, locking, headers | `@lemma/cloud/quota` | LEM-115 |
