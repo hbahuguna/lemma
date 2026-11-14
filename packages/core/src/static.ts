@@ -973,6 +973,8 @@ export class StaticCheckRunner {
         return this.checkStaticUnsafe(check);
       case "static.accessibility":
         return this.checkStaticAccessibility(check);
+      case "static.full_assessment":
+        return this.checkStaticFullAssessment(check);
       case "static.test_category":
         return this.checkStaticTestCategory(check);
       case "static.functionality_category":
@@ -1440,6 +1442,31 @@ export class StaticCheckRunner {
     } catch {
       return "";
     }
+  }
+
+  async checkStaticFullAssessment(check: StaticCheckLike): Promise<CheckOutcome> {
+    const payload = {
+      category: "full",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      markup_files: this.inventory.markup_files.length,
+      manifests: this.inventory.manifests.length,
+    };
+    const evidence = await this.save(
+      "full-assessment-scope",
+      payload,
+      check,
+      "Full category assessment scope and inventory summary.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Full category assessment recorded for ${this.inventory.source_files.length} source file(s).`,
+      evidence: [evidence],
+      metadata: { category: "full" },
+    });
   }
 
   async checkStaticTestCategory(check: StaticCheckLike): Promise<CheckOutcome> {

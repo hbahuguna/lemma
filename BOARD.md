@@ -145,7 +145,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Done |
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Done |
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Done |
-| LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Backlog |
+| LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Done |
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Backlog |
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Backlog |
 | LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Backlog |
@@ -777,6 +777,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-031** — Port secret scanning and precision rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/secret-scan/secret-scan.test.ts`, `docs/parity/evidence/LEM-031-secret-scan-test-output.txt` (`pnpm --filter @lemma/core test -- secret-scan`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-032** — Port unsafe-code rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/unsafe-scan/unsafe-scan.test.ts`, `docs/parity/evidence/LEM-032-unsafe-scan-test-output.txt` (`pnpm --filter @lemma/core test -- unsafe-scan`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-033** — Port baseline category checks (test/functionality/browser/issues/demo/more) (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/category-checks/category-checks.test.ts`, `docs/parity/evidence/LEM-033-category-checks-test-output.txt` (`pnpm --filter @lemma/core test -- category-checks`, 5/5). Commit/remote recorded in completion summary.
+- **LEM-034** — Port full-assessment markers (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/full-assessment/full-assessment.test.ts`, `docs/parity/evidence/LEM-034-full-assessment-test-output.txt` (`pnpm --filter @lemma/core test -- full-assessment`, 1/1). Commit/remote recorded in completion summary.
+
+### LEM-034 — Port full-assessment markers
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- full-assessment`.
+- **Description:** Port the deterministic full-assessment category scope marker
+  (`static.full_assessment`) with assay-compatible evidence and outcome.
+- **Acceptance Criteria:**
+  - Core static runner implements and dispatches `static.full_assessment`,
+    saving evidence artifact `full-assessment-scope` (kind `static_analysis`)
+    with description `Full category assessment scope and inventory summary.`.
+  - Evidence payload includes `category: "full"`, `intent`, `expected`,
+    `source_available`, and counts for `source_files`, `test_files`,
+    `markup_files`, and `manifests` derived from the inventory/check.
+  - Outcome is assay-compatible: passed, actual
+    `Full category assessment recorded for ${source_files.length} source file(s).`,
+    evidence includes the saved scope artifact, and metadata includes
+    `{ category: "full" }`; API exported from `@lemma/core` with tests covering
+    payload/actual/metadata/evidence linkage.
+- **Verification:** `pnpm --filter @lemma/core test -- full-assessment` (targeted file: `packages/core/test/full-assessment/full-assessment.test.ts`) — **PASS** (1 test). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-033 — Port baseline category checks (test/functionality/browser/issues/demo/more)
 
