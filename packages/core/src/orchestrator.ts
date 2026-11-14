@@ -1,5 +1,7 @@
-import { HarnessError, KillSwitchHaltError } from "./errors.js";
+import { HarnessError, KillSwitchHaltError, StateError } from "./errors.js";
+import { registryFingerprint } from "./checks.js";
 import { now } from "./determinism.js";
+import { EvidenceStore } from "./evidence.js";
 import {
   CheckStatus,
   DomainPhaseName,
@@ -9,6 +11,10 @@ import {
   normalizeCheck,
   normalizePhase,
   normalizeRunState,
+  normalizeTarget,
+  targetToDict,
+  type Finding,
+  type InvalidFinding,
   type Phase,
   type RunStateDomain,
   type Target,
@@ -34,6 +40,10 @@ export interface OrchestratorRunOptions {
   maxChecks?: number;
   runId?: string;
   options?: Record<string, unknown>;
+  resume?: boolean;
+  registryFingerprint?: string;
+  evidenceStore?: EvidenceStore;
+  stateDirName?: string;
 }
 
 export interface PhaseHandlerContext {
@@ -108,6 +118,101 @@ function markRemainingPhasesSkipped(state: RunStateDomain, fromIndex: number, re
   }
 }
 
+function computeCurrentRegistryFingerprint(options: OrchestratorRunOptions): string {
+  if (typeof options.registryFingerprint === "string" && options.registryFingerprint.length > 0) {
+    return options.registryFingerprint;
+  }
+  return registryFingerprint(null);
+}
+
+function rebuildContractState(state: RunStateDomain): void {
+  const failures: Record<string, number> = {};
+  const streaks: Record<string, number> = {};
+  const degraded: string[] = [];
+  for (const record of state.invalid_findings) {
+    const persona = String(record.persona || "");
+    failures[persona] = (failures[persona] ?? 0) + 1;
+    const streak = (streaks[persona] ?? 0) + 1;
+    streaks[persona] = streak;
+    if (streak >= 3 && !degraded.includes(persona)) degraded.push(persona);
+  }
+  state.contract_failures = failures;
+  state.contract_failure_streaks = streaks;
+  state.degraded_personas = degraded;
+}
+
+function prepareResumeState(state: RunStateDomain, requestedTarget: Target): void {
+  if (state.status === RunStatus.HALTED) {
+    throw new StateError(
+      "This run was halted by the kill switch. Start a new run after investigating the finding, or remove the kill file and use a new run ID.",
+      { details: { run_id: state.run_id, status: state.status } },
+    );
+  }
+  const savedTarget = normalizeTarget(state.target);
+  if (savedTarget.kind !== requestedTarget.kind || savedTarget.resolved !== requestedTarget.resolved) {
+    throw new StateError(
+      `Resume target does not match the saved run. Saved: ${savedTarget.resolved}; requested: ${requestedTarget.resolved}.`,
+      { details: { saved: targetToDict(savedTarget), requested: targetToDict(requestedTarget) } },
+    );
+  }
+
+  for (const phase of state.phases) {
+    if (phase.status === PhaseStatus.RUNNING || phase.status === PhaseStatus.FAILED) {
+      phase.status = PhaseStatus.PENDING;
+      phase.completed_at = null;
+      phase.summary = "";
+    }
+    if (phase.name === DomainPhaseName.RISK_ANALYSIS || phase.name === DomainPhaseName.TEST_PLANNING) {
+      if (phase.status !== PhaseStatus.COMPLETED) {
+        phase.status = PhaseStatus.PENDING;
+      }
+    }
+  }
+
+  const execution = state.phases.find((p) => p.name === DomainPhaseName.EXECUTION);
+  const rerunIds = new Set<string>();
+  if (!execution || execution.status !== PhaseStatus.COMPLETED) {
+    for (const check of state.checks) {
+      if (
+        check.status === CheckStatus.RUNNING ||
+        check.status === CheckStatus.PLANNED ||
+        check.status === CheckStatus.ERROR
+      ) {
+        rerunIds.add(check.id);
+      }
+    }
+    state.findings = state.findings.filter((f: Finding) => !rerunIds.has(String(f.check_id ?? "")));
+    state.blockers = state.blockers.filter((b) => !rerunIds.has(String(b.check_id ?? "")));
+    const beforeInvalid = state.invalid_findings.length;
+    state.invalid_findings = state.invalid_findings.filter((f: InvalidFinding) => !rerunIds.has(String(f.check_id ?? "")));
+    if (state.invalid_findings.length !== beforeInvalid) {
+      rebuildContractState(state);
+    }
+    for (const check of state.checks) {
+      if (rerunIds.has(check.id)) {
+        check.status = CheckStatus.PLANNED;
+        check.actual = "";
+        check.evidence = [];
+        check.finding_ids = [];
+        check.skip_reason = "";
+        check.started_at = null;
+        check.completed_at = null;
+        check.metadata = {};
+      }
+    }
+  }
+
+  state.status = RunStatus.RUNNING;
+  state.error = "";
+  state.completed_at = null;
+  state.halted_reason = "";
+  state.updated_at = now();
+  if (state.kill_switch.triggered) {
+    // A resumed, non-halted run should not remain marked triggered from prior state.
+    state.kill_switch = { ...state.kill_switch, triggered: false, reason: "", manual: false, triggered_at: null };
+  }
+}
+
 export class Orchestrator {
   private readonly store: StateStore;
   private readonly handlers: PhaseHandlers;
@@ -118,6 +223,81 @@ export class Orchestrator {
   }
 
   async run(options: OrchestratorRunOptions): Promise<RunStateDomain> {
+    if (options.resume) return this.resume(options);
+    return this.runNew(options);
+  }
+
+  async resume(options: OrchestratorRunOptions): Promise<RunStateDomain> {
+    const loadedRaw = await this.store.loadProgress<unknown>();
+    const state = normalizeRunState(loadedRaw);
+    const workflow = options.workflow ?? RELEASE_CONFIDENCE;
+    const requestedTarget = normalizeTarget(options.target ?? state.target);
+
+    // Guard: workflow version compatibility (if saved version present)
+    if (state.workflow_version && state.workflow_version !== workflow.version) {
+      throw new StateError(
+        `Workflow '${state.workflow_id}' changed since this run started (saved version ${state.workflow_version}, current version ${workflow.version}). Start a new run instead of resuming.`,
+        { details: { run_id: state.run_id, saved: state.workflow_version, current: workflow.version } },
+      );
+    }
+
+    const savedFingerprint = typeof state.options?.registry_fingerprint === "string"
+      ? state.options.registry_fingerprint
+      : typeof state.options?.plugin_registry_fingerprint === "string"
+        ? state.options.plugin_registry_fingerprint
+        : "";
+    const currentFingerprint = computeCurrentRegistryFingerprint(options);
+    if (savedFingerprint && savedFingerprint !== currentFingerprint) {
+      throw new StateError(
+        `Plugin registry changed since this run started (saved ${savedFingerprint}, current ${currentFingerprint}). Start a new run instead of resuming.`,
+        { details: { run_id: state.run_id, saved: savedFingerprint, current: currentFingerprint } },
+      );
+    }
+
+    // This mutates in-memory copy and will throw on target/halted mismatch without persisting.
+    prepareResumeState(state, requestedTarget);
+
+    // Reconcile evidence manifest against checkpointed/completed check state before continuing.
+    const evidenceStore = options.evidenceStore ?? new EvidenceStore(
+      this.store.root,
+      state.run_id,
+      options.stateDirName ? { stateDirName: options.stateDirName } : undefined,
+    );
+    const evidencePhase = state.phases.find((p) => p.name === DomainPhaseName.EVIDENCE_COLLECTION);
+    if (!evidencePhase || evidencePhase.status !== PhaseStatus.COMPLETED) {
+      await evidenceStore.reconcile(state.checks);
+    }
+    try {
+      state.evidence_dir = evidenceStore.summary().directory;
+    } catch {
+      // keep existing evidence_dir if summary unavailable
+    }
+
+    const budget = validateBudget({ ...options, maxChecks: options.maxChecks ?? (typeof state.options?.maxChecks === "number" ? state.options.maxChecks : 20) });
+    const intent = options.intent ?? state.intent ?? "";
+    state.intent = intent;
+    state.options = { ...(state.options ?? {}), ...(options.options ?? {}), maxChecks: budget.maxChecks };
+    // ensure fingerprints recorded for future resumes
+    state.options.registry_fingerprint = currentFingerprint;
+    state.options.plugin_registry_fingerprint = currentFingerprint;
+
+    const resolvedOptions: Required<Pick<OrchestratorRunOptions, "intent" | "maxChecks">> &
+      Omit<OrchestratorRunOptions, "intent" | "maxChecks"> = {
+      ...options,
+      intent,
+      maxChecks: budget.maxChecks,
+      resume: true,
+      target: requestedTarget,
+      workflow,
+    };
+
+    await this.store.saveProgress(state as unknown as Record<string, unknown>);
+    await this.store.appendEvent({ run_id: state.run_id, event: "run_resumed", timestamp: now() });
+
+    return this.executeFromState(state, workflow, resolvedOptions, budget);
+  }
+
+  private async runNew(options: OrchestratorRunOptions): Promise<RunStateDomain> {
     const budget = validateBudget(options);
     const workflow = options.workflow ?? RELEASE_CONFIDENCE;
     const intent = options.intent ?? "";
@@ -126,6 +306,8 @@ export class Orchestrator {
       ...options,
       intent,
       maxChecks: budget.maxChecks,
+      resume: false,
+      workflow,
     };
 
     const state = createRunState({
@@ -140,7 +322,22 @@ export class Orchestrator {
     state.current_phase = DomainPhaseName.RISK_ANALYSIS;
     state.status = RunStatus.RUNNING;
     state.kill_switch = { ...state.kill_switch, armed: true, triggered: false, reason: "", manual: false };
+    const fingerprint = computeCurrentRegistryFingerprint(options);
+    state.options.registry_fingerprint = fingerprint;
+    state.options.plugin_registry_fingerprint = fingerprint;
 
+    await this.store.appendEvent({ run_id: state.run_id, event: "run_started", workflow_id: state.workflow_id, workflow_version: state.workflow_version });
+    await this.store.saveProgress(state as unknown as Record<string, unknown>);
+    return this.executeFromState(state, workflow, resolvedOptions, budget);
+  }
+
+  private async executeFromState(
+    state: RunStateDomain,
+    _workflow: Workflow,
+    resolvedOptions: Required<Pick<OrchestratorRunOptions, "intent" | "maxChecks">> &
+      Omit<OrchestratorRunOptions, "intent" | "maxChecks">,
+    budget: OrchestratorBudget,
+  ): Promise<RunStateDomain> {
     const persist = async (): Promise<void> => {
       state.updated_at = now();
       await this.store.saveProgress(state as unknown as Record<string, unknown>);
@@ -165,15 +362,17 @@ export class Orchestrator {
       await persist();
     };
 
-    await appendEvent({ event: "run_started", workflow_id: state.workflow_id, workflow_version: state.workflow_version });
-    await persist();
-
     let caught: unknown;
     try {
       for (let i = 0; i < PHASE_ORDER.length; i++) {
         const phaseName = PHASE_ORDER[i];
         if (!phaseName) continue;
         const phaseIndex = i;
+        let phase = state.phases.find((p) => p.name === phaseName);
+        if (!phase) {
+          phase = normalizePhase({ name: phaseName, title: phaseName });
+          state.phases.push(phase);
+        }
 
         const killReason = await isKillRequested();
         if (killReason || state.kill_switch.triggered) {
@@ -184,11 +383,10 @@ export class Orchestrator {
           break;
         }
 
-        let phase = state.phases.find((p) => p.name === phaseName);
-        if (!phase) {
-          phase = normalizePhase({ name: phaseName, title: phaseName });
-          state.phases.push(phase);
+        if (phase.status === PhaseStatus.COMPLETED) {
+          continue;
         }
+
         state.current_phase = phaseName;
         phase.status = PhaseStatus.RUNNING;
         phase.started_at = phase.started_at ?? now();

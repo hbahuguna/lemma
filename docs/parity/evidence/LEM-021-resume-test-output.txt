@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/resume/resume.test.ts (3 tests) 2224ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > records registry fingerprint and resumes unchanged without mutating completed run identity  823ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > resumes after simulated crash, rerunning only unfinished checks and preserving completed evidence/findings  671ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > rejects target mismatch and registry fingerprint change without mutating saved state/evidence  727ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:31:16
+   Duration  4.58s (transform 515ms, setup 0ms, collect 819ms, tests 2.22s, environment 0ms, prepare 421ms)
+

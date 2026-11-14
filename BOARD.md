@@ -124,7 +124,7 @@ inputs.
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Done |
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Done |
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Done |
-| LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Backlog |
+| LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Done |
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Backlog |
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Backlog |
 | LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Backlog |
@@ -764,6 +764,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-018** — Port `weighted-coverage-v1` scoring (2026-11-14). Evidence: `packages/core/src/scoring.ts`, `packages/core/test/scoring/scoring.test.ts`, `docs/parity/evidence/LEM-018-scoring-test-output.txt` (`pnpm --filter @lemma/core test -- scoring`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-019** — Port versioned policy files and gate evaluation (2026-11-14). Evidence: `policies/advisory-v1.json`, `packages/core/src/scoring.ts`, `packages/core/test/policy/policy.test.ts`, `docs/parity/evidence/LEM-019-policy-test-output.txt` (`pnpm --filter @lemma/core test -- policy`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-020** — Port the report builder and JSON Schema validation (2026-11-14). Evidence: `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/src/schemas/report.ts`, `packages/core/test/report/report.test.ts`, `docs/parity/evidence/LEM-020-report-test-output.txt` (`pnpm --filter @lemma/core test -- report`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-021** — Port resume, crash safety, and registry fingerprint (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/src/checks.ts`, `packages/core/test/resume/resume.test.ts`, `docs/parity/evidence/LEM-021-resume-test-output.txt` (`pnpm --filter @lemma/core test -- resume`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-021 — Port resume, crash safety, and registry fingerprint
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-011, LEM-015
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- resume`.
+- **Description:** Port deterministic resume and crash-safety behavior, including
+  registry/workflow/target guards and evidence/checkpoint reconciliation.
+- **Acceptance Criteria:**
+  - `StateStore`/run state persist and expose registry fingerprint metadata
+    (`options.registry_fingerprint` and `options.plugin_registry_fingerprint`)
+    for runs so resumes can detect check-registry drift.
+  - `Orchestrator` supports `resume` mode: loads existing progress, rejects resume
+    with actionable `StateError` when run is halted, target does not match, saved
+    workflow version differs from current, or saved registry fingerprint differs
+    from current; failed guards do not mutate saved progress/evidence.
+  - Crash-safe resume preparation resets incomplete phases appropriately, reruns
+    only unfinished checks (`planned`/`running`/`error`) while preserving
+    completed check outcomes/evidence refs/findings/blockers for completed checks,
+    rebuilds contract-failure state for retained invalid findings, and clears run
+    error/halted/completion markers for continued execution.
+  - Evidence reconciliation/checkpointing integrates with resume: before resuming
+    incomplete execution, orchestrator reconciles evidence manifest with
+    checkpointed check state (dropping/rerun-owned entries and recovering
+    referenced completed artifacts as needed) and persists updated state
+    atomically.
+  - Core APIs are exported/tested for resume success after simulated crash,
+    target-mismatch rejection, and registry-fingerprint change/removal rejection
+    without evidence/progress mutation.
+- **Verification:** `pnpm --filter @lemma/core test -- resume` (targeted file: `packages/core/test/resume/resume.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/orchestrator.ts` (resume mode/guards, crash-safe preparation, rerun-only-unfinished semantics, evidence reconciliation integration, fingerprint persistence), `packages/core/src/checks.ts` (`registryFingerprint`), `packages/core/test/resume/resume.test.ts` (fingerprint persistence, crash-resume preservation/rerun, target/fingerprint mismatch guards without progress/evidence mutation). Test output: `docs/parity/evidence/LEM-021-resume-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-020 — Port the report builder and JSON Schema validation
 

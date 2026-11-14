@@ -1,6 +1,7 @@
 import { HarnessError } from "./errors.js";
 import { CheckStatus } from "./models.js";
 import { now } from "./determinism.js";
+import { sha256Bytes } from "./evidence.js";
 import type { Check, Risk, Target } from "./models.js";
 
 export interface CheckDefinition {
@@ -329,6 +330,25 @@ export const CHECK_CATALOG: readonly CheckDefinition[] = [
 export function catalogIds(registry?: CheckRegistryLike | null): string[] {
   if (registry != null) return [...registry.ids()];
   return CHECK_CATALOG.map((d) => d.id);
+}
+
+export function registryFingerprint(registry?: CheckRegistryLike | null): string {
+  const definitions: readonly CheckDefinition[] = registry?.definitions ?? CHECK_CATALOG;
+  const ids = registry?.ids ? [...registry.ids()] : definitions.map((d) => d.id);
+  const sorted = [...ids].sort();
+  const payload = sorted.map((id) => {
+    const def = definitions.find((d) => d.id === id);
+    return {
+      id,
+      source: registry?.source ? registry.source(id) : "builtin",
+      blocked: registry?.blockedReason ? (registry.blockedReason(id) ?? "") : "",
+      domain: def?.domain ?? "",
+      kind: def?.kind ?? "",
+      persona: def?.persona ?? "",
+      base_weight: def?.base_weight ?? 0,
+    };
+  });
+  return sha256Bytes(JSON.stringify(payload));
 }
 
 function normIntent(intent: string): string {
