@@ -177,7 +177,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `schemas/metering/index.json` | Metering schema index | LEM-004, LEM-113 |
 | Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage | LEM-020, LEM-073 |
 | Metering v1 event names | Frozen names and idempotency keys | LEM-113 |
-| Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy | LEM-019, LEM-074 |
+| Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy (`policies/advisory-v1.json`, `packages/core/src/scoring.ts` policy validation/load/defaulting and gate semantics; tests `packages/core/test/policy/policy.test.ts`, output `docs/parity/evidence/LEM-019-policy-test-output.txt`; policy/calibration regression coverage continues in LEM-074) | LEM-019, LEM-074 |
 | Quota plan contract | `quality-harness.quota-plan/v1` | LEM-115 |
 | Price book contract | `quality-harness.price-book/v1` | LEM-116 |
 | Entitlement contract | `quality-harness.entitlement/v1` | LEM-117 |
@@ -192,7 +192,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `examples/plugins/pyproject.toml` | Plugin packaging example | LEM-080 |
 | `examples/plugins/README.md` | Plugin authoring docs | LEM-080 |
 | `calibration/fixtures/` | Labeled confidence fixtures | LEM-070 |
-| `policies/advisory-v1.json` | Default gate policy | LEM-019 |
+| `policies/advisory-v1.json` | Default gate policy (ported to `policies/advisory-v1.json`, schema `quality-harness.policy/v1`; validated/loaded by core policy APIs; evidence `docs/parity/evidence/LEM-019-policy-test-output.txt`) | LEM-019 |
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
 | `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance release dry-run — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`) | LEM-009, LEM-134 |
@@ -219,7 +219,7 @@ with rationale.
 | `test_history.py` | LEM-023 |
 | `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 |
 | `test_scoring.py` | LEM-018 |
-| `test_policy.py` | LEM-019, LEM-074 |
+| `test_policy.py` | LEM-019, LEM-074 (core policy contract/gate behavior covered by `packages/core/test/policy/policy.test.ts`; CLI/report integration and additional regression coverage continue in later tasks) | LEM-019, LEM-074 |
 | `test_report_schema.py` | LEM-020, LEM-073 |
 | `test_personas.py`, `test_persona_tools.py` | LEM-041, LEM-047, LEM-048 |
 | `test_ownership.py` | LEM-044 |

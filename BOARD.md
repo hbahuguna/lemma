@@ -122,7 +122,7 @@ inputs.
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Done |
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Done |
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Done |
-| LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Backlog |
+| LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Done |
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Backlog |
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Backlog |
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Backlog |
@@ -761,6 +761,35 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-015** — Port the five-phase orchestrator and budget (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/test/orchestrator/orchestrator.test.ts`, `docs/parity/evidence/LEM-015-orchestrator-test-output.txt` (`pnpm --filter @lemma/core test -- orchestrator`, 64/64). Commit/remote recorded in completion summary.
 - **LEM-016** — Port the hashed evidence store and checkpoint manifest (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence.test.ts`, `docs/parity/evidence/LEM-016-evidence-test-output.txt` (`pnpm --filter @lemma/core test -- evidence`, 68/68). Commit/remote recorded in completion summary.
 - **LEM-017** — Port evidence signing, verification, and tamper hold (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt` (`pnpm --filter @lemma/core test -- evidence-signing`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-018** — Port `weighted-coverage-v1` scoring (2026-11-14). Evidence: `packages/core/src/scoring.ts`, `packages/core/test/scoring/scoring.test.ts`, `docs/parity/evidence/LEM-018-scoring-test-output.txt` (`pnpm --filter @lemma/core test -- scoring`, 4/4). Commit/remote recorded in completion summary.
+- **LEM-019** — Port versioned policy files and gate evaluation (2026-11-14). Evidence: `policies/advisory-v1.json`, `packages/core/src/scoring.ts`, `packages/core/test/policy/policy.test.ts`, `docs/parity/evidence/LEM-019-policy-test-output.txt` (`pnpm --filter @lemma/core test -- policy`, 4/4). Commit/remote recorded in completion summary.
+
+### LEM-019 — Port versioned policy files and gate evaluation
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-018
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- policy`.
+- **Description:** Port the versioned policy contract/file (advisory-v1) and
+  gate-evaluation behavior used by scoring/reporting.
+- **Acceptance Criteria:**
+  - Canonical default policy file `policies/advisory-v1.json` exists with schema
+    `quality-harness.policy/v1`, id `advisory-v1`, version `1.0`, and default
+    weights/penalties/scope factors/caps/gate thresholds matching assay.
+  - `loadPolicy`/`policyFromDict` validate versioned policy files: require correct
+    schema version, reject unknown fields, reject invalid values/ordering (e.g.
+    empty domain weights, invalid ranges, critical cap exceeding two-high cap),
+    and allow omitted sections/fields to default (partial policies).
+  - Gate evaluation semantics are exposed/verified via scoring policy behavior:
+    pass/warn/fail status and reasons reflect score, coverage thresholds, and
+    critical/high-finding settings per loaded policy (including custom policies).
+  - APIs/types are exported from `@lemma/core` and tests cover default policy
+    reproduction, partial/relaxed policy loading, invalid-policy rejection, and
+    gate-evaluation outcomes for custom thresholds.
+- **Verification:** `pnpm --filter @lemma/core test -- policy` (targeted file: `packages/core/test/policy/policy.test.ts`) — **PASS** (4 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `policies/advisory-v1.json` (canonical versioned default policy), `packages/core/src/scoring.ts` policy model/validation/load/defaulting and gate evaluation semantics (exported from `@lemma/core`), `packages/core/test/policy/policy.test.ts` (default policy reproduction, partial/relaxed loading, invalid-policy rejection, custom gate-evaluation outcomes). Test output: `docs/parity/evidence/LEM-019-policy-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-018 — Port `weighted-coverage-v1` scoring
 
