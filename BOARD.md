@@ -97,7 +97,7 @@ parity with assay.
 | --- | --- | --- | --- | --- | --- |
 | LEM-001 | Initialize the pnpm/TypeScript monorepo and quality gates | P0 | 3 | None | Done |
 | LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Done |
-| LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Ready |
+| LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Done |
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Backlog |
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Backlog |
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Backlog |
@@ -397,7 +397,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 3
 - **Depends on:** None
-- **Status:** Ready
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm typecheck` plus the dependency-direction test.
 - **Description:** Review and ratify `docs/architecture.md` before code appears.
   Lock the dependency direction, the `AgentHost` interface, the capability
   matrix, the degradation rules, and the optional-dependency policy.
@@ -412,8 +413,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - A dependency-direction test or lint rule enforces that `core` imports no
     adapter, CLI, browser, cloud, or host SDK package.
   - The operator signs off in the Decision Log.
-- **Verification:** `pnpm typecheck` plus the dependency-direction test.
-- **Evidence to record:** ADR path, interface sketch, dependency test output.
+- **Verification:** `pnpm typecheck` — exit 0. Dependency-direction test — `packages/core/test/dependency-direction.test.ts` passed (forbids `@lemma/core` source imports of agent/cli/browser/cloud/adapters/host SDKs/Playwright).
+- **Evidence:** `docs/architecture.md` (ratified; package graph, core module map, `AgentHost`/`HostCapabilities`/`CommandDescriptor` interfaces, capability matrix, degradation rules, explicit adapter ownership with OpenCode+Claude Code first ship), `docs/adr/0001-typescript-monorepo-and-contracts.md`, `packages/core/test/dependency-direction.test.ts`, Decision Log DL11 (operator sign-off). Local: `pnpm typecheck` and `pnpm test` passed (2026-11-14).
 
 ### LEM-004 — Define versioned zod schemas and inferred core types
 
@@ -596,8 +597,10 @@ No task is claimed.
 | DL8 | 2026-11-14 | Optional browser and cloud capability ship as subpath exports/peer dependencies, never required installs. | A core install must work in an air-gapped CI with no Chromium and no cloud account. | Bundle a lightweight browser only if install friction becomes the larger cost. |
 | DL9 | 2026-11-14 | The default score remains `weighted-coverage-v1`; no model may set or adjust it. | The score must be explainable and reproducible across hosts. | Revisit only with a labeled corpus that justifies a new formula version. |
 | DL10 | 2026-11-14 | Every adapter ships a capability manifest and passes the shared conformance kit before it is documented as supported. | "Works on my host" is not a support claim. | Add richer conformance levels if host surfaces diverge further. |
+| DL11 | 2026-11-14 | LEM-003 architecture/package graph/adapter contract ratified; operator sign-off recorded. | `docs/architecture.md` (ratified) and `docs/adr/0001-typescript-monorepo-and-contracts.md` lock dependency direction, host-neutral `AgentHost` contract, capabilities/degradation, and optionality boundaries; OpenCode and Claude Code named as first-ship adapters with explicit package owners. | Revisit via ADR/Decision Log if host surfaces or dependency boundaries materially change. |
 
 ## Done
 
 - **LEM-001** — Initialize the pnpm/TypeScript monorepo and quality gates (2026-11-14). Evidence: `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test` passed; 11 workspace package shells, strict TS/ESM config, CI workflow (Node 20/22), and required repo docs/config present. Commit/remote recorded in completion summary.
 - **LEM-002** — Publish the machine-readable assay parity manifest and check (2026-11-14). Evidence: `docs/parity/assay.manifest.json` (281 assets, 10 kinds), `scripts/parity/check.mjs` (`pnpm parity:check`), CI step, and parity drift/validation tests; `pnpm parity:check` exit 0 on complete manifest and nonzero on removed owner. Commit/remote recorded in completion summary.
+- **LEM-003** — Ratify the architecture, package graph, and adapter contract (2026-11-14). Evidence: `docs/architecture.md` ratified (graph/module map/`AgentHost` interfaces/capability matrix/degradation/adapter ownership, OpenCode+Claude Code first), `docs/adr/0001-typescript-monorepo-and-contracts.md`, `packages/core/test/dependency-direction.test.ts`; `pnpm typecheck` and dependency-direction test passed. Operator sign-off: DL11. Commit/remote recorded in completion summary.

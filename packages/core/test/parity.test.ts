@@ -47,19 +47,22 @@ describe("parity manifest", () => {
 
     // 1. Core modules table: `harness/*.py` and `harness/py.typed`
     for (const m of inventory.matchAll(/^\|\s*`(harness\/[^`]+)`\s*\|/gm)) {
-      expect(keys.has(`module::${m[1]}`), `module ${m[1]}`).toBe(true);
+      const mod = m[1];
+      if (!mod) continue;
+      expect(keys.has(`module::${mod}`), `module ${mod}`).toBe(true);
     }
 
     // 2. CLI commands table: `lemma <cmd>` -> cli:<cmd>
     for (const m of inventory.matchAll(/^\|\s*`lemma ([^`]+)`\s*\|/gm)) {
-      const cmd = m[1].trim();
+      const cmd = m[1]?.trim();
+      if (!cmd) continue;
       expect(keys.has(`cli_command::cli:${cmd}`), `cli ${cmd}`).toBe(true);
     }
 
     // 3. Plugin module assets table
     for (const m of inventory.matchAll(/^\|\s*`(\.opencode\/[^`]+)`\s*\|/gm)) {
       const src = m[1];
-      if (src.includes("*")) continue;
+      if (!src || src.includes("*")) continue;
       const kind = src.endsWith(".md") ? "plugin_command" : "plugin_module";
       expect(keys.has(`${kind}::${src}`), `${kind} ${src}`).toBe(true);
     }
@@ -76,42 +79,54 @@ describe("parity manifest", () => {
       expect(keys.has(`persona::${p}`), p).toBe(true);
     }
     for (const m of inventory.matchAll(/`((?:browser|static)\.[a-z0-9_]+)`/g)) {
-      expect(keys.has(`check_id::check:${m[1]}`), `check ${m[1]}`).toBe(true);
+      const id = m[1];
+      if (!id) continue;
+      expect(keys.has(`check_id::check:${id}`), `check ${id}`).toBe(true);
     }
     expect(manifest.entries.filter((e) => e.kind === "check_id").length).toBe(24);
 
     // 5. Schemas table
     for (const m of inventory.matchAll(/^\|\s*`(schemas\/[^`]+)`\s*\|/gm)) {
-      expect(keys.has(`schema::${m[1]}`), `schema ${m[1]}`).toBe(true);
+      const src = m[1];
+      if (!src) continue;
+      expect(keys.has(`schema::${src}`), `schema ${src}`).toBe(true);
     }
 
     // 6. Fixtures/examples/release assets table
     for (const m of inventory.matchAll(/^\|\s*`([^`]+)`\s*\|[^|]*\|[^|]*LEM-/gm)) {
       const src = m[1];
+      if (!src) continue;
       if (src.startsWith("harness/") || src.startsWith(".opencode/") || src.startsWith("schemas/") || src.startsWith("personas/")) continue;
       if (src.startsWith("tests/")) continue;
       if (src.startsWith("lemma ") || src.startsWith("cli:") || src.includes("*")) continue;
       // classify
       if (src === "Dockerfile" || src === "Dockerfile.browser" || src === "pyproject.toml" || src === "requirements.txt" || src.startsWith(".github/")) {
+        const normalized = src.replace(/\/$/, "");
         const has =
           keys.has(`release_asset::${src}`) ||
           manifest.entries.some(
-            (e) => e.kind === "release_asset" && e.source.startsWith(src.replace(/\/$/, "") + "/"),
+            (e) => e.kind === "release_asset" && e.source.startsWith(`${normalized}/`),
           );
         expect(has, `release ${src}`).toBe(true);
       } else if (src.startsWith("examples/") || src.startsWith("calibration/") || src.startsWith("policies/")) {
         // directory assets in inventory map to their contained files in manifest
-        const has = manifest.entries.some((e) => e.kind === "fixture" && (e.source === src || e.source.startsWith(src.replace(/\/$/, "") + "/")));
+        const normalized = src.replace(/\/$/, "");
+        const has = manifest.entries.some(
+          (e) => e.kind === "fixture" && (e.source === src || e.source.startsWith(`${normalized}/`)),
+        );
         expect(has, `fixture ${src}`).toBe(true);
       }
     }
 
     // 7. Test-suite mapping table (python tests and plugin tests)
     for (const m of inventory.matchAll(/^\|\s*`(test_[^`]+\.py)`\s*\|/gm)) {
-      expect(keys.has(`test_file::tests/${m[1]}`), `test tests/${m[1]}`).toBe(true);
+      const name = m[1];
+      if (!name) continue;
+      expect(keys.has(`test_file::tests/${name}`), `test tests/${name}`).toBe(true);
     }
     for (const m of inventory.matchAll(/^\|\s*`(tests\/plugin\/[^`]+)`\s*\|/gm)) {
       const src = m[1];
+      if (!src) continue;
       if (src.includes("*")) {
         const has = manifest.entries.some((e) => e.kind === "test_file" && e.source.startsWith("tests/plugin/"));
         expect(has, `test ${src}`).toBe(true);

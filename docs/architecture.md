@@ -1,6 +1,6 @@
 # lemma architecture
 
-Status: proposed by `LEM-003`. Changes require an ADR and a Decision Log entry.
+Status: **ratified** by `LEM-003` (2026-11-14). Changes require an ADR and a Decision Log entry. See [ADR 0001](./adr/0001-typescript-monorepo-and-contracts.md).
 
 ## Goals
 
@@ -36,6 +36,18 @@ Rules:
 - `@lemma/cloud` is optional. The OSS CLI never requires it.
 - Schemas are the contract. Packages exchange inferred TypeScript types, not
   hand-maintained interfaces.
+
+### Adapter ownership and ship order
+
+| Host | Adapter package | Owner | First-ship status |
+| --- | --- | --- | --- |
+| OpenCode | `@lemma/adapters-opencode` | LEM-101 | **Ship first** (immediate target, with Claude Code) |
+| Claude Code | `@lemma/adapters-claude-code` | LEM-102 | **Ship first** (immediate target, with OpenCode) |
+| Codex | `@lemma/adapters-codex` | LEM-103 | Follow-on (shared conformance kit) |
+| Antigravity | `@lemma/adapters-antigravity` | LEM-104 | Follow-on (shared conformance kit) |
+| Cursor | `@lemma/adapters-cursor` | LEM-105 | Follow-on (shared conformance kit) |
+
+All adapters implement the shared `AgentHost` contract and capability manifest, and must pass the shared conformance kit before being documented as supported.
 
 ## Core modules
 
