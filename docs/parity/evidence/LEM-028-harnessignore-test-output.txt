@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/harnessignore/harnessignore.test.ts (4 tests) 376ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:32:28
+   Duration  3.14s (transform 534ms, setup 0ms, collect 818ms, tests 376ms, environment 2ms, prepare 642ms)
+

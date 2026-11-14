@@ -139,7 +139,7 @@ covers every assay category command with an owned check or a documented no-op.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-027 | Port source inventory and git-aware tracked/ignored scanning | P0 | 5 | LEM-013 | Done |
-| LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Backlog |
+| LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Done |
 | LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Backlog |
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Backlog |
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Backlog |
@@ -771,6 +771,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-025** — Port the scenario step planner and runner (2026-11-14). Evidence: `packages/core/src/steps.ts`, `packages/core/test/steps/steps.test.ts`, `docs/parity/evidence/LEM-025-steps-test-output.txt` (`pnpm --filter @lemma/core test -- steps`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-026** — Build the orchestrator conformance suite (2026-11-14). Evidence: `packages/core/test/conformance/orchestrator-conformance.test.ts`, `docs/parity/evidence/LEM-026-conformance-test-output.txt` (`pnpm --filter @lemma/core test -- conformance`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-027** — Port source inventory and git-aware tracked/ignored scanning (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/inventory/inventory.test.ts`, `docs/parity/evidence/LEM-027-inventory-test-output.txt` (`pnpm --filter @lemma/core test -- inventory`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-028** — Port `.harnessignore`-equivalent scoping (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/harnessignore/harnessignore.test.ts`, `docs/parity/evidence/LEM-028-harnessignore-test-output.txt` (`pnpm --filter @lemma/core test -- harnessignore`, 4/4). Commit/remote recorded in completion summary.
+
+### LEM-028 — Port `.harnessignore`-equivalent scoping
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- harnessignore`.
+- **Description:** Port target-root ignore scoping equivalent to assay
+  `.harnessignore` for deterministic first-party/vendored inventory boundaries.
+- **Acceptance Criteria:**
+  - `SourceInspector` resolves scoping from target root using `.lemmaignore` as
+    the canonical file and `.harnessignore` as an accepted equivalent alias
+    (fallback/compatibility when canonical file absent, and/or explicit override),
+    with deterministic precedence and recorded `excluded_patterns`.
+  - Ignore file semantics match assay parity: gitignore-style path patterns,
+    `#` comments/blank-line skipping, `!` re-inclusion (including descendant
+    re-inclusion under excluded directories), and directory/file matching that
+    excludes matched paths from inventory/source lists while preserving
+    auditable `excluded_paths` and `excluded_file_count`.
+  - Explicit ignore-file overrides are supported by core API for deterministic
+    scoping; traversal behavior remains consistent with negations (do not prune
+    descendants when negations may re-include).
+  - Tests cover `.lemmaignore` canonical behavior, `.harnessignore` alias
+    compatibility/precedence, vendored-path exclusion, negation re-inclusion of a
+    descendant, and inventory exclusion metadata.
+- **Verification:** `pnpm --filter @lemma/core test -- harnessignore` (targeted file: `packages/core/test/harnessignore/harnessignore.test.ts`) — **PASS** (4 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (canonical `.lemmaignore` with `.harnessignore` fallback alias, deterministic precedence/explicit ignore-file overrides, recorded `excluded_patterns`, negation-aware traversal for descendant re-inclusion), `packages/core/test/harnessignore/harnessignore.test.ts` (`.lemmaignore` canonical vendored exclusion + negation, `.harnessignore` alias compatibility, canonical-over-alias precedence, explicit override scoping). Test output: `docs/parity/evidence/LEM-028-harnessignore-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-027 — Port source inventory and git-aware tracked/ignored scanning
 

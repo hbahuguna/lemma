@@ -204,13 +204,12 @@ function patternMatches(rel: string, pattern: string): boolean {
 }
 
 function defaultIgnoreFiles(root: string): string[] {
-  const candidates = [".lemmaignore", ".harnessignore"];
-  const out: string[] = [];
-  for (const name of candidates) {
+  // Canonical lemma scoping file with assay .harnessignore compatibility alias.
+  for (const name of [".lemmaignore", ".harnessignore"]) {
     const full = path.join(root, name);
-    if (existsSync(full)) out.push(full);
+    if (existsSync(full)) return [full];
   }
-  return out;
+  return [];
 }
 
 export interface SourceInspectorOptions {
@@ -398,14 +397,16 @@ export class SourceInspector {
           inventory.skipped_dirs.push(rel);
           continue;
         }
-        if (this.isExcluded(rel)) {
+        const excludedDir = this.isExcluded(rel);
+        if (excludedDir) {
           if (!inventory.excluded_paths.includes(rel) && inventory.excluded_paths.length < 20) {
             inventory.excluded_paths.push(rel);
           }
-          // if negations exist, must still descend because a descendant may be re-included
-          if (!this.hasNegations) continue;
         }
-        walk(path.join(dir, name), rel);
+        // if negations exist, must still descend because a descendant may be re-included
+        if (!excludedDir || this.hasNegations) {
+          walk(path.join(dir, name), rel);
+        }
       }
 
       for (const fileName of files) {
