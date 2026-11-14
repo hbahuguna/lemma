@@ -398,7 +398,7 @@ export interface Confidence {
   coverage: number;
   rationale: string;
   limitations: string[];
-  penalties: Record<string, number>;
+  penalties: Record<string, unknown>;
   domain_scores: Record<string, unknown>;
   breakdown: Record<string, unknown>;
   gate: Record<string, unknown>;
@@ -406,18 +406,13 @@ export interface Confidence {
 
 export function normalizeConfidence(data: unknown): Confidence {
   const d = isRecord(data) ? data : {};
-  const penaltiesRaw = isRecord(d.penalties) ? d.penalties : {};
-  const penalties: Record<string, number> = {};
-  for (const [k, v] of Object.entries(penaltiesRaw)) {
-    penalties[k] = asNumber(v, 0);
-  }
   return {
     score: asNumber(d.score, 0.0),
     band: asString(d.band, "unscored"),
     coverage: asNumber(d.coverage, 0.0),
     rationale: asString(d.rationale),
     limitations: asStringArray(d.limitations),
-    penalties,
+    penalties: asRecord(d.penalties),
     domain_scores: asRecord(d.domain_scores),
     breakdown: asRecord(d.breakdown),
     gate: asRecord(d.gate),

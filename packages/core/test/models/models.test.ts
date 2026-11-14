@@ -116,9 +116,10 @@ describe("LEM-013 domain models and normalization", () => {
     expect(phase.status).toBe(PhaseStatus.PENDING);
     expect(phase.details).toEqual({});
 
-    const confidence = normalizeConfidence({ score: "50.5", band: "medium", penalties: { gap: "2" } });
+    const confidence = normalizeConfidence({ score: "50.5", band: "medium", penalties: { gap: "2", nested: { x: 1 } } });
     expect(confidence.score).toBe(50.5);
-    expect(confidence.penalties.gap).toBe(2);
+    expect(confidence.penalties.gap).toBe("2");
+    expect(confidence.penalties.nested).toEqual({ x: 1 });
     expect(confidence.limitations).toEqual([]);
 
     const ks = normalizeKillSwitch({});

@@ -3,7 +3,12 @@ import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 
-import { EvidenceStore } from "../../src/index.js";
+import {
+  EvidenceStore,
+  makeDeterminism,
+  resetDeterminism,
+  setDeterminism,
+} from "../../src/index.js";
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "lemma-evidence-sign-"));
@@ -17,29 +22,35 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 describe("LEM-017 evidence signing, verification, and tamper hold", () => {
   it("signs manifests deterministically for same run id and verifies clean state", async () => {
     await withTempDir(async (root) => {
-      const store = new EvidenceStore(root, "run-sign");
-      await store.init();
-      await store.saveText("a", "hello", "text", "", "c1");
-      await store.checkpoint();
-      const m1 = JSON.parse(await readFile(store.manifestPath, "utf8")) as Record<string, unknown>;
-      expect(m1.signature_algorithm).toBe("HMAC-SHA256");
-      expect(typeof m1.signature).toBe("string");
-      expect(typeof m1.signed_at).toBe("string");
+      const det = makeDeterminism({ clockMode: "frozen", frozenClock: "2026-11-14T00:00:00Z", seed: 1 });
+      const prev = setDeterminism(det);
+      try {
+        const store = new EvidenceStore(root, "run-sign");
+        await store.init();
+        await store.saveText("a", "hello", "text", "", "c1");
+        await store.checkpoint();
+        const m1 = JSON.parse(await readFile(store.manifestPath, "utf8")) as Record<string, unknown>;
+        expect(m1.signature_algorithm).toBe("HMAC-SHA256");
+        expect(typeof m1.signature).toBe("string");
+        expect(typeof m1.signed_at).toBe("string");
 
-      const store2 = new EvidenceStore(root, "run-sign");
-      await store2.init();
-      await store2.checkpoint();
-      const m2 = JSON.parse(await readFile(store.manifestPath, "utf8")) as Record<string, unknown>;
-      expect(m2.signature).toBe(m1.signature); // deterministic key + same payload
+        const store2 = new EvidenceStore(root, "run-sign");
+        await store2.init();
+        await store2.checkpoint();
+        const m2 = JSON.parse(await readFile(store.manifestPath, "utf8")) as Record<string, unknown>;
+        expect(m2.signature).toBe(m1.signature); // deterministic key + same payload/timestamps
 
-      const v = await store.verify();
-      expect(v.tampered).toBe(false);
-      expect(v.signature_valid).toBe(true);
-      expect(v.signature_error).toBe("");
-      expect(v.missing).toEqual([]);
-      expect(v.mismatches).toEqual([]);
-      expect(v.checked).toBe(1);
-      expect(v.alert.level).toBe("ok");
+        const v = await store.verify();
+        expect(v.tampered).toBe(false);
+        expect(v.signature_valid).toBe(true);
+        expect(v.signature_error).toBe("");
+        expect(v.missing).toEqual([]);
+        expect(v.mismatches).toEqual([]);
+        expect(v.checked).toBe(1);
+        expect(v.alert.level).toBe("ok");
+      } finally {
+        resetDeterminism(prev);
+      }
     });
   });
 

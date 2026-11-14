@@ -121,7 +121,7 @@ inputs.
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Done |
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Done |
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Done |
-| LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Backlog |
+| LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Done |
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Backlog |
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Backlog |
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Backlog |
@@ -761,6 +761,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-015** — Port the five-phase orchestrator and budget (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/test/orchestrator/orchestrator.test.ts`, `docs/parity/evidence/LEM-015-orchestrator-test-output.txt` (`pnpm --filter @lemma/core test -- orchestrator`, 64/64). Commit/remote recorded in completion summary.
 - **LEM-016** — Port the hashed evidence store and checkpoint manifest (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence.test.ts`, `docs/parity/evidence/LEM-016-evidence-test-output.txt` (`pnpm --filter @lemma/core test -- evidence`, 68/68). Commit/remote recorded in completion summary.
 - **LEM-017** — Port evidence signing, verification, and tamper hold (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt` (`pnpm --filter @lemma/core test -- evidence-signing`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-018 — Port `weighted-coverage-v1` scoring
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- scoring`.
+- **Description:** Port assay's explainable `weighted-coverage-v1` confidence
+  scoring (coverage/quality/scope factors, severity penalties, caps, bands,
+  limitations/rationale/breakdown/domain scores, and gate evaluation).
+- **Acceptance Criteria:**
+  - `FORMULA_VERSION` is `weighted-coverage-v1` with default domain weights,
+    severity penalties, scope factors, caps, and gate thresholds matching assay.
+  - `scoreConfidence` (or equivalent) computes weighted executed/passed coverage
+    and quality, applies scope and coverage factors, deduplicates findings by
+    fingerprint, applies severity penalties (suspected halved, capped), enforces
+    score caps (critical, two-high, halted), clamps/bands score, and produces
+    domain scores, penalties, breakdown, rationale, and limitations.
+  - Gate evaluation returns pass/warn/fail with reasons based on score,
+    coverage, and critical/high findings per policy; halted/blocked/failed-without-finding
+    cases add appropriate limitations and behavior.
+  - Policy model supports defaults and validation/overrides used by scoring (and
+    basic load/parse if included) with typed errors; APIs/types exported from
+    `@lemma/core`.
+  - Tests cover formula/band/cap behavior, dedupe/suppressed/suspected penalties,
+    scope/coverage gaps, domain scoring/breakdown/rationale/limitations, and gate
+    outcomes for representative cases.
+- **Verification:** `pnpm --filter @lemma/core test -- scoring` (targeted file: `packages/core/test/scoring/scoring.test.ts`) — **PASS** (4 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14). Supporting fixes included: `Confidence.penalties` normalization preserved as structured record (models/test updated) and deterministic-clock fix in `evidence-signing` test.
+- **Evidence:** `packages/core/src/scoring.ts` (`FORMULA_VERSION` `weighted-coverage-v1`, default weights/penalties/scope/caps/gates, `scoreConfidence` with coverage/quality/scope factors, fingerprint dedupe, severity penalties with suspected halving/cap, score caps/banding, domain scores/breakdown/rationale/limitations, and policy/gate evaluation; policy defaults/validation/load helpers), exported from `@lemma/core`; `packages/core/test/scoring/scoring.test.ts` (no-checks, formula/caps/breakdown/domain/limitations, dedupe/suppressed/suspected/caps/gate, policy validation/gate outcomes). Test output: `docs/parity/evidence/LEM-018-scoring-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-017 — Port evidence signing, verification, and tamper hold
 
