@@ -147,7 +147,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Done |
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Done |
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Done |
-| LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Backlog |
+| LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Done |
 | LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Backlog |
 | LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Backlog |
 | LEM-039 | Build the static precision and recall corpus | P1 | 5 | LEM-031, LEM-032 | Backlog |
@@ -779,6 +779,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-033** — Port baseline category checks (test/functionality/browser/issues/demo/more) (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/category-checks/category-checks.test.ts`, `docs/parity/evidence/LEM-033-category-checks-test-output.txt` (`pnpm --filter @lemma/core test -- category-checks`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-034** — Port full-assessment markers (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/full-assessment/full-assessment.test.ts`, `docs/parity/evidence/LEM-034-full-assessment-test-output.txt` (`pnpm --filter @lemma/core test -- full-assessment`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-035** — Port CI root-scoping precision (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts`, `docs/parity/evidence/LEM-035-ci-root-scoping-test-output.txt` (`pnpm --filter @lemma/core test -- ci-root-scoping`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-036** — Port risk tracked-file parity (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`, `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt` (`pnpm --filter @lemma/core test -- risk-tracked-parity`, 3/3). Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 
@@ -804,6 +805,35 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     payload/actual/metadata/evidence linkage.
 - **Verification:** `pnpm --filter @lemma/core test -- full-assessment` (targeted file: `packages/core/test/full-assessment/full-assessment.test.ts`) — **PASS** (1 test). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.
+### LEM-036 — Port risk tracked-file parity
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-024, LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- risk-tracked-parity`.
+- **Description:** Ensure risk analysis uses git-aware tracked-file scope for
+  environment and CI signals so ignored/untracked artifacts do not create false
+  committed risks and committed scope remains authoritative.
+- **Acceptance Criteria:**
+  - When `inventory.tracked_available` is `true`, `RiskAnalyzer` emits the
+    "Committed environment files may expose live configuration" risk only when
+    `env_files_tracked` is non-empty, using those tracked files in evidence
+    (`Committed env files: <first 5 joined by ", ">`); ignored/untracked env
+    files present only in `env_files`/`env_files_ignored` do not trigger this risk.
+  - When `inventory.tracked_available` is `false`/unavailable, env risk falls
+    back to `inventory.env_files` (assay-compatible filesystem fallback).
+  - "Test evidence is not refreshed by continuous integration" risk is driven
+    by scoped `inventory.ci_files` (empty `ci_files` => risk with evidence
+    `No CI configuration found.`). With git-tracked scope represented in
+    inventory, untracked-only CI config (absent from scoped `ci_files`) is
+    treated as no committed CI.
+  - Deterministic, assay-compatible behavior is covered by tests; exported API
+    (`RiskAnalyzer`/`analyzeRisk`) remains unchanged.
+- **Verification:** `pnpm --filter @lemma/core test -- risk-tracked-parity` (targeted file: `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/risk.ts` (`RiskAnalyzer` tracked-file parity: env risk prefers `env_files_tracked` when `tracked_available`, filesystem fallback otherwise; CI-refresh risk driven by scoped `inventory.ci_files`), `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts` (tracked vs ignored/untracked env parity, fallback, and scoped/untracked-only CI parity). Test output: `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt`. Commit/remote recorded in completion summary.
+
 
 ### LEM-035 — Port CI root-scoping precision
 

@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/risk-tracked-parity/risk-tracked-parity.test.ts (3 tests) 7ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  00:26:35
+   Duration  1.89s (transform 415ms, setup 0ms, collect 630ms, tests 7ms, environment 0ms, prepare 475ms)
+
