@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/unsafe-scan/unsafe-scan.test.ts (4 tests) 248ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  00:03:19
+   Duration  2.02s (transform 412ms, setup 0ms, collect 609ms, tests 248ms, environment 0ms, prepare 173ms)
+

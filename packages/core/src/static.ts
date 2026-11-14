@@ -722,6 +722,120 @@ export const SECRET_RULES: readonly SecretRule[] = [
   },
 ];
 
+export interface UnsafeRule {
+  id: string;
+  pattern: RegExp;
+  severity: string;
+  title: string;
+  consequence: string;
+  remediation: string;
+  verification: string;
+}
+
+export const UNSAFE_RULES: readonly UnsafeRule[] = [
+  {
+    id: "eval",
+    // Do not treat member calls such as RegExp.exec(), db.exec(), or
+    // child_process.exec() as the bare Python eval/exec primitive.
+    pattern: /(?<![\w.])(?:eval|exec)\s*\(/,
+    severity: Severity.HIGH,
+    title: "Dynamic code execution primitive",
+    consequence: "Untrusted input can become arbitrary code execution.",
+    remediation: "Remove eval/exec, parse a constrained format, or isolate execution in a sandbox.",
+    verification: "Add an adversarial input test and confirm the code path rejects it.",
+  },
+  {
+    id: "node-child-process-exec",
+    pattern: /\bchild_process\.(?:exec|execSync)\s*\(/,
+    severity: Severity.HIGH,
+    title: "Node child_process command execution",
+    consequence: "Concatenated input can become arbitrary operating-system command execution.",
+    remediation: "Use execFile/spawn with an argument array and validate every argument.",
+    verification: "Exercise shell metacharacters and confirm they are treated as data.",
+  },
+  {
+    id: "shell-true",
+    pattern: /shell\s*=\s*True/,
+    severity: Severity.HIGH,
+    title: "Shell command constructed with shell=True",
+    consequence: "User-controlled arguments can inject operating-system commands.",
+    remediation: "Pass an argument vector with shell=False and validate each argument.",
+    verification: "Exercise metacharacters and confirm they are treated as data.",
+  },
+  {
+    id: "os-system",
+    pattern: /\bos\.system\s*\(/,
+    severity: Severity.HIGH,
+    title: "Unsafe operating-system command execution",
+    consequence: "Concatenated input can execute arbitrary commands.",
+    remediation: "Use subprocess with an argument list and strict validation.",
+    verification: "Test shell metacharacters and path traversal inputs.",
+  },
+  {
+    id: "inner-html",
+    pattern: /\.innerHTML\s*=/,
+    severity: Severity.MEDIUM,
+    title: "HTML assigned through innerHTML",
+    consequence: "Untrusted content can become script in the customer's browser.",
+    remediation: "Use a safe DOM API or a reviewed sanitizer with a strict policy.",
+    verification: "Add an XSS payload test and confirm it renders as text.",
+  },
+  {
+    id: "dangerous-html",
+    pattern: /dangerouslySetInnerHTML/,
+    severity: Severity.MEDIUM,
+    title: "React raw HTML injection point",
+    consequence: "Unsanitized content can execute script in the customer's browser.",
+    remediation: "Render structured content or sanitize with a maintained allowlist.",
+    verification: "Test script, event-handler, and URL payloads.",
+  },
+  {
+    id: "tls-verify-off",
+    pattern: /verify\s*=\s*False/,
+    severity: Severity.HIGH,
+    title: "TLS certificate verification disabled",
+    consequence: "A network attacker can impersonate the upstream service and read or alter traffic.",
+    remediation: "Enable certificate verification and configure a trusted CA bundle.",
+    verification: "Confirm a bad certificate is rejected in a test environment.",
+  },
+  {
+    id: "pickle-loads",
+    pattern: /\bpickle\.loads?\s*\(/,
+    severity: Severity.HIGH,
+    title: "Untrusted pickle deserialization",
+    consequence: "A crafted payload can execute arbitrary code during deserialization.",
+    remediation: "Use a data-only format such as JSON with an explicit schema.",
+    verification: "Send a malicious object and confirm it is rejected before deserialization.",
+  },
+  {
+    id: "cors-wildcard",
+    pattern: /access-control-allow-origin['"]?\s*[:=]\s*['"]\*['"]/i,
+    severity: Severity.MEDIUM,
+    title: "Wildcard cross-origin access policy",
+    consequence: "Any website can read responses that were intended for a trusted origin.",
+    remediation: "Use an explicit allowlist and keep credentials out of wildcard responses.",
+    verification: "Send requests from an untrusted origin and confirm they are rejected.",
+  },
+  {
+    id: "debug-true",
+    pattern: /\bdebug\s*=\s*True\b/i,
+    severity: Severity.MEDIUM,
+    title: "Debug mode enabled in source configuration",
+    consequence: "Debug pages can expose stack traces, configuration, or interactive consoles.",
+    remediation: "Drive debug mode from an environment flag that defaults to false.",
+    verification: "Confirm production configuration reports debug as disabled.",
+  },
+  {
+    id: "node-tls-off",
+    pattern: /NODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['"]?0/,
+    severity: Severity.HIGH,
+    title: "Node TLS verification globally disabled",
+    consequence: "All outbound TLS in the process becomes vulnerable to impersonation.",
+    remediation: "Remove the global override and fix the trust store instead.",
+    verification: "Confirm an invalid certificate is rejected.",
+  },
+];
+
 export const A11Y_RULES: readonly A11yRule[] = [
   {
     id: "img-alt",
@@ -802,6 +916,8 @@ export class StaticCheckRunner {
         return this.checkStaticDependencies(check);
       case "static.secrets":
         return this.checkStaticSecrets(check);
+      case "static.unsafe":
+        return this.checkStaticUnsafe(check);
       case "static.accessibility":
         return this.checkStaticAccessibility(check);
       default:
@@ -1089,6 +1205,82 @@ export class StaticCheckRunner {
         rule.remediation,
         rule.verification,
         ["secret", "redacted"],
+      );
+      emitted += 1;
+    }
+    return outcome;
+  }
+
+  async checkStaticUnsafe(check: StaticCheckLike): Promise<CheckOutcome> {
+    const matches: Array<{
+      rule: string;
+      severity: string;
+      file: string;
+      line: number;
+      excerpt: string;
+    }> = [];
+
+    outer: for (const [rel, fullPath] of this.iterFiles(CODE_EXTENSIONS)) {
+      const text = this.readText(fullPath);
+      if (!text) continue;
+      const lines = text.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? "";
+        for (const rule of UNSAFE_RULES) {
+          if (rule.pattern.test(line)) {
+            matches.push({
+              rule: rule.id,
+              severity: downgradeSeverity(rule.severity, rel),
+              file: rel,
+              line: i + 1,
+              excerpt: line.trim().slice(0, 180),
+            });
+          }
+        }
+        if (matches.length >= 30) break outer;
+      }
+    }
+
+    const evidence = await this.save(
+      "unsafe-pattern-scan",
+      { matches },
+      check,
+      "High-risk source pattern matches.",
+    );
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: "No high-risk source patterns matched.",
+      evidence: [evidence],
+      metadata: { matches: matches.length },
+    });
+    if (matches.length === 0) return outcome;
+
+    outcome.actual = `${matches.length} high-risk source pattern match(es) found.`;
+    const grouped = new Map<string, { rule: string; file: string; line: number; excerpt: string; severity: string; count: number }>();
+    for (const item of matches) {
+      const key = `${item.rule}\0${item.file}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...item, count: 0 });
+      }
+      grouped.get(key)!.count += 1;
+    }
+    const ruleMeta = new Map(UNSAFE_RULES.map((r) => [r.id, r]));
+    let emitted = 0;
+    for (const g of grouped.values()) {
+      if (emitted >= 8) break;
+      const rule = ruleMeta.get(g.rule);
+      if (!rule) continue;
+      outcome.addFinding(
+        `${rule.title} (${g.count} occurrence${g.count === 1 ? "" : "s"} in ${g.file})`,
+        g.severity,
+        "security",
+        rule.consequence,
+        `${g.file}:${g.line}`,
+        "Inspect the cited line and trace whether untrusted input can reach it.",
+        Strength.SOURCE_PROVEN,
+        rule.remediation,
+        rule.verification,
+        ["unsafe-pattern", g.rule],
       );
       emitted += 1;
     }

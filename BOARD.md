@@ -143,7 +143,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Done |
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Done |
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Done |
-| LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Backlog |
+| LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Done |
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Backlog |
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Backlog |
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Backlog |
@@ -775,6 +775,40 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-029** — Port inventory, tests, CI, and dependency checks (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/static-checks/static-checks.test.ts`, `docs/parity/evidence/LEM-029-static-checks-test-output.txt` (`pnpm --filter @lemma/core test -- static-checks`, 6/6). Commit/remote recorded in completion summary.
 - **LEM-030** — Port the accessibility markup scan (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/accessibility-scan/accessibility-scan.test.ts`, `docs/parity/evidence/LEM-030-accessibility-scan-test-output.txt` (`pnpm --filter @lemma/core test -- accessibility-scan`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-031** — Port secret scanning and precision rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/secret-scan/secret-scan.test.ts`, `docs/parity/evidence/LEM-031-secret-scan-test-output.txt` (`pnpm --filter @lemma/core test -- secret-scan`, 5/5). Commit/remote recorded in completion summary.
+- **LEM-032** — Port unsafe-code rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/unsafe-scan/unsafe-scan.test.ts`, `docs/parity/evidence/LEM-032-unsafe-scan-test-output.txt` (`pnpm --filter @lemma/core test -- unsafe-scan`, 4/4). Commit/remote recorded in completion summary.
+
+### LEM-032 — Port unsafe-code rules
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- unsafe-scan`.
+- **Description:** Port deterministic unsafe-code pattern scanning (`static.unsafe`)
+  with assay-compatible rules, precision, and evidence/findings.
+- **Acceptance Criteria:**
+  - Core static runner implements `static.unsafe` scanning `CODE_EXTENSIONS`
+    source files with assay-compatible `UNSAFE_RULES` (eval/exec precision, child
+    process exec, shell=true, os.system, innerHTML/dangerous HTML, TLS/crypto
+    misconfig, CORS wildcard, debug, etc.), scan limits, line-by-line matching,
+    30-match cap, and test-path severity downgrade.
+  - Evidence artifact `unsafe-pattern-scan` is saved with kind `static_analysis`
+    and description `High-risk source pattern matches.`; payload contains
+    `matches` (rule/severity/file/line/excerpt trimmed to 180 chars).
+  - Outcomes are assay-compatible: no matches => passed, actual
+    `No high-risk source patterns matched.`, metadata `{matches: 0}`; with
+    matches => failed, actual `${count} high-risk source pattern match(es) found.`,
+    metadata `{matches: count}`, and grouped findings (up to 8 by rule+file) with
+    rule title/count/location (`file:line`), downgraded severity, domain
+    `security`, rule consequence/remediation/verification, reproduction
+    `Inspect the cited line and trace whether untrusted input can reach it.`,
+    and tags `["unsafe-pattern", <rule_id>]`.
+  - `UNSAFE_RULES` and runner support are exported from `@lemma/core` as needed
+    with tests covering no-match pass, representative rule matches/grouping, and
+    precision (e.g. member `.exec()` calls not treated as bare eval/exec).
+- **Verification:** `pnpm --filter @lemma/core test -- unsafe-scan` (targeted file: `packages/core/test/unsafe-scan/unsafe-scan.test.ts`) — **PASS** (4 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`UNSAFE_RULES`, and `StaticCheckRunner.checkStaticUnsafe`/`static.unsafe` dispatch with assay-compatible `unsafe-pattern-scan` evidence, 30-match cap, grouping, precision rules, and findings), exported via `@lemma/core`; `packages/core/test/unsafe-scan/unsafe-scan.test.ts` (clean pass, representative matches/grouping, member-exec precision vs bare/child_process exec, and test-path severity downgrade). Test output: `docs/parity/evidence/LEM-032-unsafe-scan-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-031 — Port secret scanning and precision rules
 
