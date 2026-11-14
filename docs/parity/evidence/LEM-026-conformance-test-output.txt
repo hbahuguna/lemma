@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/conformance/orchestrator-conformance.test.ts (3 tests) 1810ms
+   ✓ LEM-026 orchestrator conformance suite > runs full deterministic flow with phase/budget/persistence invariants and produces verified evidence + schema-valid report  616ms
+   ✓ LEM-026 orchestrator conformance suite > halts on kill/handler trigger, skips remaining phases/checks, and report/confidence reflect hold semantics without auto-resume  507ms
+   ✓ LEM-026 orchestrator conformance suite > resumes after simulated crash, reruns only unfinished checks, preserves completed evidence/findings, and finalizes valid report  685ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:13:17
+   Duration  4.21s (transform 585ms, setup 0ms, collect 859ms, tests 1.81s, environment 0ms, prepare 183ms)
+

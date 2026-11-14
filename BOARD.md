@@ -129,7 +129,7 @@ inputs.
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Done |
 | LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Done |
 | LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Done |
-| LEM-026 | Build the orchestrator conformance suite | P0 | 5 | LEM-015, LEM-016, LEM-018, LEM-020, LEM-021 | Backlog |
+| LEM-026 | Build the orchestrator conformance suite | P0 | 5 | LEM-015, LEM-016, LEM-018, LEM-020, LEM-021 | Done |
 
 ### E3: Static Analysis and Category Coverage
 
@@ -769,6 +769,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-023** — Port run history, retention, and prune (2026-11-14). Evidence: `packages/core/src/state-store.ts`, `packages/core/test/history/history.test.ts`, `docs/parity/evidence/LEM-023-history-test-output.txt` (`pnpm --filter @lemma/core test -- history`, 3/3; `test/state/state-store.test.ts`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-024** — Port risk analysis (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk/risk.test.ts`, `docs/parity/evidence/LEM-024-risk-test-output.txt` (`pnpm --filter @lemma/core test -- risk`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-025** — Port the scenario step planner and runner (2026-11-14). Evidence: `packages/core/src/steps.ts`, `packages/core/test/steps/steps.test.ts`, `docs/parity/evidence/LEM-025-steps-test-output.txt` (`pnpm --filter @lemma/core test -- steps`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-026** — Build the orchestrator conformance suite (2026-11-14). Evidence: `packages/core/test/conformance/orchestrator-conformance.test.ts`, `docs/parity/evidence/LEM-026-conformance-test-output.txt` (`pnpm --filter @lemma/core test -- conformance`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-026 — Build the orchestrator conformance suite
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-015, LEM-016, LEM-018, LEM-020, LEM-021
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- conformance`.
+- **Description:** Build a core orchestrator conformance/integration suite that
+  validates deterministic end-to-end engine behavior across phase control, kill,
+  resume/crash safety, evidence, scoring, and reporting.
+- **Acceptance Criteria:**
+  - Suite exercises full deterministic orchestration with seeded/injected options
+    and injectable handlers, asserting fixed five-phase order/invariants, run/
+    phase/check transitions, budget enforcement, and progress/events/history
+    persistence in `StateStore`.
+  - Integrated completion flow produces hashed evidence artifacts with checkpoint
+    and finalized manifest/verification pass, computes confidence via
+    `scoreConfidence`, and builds a schema-valid `quality-harness.report/v1`
+    report via `buildReport` consistent with run state (status/decision/
+    confidence/coverage/evidence/timestamps/registry fingerprint metadata).
+  - Kill/halt conformance: requested or handler-triggered halt stops execution,
+    skips remaining phases/checks, persists halted status/reason and history, and
+    resulting confidence/report reflect hold/halted semantics with no automatic
+    resume.
+  - Resume/crash-safety conformance: simulated crash/incomplete run resumes to
+    completion rerunning only unfinished checks while preserving completed
+    evidence refs/findings/blockers and registry fingerprint; resumed run
+    finalizes/verifies evidence and yields a schema-valid report.
+  - Conformance tests live in core (e.g. `packages/core/test/conformance/**`)
+    with tracked evidence output and pass as the stated acceptance test.
+- **Verification:** `pnpm --filter @lemma/core test -- conformance` (targeted file: `packages/core/test/conformance/orchestrator-conformance.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/test/conformance/orchestrator-conformance.test.ts` (deterministic full-flow phase/state/events/history/budget + verified checkpointed/finalized evidence + `scoreConfidence` + schema-valid `buildReport`; handler-triggered halt/skip/hold semantics with no auto-resume; crash-resume rerun-only-unfinished with preserved evidence refs/findings/blockers/fingerprint and finalized verified schema-valid report). Test output: `docs/parity/evidence/LEM-026-conformance-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-025 — Port the scenario step planner and runner
 
