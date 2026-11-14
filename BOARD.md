@@ -146,7 +146,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Done |
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Done |
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Done |
-| LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Backlog |
+| LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Done |
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Backlog |
 | LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Backlog |
 | LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Backlog |
@@ -778,6 +778,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-032** — Port unsafe-code rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/unsafe-scan/unsafe-scan.test.ts`, `docs/parity/evidence/LEM-032-unsafe-scan-test-output.txt` (`pnpm --filter @lemma/core test -- unsafe-scan`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-033** — Port baseline category checks (test/functionality/browser/issues/demo/more) (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/category-checks/category-checks.test.ts`, `docs/parity/evidence/LEM-033-category-checks-test-output.txt` (`pnpm --filter @lemma/core test -- category-checks`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-034** — Port full-assessment markers (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/full-assessment/full-assessment.test.ts`, `docs/parity/evidence/LEM-034-full-assessment-test-output.txt` (`pnpm --filter @lemma/core test -- full-assessment`, 1/1). Commit/remote recorded in completion summary.
+- **LEM-035** — Port CI root-scoping precision (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts`, `docs/parity/evidence/LEM-035-ci-root-scoping-test-output.txt` (`pnpm --filter @lemma/core test -- ci-root-scoping`, 3/3). Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 
@@ -803,6 +804,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     payload/actual/metadata/evidence linkage.
 - **Verification:** `pnpm --filter @lemma/core test -- full-assessment` (targeted file: `packages/core/test/full-assessment/full-assessment.test.ts`) — **PASS** (1 test). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.
+
+### LEM-035 — Port CI root-scoping precision
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P2
+- **Points:** 2
+- **Depends on:** LEM-029
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- ci-root-scoping`.
+- **Description:** Make CI configuration discovery root-scoped and precise so
+  nested or vendored copies of CI config filenames do not produce false CI
+  presence signals.
+- **Acceptance Criteria:**
+  - `SourceInspector` treats CI config filenames (`CI_NAMES`: `.gitlab-ci.yml`,
+    `Jenkinsfile`, `azure-pipelines.yml`, `.travis.yml`,
+    `bitbucket-pipelines.yml`, `appveyor.yml`, `.drone.yml`) as root-scoped:
+    only files at the repository root are recorded in `inventory.ci_files`.
+    Nested copies (e.g. `vendor/Jenkinsfile`, `packages/foo/.travis.yml`) are
+    not counted as CI.
+  - Root-scoped workflow configs remain counted:
+    `.github/workflows/*.yml` and `.github/workflows/*.yaml` at repository root
+    continue to be recorded in `inventory.ci_files`.
+  - Git-aware tracked-file precision is preserved: when tracked-file status is
+    available, `inventory.ci_files` is filtered to tracked CI files only
+    (untracked/ignored CI configs do not count) and existing `.lemma`/tracked
+    behavior remains unchanged.
+  - `StaticCheckRunner` / `static.ci` outcomes and evidence reflect the
+    precisely scoped `ci_files` (actual lists scoped files only; no-CI finding
+    when only nested CI-name configs exist). Behavior is covered by tests.
+- **Verification:** `pnpm --filter @lemma/core test -- ci-root-scoping` (targeted file: `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`SourceInspector` root-scopes `CI_NAMES` discovery to repository-root files while preserving root `.github/workflows/*` detection and git-aware tracked CI filtering; `static.ci` reflects scoped `ci_files`), `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts` (root vs nested CI_NAME configs, root workflows, nested-only no-CI outcome, and tracked-file CI precision). Test output: `docs/parity/evidence/LEM-035-ci-root-scoping-test-output.txt`. Commit/remote recorded in completion summary.
+
 
 ### LEM-033 — Port baseline category checks (test/functionality/browser/issues/demo/more)
 

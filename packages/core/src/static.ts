@@ -494,7 +494,7 @@ export class SourceInspector {
         }
         if (MANIFEST_NAMES.has(fileName)) inventory.manifests.push(rel);
         if (LOCKFILE_NAMES.has(fileName)) inventory.lockfiles.push(rel);
-        if (CI_NAMES.has(fileName)) inventory.ci_files.push(rel);
+        if (CI_NAMES.has(fileName) && !rel.includes("/")) inventory.ci_files.push(rel);
         if (ENV_NAMES.has(fileName)) inventory.env_files.push(rel);
         if (rel.startsWith(".github/workflows/") && (ext === ".yml" || ext === ".yaml")) {
           inventory.ci_files.push(rel);

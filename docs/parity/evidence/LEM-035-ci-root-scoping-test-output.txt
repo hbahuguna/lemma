@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/ci-root-scoping/ci-root-scoping.test.ts (3 tests) 846ms
+   ✓ LEM-035 CI root-scoping precision > preserves git-aware tracked-file precision for root-scoped CI files  507ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  00:22:42
+   Duration  2.99s (transform 549ms, setup 0ms, collect 759ms, tests 846ms, environment 0ms, prepare 222ms)
+
