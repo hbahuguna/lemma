@@ -127,7 +127,7 @@ inputs.
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Done |
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Done |
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Done |
-| LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Backlog |
+| LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Done |
 | LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Backlog |
 | LEM-026 | Build the orchestrator conformance suite | P0 | 5 | LEM-015, LEM-016, LEM-018, LEM-020, LEM-021 | Backlog |
 
@@ -767,6 +767,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-021** — Port resume, crash safety, and registry fingerprint (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/src/checks.ts`, `packages/core/test/resume/resume.test.ts`, `docs/parity/evidence/LEM-021-resume-test-output.txt` (`pnpm --filter @lemma/core test -- resume`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-022** — Port seeded resume and id-sequence continuity (2026-11-14). Evidence: `packages/core/src/determinism.ts`, `packages/core/src/orchestrator.ts`, `packages/core/test/seeded-resume/seeded-resume.test.ts`, `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt` (`pnpm --filter @lemma/core test -- seeded-resume`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-023** — Port run history, retention, and prune (2026-11-14). Evidence: `packages/core/src/state-store.ts`, `packages/core/test/history/history.test.ts`, `docs/parity/evidence/LEM-023-history-test-output.txt` (`pnpm --filter @lemma/core test -- history`, 3/3; `test/state/state-store.test.ts`, 5/5). Commit/remote recorded in completion summary.
+- **LEM-024** — Port risk analysis (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk/risk.test.ts`, `docs/parity/evidence/LEM-024-risk-test-output.txt` (`pnpm --filter @lemma/core test -- risk`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-024 — Port risk analysis
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- risk`.
+- **Description:** Port deterministic risk ranking from intent, target shape, and
+  inventory signals to produce prioritized `Risk` records.
+- **Acceptance Criteria:**
+  - `RiskAnalyzer` (or equivalent core API) ranks risks from intent, target, and
+    inventory: baseline outcome/scope risks, target-kind risks (live URL vs
+    source-only when browser not planned), intent-keyword-driven risks, and
+    inventory-driven risks (no tests, no CI, tracked/committed env files,
+    manifests without lockfiles, markup/accessibility exposure).
+  - Risks include stable fields (`id` numbered `risk-NN` after dedupe, title,
+    priority/severity-aligned priority, domain, consequence, evidence,
+    weight_multiplier, source/status as applicable) and are deduped by normalized
+    title and capped to 12 in deterministic order.
+  - Intent and inventory matching follow assay parity for supported rules and
+    committed-env handling (`tracked_available`/`env_files_tracked` preferred),
+    using deterministic inputs only.
+  - API/types exported from `@lemma/core` with tests covering intent keyword
+    matching, target/inventory-driven risks, dedupe/numbering/cap, and weight
+    multipliers/evidence.
+- **Verification:** `pnpm --filter @lemma/core test -- risk` (targeted file: `packages/core/test/risk/risk.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/risk.ts` (`RiskAnalyzer`, `analyzeRisk`, `INTENT_RULES`, `PRIORITY_MULTIPLIER`, inventory-aware risk ranking with dedupe/numbering/cap and tracked-env handling; exported from `@lemma/core`), `packages/core/test/risk/risk.test.ts` (intent/target/inventory risks, evidence/multipliers, tracked-env preference, dedupe/numbering/cap). Test output: `docs/parity/evidence/LEM-024-risk-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-023 — Port run history, retention, and prune
 

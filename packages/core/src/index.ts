@@ -16,3 +16,4 @@ export { EvidenceStore, sha256Bytes, sha256File } from "./evidence.js";
 export type { EvidenceEntry as EvidenceArtifactEntry, EvidenceManifest as EvidenceStoreManifest, EvidenceSummary, EvidenceVerification, ReconcileCheckLike } from "./evidence.js";
 export * from "./scoring.js";
 export * from "./report.js";
+export * from "./risk.js";
