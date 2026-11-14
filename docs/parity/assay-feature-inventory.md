@@ -31,7 +31,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/state.py` | Atomic progress, events, run history, retention, kill file | `@lemma/core/state` | LEM-010, LEM-011, LEM-023 |
 | `harness/report.py` | `quality-harness.report/v1` builder and schema | `@lemma/core/report` | LEM-020 |
 | `harness/models.py` | Domain enums and records (zod schema/type foundations landed; domain enums/normalization pending LEM-013) | `@lemma/core/models` | LEM-004, LEM-013 |
-| `harness/errors.py` | Typed error model | `@lemma/core/errors` | LEM-007 |
+| `harness/errors.py` | Typed error model (`packages/core/src/errors.ts`: domain error classes, stable `ErrorCode`/payloads, `EXIT_CODES` 0/1/2/3/130, `exitCodeForError`/`toErrorPayload`; CLI contract helpers in `packages/cli/src/errors.ts`) | `@lemma/core/errors` | LEM-007 |
 | `harness/outcomes.py` | Finding/blocker drafts and check outcomes | `@lemma/core/outcomes` | LEM-013, LEM-046 |
 | `harness/risk.py` | Risk ranking from inventory | `@lemma/core/risk` | LEM-024, LEM-036 |
 | `harness/redact.py` | Redaction before persistence | `@lemma/core/redact` | LEM-008, LEM-123 |

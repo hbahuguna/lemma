@@ -101,7 +101,7 @@ parity with assay.
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Done |
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Done |
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Done |
-| LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Backlog |
+| LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Done |
 | LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Backlog |
 | LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Backlog |
 | LEM-010 | Port atomic state, JSON, and file-lock primitives | P0 | 5 | LEM-001, LEM-007 | Backlog |
@@ -491,7 +491,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 2
 - **Depends on:** LEM-004
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test --filter @lemma/core -- errors`.
 - **Description:** Recreate assay's typed errors and the CLI exit-code contract
   so every failure is machine-readable and never leaks a stack trace to stdout.
 - **Acceptance Criteria:**
@@ -503,8 +504,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - A malformed workflow and corrupt state each produce a typed payload with a
     stable error code.
   - Tests assert exit codes and stdout/stderr separation.
-- **Verification:** `pnpm test --filter @lemma/core -- errors`
-- **Evidence to record:** error catalog, exit-code test table.
+- **Verification:** `pnpm --filter @lemma/core test -- errors` — **PASS** (4 tests; core suite 32/32 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/errors.ts` (typed error catalog: `HarnessError`, `WorkflowError`/`MalformedWorkflowError`, `StateError`/`CorruptStateError`, `PersonaError`, `PluginError`, `PolicyError`/`PolicyThresholdError`, `AuthError`, `QuotaError`, `BillingError`, `QueueError`, `SsrfError`, `RedactionError`, `KillSwitchHaltError`, `OperatorInterruptError`; stable `ErrorCode`/payloads; `EXIT_CODES` 0/1/2/3/130; `exitCodeForError`/`toErrorPayload`), `packages/cli/src/errors.ts` (`writeJsonStdout`, `writeDiagnosticStderr`, `emitError`, `runCli` enforcing JSON-only stdout + stderr diagnostics), `packages/core/test/errors/errors.test.ts` (error catalog, exit-code mapping table assertions, malformed-workflow/corrupt-state stable payloads, stdout/stderr separation). Commit/remote recorded in completion summary.
 
 ### LEM-008 — Port the redaction engine and synthetic corpus
 
@@ -610,3 +611,4 @@ No task is claimed.
 - **LEM-004** — Define versioned zod schemas and inferred core types (2026-11-14). Evidence: zod contract modules in `@lemma/core` for report v1, state/progress/history, evidence manifest, persona, plugin, policy, metering envelope/events, quota plan, price book, entitlement, queue job, billing record, retention; generated/committed `schemas/**` (23 files) match generator output; schema tests cover assay report compatibility (completed/halted/failed), contract rejection/additive fields. Commit/remote recorded in completion summary.
 - **LEM-005** — Build the assay↔lemma golden parity harness (2026-11-14). Evidence: `pnpm test:parity` passes (oracle vs baselines, seeded/frozen zero-diff, field-level diff/self-check) for completed/halted/browser-blocked using `examples/sample-repo`; pinned oracle config, normalized baselines, harness script/docs, and CI parity step added. Commit/remote recorded in completion summary.
 - **LEM-006** — Port deterministic clock, entropy, and seeded id providers (2026-11-14). Evidence: `packages/core/src/determinism.ts` and `packages/core/test/determinism/determinism.test.ts`; seeded/frozen byte-identical outputs, real UTC/random defaults, report-only `generated_at` override semantics, and typed validation errors verified (`pnpm --filter @lemma/core test -- determinism`). Commit/remote recorded in completion summary.
+- **LEM-007** — Port the typed error model and exit-code contract (2026-11-14). Evidence: `packages/core/src/errors.ts`, `packages/cli/src/errors.ts`, `packages/core/test/errors/errors.test.ts`; typed domain errors, exit codes 0/1/2/3/130, stable malformed-workflow/corrupt-state payloads, JSON-only stdout/stderr separation verified (`pnpm --filter @lemma/core test -- errors`). Commit/remote recorded in completion summary.

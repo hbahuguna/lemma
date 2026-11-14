@@ -1,11 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 
-export class HarnessError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "HarnessError";
-  }
-}
+import { HarnessError } from "./errors.js";
+
+export { HarnessError };
 
 export type ClockMode = "real" | "frozen";
 export const CLOCK_MODES = new Set<ClockMode>(["real", "frozen"]);

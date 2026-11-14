@@ -3,4 +3,5 @@ export const PACKAGE_STATUS = "foundation";
 export const STATE_ROOT = ".lemma";
 
 export * from "./schemas/index.js";
+export * from "./errors.js";
 export * from "./determinism.js";
