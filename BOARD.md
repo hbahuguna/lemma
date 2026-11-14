@@ -120,7 +120,7 @@ inputs.
 | LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Done |
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Done |
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Done |
-| LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Backlog |
+| LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Done |
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Backlog |
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Backlog |
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Backlog |
@@ -760,6 +760,34 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-014** — Port the check catalog, registry, and intent planning (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/test/checks/checks.test.ts`, `docs/parity/evidence/LEM-014-checks-test-output.txt` (`pnpm --filter @lemma/core test -- checks`, 60/60). Commit/remote recorded in completion summary.
 - **LEM-015** — Port the five-phase orchestrator and budget (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/test/orchestrator/orchestrator.test.ts`, `docs/parity/evidence/LEM-015-orchestrator-test-output.txt` (`pnpm --filter @lemma/core test -- orchestrator`, 64/64). Commit/remote recorded in completion summary.
 - **LEM-016** — Port the hashed evidence store and checkpoint manifest (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence.test.ts`, `docs/parity/evidence/LEM-016-evidence-test-output.txt` (`pnpm --filter @lemma/core test -- evidence`, 68/68). Commit/remote recorded in completion summary.
+- **LEM-017** — Port evidence signing, verification, and tamper hold (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt` (`pnpm --filter @lemma/core test -- evidence-signing`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-017 — Port evidence signing, verification, and tamper hold
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-016
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- evidence-signing`.
+- **Description:** Port deterministic evidence manifest signing (HMAC-SHA256),
+  verification, and tamper detection/hold signaling for the evidence store.
+- **Acceptance Criteria:**
+  - `EvidenceStore` signs checkpoint and final manifests with HMAC-SHA256 over
+    canonical payload (excluding `signature`, `signature_algorithm`, `signed_at`)
+    and records `signature_algorithm`, `signed_at`, and `signature`.
+  - Default signing key is deterministic per run id (portable across runs with
+    same run id); callers can inject a key (bytes/string/file path contents).
+  - `verify()` re-hashes artifacts against manifest entries, verifies manifest
+    signature, and reports missing/mismatched artifacts and signature errors with
+    affected items and `tampered`/alert status suitable for hold-on-tamper.
+  - Verification prefers persisted manifest entries and handles missing/unreadable
+    manifests; APIs exported from `@lemma/core`.
+  - Tests cover deterministic signing, signature verification, tamper detection
+    (artifact modification, missing artifact, signature/manifest tamper), and
+    clean verification results.
+- **Verification:** `pnpm --filter @lemma/core test -- evidence-signing` (targeted file: `packages/core/test/evidence/evidence-signing.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/evidence.ts` (deterministic per-run HMAC-SHA256 manifest signing with injectable key, signed checkpoint/final manifests, and `verify()` re-hashing artifacts/verifying signatures with missing/mismatch/signature-error affected reporting and `tampered`/alert hold signal), exported from `@lemma/core`; `packages/core/test/evidence/evidence-signing.test.ts` (deterministic signing/clean verification, artifact/missing/manifest-signature tamper detection, injected key and missing/unreadable manifest cases). Test output: `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-016 — Port the hashed evidence store and checkpoint manifest
 

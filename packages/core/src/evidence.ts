@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { promises as fs } from "node:fs";
 import path from "node:path";
 
@@ -37,7 +38,23 @@ export interface EvidenceManifest {
   summary: EvidenceSummary;
   manifest_path?: string;
   manifest_sha256?: string;
+  signature?: string;
+  signature_algorithm?: string;
+  signed_at?: string;
   [key: string]: unknown;
+}
+
+export interface EvidenceVerification {
+  schema_version: string;
+  run_id: string;
+  checked: number;
+  missing: string[];
+  mismatches: Array<Record<string, unknown>>;
+  signature_valid: boolean;
+  signature_error: string;
+  tampered: boolean;
+  affected: Array<Record<string, unknown>>;
+  alert: { level: "error" | "ok"; message: string };
 }
 
 export interface ReconcileCheckLike {
@@ -99,6 +116,43 @@ function ensureSafeRelative(root: string, target: string): string {
   return resolvedTarget;
 }
 
+function canonicalManifestPayload(manifest: Record<string, unknown>): string {
+  const payload: Record<string, unknown> = {};
+  for (const key of Object.keys(manifest).sort()) {
+    if (key === "signature" || key === "signature_algorithm" || key === "signed_at") continue;
+    payload[key] = manifest[key];
+  }
+  return JSON.stringify(payload);
+}
+
+function normalizeSigningKey(runId: string, signingKey?: Uint8Array | Buffer | string): Buffer {
+  if (signingKey === undefined) {
+    return createHash("sha256").update(`quality-harness-evidence:${runId}`, "utf8").digest();
+  }
+  if (typeof signingKey === "string") {
+    try {
+      // if it's an existing file path, use its contents; otherwise treat as key material
+      const stat = requireSafeSyncRead(signingKey);
+      if (stat !== null) return stat;
+    } catch {
+      // fall through to treat as string key
+    }
+    return Buffer.from(signingKey, "utf8");
+  }
+  return Buffer.from(signingKey);
+}
+
+function requireSafeSyncRead(filePath: string): Buffer | null {
+  try {
+    if (existsSync(filePath) && statSync(filePath).isFile()) {
+      return readFileSync(filePath);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
 export class EvidenceStore {
   readonly root: string;
   readonly runId: string;
@@ -106,13 +160,19 @@ export class EvidenceStore {
   readonly manifestPath: string;
   private entries: EvidenceEntry[] = [];
   private finalized = false;
+  private readonly signingKey: Buffer;
 
-  constructor(root: string, runId: string, options?: { stateDirName?: string }) {
+  constructor(
+    root: string,
+    runId: string,
+    options?: { stateDirName?: string; signingKey?: Uint8Array | Buffer | string },
+  ) {
     this.root = path.resolve(root);
     this.runId = runId;
     const dirName = options?.stateDirName ?? ".lemma";
     this.runDir = path.join(this.root, dirName, "evidence", runId);
     this.manifestPath = path.join(this.runDir, "manifest.json");
+    this.signingKey = normalizeSigningKey(runId, options?.signingKey);
   }
 
   async init(): Promise<void> {
@@ -282,17 +342,41 @@ export class EvidenceStore {
     return [...this.entries];
   }
 
+  private signManifest(manifest: EvidenceManifest): EvidenceManifest {
+    const base = { ...manifest } as Record<string, unknown>;
+    delete base.signature;
+    delete base.signature_algorithm;
+    delete base.signed_at;
+    const signature = createHmac("sha256", this.signingKey).update(canonicalManifestPayload(base)).digest("hex");
+    return {
+      ...(base as EvidenceManifest),
+      signature_algorithm: "HMAC-SHA256",
+      signed_at: now(),
+      signature,
+    };
+  }
+
+  private verifySignature(manifest: Record<string, unknown>): boolean {
+    const signature = manifest.signature;
+    if (typeof signature !== "string" || signature.length === 0) return false;
+    const expected = createHmac("sha256", this.signingKey).update(canonicalManifestPayload(manifest)).digest("hex");
+    const sigBuf = Buffer.from(signature, "hex");
+    const expBuf = Buffer.from(expected, "hex");
+    if (sigBuf.length !== expBuf.length) return false;
+    return timingSafeEqual(sigBuf, expBuf);
+  }
+
   async checkpoint(): Promise<void> {
     if (this.finalized) return;
     await ensureDir(this.runDir);
-    const manifest: EvidenceManifest = {
+    const manifest = this.signManifest({
       schema_version: "1.0",
       run_id: this.runId,
       generated_at: now(),
       checkpoint: true,
       evidence: [...this.entries],
       summary: this.summary(),
-    };
+    });
     await atomicWriteJson(this.manifestPath, manifest);
   }
 
@@ -343,14 +427,14 @@ export class EvidenceStore {
   async finalize(runMetadata?: Record<string, unknown>): Promise<EvidenceManifest> {
     if (!this.finalized) {
       await ensureDir(this.runDir);
-      const manifest: EvidenceManifest = {
+      const manifest = this.signManifest({
         schema_version: "1.0",
         run_id: this.runId,
         generated_at: now(),
         run: runMetadata ?? {},
         evidence: [...this.entries],
         summary: this.summary(),
-      };
+      });
       await atomicWriteJson(this.manifestPath, manifest);
       this.finalized = true;
     }
@@ -359,5 +443,94 @@ export class EvidenceStore {
     manifest.manifest_path = this.relative(this.manifestPath);
     manifest.manifest_sha256 = sha256Bytes(raw);
     return manifest;
+  }
+
+  async verify(): Promise<EvidenceVerification> {
+    let manifest: Record<string, unknown> = {};
+    let signatureValid = false;
+    let signatureError = "";
+    if (await fs
+      .access(this.manifestPath)
+      .then(() => true)
+      .catch(() => false)) {
+      try {
+        const raw = await fs.readFile(this.manifestPath, "utf8");
+        manifest = JSON.parse(raw) as Record<string, unknown>;
+        signatureValid = this.verifySignature(manifest);
+        if (!signatureValid) {
+          signatureError = "manifest signature is missing or invalid";
+        }
+      } catch (err) {
+        signatureError = `manifest is unreadable: ${err instanceof Error ? err.message : String(err)}`;
+      }
+    } else {
+      signatureError = "manifest is missing";
+    }
+
+    const entriesRaw = manifest.evidence;
+    const entries: EvidenceEntry[] = Array.isArray(entriesRaw)
+      ? entriesRaw.filter((e): e is EvidenceEntry => !!e && typeof e === "object" && typeof (e as { path?: unknown }).path === "string")
+      : [...this.entries];
+
+    let checked = 0;
+    const missing: string[] = [];
+    const mismatches: Array<Record<string, unknown>> = [];
+    const affected: Array<Record<string, unknown>> = [];
+
+    for (const entry of entries) {
+      if (!entry.path) continue;
+      const relPath = entry.path;
+      let absPath: string;
+      try {
+        absPath = ensureSafeRelative(this.root, relPath);
+      } catch {
+        missing.push(relPath);
+        affected.push({ path: relPath, check_id: entry.check_id ?? "", reason: "missing" });
+        continue;
+      }
+      const exists = await fs
+        .access(absPath)
+        .then(() => true)
+        .catch(() => false);
+      if (!exists) {
+        missing.push(relPath);
+        affected.push({ path: relPath, check_id: entry.check_id ?? "", reason: "missing" });
+        continue;
+      }
+      checked += 1;
+      const actual = await sha256File(absPath);
+      if (actual !== entry.sha256) {
+        mismatches.push({
+          path: relPath,
+          check_id: entry.check_id ?? "",
+          expected: entry.sha256,
+          actual,
+        });
+        affected.push({ path: relPath, check_id: entry.check_id ?? "", reason: "hash_mismatch" });
+      }
+    }
+
+    if (signatureError) {
+      affected.push({ path: this.relative(this.manifestPath), check_id: "", reason: "signature_invalid" });
+    }
+
+    const tampered = Boolean(signatureError || missing.length > 0 || mismatches.length > 0);
+    return {
+      schema_version: "1.0",
+      run_id: this.runId,
+      checked,
+      missing,
+      mismatches,
+      signature_valid: signatureValid,
+      signature_error: signatureError,
+      tampered,
+      affected,
+      alert: {
+        level: tampered ? "error" : "ok",
+        message: tampered
+          ? `Evidence tampering detected: ${affected.length} affected artifact(s).`
+          : "Evidence verification passed.",
+      },
+    };
   }
 }
