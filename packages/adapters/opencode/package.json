@@ -1,0 +1,31 @@
+{
+  "name": "@lemma/adapters-opencode",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "OpenCode host adapter.",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm --dts --clean --sourcemap --target node20",
+    "typecheck": "tsc --noEmit",
+    "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
+  },
+  "dependencies": {
+    "@lemma/agent": "workspace:*"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

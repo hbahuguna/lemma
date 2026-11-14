@@ -95,7 +95,7 @@ parity with assay.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-001 | Initialize the pnpm/TypeScript monorepo and quality gates | P0 | 3 | None | Ready |
+| LEM-001 | Initialize the pnpm/TypeScript monorepo and quality gates | P0 | 3 | None | Done |
 | LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Ready |
 | LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Ready |
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Backlog |
@@ -332,9 +332,9 @@ every supported host with visible supply-chain evidence.
 
 ## Ready / Sprint 0 — Foundation
 
-The cards below are the first executable slice. `LEM-001`–`LEM-003` are Ready.
-`LEM-004`–`LEM-010` are detailed now so the sprint path is explicit; they remain
-`Backlog` until their dependencies are `Done`.
+The cards below are the first executable slice. `LEM-002`–`LEM-003` are Ready;
+`LEM-001` is Done. `LEM-004`–`LEM-010` are detailed now so the sprint path is
+explicit; they remain `Backlog` until their dependencies are `Done`.
 
 ### LEM-001 — Initialize the pnpm/TypeScript monorepo and quality gates
 
@@ -342,7 +342,9 @@ The cards below are the first executable slice. `LEM-001`–`LEM-003` are Ready.
 - **Priority:** P0
 - **Points:** 3
 - **Depends on:** None
-- **Status:** Ready
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test:
+  `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test`.
 - **Description:** Create the repository skeleton that every later task builds
   on. Use pnpm workspaces, TypeScript strict mode, ESM, Node.js 20+, tsup (or an
   equivalent zero-config bundler), vitest, ESLint, Prettier, Changesets, and a
@@ -361,8 +363,8 @@ The cards below are the first executable slice. `LEM-001`–`LEM-003` are Ready.
   - `LICENSE`, `CONTRIBUTING.md`, `.editorconfig`, `.gitignore`, and
     `.changeset/config.json` are present.
   - `@lemma/core` has no workspace dependency on any other lemma package.
-- **Verification:** `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test`
-- **Evidence to record:** command output, tree listing, CI run URL.
+- **Verification:** `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test` — passed locally (2026-11-14): install ok (pnpm lockfile), lint 0, typecheck 0, build 0 (11 packages), test 14/14 passed (1 file).
+- **Evidence:** `packages/*` + `packages/adapters/*` shells with manifests/tsconfig/src; `.github/workflows/ci.yml` matrix Node 20/22; root TS strict flags in `tsconfig.base.json`; `LICENSE`, `CONTRIBUTING.md`, `.editorconfig`, `.gitignore`, `.changeset/config.json`; `@lemma/core/package.json` has no workspace dependencies. Local tree/command verification recorded in this change. CI run URL pending first remote push.
 
 ### LEM-002 — Publish the machine-readable assay parity manifest and check
 
@@ -596,4 +598,4 @@ No task is claimed.
 
 ## Done
 
-No task is complete yet.
+- **LEM-001** — Initialize the pnpm/TypeScript monorepo and quality gates (2026-11-14). Evidence: `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test` passed; 11 workspace package shells, strict TS/ESM config, CI workflow (Node 20/22), and required repo docs/config present. Commit/remote recorded in completion summary.

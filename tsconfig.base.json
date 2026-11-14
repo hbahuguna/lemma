@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": ["ES2023"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "moduleDetection": "force",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "verbatimModuleSyntax": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@lemma/core": ["packages/core/src/index.ts"],
+      "@lemma/agent": ["packages/agent/src/index.ts"],
+      "@lemma/browser": ["packages/browser/src/index.ts"],
+      "@lemma/cli": ["packages/cli/src/index.ts"],
+      "@lemma/cloud": ["packages/cloud/src/index.ts"],
+      "@lemma/personas": ["packages/personas/src/index.ts"],
+      "@lemma/adapters-opencode": ["packages/adapters/opencode/src/index.ts"],
+      "@lemma/adapters-claude-code": ["packages/adapters/claude-code/src/index.ts"],
+      "@lemma/adapters-codex": ["packages/adapters/codex/src/index.ts"],
+      "@lemma/adapters-antigravity": ["packages/adapters/antigravity/src/index.ts"],
+      "@lemma/adapters-cursor": ["packages/adapters/cursor/src/index.ts"]
+    }
+  }
+}

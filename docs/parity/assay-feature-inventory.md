@@ -15,8 +15,8 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 
 | Assay module | Capability | Lemma package | Task |
 | --- | --- | --- | --- |
-| `harness/__init__.py` | Version constant and package surface | `@lemma/core` | LEM-001 |
-| `harness/__main__.py` | `python -m harness` entry point | `@lemma/cli` | LEM-001, LEM-083 |
+| `harness/__init__.py` | Version constant and package surface (scaffolded: `@lemma/core` package shell, strict ESM TS, build/test gates) | `@lemma/core` | LEM-001 |
+| `harness/__main__.py` | `python -m harness` entry point (`@lemma/cli` package shell scaffolded; runtime entry pending LEM-083) | `@lemma/cli` | LEM-001, LEM-083 |
 | `harness/cli.py` | Machine-first CLI, all subcommands, exit codes | `@lemma/cli` | LEM-083–LEM-085 |
 | `harness/orchestrator.py` | Five-phase state machine, budget, kill, resume, finalization | `@lemma/core/orchestrator` | LEM-015, LEM-026 |
 | `harness/determinism.py` | Injectable clock/entropy, seeded ids, frozen clock | `@lemma/core/determinism` | LEM-006 |
@@ -49,7 +49,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/billing.py` | Feature-gated metered billing, sandbox provider, kill switch | `@lemma/cloud/billing` | LEM-118, LEM-121 |
 | `harness/queue.py` | Durable tenant queue, polling, cancel, recovery, metrics | `@lemma/cloud/queue` | LEM-119 |
 | `harness/retention.py` | Retention policy, signed export, soft/hard delete | `@lemma/cloud/retention` | LEM-120 |
-| `harness/py.typed` | Typed package marker | Replaced by TS declaration output | LEM-001 |
+| `harness/py.typed` | Typed package marker (replaced by TS declaration emit in package builds) | Replaced by TS declaration output | LEM-001 |
 
 ## 2. CLI command surface
 
@@ -135,7 +135,7 @@ intent-gated category or as an explicit documented no-op with rationale.
 | `.opencode/plugins/assay/jira-context.ts` | Native Jira form, issue fetch, ADF flattening, redaction | LEM-092 |
 | `.opencode/plugins/assay/browser-agent-prompt.ts` | Browser agent prompt and context protocol | LEM-090, LEM-091 |
 | `.opencode/plugins/assay/package.json` | Plugin package manifest | LEM-108 |
-| `.opencode/plugins/assay/tsconfig.json` | TypeScript config | LEM-001 |
+| `.opencode/plugins/assay/tsconfig.json` | TypeScript config (repo-wide strict TS/tsconfig foundation in place; plugin-specific config pending adapter work) | LEM-001 | LEM-001 |
 | `.opencode/commands/_assay_backup/*.md` | 61 command prompt files | LEM-106, LEM-108 |
 | `.opencode/commands/assay-browser.md` | Browser command prompt | LEM-090, LEM-106 |
 
@@ -196,7 +196,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
 | `pyproject.toml` | Package metadata and console script | LEM-009, LEM-134 |
-| `requirements.txt` | Dependency declaration | LEM-001 |
+| `requirements.txt` | Dependency declaration (replaced by pnpm workspace manifests and committed `pnpm-lock.yaml`) | LEM-001 | LEM-001 |
 | `.github/workflows/ci.yml` | Test + browser matrix | LEM-132, LEM-133 |
 | `.github/workflows/release.yml` | Signed release and publish | LEM-134 |
 | `.github/workflows/billing-coverage.yml` | Billing coverage job | LEM-121 |
