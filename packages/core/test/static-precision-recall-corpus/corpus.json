@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "description": "Static precision and recall corpus for secrets and unsafe-code scanning (LEM-039). All values are synthetic/fake.",
+  "cases": [
+    {
+      "id": "unsafe-member-exec-precision-and-bare-exec-recall",
+      "check": "static.unsafe",
+      "description": "Member exec calls (db.exec, pattern.exec) are not treated as bare exec; bare exec and child_process.exec are detected.",
+      "files": {
+        "src/db.js": "const row = db.exec(\"SELECT 1\");\n",
+        "src/regex.ts": "const match = pattern.exec(value);\n",
+        "src/dynamic.py": "def run(code, ns):\n    exec(code, ns)\n",
+        "src/child.js": "const child_process = require(\"child_process\")\nchild_process.exec(command)\n",
+        "tests/test_app.py": "def test_ok():\n    assert True\n",
+        "pyproject.toml": "[project]\nname = 'fixture'\nversion = '0.1.0'\n"
+      },
+      "expect": {
+        "status": "failed",
+        "anyFindingLocationIncludes": ["src/dynamic.py", "src/child.js"],
+        "noFindingLocationIncludes": ["src/db.js", "src/regex.ts"],
+        "minMatches": 2
+      }
+    },
+    {
+      "id": "unsafe-innerhtml-recall",
+      "check": "static.unsafe",
+      "description": "innerHTML assignment remains a reported unsafe pattern (recall).",
+      "files": {
+        "src/dashboard.js": "function render(el, title) { el.innerHTML = title }\n",
+        "tests/test_app.py": "def test_ok():\n    assert True\n",
+        "pyproject.toml": "[project]\nname = 'fixture'\nversion = '0.1.0'\n"
+      },
+      "expect": {
+        "status": "failed",
+        "anyFindingTitleIncludes": ["innerHTML"],
+        "anyFindingLocationIncludes": ["src/dashboard.js"],
+        "minMatches": 1
+      }
+    },
+    {
+      "id": "secrets-precision-test-placeholders-and-recall-real",
+      "check": "static.secrets",
+      "description": "Obvious test/placeholder credentials in test paths are ignored (precision) while a real-looking value in source is reported (recall).",
+      "files": {
+        "src/app.py": "print('ok')\n",
+        "src/config.py": "api_key = \"9f8a7b6c5d4e3f2a1b0c\"\n",
+        "tests/test_billing.py": "secret = 'sk_test_dummy'\napi_key = 'whsec_test_secret'\ntoken = 'test-key'\napi_key = 'llm-openai-test'\n",
+        "pyproject.toml": "[project]\nname = 'fixture'\nversion = '0.1.0'\n"
+      },
+      "expect": {
+        "status": "failed",
+        "anyFindingLocationIncludes": ["src/config.py"],
+        "noFindingLocationIncludes": ["tests/test_billing.py"],
+        "minMatches": 1,
+        "minIgnoredPlaceholderOrTestFixtureMatches": 4
+      }
+    },
+    {
+      "id": "unsafe-scope-harnessignore-excludes-vendored",
+      "check": "static.unsafe",
+      "description": "Harnessignore excludes vendored paths from static unsafe scan (precision/scope).",
+      "files": {
+        "src/bad.py": "import os\nos.system(\"echo first-party\")\n",
+        "artifacts/vendor/bad.py": "import os\nos.system(\"echo vendored\")\n",
+        "tests/test_app.py": "def test_ok():\n    assert True\n",
+        "pyproject.toml": "[project]\nname = 'fixture'\nversion = '0.1.0'\n",
+        ".harnessignore": "artifacts/\n"
+      },
+      "expect": {
+        "status": "failed",
+        "anyFindingLocationIncludes": ["src/bad.py"],
+        "noFindingLocationIncludes": ["artifacts/vendor/bad.py"],
+        "minMatches": 1
+      }
+    },
+    {
+      "id": "scope-harnessignore-negation-reincludes-descendant",
+      "check": "inventory-scope",
+      "description": "Harnessignore negation reincludes a descendant path for first-party scanning (recall/scope).",
+      "files": {
+        "artifacts/keep/good.py": "print('keep')\n",
+        "artifacts/vendor/bad.py": "print('vendor')\n",
+        ".harnessignore": "artifacts/\n!artifacts/keep/\n"
+      },
+      "expect": {
+        "sourceFilesInclude": ["artifacts/keep/good.py"],
+        "sourceFilesExclude": ["artifacts/vendor/bad.py"]
+      }
+    }
+  ]
+}

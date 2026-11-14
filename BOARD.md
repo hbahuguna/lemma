@@ -150,7 +150,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Done |
 | LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Done |
 | LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Done |
-| LEM-039 | Build the static precision and recall corpus | P1 | 5 | LEM-031, LEM-032 | Backlog |
+| LEM-039 | Build the static precision and recall corpus | P1 | 5 | LEM-031, LEM-032 | Done |
 | LEM-040 | Verify static finding-to-evidence linkage and report totals | P1 | 3 | LEM-016, LEM-020 | Backlog |
 
 ### E4: Specialist Persona Layer
@@ -782,6 +782,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-036** — Port risk tracked-file parity (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`, `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt` (`pnpm --filter @lemma/core test -- risk-tracked-parity`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-037** — Cover the remaining 50+ category commands with owned checks or documented no-ops (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/src/static.ts`, `packages/core/src/index.ts`, `packages/core/test/checks/checks.test.ts`, `packages/core/test/category-coverage/category-coverage.test.ts`, `docs/parity/evidence/LEM-037-category-coverage-test-output.txt` (`pnpm --filter @lemma/core test -- category-coverage` and `-- checks`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-038** — Port the sample-repo, demo-web, and static fixtures (2026-11-14). Evidence: `examples/sample-repo/`, `examples/demo-web/`, `tests/fixtures/redaction_corpus.json`, `docs/parity/evidence/LEM-038-fixtures-parity.txt` (fixture parity checks vs assay). Commit/remote recorded in completion summary.
+- **LEM-039** — Build the static precision and recall corpus (2026-11-14). Evidence: `packages/core/test/static-precision-recall-corpus/corpus.json`, `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`, `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt` (`pnpm --filter @lemma/core test -- static-precision-recall`, 1/1). Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 
@@ -843,6 +844,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     planning+execution/evidence for generic and specialized categories.
 - **Verification:** `pnpm --filter @lemma/core test -- category-coverage` (targeted: `packages/core/test/category-coverage/category-coverage.test.ts`, 3/3) and `pnpm --filter @lemma/core test -- checks` (`packages/core/test/checks/checks.test.ts`, 4/4) — **PASS** (7 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/checks.ts` (canonical `ASSAY_CATEGORY_LABELS`/intents, mapping helpers, generic `static.category.<label>` definitions, intent-gated planning/applicability), `packages/core/src/static.ts` (`StaticCheckRunner` generic category-scope handler with documented no-op `static_analysis` evidence), exports via `packages/core/src/index.ts`; `packages/core/test/checks/checks.test.ts` (catalog/registry/planning compatibility updates), `packages/core/test/category-coverage/category-coverage.test.ts` (full 59-category mapping, intent-gated planning, representative generic execution/evidence). Test output: `docs/parity/evidence/LEM-037-category-coverage-test-output.txt`. Commit/remote recorded in completion summary.
+
+### LEM-039 — Build the static precision and recall corpus
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-031, LEM-032
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- static-precision-recall`.
+- **Description:** Build a deterministic, reviewable static precision/recall
+  corpus for secret and unsafe-code scanning (and related scope/ignore cases)
+  with labeled expectations and automated verification.
+- **Acceptance Criteria:**
+  - A tracked static precision/recall corpus is added under
+    `packages/core/test/static-precision-recall-corpus/` containing labeled
+    fixture cases/files and a machine-readable manifest describing each case
+    (inputs, target files/snippets or fixture refs, and expected outcomes).
+  - Corpus covers precision and recall for `static.secrets` and `static.unsafe`
+    behaviors aligned with assay parity: true positives detected, true negatives
+    not flagged (precision), and required detections present (recall), including
+    cases such as member `exec` calls not reported as bare exec/eval while
+    bare/dangerous execution and `child_process.exec` are reported, `innerHTML`
+    still reported, obvious test/placeholder credentials ignored with counts vs
+    real-looking values reported, and scope/ignore cases (e.g. `.harnessignore`
+    vendored exclusion/negation affecting scanned sources).
+  - Automated tests execute the corpus against core static analysis
+    (`SourceInspector`/`StaticCheckRunner` as appropriate) and assert expected
+    matches/non-matches, findings/metadata, and statuses deterministically.
+  - Corpus and tests are deterministic, text-safe, and contain no live secrets
+    (synthetic/fake values only) with evidence recorded.
+- **Verification:** `pnpm --filter @lemma/core test -- static-precision-recall` (targeted: `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`) — **PASS** (1 test, 5 corpus cases). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/test/static-precision-recall-corpus/corpus.json` (machine-readable labeled corpus), `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts` (deterministic corpus execution over `SourceInspector`/`StaticCheckRunner` for secrets/unsafe and scope cases). Test output: `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt`. Commit/remote recorded in completion summary.
 
 
 ### LEM-038 — Port the sample-repo, demo-web, and static fixtures
