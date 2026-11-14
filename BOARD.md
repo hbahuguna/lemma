@@ -116,7 +116,7 @@ inputs.
 | --- | --- | --- | --- | --- | --- |
 | LEM-011 | Port progress state, events, history, retention, and kill file | P0 | 5 | LEM-010 | Done |
 | LEM-012 | Port the versioned workflow loader and phase invariant | P0 | 5 | LEM-004, LEM-007 | Done |
-| LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | Backlog |
+| LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | In Progress |
 | LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Backlog |
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Backlog |
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Backlog |
@@ -648,11 +648,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/core test -- workflows` — **PASS** (5 tests; core suite 52/52 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/workflows.ts` (dependency-free YAML subset parser, typed validation/errors, `PHASE_ORDER` invariant, built-in `RELEASE_CONFIDENCE`, `loadWorkflowFile`, `loadWorkflows` with missing-dir-empty/duplicate-id rejection), exported from `@lemma/core`; `packages/core/test/workflows/workflows.test.ts` (built-in invariant, valid file/dir loading, missing dir, malformed/unsupported YAML, validation/order/duplicate/non-dir cases). Test output: `docs/parity/evidence/LEM-012-workflows-test-output.txt`. Commit/remote recorded in completion summary.
 
+### LEM-013 — Port domain models, findings, and normalization
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-004
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- models`.
+- **Description:** Port assay's core domain enums/records and finding/outcome
+  normalization primitives (model defaults, coercion, serialization/round-trips,
+  and outcome drafts) as runtime utilities compatible with lemma contracts.
+- **Acceptance Criteria:**
+  - Domain enums/constants are implemented with assay-compatible values:
+    `RunStatus`, `PhaseStatus`, `CheckStatus`, `Severity`, `Strength`,
+    `SCHEMA_VERSION`/`MODEL_SCHEMA_VERSION`, and severity ranking helpers.
+  - Plain-object domain normalization/serde helpers exist for core records:
+    `Target`, `Risk`, `Finding`, `InvalidFinding`, `Blocker`, `Check`, `Phase`,
+    `Confidence`, `KillSwitch`, and `RunState` (create/from/normalize/to-object
+    or equivalent), applying defaults/coercion and preserving stable shapes for
+    JSON round-trips.
+  - Finding/outcome primitives exist: `FindingDraft`, `BlockerDraft`,
+    `CheckOutcome` with `addFinding`/`addBlocker` behavior and `clampSeverity`
+    (invalid/empty severity normalizes safely) consistent with assay semantics.
+  - Model timestamp/id defaults integrate with deterministic providers (current
+    clock/entropy helpers) without requiring callers to pass explicit values.
+  - Public APIs are exported from `@lemma/core` without breaking existing schema
+    exports; tests cover enum values, normalization/defaulting/coercion,
+    round-trips, and outcome draft behavior.
+- **Verification:** `pnpm --filter @lemma/core test -- models` — **PASS** (4 tests; core suite 56/56 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/models.ts` (assay-compatible domain enums/constants and severity ranking/clamp, normalization/serde helpers for Target/Risk/Finding/InvalidFinding/Blocker/Check/Phase/Confidence/KillSwitch/RunState, deterministic timestamp/id defaults via `now`/`newId`, outcome drafts `FindingDraft`/`BlockerDraft` and `CheckOutcome` with `addFinding`/`addBlocker`), exported from `@lemma/core`; `packages/core/test/models/models.test.ts` (enum values, coercion/defaulting, JSON round-trips, deterministic defaults, outcome behavior/clamp). Test output: `docs/parity/evidence/LEM-013-models-test-output.txt`. Commit/remote recorded in completion summary.
+
 ---
-
-## In Progress
-
-No task is claimed.
 
 ## Blockers
 
