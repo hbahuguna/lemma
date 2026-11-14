@@ -102,7 +102,7 @@ parity with assay.
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Done |
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Done |
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Done |
-| LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Backlog |
+| LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Done |
 | LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Backlog |
 | LEM-010 | Port atomic state, JSON, and file-lock primitives | P0 | 5 | LEM-001, LEM-007 | Backlog |
 
@@ -513,7 +513,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 3
 - **Depends on:** LEM-004
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test --filter @lemma/core -- redaction`.
 - **Description:** Port assay's redaction rules and extend the corpus for host
   and Jira surfaces: auth headers, cookies, bearer/basic tokens, private keys,
   provider keys, env assignments, storage-state cookies, and form answers.
@@ -524,8 +525,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - A deliberately broken redactor fails the corpus test.
   - Failure messages never print the original value.
   - Redaction is idempotent and does not corrupt non-secret content.
-- **Verification:** `pnpm test --filter @lemma/core -- redaction`
-- **Evidence to record:** corpus file, artifact scan output.
+- **Verification:** `pnpm --filter @lemma/core test -- redaction` — **PASS** (5 tests; core suite 37/37 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/redaction.ts` (`sanitizeUrl`, `redactText`, `redactSecretValue`, `redactUnknown`, `containsRedactionMarker`; key/header/token/credential/connection-string/JWT/storage-state/Jira patterns, deep payload redaction), `packages/core/test/redaction/fixtures/redaction-corpus.json` (30 synthetic shapes incl. Jira + storage state), `packages/core/test/redaction/redaction.test.ts` (corpus coverage, broken-redactor leak detection without printing originals, idempotence/non-secret preservation, URL/payload redaction, pre-persistence artifact scan), tracked artifact scan output `docs/parity/evidence/LEM-008-artifact-scan-output.json` (`leaked_count: 0`). Commit/remote recorded in completion summary.
 
 ### LEM-009 — Decide package naming, release flow, and consumer contracts
 
@@ -612,3 +613,4 @@ No task is claimed.
 - **LEM-005** — Build the assay↔lemma golden parity harness (2026-11-14). Evidence: `pnpm test:parity` passes (oracle vs baselines, seeded/frozen zero-diff, field-level diff/self-check) for completed/halted/browser-blocked using `examples/sample-repo`; pinned oracle config, normalized baselines, harness script/docs, and CI parity step added. Commit/remote recorded in completion summary.
 - **LEM-006** — Port deterministic clock, entropy, and seeded id providers (2026-11-14). Evidence: `packages/core/src/determinism.ts` and `packages/core/test/determinism/determinism.test.ts`; seeded/frozen byte-identical outputs, real UTC/random defaults, report-only `generated_at` override semantics, and typed validation errors verified (`pnpm --filter @lemma/core test -- determinism`). Commit/remote recorded in completion summary.
 - **LEM-007** — Port the typed error model and exit-code contract (2026-11-14). Evidence: `packages/core/src/errors.ts`, `packages/cli/src/errors.ts`, `packages/core/test/errors/errors.test.ts`; typed domain errors, exit codes 0/1/2/3/130, stable malformed-workflow/corrupt-state payloads, JSON-only stdout/stderr separation verified (`pnpm --filter @lemma/core test -- errors`). Commit/remote recorded in completion summary.
+- **LEM-008** — Port the redaction engine and synthetic corpus (2026-11-14). Evidence: `packages/core/src/redaction.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json` (30 shapes incl. Jira/storage state), `packages/core/test/redaction/redaction.test.ts`, `docs/parity/evidence/LEM-008-artifact-scan-output.json` (`leaked_count: 0`); idempotence, broken-redactor detection, and no-original-in-failure behavior verified (`pnpm --filter @lemma/core test -- redaction`). Commit/remote recorded in completion summary.

@@ -34,7 +34,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/errors.py` | Typed error model (`packages/core/src/errors.ts`: domain error classes, stable `ErrorCode`/payloads, `EXIT_CODES` 0/1/2/3/130, `exitCodeForError`/`toErrorPayload`; CLI contract helpers in `packages/cli/src/errors.ts`) | `@lemma/core/errors` | LEM-007 |
 | `harness/outcomes.py` | Finding/blocker drafts and check outcomes | `@lemma/core/outcomes` | LEM-013, LEM-046 |
 | `harness/risk.py` | Risk ranking from inventory | `@lemma/core/risk` | LEM-024, LEM-036 |
-| `harness/redact.py` | Redaction before persistence | `@lemma/core/redact` | LEM-008, LEM-123 |
+| `harness/redact.py` | Redaction before persistence (`packages/core/src/redaction.ts`: `sanitizeUrl`, `redactText`, `redactSecretValue`, `redactUnknown`, `containsRedactionMarker`; corpus 30 shapes incl. Jira/storage state, artifact-scan evidence `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | `@lemma/core/redact` | LEM-008, LEM-123 |
 | `harness/exports.py` | SARIF and JUnit exporters | `@lemma/core/exports` | LEM-065, LEM-066 |
 | `harness/calibration.py` | Labeled fixture calibration | `@lemma/core/calibration` | LEM-070, LEM-074 |
 | `harness/ssrf.py` | SSRF validation, DNS, allowlists, redirects | `@lemma/core/ssrf` | LEM-059, LEM-125 |
@@ -237,7 +237,7 @@ with rationale.
 | `test_trend.py` | LEM-068 |
 | `test_calibration.py` | LEM-070 |
 | `test_ssrf.py` | LEM-059, LEM-125 |
-| `test_redaction_corpus.py` | LEM-008, LEM-123 |
+| `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |
 | `test_failure_injection.py` | LEM-126 |
 | `test_metering.py` | LEM-113 |
 | `test_auth.py` | LEM-114 |

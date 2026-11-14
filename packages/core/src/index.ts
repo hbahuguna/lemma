@@ -5,3 +5,4 @@ export const STATE_ROOT = ".lemma";
 export * from "./schemas/index.js";
 export * from "./errors.js";
 export * from "./determinism.js";
+export * from "./redaction.js";
