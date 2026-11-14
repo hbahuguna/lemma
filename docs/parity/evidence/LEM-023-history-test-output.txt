@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/history/history.test.ts (3 tests) 566ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  22:44:03
+   Duration  2.24s (transform 313ms, setup 0ms, collect 487ms, tests 566ms, environment 0ms, prepare 286ms)
+

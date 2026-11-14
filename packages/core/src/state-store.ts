@@ -7,6 +7,7 @@ import {
   type History,
   type RunState,
 } from "./schemas/state.js";
+import { Severity } from "./models.js";
 import {
   atomicWriteFile,
   atomicWriteJson,
@@ -221,16 +222,43 @@ export class StateStore {
     const r = report;
     const decisionObj = isRecord(r?.decision) ? r.decision : undefined;
     const confidence = isRecord(s.confidence) ? s.confidence : undefined;
-    const confidenceScore = isRecord(confidence) && typeof confidence.score === "number" ? confidence.score : undefined;
+    const confidenceScore = confidence && typeof confidence.score === "number" ? confidence.score : undefined;
     const score = typeof s.score === "number" ? s.score : confidenceScore;
-    const decision = asString(s.decision) ?? asString(decisionObj?.decision);
+    const status = asString(s.status) ?? "unknown";
+    let decision = asString(s.decision) ?? asString(decisionObj?.decision);
+    if (!decision) {
+      if (status === "halted" || status === "failed") decision = "hold";
+      else {
+        const gate = isRecord(confidence?.gate) ? confidence.gate : undefined;
+        const gateStatus = asString(gate?.status);
+        decision = gateStatus === "pass" ? "ship" : gateStatus === "fail" ? "hold" : "review";
+      }
+    }
     const runId = asString(s.run_id) ?? "";
     const evidencePath =
       asString(s.evidence_dir) ?? path.posix.join(".lemma", "evidence", runId);
 
+    const findingCounts: Record<string, number> = {
+      [Severity.CRITICAL]: 0,
+      [Severity.HIGH]: 0,
+      [Severity.MEDIUM]: 0,
+      [Severity.LOW]: 0,
+      [Severity.INFO]: 0,
+    };
+    const fingerprints = new Set<string>();
+    if (Array.isArray(s.findings)) {
+      for (const f of s.findings) {
+        if (!isRecord(f)) continue;
+        const sev = typeof f.severity === "string" ? f.severity : "";
+        if (sev in findingCounts) findingCounts[sev] = (findingCounts[sev] ?? 0) + 1;
+        const fp = typeof f.fingerprint === "string" ? f.fingerprint : "";
+        if (fp) fingerprints.add(fp);
+      }
+    }
+
     const entry: Record<string, unknown> = {
       run_id: runId,
-      status: asString(s.status) ?? "unknown",
+      status,
       recorded_at: new Date().toISOString(),
     };
     if (decision) entry.decision = decision;
@@ -239,6 +267,8 @@ export class StateStore {
     if (asString(s.workflow_version)) entry.workflow_version = asString(s.workflow_version);
     if (s.target !== undefined) entry.target = s.target;
     if (evidencePath) entry.evidence_path = evidencePath;
+    entry.finding_counts = findingCounts;
+    entry.finding_fingerprints = [...fingerprints].sort();
     const startedAt = asString(s.started_at);
     if (startedAt) entry.started_at = startedAt;
     if (s.completed_at === null || typeof s.completed_at === "string") {

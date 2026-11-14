@@ -126,7 +126,7 @@ inputs.
 | LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Done |
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Done |
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Done |
-| LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Backlog |
+| LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Done |
 | LEM-024 | Port risk analysis | P1 | 3 | LEM-013 | Backlog |
 | LEM-025 | Port the scenario step planner and runner | P1 | 5 | LEM-024 | Backlog |
 | LEM-026 | Build the orchestrator conformance suite | P0 | 5 | LEM-015, LEM-016, LEM-018, LEM-020, LEM-021 | Backlog |
@@ -766,6 +766,34 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-020** — Port the report builder and JSON Schema validation (2026-11-14). Evidence: `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/src/schemas/report.ts`, `packages/core/test/report/report.test.ts`, `docs/parity/evidence/LEM-020-report-test-output.txt` (`pnpm --filter @lemma/core test -- report`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-021** — Port resume, crash safety, and registry fingerprint (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/src/checks.ts`, `packages/core/test/resume/resume.test.ts`, `docs/parity/evidence/LEM-021-resume-test-output.txt` (`pnpm --filter @lemma/core test -- resume`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-022** — Port seeded resume and id-sequence continuity (2026-11-14). Evidence: `packages/core/src/determinism.ts`, `packages/core/src/orchestrator.ts`, `packages/core/test/seeded-resume/seeded-resume.test.ts`, `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt` (`pnpm --filter @lemma/core test -- seeded-resume`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-023** — Port run history, retention, and prune (2026-11-14). Evidence: `packages/core/src/state-store.ts`, `packages/core/test/history/history.test.ts`, `docs/parity/evidence/LEM-023-history-test-output.txt` (`pnpm --filter @lemma/core test -- history`, 3/3; `test/state/state-store.test.ts`, 5/5). Commit/remote recorded in completion summary.
+
+### LEM-023 — Port run history, retention, and prune
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-011
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- history`.
+- **Description:** Port run history recording, retention/prune behavior, and
+  evidence-safe history maintenance in `StateStore`.
+- **Acceptance Criteria:**
+  - `StateStore.recordRun`/`loadHistory` maintain a versioned, deterministically
+    sorted (newest-first) history with upsert-by-run-id and enriched entries
+    (status, decision, score, workflow/target metadata, timestamps/evidence path,
+    finding_counts by severity, and sorted finding_fingerprints when available).
+  - `StateStore.prune` supports `keepRuns`, `olderThanDays`, `dryRun`, and `now`;
+    protects latest run, latest completed run, and all halted runs; writes updated
+    history index before deleting evidence; removes only evidence under
+    `.lemma/evidence`; and never mutates state on dry-run.
+  - Invalid prune options/timestamps and unsafe evidence paths produce typed
+    `StateError`s; missing evidence paths are handled safely.
+  - Tests cover history recording/enrichment/sorting/upsert, keep-runs and
+    older-than retention with protections, dry-run non-mutation, and safe
+    evidence-prune behavior.
+- **Verification:** `pnpm --filter @lemma/core test -- history` (targeted file: `packages/core/test/history/history.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core test -- state/store` (`packages/core/test/state/state-store.test.ts`) — **PASS** (5 tests, regression). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/state-store.ts` (enriched history entries with derived decision/score, `finding_counts`, sorted `finding_fingerprints`, workflow/target/evidence metadata; retention/prune protections, dry-run, index-before-delete, safe `.lemma/evidence` removal), `packages/core/test/history/history.test.ts`, `docs/parity/evidence/LEM-023-history-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-022 — Port seeded resume and id-sequence continuity
 
