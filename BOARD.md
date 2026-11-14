@@ -100,7 +100,7 @@ parity with assay.
 | LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Done |
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Done |
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Done |
-| LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Backlog |
+| LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Done |
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Backlog |
 | LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Backlog |
 | LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Backlog |
@@ -469,7 +469,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 3
 - **Depends on:** LEM-004
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test --filter @lemma/core -- determinism`.
 - **Description:** Recreate assay's injectable clock and entropy providers,
   including frozen clock, seeded id sequences, and the report `determinism`
   object.
@@ -481,8 +482,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Production defaults use real UTC and cryptographically random ids.
   - `--generated-at` overrides only the report field, not run timestamps.
   - Invalid seed/clock combinations raise a typed error.
-- **Verification:** `pnpm test --filter @lemma/core -- determinism`
-- **Evidence to record:** normalized report pair, test output.
+- **Verification:** `pnpm --filter @lemma/core test -- determinism` — **PASS** (5 tests; core suite 28/28 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/determinism.ts` (`Clock`/`Entropy`/`RealClock`/`FrozenClock`/`SeededEntropy`, `makeDeterminism`, active context helpers, deterministic `now`/`newId`/`runId`), `packages/core/test/determinism/determinism.test.ts` (seeded/frozen byte-identical outputs, real-UTC/random defaults, generated-at report-only override behavior, typed `HarnessError` validation). Commit/remote recorded in completion summary.
 
 ### LEM-007 — Port the typed error model and exit-code contract
 
@@ -608,3 +609,4 @@ No task is claimed.
 - **LEM-003** — Ratify the architecture, package graph, and adapter contract (2026-11-14). Evidence: `docs/architecture.md` ratified (graph/module map/`AgentHost` interfaces/capability matrix/degradation/adapter ownership, OpenCode+Claude Code first), `docs/adr/0001-typescript-monorepo-and-contracts.md`, `packages/core/test/dependency-direction.test.ts`; `pnpm typecheck` and dependency-direction test passed. Operator sign-off: DL11. Commit/remote recorded in completion summary.
 - **LEM-004** — Define versioned zod schemas and inferred core types (2026-11-14). Evidence: zod contract modules in `@lemma/core` for report v1, state/progress/history, evidence manifest, persona, plugin, policy, metering envelope/events, quota plan, price book, entitlement, queue job, billing record, retention; generated/committed `schemas/**` (23 files) match generator output; schema tests cover assay report compatibility (completed/halted/failed), contract rejection/additive fields. Commit/remote recorded in completion summary.
 - **LEM-005** — Build the assay↔lemma golden parity harness (2026-11-14). Evidence: `pnpm test:parity` passes (oracle vs baselines, seeded/frozen zero-diff, field-level diff/self-check) for completed/halted/browser-blocked using `examples/sample-repo`; pinned oracle config, normalized baselines, harness script/docs, and CI parity step added. Commit/remote recorded in completion summary.
+- **LEM-006** — Port deterministic clock, entropy, and seeded id providers (2026-11-14). Evidence: `packages/core/src/determinism.ts` and `packages/core/test/determinism/determinism.test.ts`; seeded/frozen byte-identical outputs, real UTC/random defaults, report-only `generated_at` override semantics, and typed validation errors verified (`pnpm --filter @lemma/core test -- determinism`). Commit/remote recorded in completion summary.
