@@ -149,7 +149,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Done |
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Done |
 | LEM-037 | Cover the remaining 50+ category commands with owned checks or documented no-ops | P1 | 8 | LEM-033 | Done |
-| LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Backlog |
+| LEM-038 | Port the sample-repo, demo-web, and static fixtures | P1 | 3 | LEM-027 | Done |
 | LEM-039 | Build the static precision and recall corpus | P1 | 5 | LEM-031, LEM-032 | Backlog |
 | LEM-040 | Verify static finding-to-evidence linkage and report totals | P1 | 3 | LEM-016, LEM-020 | Backlog |
 
@@ -781,6 +781,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-035** — Port CI root-scoping precision (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/ci-root-scoping/ci-root-scoping.test.ts`, `docs/parity/evidence/LEM-035-ci-root-scoping-test-output.txt` (`pnpm --filter @lemma/core test -- ci-root-scoping`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-036** — Port risk tracked-file parity (2026-11-14). Evidence: `packages/core/src/risk.ts`, `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`, `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt` (`pnpm --filter @lemma/core test -- risk-tracked-parity`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-037** — Cover the remaining 50+ category commands with owned checks or documented no-ops (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/src/static.ts`, `packages/core/src/index.ts`, `packages/core/test/checks/checks.test.ts`, `packages/core/test/category-coverage/category-coverage.test.ts`, `docs/parity/evidence/LEM-037-category-coverage-test-output.txt` (`pnpm --filter @lemma/core test -- category-coverage` and `-- checks`, 7/7). Commit/remote recorded in completion summary.
+- **LEM-038** — Port the sample-repo, demo-web, and static fixtures (2026-11-14). Evidence: `examples/sample-repo/`, `examples/demo-web/`, `tests/fixtures/redaction_corpus.json`, `docs/parity/evidence/LEM-038-fixtures-parity.txt` (fixture parity checks vs assay). Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 
@@ -805,7 +806,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `{ category: "full" }`; API exported from `@lemma/core` with tests covering
     payload/actual/metadata/evidence linkage.
 - **Verification:** `pnpm --filter @lemma/core test -- full-assessment` (targeted file: `packages/core/test/full-assessment/full-assessment.test.ts`) — **PASS** (1 test). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
-- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.### LEM-037 — Cover the remaining 50+ category commands with owned checks or documented no-ops
+- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/method for `static.full_assessment` with assay-compatible `full-assessment-scope` evidence payload/description, passed outcome actual, and `{category:"full"}` metadata), exported via `@lemma/core`; `packages/core/test/full-assessment/full-assessment.test.ts` (payload, actual, metadata, and evidence linkage). Test output: `docs/parity/evidence/LEM-034-full-assessment-test-output.txt`. Commit/remote recorded in completion summary.
+
+### LEM-037 — Cover the remaining 50+ category commands with owned checks or documented no-ops
 
 - **Epic:** E3 Evidence Checks and Personas
 - **Priority:** P1
@@ -840,6 +843,33 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     planning+execution/evidence for generic and specialized categories.
 - **Verification:** `pnpm --filter @lemma/core test -- category-coverage` (targeted: `packages/core/test/category-coverage/category-coverage.test.ts`, 3/3) and `pnpm --filter @lemma/core test -- checks` (`packages/core/test/checks/checks.test.ts`, 4/4) — **PASS** (7 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/checks.ts` (canonical `ASSAY_CATEGORY_LABELS`/intents, mapping helpers, generic `static.category.<label>` definitions, intent-gated planning/applicability), `packages/core/src/static.ts` (`StaticCheckRunner` generic category-scope handler with documented no-op `static_analysis` evidence), exports via `packages/core/src/index.ts`; `packages/core/test/checks/checks.test.ts` (catalog/registry/planning compatibility updates), `packages/core/test/category-coverage/category-coverage.test.ts` (full 59-category mapping, intent-gated planning, representative generic execution/evidence). Test output: `docs/parity/evidence/LEM-037-category-coverage-test-output.txt`. Commit/remote recorded in completion summary.
+
+
+### LEM-038 — Port the sample-repo, demo-web, and static fixtures
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: fixture parity checks against `../assay/examples/sample-repo`, `../assay/examples/demo-web`, and `../assay/tests/fixtures`.
+- **Description:** Port deterministic static and demo fixtures from assay so
+  lemma has parity fixtures for static analysis, category/demo flows, and tests.
+- **Acceptance Criteria:**
+  - `examples/sample-repo/` is ported to match assay's
+    `examples/sample-repo/` fixture (structure and content), including
+    `.github/workflows/ci.yml` and existing source/test/manifest/lockfile files,
+    preserving deterministic static-analysis signals (representative
+    high/medium/low findings) with only clearly fake demo values.
+  - `examples/demo-web/` is ported to match assay's `examples/demo-web/`
+    fixture (stable accessible browser/demo baseline page and content).
+  - Static fixture files from assay `tests/fixtures/` (e.g.
+    `redaction_corpus.json`) are ported into lemma under `tests/fixtures/`
+    with matching content to support parity/static-fixture usage.
+  - Ported fixtures are deterministic, text-safe, and contain no live secrets
+    or credentials; parity is evidenced by file/structure comparisons.
+- **Verification:** `diff -rq examples/sample-repo ../assay/examples/sample-repo && diff -rq examples/demo-web ../assay/examples/demo-web && diff -rq tests/fixtures ../assay/tests/fixtures` — **PASS** (no differences; exit 0, 2026-11-14).
+- **Evidence:** `examples/sample-repo/` (parity with assay, incl. `.github/workflows/ci.yml`), `examples/demo-web/index.html`, `tests/fixtures/redaction_corpus.json`; parity comparison output: `docs/parity/evidence/LEM-038-fixtures-parity.txt`. Commit/remote recorded in completion summary.
 
 
 ### LEM-036 — Port risk tracked-file parity

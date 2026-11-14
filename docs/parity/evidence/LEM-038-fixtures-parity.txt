@@ -1,0 +1,13 @@
+LEM-038 fixture parity verification
+
+Commands:
+  diff -rq examples/sample-repo ../assay/examples/sample-repo
+  diff -rq examples/demo-web ../assay/examples/demo-web
+  diff -rq tests/fixtures ../assay/tests/fixtures
+
+Result: no differences (exit 0)
+
+Ported/verified fixtures:
+- examples/sample-repo/ (including .github/workflows/ci.yml) matches ../assay/examples/sample-repo
+- examples/demo-web/index.html matches ../assay/examples/demo-web/index.html
+- tests/fixtures/redaction_corpus.json matches ../assay/tests/fixtures/redaction_corpus.json
