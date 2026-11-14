@@ -21,7 +21,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/orchestrator.py` | Five-phase state machine, budget, kill, resume, finalization | `@lemma/core/orchestrator` | LEM-015, LEM-026 |
 | `harness/determinism.py` | Injectable clock/entropy, seeded ids, frozen clock (`packages/core/src/determinism.ts`: `Clock`/`Entropy`, `RealClock`/`FrozenClock`, `RealEntropy`/`SeededEntropy`, `makeDeterminism`, active helpers, typed validation) | `@lemma/core/determinism` | LEM-006 |
 | `harness/workflows.py` | Versioned workflow loader, phase validation (`packages/core/src/workflows.ts`: dependency-free YAML subset parser, typed validation/errors, `PHASE_ORDER` invariant, built-in `release-confidence`, `loadWorkflowFile`/`loadWorkflows`; tests `packages/core/test/workflows/workflows.test.ts`, output `docs/parity/evidence/LEM-012-workflows-test-output.txt`) | `@lemma/core/workflows` | LEM-012 |
-| `harness/checks.py` | Check catalog, definitions, intent planning | `@lemma/core/checks` | LEM-014 |
+| `harness/checks.py` | Check catalog, definitions, intent planning (`packages/core/src/checks.ts`: 24-check catalog, `catalogIds`, intent/category helpers, applicability, `planChecks` with ownership/registry hooks and typed errors, `applyRiskWeights`; tests `packages/core/test/checks/checks.test.ts`, output `docs/parity/evidence/LEM-014-checks-test-output.txt`) | `@lemma/core/checks` | LEM-014 |
 | `harness/plugins.py` | Signed entry-point registry, plugin context, blocked failures | `@lemma/core/plugins` | LEM-075–LEM-082 |
 | `harness/personas.py` | Frontmatter parsing, schema validation, ownership | `@lemma/core/personas` | LEM-041–LEM-049 |
 | `harness/static_analysis.py` | Inventory, git-aware scope, secret/unsafe/a11y scans, categories | `@lemma/core/static` | LEM-027–LEM-040 |
@@ -147,7 +147,7 @@ intent-gated category or as an explicit documented no-op with rationale.
 | `personas/security.md` | Secret, unsafe-code, transport, header ownership | LEM-043 |
 | `personas/accessibility.md` | Markup and rendered accessibility ownership | LEM-043 |
 | `personas/README.md` | Contract authoring rules | LEM-043, LEM-047 |
-| Check catalog (24 checks: `static.*`, `browser.*`) | Stable ids, weights, intents, inputs | LEM-014, LEM-037 |
+| Check catalog (24 checks: `static.*`, `browser.*`) | Stable ids, weights, intents, inputs (`packages/core/src/checks.ts` `CHECK_CATALOG`/`catalogIds`; planning/weighting tests `packages/core/test/checks/checks.test.ts`, `docs/parity/evidence/LEM-014-checks-test-output.txt`) | LEM-014, LEM-037 |
 | Ownership derivation | Frontmatter is the only owner source | LEM-044 |
 | Finding schema validation | Quarantine invalid findings, degraded streak | LEM-045 |
 | Blocker schema validation | One structured blocker per blocked check | LEM-046 |

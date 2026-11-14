@@ -117,7 +117,7 @@ inputs.
 | LEM-011 | Port progress state, events, history, retention, and kill file | P0 | 5 | LEM-010 | Done |
 | LEM-012 | Port the versioned workflow loader and phase invariant | P0 | 5 | LEM-004, LEM-007 | Done |
 | LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | In Progress |
-| LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Backlog |
+| LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | In Progress |
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Backlog |
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Backlog |
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Backlog |
@@ -679,6 +679,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/core test -- models` — **PASS** (4 tests; core suite 56/56 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/models.ts` (assay-compatible domain enums/constants and severity ranking/clamp, normalization/serde helpers for Target/Risk/Finding/InvalidFinding/Blocker/Check/Phase/Confidence/KillSwitch/RunState, deterministic timestamp/id defaults via `now`/`newId`, outcome drafts `FindingDraft`/`BlockerDraft` and `CheckOutcome` with `addFinding`/`addBlocker`), exported from `@lemma/core`; `packages/core/test/models/models.test.ts` (enum values, coercion/defaulting, JSON round-trips, deterministic defaults, outcome behavior/clamp). Test output: `docs/parity/evidence/LEM-013-models-test-output.txt`. Commit/remote recorded in completion summary.
 
+### LEM-014 — Port the check catalog, registry, and intent planning
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- checks`.
+- **Description:** Port assay's stable check catalog/definitions and intent-linked
+  planning primitives (applicability, selection/registry hooks, and risk weight
+  application) as core utilities compatible with lemma domain models.
+- **Acceptance Criteria:**
+  - `CHECK_CATALOG` contains the 24 assay checks with stable ids and matching
+    metadata (title, domain, kind, intent, expected, `base_weight`, `requires`,
+    legacy `persona` empty for built-ins) and `catalogIds` returns catalog/registry ids.
+  - Intent/category helpers and applicability implement assay semantics for
+    category markers (`static.full_assessment`, `test/functionality/browser/issues/demo/more`),
+    `browser.steps` scenario gating, source/markup/manifest/url requirements, and
+    mobile-only checks (`browser.overflow`, `browser.focus_order`).
+  - `planChecks` builds planned `Check` records from definitions + target/inventory +
+    ownership/selection inputs, setting owner/persona, initial weight/status, and
+    completed/blocked metadata for blocked plugin checks; it filters by selected
+    owners and applicability, respects `max_checks`, and raises typed
+    `HarnessError` for non-plugin ownership violations, missing applicable checks,
+    or `max_checks` removing all checks.
+  - Registry-compatible hooks/interfaces support definition/ids/source, blocked
+    reasons, owner hints, and blocking (for plugin planning paths) without
+    depending on `@lemma/core` plugin implementation.
+  - `applyRiskWeights` applies per-domain max risk multipliers to planned checks
+    (rounded as assay does) and APIs are exported from `@lemma/core` with tests
+    covering catalog, applicability/intent planning, ownership/registry behavior,
+    error cases, and risk weighting.
+- **Verification:** `pnpm --filter @lemma/core test -- checks` — **PASS** (4 tests; core suite 60/60 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/checks.ts` (24-check `CHECK_CATALOG` with assay-compatible metadata, `catalogIds`, intent/category helpers, applicability incl. category markers/browser-availability rules/scenario/mobile filters, `planChecks` with ownership/selection/registry hooks, blocked-plugin handling, deterministic blocked timestamps, typed errors, and `applyRiskWeights` using per-domain max multipliers with assay-style rounding), exported from `@lemma/core`; `packages/core/test/checks/checks.test.ts` (catalog, intent/applicability, planning/selection/ownership/registry/errors, risk weighting). Test output: `docs/parity/evidence/LEM-014-checks-test-output.txt`. Commit/remote recorded in completion summary.
+
 ---
 
 ## Blockers
@@ -721,3 +756,5 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-010** — Port atomic state, JSON, and file-lock primitives (2026-11-14). Evidence: `packages/core/src/state.ts` (atomic write temp+fsync+rename, typed JSON read with `CorruptStateError`/`StateError`, advisory file lock with cross-process stale/crash recovery, `ensureDir`, kill-file write/read/clear), `packages/core/test/state/state.test.ts`; crash-injection and cross-process tests passed (`pnpm --filter @lemma/core test -- state`, 42/42). Cross-platform CI matrix added (`.github/workflows/ci.yml` `state-primitives` on ubuntu/macos/windows). Output: `docs/parity/evidence/LEM-010-state-test-output.txt`. Commit/remote recorded in completion summary.
 - **LEM-011** — Port progress state, events, history, retention, and kill file (2026-11-14). Created acceptance criteria and delivered `StateStore` over `.lemma/` (progress save/load, JSONL events, versioned history record/upsert/sort, prune with protections/safe evidence removal, kill request/observe/clear) using shared primitives. Evidence: `packages/core/src/state-store.ts`, `packages/core/test/state/state-store.test.ts`, `docs/parity/evidence/LEM-011-state-store-test-output.txt` (`pnpm --filter @lemma/core test -- state`, 47/47). Commit/remote recorded in completion summary.
 - **LEM-012** — Port the versioned workflow loader and phase invariant (2026-11-14). Created acceptance criteria and delivered dependency-free YAML subset workflow loader with typed validation/errors and fixed five-phase invariant. Evidence: `packages/core/src/workflows.ts`, `packages/core/test/workflows/workflows.test.ts`, `docs/parity/evidence/LEM-012-workflows-test-output.txt` (`pnpm --filter @lemma/core test -- workflows`, 52/52). Commit/remote recorded in completion summary.
+- **LEM-013** — Port domain models, findings, and normalization (2026-11-14). Evidence: `packages/core/src/models.ts`, `packages/core/test/models/models.test.ts`, `docs/parity/evidence/LEM-013-models-test-output.txt` (`pnpm --filter @lemma/core test -- models`, 56/56). Commit/remote recorded in completion summary.
+- **LEM-014** — Port the check catalog, registry, and intent planning (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/test/checks/checks.test.ts`, `docs/parity/evidence/LEM-014-checks-test-output.txt` (`pnpm --filter @lemma/core test -- checks`, 60/60). Commit/remote recorded in completion summary.
