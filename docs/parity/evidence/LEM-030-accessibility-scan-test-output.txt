@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/accessibility-scan/accessibility-scan.test.ts (3 tests) 216ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:46:23
+   Duration  2.40s (transform 466ms, setup 0ms, collect 705ms, tests 216ms, environment 2ms, prepare 298ms)
+

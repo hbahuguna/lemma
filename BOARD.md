@@ -141,7 +141,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-027 | Port source inventory and git-aware tracked/ignored scanning | P0 | 5 | LEM-013 | Done |
 | LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Done |
 | LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Done |
-| LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Backlog |
+| LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Done |
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Backlog |
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Backlog |
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Backlog |
@@ -773,6 +773,40 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-027** — Port source inventory and git-aware tracked/ignored scanning (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/inventory/inventory.test.ts`, `docs/parity/evidence/LEM-027-inventory-test-output.txt` (`pnpm --filter @lemma/core test -- inventory`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-028** — Port `.harnessignore`-equivalent scoping (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/harnessignore/harnessignore.test.ts`, `docs/parity/evidence/LEM-028-harnessignore-test-output.txt` (`pnpm --filter @lemma/core test -- harnessignore`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-029** — Port inventory, tests, CI, and dependency checks (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/static-checks/static-checks.test.ts`, `docs/parity/evidence/LEM-029-static-checks-test-output.txt` (`pnpm --filter @lemma/core test -- static-checks`, 6/6). Commit/remote recorded in completion summary.
+- **LEM-030** — Port the accessibility markup scan (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/accessibility-scan/accessibility-scan.test.ts`, `docs/parity/evidence/LEM-030-accessibility-scan-test-output.txt` (`pnpm --filter @lemma/core test -- accessibility-scan`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-030 — Port the accessibility markup scan
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- accessibility-scan`.
+- **Description:** Port deterministic source-level accessibility markup heuristics
+  (`static.accessibility`) with assay-compatible evidence and findings.
+- **Acceptance Criteria:**
+  - Core static runner implements `static.accessibility` scanning markup files from
+    inventory (`MARKUP_EXTENSIONS`) with assay-compatible constraints (skip missing,
+    `.min.` names, files over `MAX_SCAN_BYTES`, binary/unreadable content, and cap at
+    `MAX_SCAN_FILES`), evaluating the ported `A11Y_RULES` line-by-line with test-path
+    severity downgrades and match collection capped at 30.
+  - Evidence artifact `source-accessibility-scan` is saved with kind `static_analysis`
+    and description `Static accessibility heuristics on markup and component templates.`,
+    payload containing `matches` and `files_scanned` (inventory `markup_files`).
+  - Outcomes are assay-compatible: no matches => passed, actual
+    `No obvious source-level accessibility barriers matched.`, metadata
+    `{matches: 0}`; with matches => failed, actual
+    `${matches} source-level accessibility match(es) across ${markup_files.length} markup file(s).`,
+    grouped findings (up to 8 by rule+file) with rule title/count/location
+    (`file:line`), downgraded severity, domain `accessibility`, rule
+    consequence/remediation/verification, reproduction
+    `Inspect the cited markup and verify the rendered accessibility tree.`,
+    and tags `["accessibility", <rule_id>]`.
+  - APIs/rules/helpers are exported from `@lemma/core` as needed and tests cover
+    clean markup, rule matches/grouping/limits, and test-path severity downgrade.
+- **Verification:** `pnpm --filter @lemma/core test -- accessibility-scan` (targeted file: `packages/core/test/accessibility-scan/accessibility-scan.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`A11Y_RULES`, test-path severity downgrade, markup-file iteration/read helpers, and `StaticCheckRunner.checkStaticAccessibility`/`static.accessibility` dispatch with assay-compatible `source-accessibility-scan` evidence, outcomes, grouping, and findings), exported via `@lemma/core`; `packages/core/test/accessibility-scan/accessibility-scan.test.ts` (clean pass case, grouped rule matches/payload, and test-path severity downgrade). Test output: `docs/parity/evidence/LEM-030-accessibility-scan-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-029 — Port inventory, tests, CI, and dependency checks
 

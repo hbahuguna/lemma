@@ -540,6 +540,92 @@ export interface StaticCheckLike {
   [key: string]: unknown;
 }
 
+function isTestPath(rel: string): boolean {
+  const lower = rel.toLowerCase();
+  return TEST_HINTS.some((hint) => lower.includes(hint));
+}
+
+function downgradeSeverity(severity: string, rel: string): string {
+  if (!isTestPath(rel)) return severity;
+  const order = [
+    Severity.CRITICAL,
+    Severity.HIGH,
+    Severity.MEDIUM,
+    Severity.LOW,
+    Severity.INFO,
+  ] as string[];
+  const index = order.indexOf(severity);
+  if (index === -1 || index >= order.length - 1) return severity;
+  return order[index + 1] ?? severity;
+}
+
+export interface A11yRule {
+  id: string;
+  pattern: RegExp;
+  severity: string;
+  title: string;
+  consequence: string;
+  remediation: string;
+  verification: string;
+}
+
+export const A11Y_RULES: readonly A11yRule[] = [
+  {
+    id: "img-alt",
+    pattern: /<img\b(?![^>]*\balt\s*=)[^>]*>/i,
+    severity: Severity.MEDIUM,
+    title: "Image is missing an alt attribute",
+    consequence: "Screen-reader users may miss information or hear an unhelpful filename.",
+    remediation: "Add meaningful alt text, or alt=\"\" for decorative images.",
+    verification: "Inspect the accessibility tree and confirm each image has an intentional alternative.",
+  },
+  {
+    id: "input-label",
+    pattern: /<input\b(?![^>]*(?:aria-label|aria-labelledby|id\s*=))[^>]*>/i,
+    severity: Severity.LOW,
+    title: "Input may lack a programmatic label",
+    consequence: "Assistive-technology users may not know what the field expects.",
+    remediation: "Associate a visible label with the input, or add aria-label/aria-labelledby.",
+    verification: "Confirm the control has an accessible name in the browser tree.",
+  },
+  {
+    id: "html-lang",
+    pattern: /<html\b(?![^>]*\blang\s*=)[^>]*>/i,
+    severity: Severity.LOW,
+    title: "Document language is not declared",
+    consequence: "Screen readers may pronounce content with the wrong language rules.",
+    remediation: "Add a valid lang attribute to the root html element.",
+    verification: "Confirm the language is exposed in the accessibility tree.",
+  },
+  {
+    id: "positive-tabindex",
+    pattern: /tabIndex\s*=\s*['"]?[1-9]/i,
+    severity: Severity.MEDIUM,
+    title: "Positive tabindex changes the natural focus order",
+    consequence: "Keyboard users can be sent to unexpected controls and lose context.",
+    remediation: "Use DOM order and tabindex=\"0\"/\"-1\" only where necessary.",
+    verification: "Tab through the page and confirm the order matches the visual flow.",
+  },
+  {
+    id: "clickable-div",
+    pattern: /<div\b[^>]*\bonClick\b/i,
+    severity: Severity.LOW,
+    title: "Click handler on a non-semantic container",
+    consequence: "Keyboard and assistive-technology users may not be able to activate the control.",
+    remediation: "Use a button or link, or add the required role, tabindex, and key handling.",
+    verification: "Activate the control with keyboard only and inspect its accessible role.",
+  },
+  {
+    id: "aria-hidden-focusable",
+    pattern: /<(?:button|a|input|select|textarea)\b[^>]*aria-hidden\s*=\s*['"]true['"]/i,
+    severity: Severity.MEDIUM,
+    title: "Focusable control is hidden from assistive technology",
+    consequence: "Keyboard users can focus a control that screen readers cannot describe.",
+    remediation: "Remove aria-hidden from focusable controls or remove them from the tab order.",
+    verification: "Confirm focus and accessibility-tree exposure agree.",
+  },
+];
+
 export class StaticCheckRunner {
   readonly root: string;
   readonly inventory: InventoryData;
@@ -561,11 +647,43 @@ export class StaticCheckRunner {
         return this.checkStaticCi(check);
       case "static.dependencies":
         return this.checkStaticDependencies(check);
+      case "static.accessibility":
+        return this.checkStaticAccessibility(check);
       default:
         return new CheckOutcome({
           status: CheckStatus.ERROR,
           actual: `No static runner is registered for check '${check.id}'.`,
         });
+    }
+  }
+
+  private *iterFiles(extensions?: ReadonlySet<string>): IterableIterator<[string, string]> {
+    const wanted = extensions ? new Set(extensions) : null;
+    let seen = 0;
+    for (const rel of this.inventory.source_files) {
+      const full = path.join(this.root, rel);
+      if (!existsSync(full)) continue;
+      if (wanted !== null && !wanted.has(path.extname(full).toLowerCase())) continue;
+      if (path.basename(full).includes(".min.")) continue;
+      try {
+        const st = statSync(full);
+        if (!st.isFile() || st.size > MAX_SCAN_BYTES) continue;
+      } catch {
+        continue;
+      }
+      seen += 1;
+      if (seen > MAX_SCAN_FILES) break;
+      yield [rel, full];
+    }
+  }
+
+  private readText(fullPath: string): string {
+    try {
+      const data = readFileSync(fullPath);
+      if (data.subarray(0, 2048).includes(0)) return "";
+      return data.toString("utf8");
+    } catch {
+      return "";
     }
   }
 
@@ -716,6 +834,83 @@ export class StaticCheckRunner {
         "Run two clean installs and confirm the resolved dependency set is identical.",
         ["reproducibility"],
       );
+    }
+    return outcome;
+  }
+
+  async checkStaticAccessibility(check: StaticCheckLike): Promise<CheckOutcome> {
+    const matches: Array<{
+      rule: string;
+      severity: string;
+      file: string;
+      line: number;
+      excerpt: string;
+    }> = [];
+
+    for (const [rel, fullPath] of this.iterFiles(MARKUP_EXTENSIONS)) {
+      const text = this.readText(fullPath);
+      if (!text) continue;
+      const lines = text.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? "";
+        for (const rule of A11Y_RULES) {
+          if (rule.pattern.test(line)) {
+            matches.push({
+              rule: rule.id,
+              severity: downgradeSeverity(rule.severity, rel),
+              file: rel,
+              line: i + 1,
+              excerpt: line.trim().slice(0, 180),
+            });
+          }
+        }
+        if (matches.length >= 30) break;
+      }
+      if (matches.length >= 30) break;
+    }
+
+    const evidence = await this.save(
+      "source-accessibility-scan",
+      { matches, files_scanned: this.inventory.markup_files },
+      check,
+      "Static accessibility heuristics on markup and component templates.",
+    );
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: "No obvious source-level accessibility barriers matched.",
+      evidence: [evidence],
+      metadata: { matches: matches.length },
+    });
+    if (matches.length === 0) return outcome;
+
+    outcome.actual = `${matches.length} source-level accessibility match(es) across ${this.inventory.markup_files.length} markup file(s).`;
+    const grouped = new Map<string, { rule: string; file: string; line: number; excerpt: string; severity: string; count: number }>();
+    for (const item of matches) {
+      const key = `${item.rule}\0${item.file}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...item, count: 0 });
+      }
+      grouped.get(key)!.count += 1;
+    }
+    const ruleMeta = new Map(A11Y_RULES.map((r) => [r.id, r]));
+    let emitted = 0;
+    for (const g of grouped.values()) {
+      if (emitted >= 8) break;
+      const rule = ruleMeta.get(g.rule);
+      if (!rule) continue;
+      outcome.addFinding(
+        `${rule.title} (${g.count} occurrence${g.count === 1 ? "" : "s"} in ${g.file})`,
+        g.severity,
+        "accessibility",
+        rule.consequence,
+        `${g.file}:${g.line}`,
+        "Inspect the cited markup and verify the rendered accessibility tree.",
+        Strength.SOURCE_PROVEN,
+        rule.remediation,
+        rule.verification,
+        ["accessibility", g.rule],
+      );
+      emitted += 1;
     }
     return outcome;
   }
