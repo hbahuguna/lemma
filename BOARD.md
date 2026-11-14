@@ -142,7 +142,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-028 | Port `.harnessignore`-equivalent scoping | P1 | 3 | LEM-027 | Done |
 | LEM-029 | Port inventory, tests, CI, and dependency checks | P0 | 5 | LEM-014, LEM-027 | Done |
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Done |
-| LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Backlog |
+| LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Done |
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Backlog |
 | LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Backlog |
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Backlog |
@@ -774,6 +774,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-028** — Port `.harnessignore`-equivalent scoping (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/harnessignore/harnessignore.test.ts`, `docs/parity/evidence/LEM-028-harnessignore-test-output.txt` (`pnpm --filter @lemma/core test -- harnessignore`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-029** — Port inventory, tests, CI, and dependency checks (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/static-checks/static-checks.test.ts`, `docs/parity/evidence/LEM-029-static-checks-test-output.txt` (`pnpm --filter @lemma/core test -- static-checks`, 6/6). Commit/remote recorded in completion summary.
 - **LEM-030** — Port the accessibility markup scan (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/accessibility-scan/accessibility-scan.test.ts`, `docs/parity/evidence/LEM-030-accessibility-scan-test-output.txt` (`pnpm --filter @lemma/core test -- accessibility-scan`, 3/3). Commit/remote recorded in completion summary.
+- **LEM-031** — Port secret scanning and precision rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/secret-scan/secret-scan.test.ts`, `docs/parity/evidence/LEM-031-secret-scan-test-output.txt` (`pnpm --filter @lemma/core test -- secret-scan`, 5/5). Commit/remote recorded in completion summary.
+
+### LEM-031 — Port secret scanning and precision rules
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- secret-scan`.
+- **Description:** Port deterministic secret scanning (`static.secrets`) with
+  redaction and precision rules to avoid obvious placeholder/test-fixture noise.
+- **Acceptance Criteria:**
+  - Core static runner implements `static.secrets` scanning source files with
+    assay-compatible `SECRET_RULES` (including `private-key`, provider tokens,
+    JWT, and `generic-credential`), file/scan limits, line-by-line matching, and
+    a 25-match cap; `generic-credential` evaluates the captured value with
+    placeholder/test-credential-fixture/entropy filters (ignored count tracked),
+    private keys use header redaction, and other matches redact the matched value.
+  - Precision/redaction helpers are ported: entropy calculation, placeholder
+    detection, synthetic test-credential fixture allowlist (test paths only),
+    `redact()` formatting, and test-path severity downgrade behavior.
+  - Evidence artifact `secret-scan` is saved with kind `static_analysis` and
+    description `Redacted secret scan results.`; payload contains `matches`,
+    `ignored_placeholder_or_test_fixture_matches`, and
+    `note: "Values are redacted; length and prefix only."`. Outcomes are
+    assay-compatible for pass/fail actuals and metadata.
+  - Matches are grouped (up to 8 by rule+file) into security findings with
+    correct title/count/location (`file:line`), downgraded severity, rule
+    consequence/remediation/verification, reproduction
+    `Inspect the redacted match in the evidence file and confirm whether the value is live.`,
+    and tags `["secret", "redacted"]`; APIs exported from `@lemma/core` with tests
+    covering redaction, ignored fixtures/placeholders, real-looking secrets, and caps/grouping.
+- **Verification:** `pnpm --filter @lemma/core test -- secret-scan` (targeted file: `packages/core/test/secret-scan/secret-scan.test.ts`) — **PASS** (5 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`SECRET_RULES`, entropy/placeholder/test-fixture/redaction helpers, and `StaticCheckRunner.checkStaticSecrets`/`static.secrets` dispatch with assay-compatible `secret-scan` evidence, precision filtering, redaction, grouping, and findings), exported via `@lemma/core`; `packages/core/test/secret-scan/secret-scan.test.ts` (clean pass, real-secret redaction/grouping, placeholder/fixture precision+ignored counts, private-key header redaction/test-path downgrade, provider token redaction). Test output: `docs/parity/evidence/LEM-031-secret-scan-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-030 — Port the accessibility markup scan
 

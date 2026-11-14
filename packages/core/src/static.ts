@@ -569,6 +569,159 @@ export interface A11yRule {
   verification: string;
 }
 
+export interface SecretRule {
+  id: string;
+  pattern: RegExp;
+  severity: string;
+  title: string;
+  consequence: string;
+  remediation: string;
+  verification: string;
+}
+
+function entropy(value: string): number {
+  if (!value) return 0.0;
+  const counts = new Map<string, number>();
+  for (const ch of value) counts.set(ch, (counts.get(ch) ?? 0) + 1);
+  const length = value.length;
+  let total = 0;
+  for (const count of counts.values()) {
+    const p = count / length;
+    total -= p * Math.log2(p);
+  }
+  return total;
+}
+
+function isTestCredentialFixture(value: string, rel: string): boolean {
+  if (!isTestPath(rel)) return false;
+  const lower = value.toLowerCase();
+  return (
+    lower.startsWith("sk_test") ||
+    lower.startsWith("pk_test") ||
+    lower.startsWith("whsec_test") ||
+    lower.startsWith("test-") ||
+    lower.startsWith("test_") ||
+    lower.startsWith("dummy-") ||
+    lower.startsWith("dummy_") ||
+    lower.startsWith("llm-") ||
+    lower.startsWith("ambient-")
+  );
+}
+
+export function looksPlaceholder(value: string): boolean {
+  const lower = value.toLowerCase();
+  const placeholders = [
+    "example",
+    "sample",
+    "dummy",
+    "changeme",
+    "change_me",
+    "your_",
+    "your-",
+    "placeholder",
+    "xxx",
+    "****",
+    "...",
+    "process.env",
+    "os.environ",
+    "getenv",
+    "${",
+    "<",
+    ">",
+    "redacted",
+    "sk_test",
+    "pk_test",
+    "whsec_test",
+    "test-key",
+    "test_key",
+    "opencode-test",
+    "fake",
+    "mock",
+  ];
+  return placeholders.some((token) => lower.includes(token));
+}
+
+export function redactSecret(value: string): string {
+  value = value.trim();
+  if (value.length <= 6) return "[REDACTED]";
+  return `${value.slice(0, 4)}…[REDACTED ${value.length} chars]`;
+}
+
+export const SECRET_RULES: readonly SecretRule[] = [
+  {
+    id: "private-key",
+    pattern: /-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY-----/,
+    severity: Severity.CRITICAL,
+    title: "Private key material committed to the repository",
+    consequence: "Anyone with repository access can impersonate the key holder or decrypt protected traffic.",
+    remediation: "Revoke the key, remove it from history, rotate dependent secrets, and load the replacement from a secret manager.",
+    verification: "Re-scan the repository and its history; confirm the key is revoked and no live copy remains.",
+  },
+  {
+    id: "stripe-live",
+    pattern: /\b(?:sk|rk)_live_[0-9A-Za-z]{16,}\b/,
+    severity: Severity.CRITICAL,
+    title: "Live payment provider secret is present in source",
+    consequence: "A leaked live key can move money, read customer data, or disrupt billing.",
+    remediation: "Roll the key immediately, inspect provider audit logs, and move the secret to a managed vault.",
+    verification: "Confirm the old key is revoked and the application uses the vault-backed replacement.",
+  },
+  {
+    id: "aws-access-key",
+    pattern: /\b(?:AKIA|ASIA)[0-9A-Z]{16}\b/,
+    severity: Severity.HIGH,
+    title: "Cloud access key identifier committed to the repository",
+    consequence: "A matching secret could grant cloud account access and data exfiltration.",
+    remediation: "Disable the key, review cloud audit logs, and use short-lived role credentials.",
+    verification: "Confirm the key is inactive and identify any unexpected API activity.",
+  },
+  {
+    id: "github-token",
+    pattern: /\bgh[pousr]_[A-Za-z0-9]{30,}\b/,
+    severity: Severity.HIGH,
+    title: "Source-host access token committed to the repository",
+    consequence: "The token may permit repository, package, or workflow changes.",
+    remediation: "Revoke the token, review organization audit logs, and reissue with least privilege.",
+    verification: "Confirm the token is revoked and no unexpected workflow or repository changes occurred.",
+  },
+  {
+    id: "slack-token",
+    pattern: /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/,
+    severity: Severity.HIGH,
+    title: "Chat integration token committed to the repository",
+    consequence: "The token may allow message access or impersonation in a workspace.",
+    remediation: "Revoke the token and use a workspace-scoped secret store.",
+    verification: "Confirm revocation and review workspace audit events.",
+  },
+  {
+    id: "google-api-key",
+    pattern: /\bAIza[0-9A-Za-z\-_]{35}\b/,
+    severity: Severity.HIGH,
+    title: "Cloud API key committed to the repository",
+    consequence: "An unrestricted key may permit billable API calls or data access.",
+    remediation: "Restrict or rotate the key and move it to a secret manager.",
+    verification: "Confirm restrictions, rotation, and no unexpected quota usage.",
+  },
+  {
+    id: "jwt",
+    pattern: /\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/,
+    severity: Severity.MEDIUM,
+    title: "Serialized token embedded in source",
+    consequence: "A live token may grant a session or service identity beyond the test environment.",
+    remediation: "Confirm whether the token is live; revoke it and replace it with runtime-injected credentials.",
+    verification: "Decode the token claims, confirm expiry/revocation, and re-scan.",
+  },
+  {
+    id: "generic-credential",
+    pattern: /\b(api[_-]?key|secret|token|password|passwd|client[_-]?secret|access[_-]?key)\b\s*[:=]\s*['"]([^'"]{8,})['"]/i,
+    severity: Severity.HIGH,
+    title: "Credential-like value hard-coded in source",
+    consequence: "The value may grant access to a service, environment, or customer record.",
+    remediation: "Move the value to a secret manager, rotate it, and add a pre-commit secret scan.",
+    verification: "Confirm the value is no longer present and that the old credential is invalid.",
+  },
+];
+
 export const A11Y_RULES: readonly A11yRule[] = [
   {
     id: "img-alt",
@@ -647,6 +800,8 @@ export class StaticCheckRunner {
         return this.checkStaticCi(check);
       case "static.dependencies":
         return this.checkStaticDependencies(check);
+      case "static.secrets":
+        return this.checkStaticSecrets(check);
       case "static.accessibility":
         return this.checkStaticAccessibility(check);
       default:
@@ -834,6 +989,108 @@ export class StaticCheckRunner {
         "Run two clean installs and confirm the resolved dependency set is identical.",
         ["reproducibility"],
       );
+    }
+    return outcome;
+  }
+
+  async checkStaticSecrets(check: StaticCheckLike): Promise<CheckOutcome> {
+    const matches: Array<{
+      rule: string;
+      severity: string;
+      file: string;
+      line: number;
+      excerpt: string;
+    }> = [];
+    let ignoredFixtures = 0;
+
+    outer: for (const [rel, fullPath] of this.iterFiles()) {
+      const text = this.readText(fullPath);
+      if (!text) continue;
+      const lines = text.split(/\r?\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i] ?? "";
+        for (const rule of SECRET_RULES) {
+          const match = rule.pattern.exec(line);
+          if (!match) continue;
+          let redacted: string;
+          if (rule.id === "generic-credential") {
+            const value = match[2] ?? "";
+            if (
+              looksPlaceholder(value) ||
+              isTestCredentialFixture(value, rel) ||
+              entropy(value) < 2.5
+            ) {
+              ignoredFixtures += 1;
+              continue;
+            }
+            redacted = redactSecret(value);
+          } else if (rule.id === "private-key") {
+            redacted = "[REDACTED PRIVATE KEY HEADER]";
+          } else {
+            redacted = redactSecret(match[0] ?? "");
+          }
+          matches.push({
+            rule: rule.id,
+            severity: downgradeSeverity(rule.severity, rel),
+            file: rel,
+            line: i + 1,
+            excerpt: redacted,
+          });
+          if (matches.length >= 25) break outer;
+        }
+        if (matches.length >= 25) break outer;
+      }
+    }
+
+    const evidence = await this.save(
+      "secret-scan",
+      {
+        matches,
+        ignored_placeholder_or_test_fixture_matches: ignoredFixtures,
+        note: "Values are redacted; length and prefix only.",
+      },
+      check,
+      "Redacted secret scan results.",
+    );
+    const outcome = new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: "No credential-like values found in scanned source.",
+      evidence: [evidence],
+      metadata: {
+        matches: matches.length,
+        ignored_placeholder_or_test_fixture_matches: ignoredFixtures,
+      },
+    });
+    if (matches.length === 0) return outcome;
+
+    outcome.actual = `${matches.length} credential-like match(es) found; values are redacted in evidence.`;
+    const grouped = new Map<string, { rule: string; file: string; line: number; excerpt: string; severity: string; count: number }>();
+    for (const item of matches) {
+      const key = `${item.rule}\0${item.file}`;
+      if (!grouped.has(key)) {
+        grouped.set(key, { ...item, count: 0 });
+      }
+      grouped.get(key)!.count += 1;
+    }
+    const ruleMeta = new Map(SECRET_RULES.map((r) => [r.id, r]));
+    let emitted = 0;
+    for (const g of grouped.values()) {
+      if (emitted >= 8) break;
+      const rule = ruleMeta.get(g.rule);
+      if (!rule) continue;
+      outcome.addFinding(
+        `${rule.title} (${g.count} match${g.count === 1 ? "" : "es"} in ${g.file})`,
+        g.severity,
+        "security",
+        rule.consequence,
+        `${g.file}:${g.line}`,
+        "Inspect the redacted match in the evidence file and confirm whether the value is live.",
+        Strength.SOURCE_PROVEN,
+        rule.remediation,
+        rule.verification,
+        ["secret", "redacted"],
+      );
+      emitted += 1;
     }
     return outcome;
   }
