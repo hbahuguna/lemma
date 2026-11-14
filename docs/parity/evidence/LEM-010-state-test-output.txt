@@ -1,0 +1,19 @@
+$ vitest run --config vitest.config.ts -- state
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/dependency-direction.test.ts (1 test) 13ms
+ ✓ test/parity.test.ts (3 tests) 362ms
+ ✓ test/determinism/determinism.test.ts (5 tests) 12ms
+ ✓ test/workspace.test.ts (14 tests) 25ms
+ ✓ test/redaction/redaction.test.ts (5 tests) 60ms
+ ✓ test/errors/errors.test.ts (4 tests) 16ms
+ ✓ test/schemas/schemas.test.ts (5 tests) 111ms
+ ✓ test/state/state.test.ts (5 tests) 953ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > advisory file lock is exclusive across processes and released on crash  601ms
+
+ Test Files  8 passed (8)
+      Tests  42 passed (42)
+   Start at  20:53:51
+   Duration  2.43s (transform 285ms, setup 0ms, collect 2.26s, tests 1.55s, environment 7ms, prepare 3.31s)
+

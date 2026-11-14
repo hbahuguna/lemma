@@ -104,7 +104,7 @@ parity with assay.
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Done |
 | LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Done |
 | LEM-009 | Decide package naming, release flow, and consumer contracts | P1 | 3 | LEM-001, LEM-003 | Done |
-| LEM-010 | Port atomic state, JSON, and file-lock primitives | P0 | 5 | LEM-001, LEM-007 | Backlog |
+| LEM-010 | Port atomic state, JSON, and file-lock primitives | P0 | 5 | LEM-001, LEM-007 | Done |
 
 ### E2: Deterministic Core Engine
 
@@ -557,7 +557,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 5
 - **Depends on:** LEM-001, LEM-007
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test --filter @lemma/core -- state`.
 - **Description:** Build the shared primitives every stateful module uses:
   atomic JSON write (temp file + fsync + rename), typed JSON read, advisory file
   lock, directory creation, and kill-file write/read.
@@ -570,8 +571,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     job).
   - A kill file written from another process is observed between checks.
   - No package reimplements these primitives.
-- **Verification:** `pnpm test --filter @lemma/core -- state`
-- **Evidence to record:** crash-injection output, cross-platform CI matrix.
+- **Verification:** `pnpm --filter @lemma/core test -- state` — **PASS** (5 tests; core suite 42/42 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/state.ts` (`atomicWriteFile`/`atomicWriteJson` temp+fsync+rename with crash-injection hook support, `readJsonFile` typed reads raising `CorruptStateError`/`StateError` while preserving on-disk content, `acquireFileLock`/`withFileLock` advisory cross-process lock with stale/crash recovery, `ensureDir`, `writeKillFile`/`readKillFile`/`clearKillFile`/`killFileExistsSync`), exported from `@lemma/core`; `packages/core/test/state/state.test.ts` (simulated crash between write and rename, corrupt JSON typed error, cross-process exclusivity and crash recovery, cross-process kill-file observation between checks). Crash-injection/CI evidence: `docs/parity/evidence/LEM-010-state-test-output.txt`; cross-platform CI matrix added in `.github/workflows/ci.yml` (`state-primitives` on `ubuntu-latest`, `macos-latest`, `windows-latest`). Commit/remote recorded in completion summary.
 
 ---
 
@@ -616,3 +617,4 @@ No task is claimed.
 - **LEM-007** — Port the typed error model and exit-code contract (2026-11-14). Evidence: `packages/core/src/errors.ts`, `packages/cli/src/errors.ts`, `packages/core/test/errors/errors.test.ts`; typed domain errors, exit codes 0/1/2/3/130, stable malformed-workflow/corrupt-state payloads, JSON-only stdout/stderr separation verified (`pnpm --filter @lemma/core test -- errors`). Commit/remote recorded in completion summary.
 - **LEM-008** — Port the redaction engine and synthetic corpus (2026-11-14). Evidence: `packages/core/src/redaction.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json` (30 shapes incl. Jira/storage state), `packages/core/test/redaction/redaction.test.ts`, `docs/parity/evidence/LEM-008-artifact-scan-output.json` (`leaked_count: 0`); idempotence, broken-redactor detection, and no-original-in-failure behavior verified (`pnpm --filter @lemma/core test -- redaction`). Commit/remote recorded in completion summary.
 - **LEM-009** — Decide package naming, release flow, and consumer contracts (2026-11-14). Evidence: ADR 0002 (`@lemma/*` scope, `lemma` CLI, exports/optional browser+cloud subpaths, semver/Changesets/provenance, peer-dependency policy), updated package manifests, `.github/workflows/release-dry-run.yml`, `SECURITY.md`; `pnpm publish --dry-run --recursive --no-git-checks` passed for all workspace packages. Commit/remote recorded in completion summary.
+- **LEM-010** — Port atomic state, JSON, and file-lock primitives (2026-11-14). Evidence: `packages/core/src/state.ts` (atomic write temp+fsync+rename, typed JSON read with `CorruptStateError`/`StateError`, advisory file lock with cross-process stale/crash recovery, `ensureDir`, kill-file write/read/clear), `packages/core/test/state/state.test.ts`; crash-injection and cross-process tests passed (`pnpm --filter @lemma/core test -- state`, 42/42). Cross-platform CI matrix added (`.github/workflows/ci.yml` `state-primitives` on ubuntu/macos/windows). Output: `docs/parity/evidence/LEM-010-state-test-output.txt`. Commit/remote recorded in completion summary.
