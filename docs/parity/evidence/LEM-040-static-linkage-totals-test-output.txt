@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/static-linkage-totals/static-linkage-totals.test.ts (1 test) 247ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  00:53:37
+   Duration  2.40s (transform 559ms, setup 0ms, collect 868ms, tests 247ms, environment 0ms, prepare 216ms)
+
