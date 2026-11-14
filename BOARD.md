@@ -116,9 +116,9 @@ inputs.
 | --- | --- | --- | --- | --- | --- |
 | LEM-011 | Port progress state, events, history, retention, and kill file | P0 | 5 | LEM-010 | Done |
 | LEM-012 | Port the versioned workflow loader and phase invariant | P0 | 5 | LEM-004, LEM-007 | Done |
-| LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | In Progress |
-| LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | In Progress |
-| LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Backlog |
+| LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | Done |
+| LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Done |
+| LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Done |
 | LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Backlog |
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Backlog |
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Backlog |
@@ -758,3 +758,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-012** — Port the versioned workflow loader and phase invariant (2026-11-14). Created acceptance criteria and delivered dependency-free YAML subset workflow loader with typed validation/errors and fixed five-phase invariant. Evidence: `packages/core/src/workflows.ts`, `packages/core/test/workflows/workflows.test.ts`, `docs/parity/evidence/LEM-012-workflows-test-output.txt` (`pnpm --filter @lemma/core test -- workflows`, 52/52). Commit/remote recorded in completion summary.
 - **LEM-013** — Port domain models, findings, and normalization (2026-11-14). Evidence: `packages/core/src/models.ts`, `packages/core/test/models/models.test.ts`, `docs/parity/evidence/LEM-013-models-test-output.txt` (`pnpm --filter @lemma/core test -- models`, 56/56). Commit/remote recorded in completion summary.
 - **LEM-014** — Port the check catalog, registry, and intent planning (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/test/checks/checks.test.ts`, `docs/parity/evidence/LEM-014-checks-test-output.txt` (`pnpm --filter @lemma/core test -- checks`, 60/60). Commit/remote recorded in completion summary.
+- **LEM-015** — Port the five-phase orchestrator and budget (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/test/orchestrator/orchestrator.test.ts`, `docs/parity/evidence/LEM-015-orchestrator-test-output.txt` (`pnpm --filter @lemma/core test -- orchestrator`, 64/64). Commit/remote recorded in completion summary.
+
+### LEM-015 — Port the five-phase orchestrator and budget
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 8
+- **Depends on:** LEM-011, LEM-012, LEM-014
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- orchestrator`.
+- **Description:** Port the deterministic five-phase orchestration core
+  (phase sequencing, state transitions/persistence, budget constraints, and
+  kill-switch halting) as a core engine primitive with injectable phase handlers.
+- **Acceptance Criteria:**
+  - `Orchestrator` (or equivalent core API) runs phases in fixed workflow order
+    (`risk_analysis` → `test_planning` → `execution` → `evidence_collection` →
+    `confidence_scoring`) using workflow definitions and `StateStore`, creating/
+    persisting `RunState` with phase/check/run status transitions and timestamps.
+  - Budget/limits are enforced: run options honor `maxChecks` in planning inputs
+    and orchestrator rejects invalid budget/options (e.g. non-positive max checks
+    where applicable) with typed errors; phase handlers receive run context/options.
+  - Kill switch semantics: orchestrator observes `StateStore` kill requests
+    (before/around phases and at safe checkpoints) and when triggered marks kill
+    state, halts execution, skips remaining phases/checks as appropriate, sets run
+    status to `halted` with reason, persists state/events, and does not auto-resume.
+  - Execution model is extensible: phase work is provided via injectable handlers
+    (risk/planning/execution/evidence/confidence) so unported runners/scoring/
+    evidence/report modules can be integrated by later tasks without changing the
+    state machine contract.
+  - APIs/types are exported from `@lemma/core` with tests covering phase order,
+    persistence/state transitions, `maxChecks` budgeting behavior, kill-triggered
+    halt/skip behavior, and invalid option/budget errors.
+- **Verification:** `pnpm --filter @lemma/core test -- orchestrator` — **PASS** (4 tests; core suite 64/64 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/orchestrator.ts` (`Orchestrator` with fixed five-phase sequencing over workflow/`StateStore`, run/phase/check state transitions and timestamps, budget validation + `maxChecks` context, async kill-request observation/checkpoints with halt/skip semantics and halted run recording, injectable phase handlers for extensible integration), exported from `@lemma/core`; `packages/core/test/orchestrator/orchestrator.test.ts` (phase order/persistence/transitions, budget validation and handler budget, kill-triggered halt/skip/no-auto-resume, injectable handlers and failed-run recording). Test output: `docs/parity/evidence/LEM-015-orchestrator-test-output.txt`. Commit/remote recorded in completion summary.
