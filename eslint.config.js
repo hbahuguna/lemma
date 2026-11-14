@@ -33,8 +33,15 @@ export default tseslint.config(
     },
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.js", "**/*.mjs", "**/*.cjs"],
     extends: [tseslint.configs.disableTypeChecked],
+  },
+  {
+    files: ["scripts/**/*.mjs"],
+    rules: {
+      "no-undef": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+    },
   },
   prettier,
 );

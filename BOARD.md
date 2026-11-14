@@ -96,7 +96,7 @@ parity with assay.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-001 | Initialize the pnpm/TypeScript monorepo and quality gates | P0 | 3 | None | Done |
-| LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Ready |
+| LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Done |
 | LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Ready |
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Backlog |
 | LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Backlog |
@@ -372,7 +372,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 3
 - **Depends on:** None
-- **Status:** Ready
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test:
+  `pnpm parity:check` (exit 0 on complete inventory, nonzero on a deliberately removed owner).
 - **Description:** Turn `docs/parity/assay-feature-inventory.md` into a
   machine-readable manifest and a check that fails when an assay asset has no
   owner task. The manifest is the completeness contract for the migration.
@@ -386,9 +388,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - The check runs in CI and prints a coverage summary by asset kind.
   - The Markdown inventory and the manifest cannot drift: a test compares the
     two lists.
-- **Verification:** `pnpm parity:check` (exit 0 on complete inventory, nonzero on
-  a deliberately removed owner).
-- **Evidence to record:** manifest diff, check output, coverage summary.
+- **Verification:** `pnpm parity:check` — passed (exit 0) with coverage summary (281 entries across 10 kinds). Deliberate-owner-removal check exits nonzero (`FAIL: missing owner task...`) via `--manifest` on a broken copy.
+- **Evidence:** `docs/parity/assay.manifest.json`, `scripts/parity/check.mjs`, `packages/core/test/parity.test.ts` (manifest/inventory drift + broken-owner failure), CI updated to run `pnpm parity:check`. Local commands: `pnpm lint`, `pnpm test`, `pnpm parity:check` passed (2026-11-14).
 
 ### LEM-003 — Ratify the architecture, package graph, and adapter contract
 
@@ -599,3 +600,4 @@ No task is claimed.
 ## Done
 
 - **LEM-001** — Initialize the pnpm/TypeScript monorepo and quality gates (2026-11-14). Evidence: `pnpm install && pnpm lint && pnpm typecheck && pnpm build && pnpm test` passed; 11 workspace package shells, strict TS/ESM config, CI workflow (Node 20/22), and required repo docs/config present. Commit/remote recorded in completion summary.
+- **LEM-002** — Publish the machine-readable assay parity manifest and check (2026-11-14). Evidence: `docs/parity/assay.manifest.json` (281 assets, 10 kinds), `scripts/parity/check.mjs` (`pnpm parity:check`), CI step, and parity drift/validation tests; `pnpm parity:check` exit 0 on complete manifest and nonzero on removed owner. Commit/remote recorded in completion summary.

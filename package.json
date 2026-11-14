@@ -16,6 +16,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "parity:check": "node scripts/parity/check.mjs",
+    "parity:write": "node scripts/parity/check.mjs --write",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck",

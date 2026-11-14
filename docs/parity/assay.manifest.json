@@ -1,0 +1,2480 @@
+{
+  "$schema": "https://lemma.dev/schemas/parity-manifest.v0.json",
+  "version": 1,
+  "generated_from": {
+    "assay_root": "../assay",
+    "inventory": "docs/parity/assay-feature-inventory.md",
+    "board": "BOARD.md"
+  },
+  "entries": [
+    {
+      "source": "check:browser.accessibility",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.console",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.content",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.focus_order",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.links",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.load",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.network",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.overflow",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.security",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:browser.steps",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.accessibility",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.browser_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.ci",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.demo_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.dependencies",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.full_assessment",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.functionality_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.inventory",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.issues_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.more_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.secrets",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.test_category",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.tests",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "check:static.unsafe",
+      "kind": "check_id",
+      "owner_tasks": [
+        "LEM-014",
+        "LEM-037"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:abort",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth authenticate",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth authorize-run",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth claim-run",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth create-key",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth create-workspace",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth list-keys",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth list-workspaces",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth revoke-key",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:auth rotate-key",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:billing disable",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-118"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:billing enable",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-118"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:billing status",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-118"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:billing sync",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-118"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:calibrate",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:junit",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-066"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger adjust",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger close",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger entries",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger ingest",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger invoice",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger periods",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger reconcile",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:ledger verify",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:personas",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-085"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:personas lint",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-047"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:personas scaffold",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-048"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:prune",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-023",
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:quota consume",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-115"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:quota show",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-115"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:report",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:run",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:sarif",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-065"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:sign-report",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-067"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:signup create",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:signup select-plan",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:signup usage",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:signup verify",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:status",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-023",
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:suppress add",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-069"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:suppress list",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-069"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:suppress remove",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-069"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:verify-evidence",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-071"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "cli:verify-report",
+      "kind": "cli_command",
+      "owner_tasks": [
+        "LEM-067"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/01-full-pass.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/02-high-finding.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/03-critical-finding.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/04-two-high-findings.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/05-medium-findings.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/06-blocked-check.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/07-halted-run.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/08-low-coverage.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/09-source-only.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/10-live-only.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/11-suspected-high.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/12-duplicate-fingerprint.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/13-no-checks.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/fixtures/14-mixed-blocked-high.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "calibration/report.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/demo-web/index.html",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-060"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/plugins/pyproject.toml",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-080"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/plugins/README.md",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-080"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/plugins/sample_check.py",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-080"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/.github/workflows/ci.yml",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/poetry.lock",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/pyproject.toml",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/requirements.txt",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/src/app.py",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/src/config.py",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/src/page.html",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "examples/sample-repo/tests/test_app.py",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "policies/advisory-v1.json",
+      "kind": "fixture",
+      "owner_tasks": [
+        "LEM-019"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/__init__.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-001"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/__main__.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-001",
+        "LEM-083"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/auth.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/billing.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-118",
+        "LEM-121"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/browser.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-050",
+        "LEM-051",
+        "LEM-052",
+        "LEM-053",
+        "LEM-054",
+        "LEM-055",
+        "LEM-056",
+        "LEM-057",
+        "LEM-058",
+        "LEM-059",
+        "LEM-060",
+        "LEM-061",
+        "LEM-062",
+        "LEM-063",
+        "LEM-064"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/calibration.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-070",
+        "LEM-074"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/checks.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-014"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/cli.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-083",
+        "LEM-084",
+        "LEM-085"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/determinism.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-006"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/entitlements.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/errors.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-007"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/evidence.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-016",
+        "LEM-017"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/exports.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-065",
+        "LEM-066"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/ledger.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/metering.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/models.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-004",
+        "LEM-013"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/orchestrator.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-015",
+        "LEM-026"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/outcomes.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-013",
+        "LEM-046"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/personas.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-041",
+        "LEM-042",
+        "LEM-043",
+        "LEM-044",
+        "LEM-045",
+        "LEM-046",
+        "LEM-047",
+        "LEM-048",
+        "LEM-049"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/plugins.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-075",
+        "LEM-076",
+        "LEM-077",
+        "LEM-078",
+        "LEM-079",
+        "LEM-080",
+        "LEM-081",
+        "LEM-082"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/py.typed",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-001"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/queue.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-119"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/quota.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-115"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/redact.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-008",
+        "LEM-123"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/report.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-020"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/retention.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-120"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/risk.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-024",
+        "LEM-036"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/scoring.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-018",
+        "LEM-019"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/signup.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/ssrf.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-059",
+        "LEM-125"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/state.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-010",
+        "LEM-011",
+        "LEM-023"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/static_analysis.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-027",
+        "LEM-028",
+        "LEM-029",
+        "LEM-030",
+        "LEM-031",
+        "LEM-032",
+        "LEM-033",
+        "LEM-034",
+        "LEM-035",
+        "LEM-036",
+        "LEM-037",
+        "LEM-038",
+        "LEM-039",
+        "LEM-040"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/step_planner.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-025"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/step_runner.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-025"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "harness/workflows.py",
+      "kind": "module",
+      "owner_tasks": [
+        "LEM-012"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "personas/accessibility.md",
+      "kind": "persona",
+      "owner_tasks": [
+        "LEM-043"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "personas/functional.md",
+      "kind": "persona",
+      "owner_tasks": [
+        "LEM-043"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "personas/README.md",
+      "kind": "persona",
+      "owner_tasks": [
+        "LEM-043",
+        "LEM-047"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "personas/security.md",
+      "kind": "persona",
+      "owner_tasks": [
+        "LEM-043"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-abort.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-accessibility.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-agentic.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-ai-upgrade.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-api.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-auto.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-background.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-bias.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-browser.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-chatbot.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-compatibility.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-confidence-init.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-confidence-plan.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-confidence.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-content.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-data.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-demo.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-eval-design-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-eval.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-failure.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-forever.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-full-report.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-full.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-functionality.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-generate.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-geo.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-help.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-human.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-incident.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-integrations.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-intl.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-issues.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-load.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-localization.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-manager.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-map.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-more.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-networking.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-performance.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-personas.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-privacy.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-pro.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-proof.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-release-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-release.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-reliability.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-report.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-security-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-security.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-settings.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-skeptical-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-state.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-statistical-review.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-stats.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-status.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-stress.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-test.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-tests.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-ui.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-usability.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-ux.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/_assay_backup/assay-verify-evidence.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-106",
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/commands/assay-browser.md",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-090",
+        "LEM-106"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "plugin:/assay",
+      "kind": "plugin_command",
+      "owner_tasks": [
+        "LEM-086",
+        "LEM-087",
+        "LEM-088",
+        "LEM-089",
+        "LEM-090",
+        "LEM-091",
+        "LEM-092",
+        "LEM-093",
+        "LEM-094"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/agent.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-086",
+        "LEM-087",
+        "LEM-091"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/browser-agent-prompt.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-090",
+        "LEM-091"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/command-args.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-088",
+        "LEM-089"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/index.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-101"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/jira-context.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-092"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/package.json",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-108"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/runner.ts",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-083"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".opencode/plugins/assay/tsconfig.json",
+      "kind": "plugin_module",
+      "owner_tasks": [
+        "LEM-001"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".github/actions/quality-harness/action.yml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-136"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".github/workflows/billing-coverage.yml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-121"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".github/workflows/ci.yml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-132",
+        "LEM-133"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".github/workflows/pr.yml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-136"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": ".github/workflows/release.yml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-134"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "Dockerfile",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-135"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "Dockerfile.browser",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-135"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "pyproject.toml",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-009",
+        "LEM-134"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "requirements.txt",
+      "kind": "release_asset",
+      "owner_tasks": [
+        "LEM-001"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/browser_minute_consumed.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/check_executed.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/envelope.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/evidence_byte_stored.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/export_generated.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/index.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-004",
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/metering/run_started.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/report/index.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-004",
+        "LEM-020"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "schemas/report/report.v1.schema.json",
+      "kind": "schema",
+      "owner_tasks": [
+        "LEM-020",
+        "LEM-073"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/plugin/agent-loop.test.mjs",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-096"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/plugin/browser-agent-prompt.test.mjs",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-096"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/plugin/command-args.test.mjs",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-095"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/plugin/jira-context.test.mjs",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-092"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_assay_command_contract.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-095"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_auth.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-114"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_authenticated_browser.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-056"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_billing_regression.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-118",
+        "LEM-121"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_billing.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-118",
+        "LEM-121"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_blockers.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-046"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_browser_capture.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-051",
+        "LEM-054",
+        "LEM-057",
+        "LEM-060"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_browser_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_browser_crawl.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-051",
+        "LEM-054",
+        "LEM-057",
+        "LEM-060"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_browser_smoke.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-051",
+        "LEM-054",
+        "LEM-057",
+        "LEM-060"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_calibration.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-070"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_demo_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_determinism.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-006"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_evidence_signing.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-016",
+        "LEM-017",
+        "LEM-124"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_evidence_state.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-016",
+        "LEM-017",
+        "LEM-124"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_exports.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-065",
+        "LEM-066"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_failure_injection.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-126"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_full_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_functionality_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_github_action.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-136"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_history.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-023"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_invalid_findings.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-045"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_issues_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_ledger.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-116"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_metering.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-113"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_mobile_browser.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-055"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_more_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_orchestrator_cli.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-026",
+        "LEM-084"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_ownership.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-044"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_packaging.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-134"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_persona_tools.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-041",
+        "LEM-047",
+        "LEM-048"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_personas.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-041",
+        "LEM-047",
+        "LEM-048"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_plugins.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-075",
+        "LEM-076",
+        "LEM-077",
+        "LEM-078",
+        "LEM-079",
+        "LEM-080",
+        "LEM-081",
+        "LEM-082"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_policy.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-019",
+        "LEM-074"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_queue.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-119"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_quota.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-115"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_redaction_corpus.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-008",
+        "LEM-123"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_report_schema.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-020",
+        "LEM-073"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_resume_registry.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-021",
+        "LEM-022"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_resume.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-021",
+        "LEM-022"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_retention.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-120"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_scope_and_tracking.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-031",
+        "LEM-032",
+        "LEM-035",
+        "LEM-036",
+        "LEM-039"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_scoring.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-018"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_seeded_resume.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-021",
+        "LEM-022"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_signup.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-117"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_ssrf.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-059",
+        "LEM-125"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_static_precision.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-031",
+        "LEM-032",
+        "LEM-035",
+        "LEM-036",
+        "LEM-039"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_suppression.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-069"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_test_category.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-033",
+        "LEM-034",
+        "LEM-038"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_trend.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-068"
+      ],
+      "status": "planned"
+    },
+    {
+      "source": "tests/test_workflows.py",
+      "kind": "test_file",
+      "owner_tasks": [
+        "LEM-012"
+      ],
+      "status": "planned"
+    }
+  ]
+}
