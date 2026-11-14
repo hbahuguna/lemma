@@ -49,6 +49,8 @@ export const MeteringSummarySchema = z
     workspace: z.string(),
     event_count: z.number().int(),
     event_types: z.record(z.number().int()),
+    run_event_count: z.number().int().optional(),
+    run_event_types: z.record(z.number().int()).optional(),
   })
   .passthrough();
 
@@ -75,12 +77,12 @@ export const ConfidenceSchema = z
   .object({
     score: z.number(),
     band: z.string(),
-    coverage: z.record(z.unknown()),
+    coverage: z.number(),
     rationale: z.string(),
     limitations: z.array(z.string()),
-    penalties: z.array(z.unknown()),
+    penalties: z.record(z.unknown()),
     domain_scores: z.record(z.unknown()),
-    breakdown: z.array(z.unknown()),
+    breakdown: z.record(z.unknown()),
     gate: z.record(z.unknown()),
   })
   .passthrough();
@@ -119,6 +121,14 @@ export const EvidenceRefSchema = z
   })
   .passthrough();
 
+export const ContractFailuresSchema = z
+  .object({
+    total: z.number().int(),
+    by_persona: z.record(z.number().int()),
+    degraded_personas: z.array(z.string()),
+  })
+  .passthrough();
+
 export const ReportV1Schema = z
   .object({
     schema_version: ReportSchemaVersionSchema,
@@ -135,10 +145,10 @@ export const ReportV1Schema = z
     trend: TrendSchema,
     confidence: ConfidenceSchema,
     findings: z.array(FindingSchema),
-    finding_counts: z.record(z.number()),
+    finding_counts: z.record(z.number().int()),
     invalid_findings: z.array(z.unknown()),
     blockers: z.array(BlockerSchema),
-    contract_failures: z.array(z.unknown()),
+    contract_failures: ContractFailuresSchema,
     checks: z.array(CheckResultSchema),
     coverage: z.record(z.unknown()),
     risks: z.array(RiskSchema),

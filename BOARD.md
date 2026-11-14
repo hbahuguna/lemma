@@ -123,7 +123,7 @@ inputs.
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Done |
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Done |
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Done |
-| LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Backlog |
+| LEM-020 | Port the report builder and JSON Schema validation | P0 | 5 | LEM-013, LEM-018 | Done |
 | LEM-021 | Port resume, crash safety, and registry fingerprint | P0 | 5 | LEM-011, LEM-015 | Backlog |
 | LEM-022 | Port seeded resume and id-sequence continuity | P2 | 3 | LEM-006, LEM-021 | Backlog |
 | LEM-023 | Port run history, retention, and prune | P2 | 3 | LEM-011 | Backlog |
@@ -763,6 +763,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-017** — Port evidence signing, verification, and tamper hold (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt` (`pnpm --filter @lemma/core test -- evidence-signing`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-018** — Port `weighted-coverage-v1` scoring (2026-11-14). Evidence: `packages/core/src/scoring.ts`, `packages/core/test/scoring/scoring.test.ts`, `docs/parity/evidence/LEM-018-scoring-test-output.txt` (`pnpm --filter @lemma/core test -- scoring`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-019** — Port versioned policy files and gate evaluation (2026-11-14). Evidence: `policies/advisory-v1.json`, `packages/core/src/scoring.ts`, `packages/core/test/policy/policy.test.ts`, `docs/parity/evidence/LEM-019-policy-test-output.txt` (`pnpm --filter @lemma/core test -- policy`, 4/4). Commit/remote recorded in completion summary.
+- **LEM-020** — Port the report builder and JSON Schema validation (2026-11-14). Evidence: `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/src/schemas/report.ts`, `packages/core/test/report/report.test.ts`, `docs/parity/evidence/LEM-020-report-test-output.txt` (`pnpm --filter @lemma/core test -- report`, 3/3). Commit/remote recorded in completion summary.
+
+### LEM-020 — Port the report builder and JSON Schema validation
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-013, LEM-018
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- report`.
+- **Description:** Port the `quality-harness.report/v1` builder and schema
+  validation so runs produce deterministic, assay-compatible JSON reports.
+- **Acceptance Criteria:**
+  - `buildReport(state, workflow, evidenceSummary, generatedAt?)` emits
+    `quality-harness.report/v1` with assay-compatible structure: determinism,
+    status/workflow/target/intent/policy/metering/decision/trend/confidence,
+    sorted findings/blockers/invalid_findings, finding_counts, checks, coverage,
+    risks/personas/inventory/phases/kill_switch, limitations, evidence, timestamps,
+    options, error, and contract_failures summary.
+  - Coverage and decision logic match assay semantics (counts by status/domain,
+    blockers/uncovered, executed_pct; hold for halted/failed, ship/review/hold by
+    gate status) and normalized defaults for metering/policy/trend/personas.
+  - Published report JSON Schema and `reportSchema()` reflect the report contract;
+    `validateReport`/`isValidReport` perform schema validation (dependency-free)
+    and return errors for invalid reports.
+  - Report APIs/types are exported from `@lemma/core` with tests covering report
+    structure/decision/coverage/sorting/limitations and schema validation
+    acceptance/rejection.
+- **Verification:** `pnpm --filter @lemma/core test -- report` (targeted file: `packages/core/test/report/report.test.ts`) — **PASS** (3 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/report.ts` (`buildReport`, `coverage`, `decisionForState`, `reportSchema`/`reportSchemaPath`, dependency-free `validateReport`/`isValidReport`, exported from `@lemma/core`), `schemas/report/report.v1.schema.json` and `packages/core/src/schemas/report.ts` aligned to assay-compatible `quality-harness.report/v1` contract, `packages/core/test/report/report.test.ts` (structure/decision/coverage/sorting/limitations and schema validation acceptance/rejection/additive). Test output: `docs/parity/evidence/LEM-020-report-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-019 — Port versioned policy files and gate evaluation
 

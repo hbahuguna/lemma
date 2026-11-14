@@ -29,7 +29,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/scoring.py` | `weighted-coverage-v1`, caps, gate policy (`packages/core/src/scoring.ts`: formula/constants, `scoreConfidence` with coverage/quality/scope, fingerprint dedupe, severity penalties/suspected halving/cap, score caps/banding, domain scores/breakdown/rationale/limitations, policy defaults/validation/load and gate evaluation; tests `packages/core/test/scoring/scoring.test.ts`, output `docs/parity/evidence/LEM-018-scoring-test-output.txt`; versioned policy file workflows/config integration continue in LEM-019) | `@lemma/core/scoring` | LEM-018, LEM-019 |
 | `harness/evidence.py` | Hashed artifact store, manifest, checkpoint, verify (`packages/core/src/evidence.ts`: per-run `.lemma/evidence/<run_id>/` store with portable relative paths, SHA-256/metadata entries and dedupe, artifact save helpers, atomic checkpoint manifests, reconcile/recovery, finalize with manifest path/hash and summary, safe path handling, deterministic HMAC-SHA256 manifest signing with injectable key, and `verify()` tamper detection/hold signaling; tests `packages/core/test/evidence/evidence.test.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, outputs `docs/parity/evidence/LEM-016-evidence-test-output.txt`, `docs/parity/evidence/LEM-017-evidence-signing-test-output.txt`) | `@lemma/core/evidence` | LEM-016, LEM-017 |
 | `harness/state.py` | Atomic progress, events, run history, retention, kill file (`packages/core/src/state.ts`: atomic JSON write/read, advisory file lock, ensureDir, kill-file primitives; cross-process/crash-injection tests; CI state matrix ubuntu/macos/windows — LEM-010 evidence `docs/parity/evidence/LEM-010-state-test-output.txt`. `packages/core/src/state-store.ts`: `StateStore` progress/events JSONL/versioned history+record/upsert+prune with protections+safe evidence removal/kill request-observe-clear — LEM-011 evidence `docs/parity/evidence/LEM-011-state-store-test-output.txt`) | `@lemma/core/state` | LEM-010, LEM-011, LEM-023 |
-| `harness/report.py` | `quality-harness.report/v1` builder and schema | `@lemma/core/report` | LEM-020 |
+| `harness/report.py` | `quality-harness.report/v1` builder and schema (`packages/core/src/report.ts`: `buildReport`, coverage/decision semantics, sorting/defaults/limitations, dependency-free schema validation; tests `packages/core/test/report/report.test.ts`, output `docs/parity/evidence/LEM-020-report-test-output.txt`; CLI integration/contract parity tests continue in LEM-073+) | `@lemma/core/report` | LEM-020 |
 | `harness/models.py` | Domain enums and records (`packages/core/src/models.ts`: assay-compatible enums/constants, severity ranking/clamp, normalization/serde helpers for Target/Risk/Finding/InvalidFinding/Blocker/Check/Phase/Confidence/KillSwitch/RunState with deterministic defaults and round-trips; tests `packages/core/test/models/models.test.ts`, output `docs/parity/evidence/LEM-013-models-test-output.txt`) | `@lemma/core/models` | LEM-004, LEM-013 |
 | `harness/errors.py` | Typed error model (`packages/core/src/errors.ts`: domain error classes, stable `ErrorCode`/payloads, `EXIT_CODES` 0/1/2/3/130, `exitCodeForError`/`toErrorPayload`; CLI contract helpers in `packages/cli/src/errors.ts`) | `@lemma/core/errors` | LEM-007 |
 | `harness/outcomes.py` | Finding/blocker drafts and check outcomes (`packages/core/src/models.ts`: `FindingDraft`/`BlockerDraft`, `CheckOutcome` with `addFinding`/`addBlocker` and severity-safe normalization behavior; tests `packages/core/test/models/models.test.ts`, output `docs/parity/evidence/LEM-013-models-test-output.txt`) | `@lemma/core/outcomes` | LEM-013, LEM-046 |
@@ -166,8 +166,8 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 
 | Assay asset | Capability | Lemma task |
 | --- | --- | --- |
-| `schemas/report/report.v1.schema.json` | Published report contract | LEM-020, LEM-073 |
-| `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` generated/committed) | LEM-004, LEM-020 |
+| `schemas/report/report.v1.schema.json` | Published report contract (updated to assay-compatible `quality-harness.report/v1` shape with schema-version enum; validated by `packages/core/src/report.ts` and `packages/core/test/report/report.test.ts`; compatibility/contract test expansion continues in LEM-073) | LEM-020, LEM-073 |
+| `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` references report schema; report contract/builder alignment landed in LEM-020) | LEM-004, LEM-020 |
 | `schemas/metering/envelope.v1.schema.json` | Event envelope | LEM-113 |
 | `schemas/metering/run_started.v1.schema.json` | Run event | LEM-113 |
 | `schemas/metering/check_executed.v1.schema.json` | Check event | LEM-113 |
@@ -175,7 +175,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `schemas/metering/evidence_byte_stored.v1.schema.json` | Evidence-byte event | LEM-113 |
 | `schemas/metering/export_generated.v1.schema.json` | Export event | LEM-113 |
 | `schemas/metering/index.json` | Metering schema index | LEM-004, LEM-113 |
-| Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage | LEM-020, LEM-073 |
+| Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage (implemented/validated in `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/test/report/report.test.ts`; evidence `docs/parity/evidence/LEM-020-report-test-output.txt`; broader contract/CLI parity in LEM-073) | LEM-020, LEM-073 |
 | Metering v1 event names | Frozen names and idempotency keys | LEM-113 |
 | Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy (`policies/advisory-v1.json`, `packages/core/src/scoring.ts` policy validation/load/defaulting and gate semantics; tests `packages/core/test/policy/policy.test.ts`, output `docs/parity/evidence/LEM-019-policy-test-output.txt`; policy/calibration regression coverage continues in LEM-074) | LEM-019, LEM-074 |
 | Quota plan contract | `quality-harness.quota-plan/v1` | LEM-115 |
@@ -220,7 +220,7 @@ with rationale.
 | `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 |
 | `test_scoring.py` | LEM-018 |
 | `test_policy.py` | LEM-019, LEM-074 (core policy contract/gate behavior covered by `packages/core/test/policy/policy.test.ts`; CLI/report integration and additional regression coverage continue in later tasks) | LEM-019, LEM-074 |
-| `test_report_schema.py` | LEM-020, LEM-073 |
+| `test_report_schema.py` | LEM-020, LEM-073 (core report builder/schema validation behavior covered by `packages/core/test/report/report.test.ts`; CLI-produced report schema/contract parity continues in LEM-073) | LEM-020, LEM-073 |
 | `test_personas.py`, `test_persona_tools.py` | LEM-041, LEM-047, LEM-048 |
 | `test_ownership.py` | LEM-044 |
 | `test_invalid_findings.py` | LEM-045 |
