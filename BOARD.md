@@ -119,7 +119,7 @@ inputs.
 | LEM-013 | Port domain models, findings, and normalization | P0 | 5 | LEM-004 | Done |
 | LEM-014 | Port the check catalog, registry, and intent planning | P0 | 5 | LEM-013 | Done |
 | LEM-015 | Port the five-phase orchestrator and budget | P0 | 8 | LEM-011, LEM-012, LEM-014 | Done |
-| LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Backlog |
+| LEM-016 | Port the hashed evidence store and checkpoint manifest | P0 | 5 | LEM-010 | Done |
 | LEM-017 | Port evidence signing, verification, and tamper hold | P1 | 3 | LEM-016 | Backlog |
 | LEM-018 | Port `weighted-coverage-v1` scoring | P0 | 5 | LEM-013 | Backlog |
 | LEM-019 | Port versioned policy files and gate evaluation | P1 | 3 | LEM-018 | Backlog |
@@ -759,6 +759,39 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-013** — Port domain models, findings, and normalization (2026-11-14). Evidence: `packages/core/src/models.ts`, `packages/core/test/models/models.test.ts`, `docs/parity/evidence/LEM-013-models-test-output.txt` (`pnpm --filter @lemma/core test -- models`, 56/56). Commit/remote recorded in completion summary.
 - **LEM-014** — Port the check catalog, registry, and intent planning (2026-11-14). Evidence: `packages/core/src/checks.ts`, `packages/core/test/checks/checks.test.ts`, `docs/parity/evidence/LEM-014-checks-test-output.txt` (`pnpm --filter @lemma/core test -- checks`, 60/60). Commit/remote recorded in completion summary.
 - **LEM-015** — Port the five-phase orchestrator and budget (2026-11-14). Evidence: `packages/core/src/orchestrator.ts`, `packages/core/test/orchestrator/orchestrator.test.ts`, `docs/parity/evidence/LEM-015-orchestrator-test-output.txt` (`pnpm --filter @lemma/core test -- orchestrator`, 64/64). Commit/remote recorded in completion summary.
+- **LEM-016** — Port the hashed evidence store and checkpoint manifest (2026-11-14). Evidence: `packages/core/src/evidence.ts`, `packages/core/test/evidence/evidence.test.ts`, `docs/parity/evidence/LEM-016-evidence-test-output.txt` (`pnpm --filter @lemma/core test -- evidence`, 68/68). Commit/remote recorded in completion summary.
+
+### LEM-016 — Port the hashed evidence store and checkpoint manifest
+
+- **Epic:** E2 Deterministic Core Engine
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-010
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- evidence`.
+- **Description:** Port the per-run hashed evidence artifact store and atomic
+  checkpoint/final manifest primitives under `.lemma/evidence/<run_id>/`.
+- **Acceptance Criteria:**
+  - `EvidenceStore` (or equivalent core API) writes artifacts under
+    `.lemma/evidence/<run_id>/` with project-root-relative portable paths and
+    records entries containing path, kind, description, check_id, bytes, sha256,
+    content_type, and created_at (deduped by path for replaced artifacts).
+  - Store supports saving text/JSON/bytes/screenshot/console-log/network-log
+    artifacts with stable slugged naming and collision-safe suffixing.
+  - `checkpoint()` atomically persists a provisional manifest (including
+    `checkpoint: true`, evidence list, summary) after updates; `reconcile(checks)`
+    aligns loaded entries with checkpointed check state (drop rerun-check entries
+    and recover on-disk artifacts referenced by completed checks when missing
+    from manifest).
+  - `finalize(runMetadata)` writes the final manifest (run metadata/summary) and
+    returns manifest details including manifest path/hash; `summary()` reports
+    directory, count, by_kind, total_bytes, and manifest path.
+  - Hashing/IO uses shared primitives/safe paths (no evidence outside run dir/root
+    traversal), APIs exported from `@lemma/core`, with tests covering artifact
+    storage/hashing, manifest checkpoint/reconcile/finalize/summary, and path
+    safety/atomic behavior.
+- **Verification:** `pnpm --filter @lemma/core test -- evidence` — **PASS** (4 tests; core suite 68/68 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/evidence.ts` (`EvidenceStore` under `.lemma/evidence/<run_id>/` with portable relative paths, SHA-256/bytes/kind/content-type/check_id/created_at entries and path dedupe, save helpers for text/JSON/bytes/screenshot/console-log/network-log with slugged/collision-safe naming, atomic `checkpoint` manifests, `reconcile` to drop rerun-check entries and recover completed-check on-disk artifacts, `finalize` with run metadata/manifest path+hash, `summary`, and safe path handling), exported from `@lemma/core`; `packages/core/test/evidence/evidence.test.ts` (artifact storage/hashing/naming/summary, checkpoint, reconcile/recovery, finalize/manifest hash, path safety). Test output: `docs/parity/evidence/LEM-016-evidence-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-015 — Port the five-phase orchestrator and budget
 
