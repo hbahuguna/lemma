@@ -7,3 +7,4 @@ export * from "./errors.js";
 export * from "./determinism.js";
 export * from "./redaction.js";
 export * from "./state.js";
+export * from "./state-store.js";
