@@ -22,6 +22,18 @@ jobs:
         node: [20, 22]
     steps:
       - uses: actions/checkout@v4
+      - name: Read pinned assay oracle
+        id: oracle
+        run: |
+          echo "commit=$(node -p \"require('./docs/parity/oracle.json').assay_commit\")" >> "$GITHUB_OUTPUT"
+      - uses: actions/checkout@v4
+        with:
+          repository: hbahuguna/assay
+          ref: ${{ steps.oracle.outputs.commit }}
+          path: _assay
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
@@ -32,4 +44,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm build
       - run: pnpm parity:check
+      - name: Link pinned assay oracle
+        run: ln -s "$GITHUB_WORKSPACE/_assay" ../assay
+      - run: pnpm test:parity
       - run: pnpm test

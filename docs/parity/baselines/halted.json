@@ -1,0 +1,945 @@
+{
+  "scenario": "halted",
+  "oracle_rc": 3,
+  "oracle_commit": "c3691d7f044edb53931a82c3ddf0c297b745e000",
+  "normalized": {
+    "blockers": [],
+    "checks": [
+      {
+        "actual": "8 files, 2129 bytes; languages: HTML, Python, TOML, YAML; manifests: 2; tests: 1; CI: 1",
+        "domain": "functional",
+        "expected": "A readable source tree with an inventory of languages, manifests, tests, and CI.",
+        "finding_ids": [],
+        "id": "static.inventory",
+        "intent": "Know what the release contains before judging it.",
+        "kind": "static",
+        "metadata": {
+          "inventory": {
+            "available": true,
+            "ci_files": [
+              ".github/workflows/ci.yml"
+            ],
+            "env_files": [],
+            "env_files_ignored": [],
+            "env_files_tracked": [],
+            "excluded_file_count": 0,
+            "excluded_paths": [],
+            "excluded_patterns": [],
+            "files": [
+              "poetry.lock",
+              "pyproject.toml",
+              "requirements.txt",
+              ".github/workflows/ci.yml",
+              "src/app.py",
+              "src/config.py",
+              "src/page.html",
+              "tests/test_app.py"
+            ],
+            "has_ci": true,
+            "has_lockfile": true,
+            "has_manifest": true,
+            "has_markup": true,
+            "has_tests": true,
+            "languages": {
+              "HTML": 1,
+              "Python": 3,
+              "TOML": 1,
+              "YAML": 1
+            },
+            "lockfiles": [
+              "poetry.lock"
+            ],
+            "manifests": [
+              "pyproject.toml",
+              "requirements.txt"
+            ],
+            "markup_files": [
+              "src/page.html"
+            ],
+            "skipped_dirs": [
+              ".harness"
+            ],
+            "source_files": [
+              "src/app.py",
+              "src/config.py",
+              "src/page.html",
+              "tests/test_app.py"
+            ],
+            "test_files": [
+              "tests/test_app.py"
+            ],
+            "test_frameworks": [
+              "pytest"
+            ],
+            "total_bytes": 2129,
+            "total_files": 8,
+            "tracked_available": false,
+            "tracked_file_count": 0,
+            "truncated": false
+          }
+        },
+        "persona": "functional",
+        "skip_reason": "",
+        "status": "passed",
+        "title": "Source and test inventory is complete and readable",
+        "weight": 1.4
+      },
+      {
+        "actual": "1 credential-like match(es) found; values are redacted in evidence.",
+        "domain": "security",
+        "expected": "No private keys, provider tokens, or high-entropy credentials in tracked source.",
+        "finding_ids": [
+          "finding-d8cb781db6"
+        ],
+        "id": "static.secrets",
+        "intent": "Prevent a release from exposing credentials that grant access beyond the product.",
+        "kind": "static",
+        "metadata": {
+          "ignored_placeholder_or_test_fixture_matches": 0,
+          "matches": 1
+        },
+        "persona": "security",
+        "skip_reason": "",
+        "status": "failed",
+        "title": "No live credentials or private keys are committed",
+        "weight": 2
+      },
+      {
+        "actual": "Kill switch halted execution.",
+        "domain": "security",
+        "expected": "No unjustified eval, shell execution, unsafe HTML injection, SQL concatenation, or TLS bypass.",
+        "finding_ids": [],
+        "id": "static.unsafe",
+        "intent": "Reduce remotely triggerable command execution, injection, and transport failures.",
+        "kind": "static",
+        "metadata": {
+          "halted": true,
+          "limitation": "Kill switch halted execution."
+        },
+        "persona": "security",
+        "skip_reason": "Kill switch halted execution.",
+        "status": "skipped",
+        "title": "High-risk code patterns are absent or justified",
+        "weight": 1.8
+      },
+      {
+        "actual": "Kill switch halted execution.",
+        "domain": "functional",
+        "expected": "At least one automated test file and a discoverable test framework or documented test command.",
+        "finding_ids": [],
+        "id": "static.tests",
+        "intent": "Ensure change safety does not depend entirely on manual exploration.",
+        "kind": "static",
+        "metadata": {
+          "halted": true,
+          "limitation": "Kill switch halted execution."
+        },
+        "persona": "functional",
+        "skip_reason": "Kill switch halted execution.",
+        "status": "skipped",
+        "title": "The release has an automated test signal",
+        "weight": 2.1
+      },
+      {
+        "actual": "Kill switch halted execution.",
+        "domain": "reliability",
+        "expected": "A CI configuration that runs tests or the harness on pull requests.",
+        "finding_ids": [],
+        "id": "static.ci",
+        "intent": "Keep evidence fresh on every change instead of relying on one local run.",
+        "kind": "static",
+        "metadata": {
+          "halted": true,
+          "limitation": "Kill switch halted execution."
+        },
+        "persona": "functional",
+        "skip_reason": "Kill switch halted execution.",
+        "status": "skipped",
+        "title": "Continuous integration runs the test signal",
+        "weight": 1.15
+      },
+      {
+        "actual": "Kill switch halted execution.",
+        "domain": "data_integrity",
+        "expected": "A lockfile for each package ecosystem and no committed local environment file.",
+        "finding_ids": [],
+        "id": "static.dependencies",
+        "intent": "Prevent unrepeatable builds and accidental environment disclosure.",
+        "kind": "static",
+        "metadata": {
+          "halted": true,
+          "limitation": "Kill switch halted execution."
+        },
+        "persona": "functional",
+        "skip_reason": "Kill switch halted execution.",
+        "status": "skipped",
+        "title": "Dependencies and environment files are locked and clean",
+        "weight": 1.1
+      },
+      {
+        "actual": "Kill switch halted execution.",
+        "domain": "accessibility",
+        "expected": "Images have alt text, interactive elements are semantic, and document language is declared.",
+        "finding_ids": [],
+        "id": "static.accessibility",
+        "intent": "Catch barriers before a browser run, especially missing text alternatives and labels.",
+        "kind": "static",
+        "metadata": {
+          "halted": true,
+          "limitation": "Kill switch halted execution."
+        },
+        "persona": "accessibility",
+        "skip_reason": "Kill switch halted execution.",
+        "status": "skipped",
+        "title": "Source markup avoids obvious accessibility barriers",
+        "weight": 1.38
+      }
+    ],
+    "confidence": {
+      "band": "none",
+      "breakdown": {
+        "band": "none",
+        "base_score": 17.9,
+        "blocked_checks": 5,
+        "coverage_factor": 0.4833,
+        "coverage_ratio": 0.3111,
+        "executed_checks": 2,
+        "executed_weight": 3.4,
+        "failed_checks": 1,
+        "formula": "weighted-coverage-v1",
+        "halted": true,
+        "passed_checks": 1,
+        "passed_weight": 1.4,
+        "planned_checks": 7,
+        "policy_id": "advisory-v1",
+        "policy_version": "1.0",
+        "quality": 41.2,
+        "scope_factor": 0.9,
+        "scope_mode": "source",
+        "score": 0,
+        "severity_penalty": 20,
+        "total_weight": 10.93
+      },
+      "coverage": 31.1,
+      "domain_scores": {
+        "accessibility": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 1.38
+        },
+        "data_integrity": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 1.1
+        },
+        "functional": {
+          "blocked": 1,
+          "checks": 2,
+          "coverage": 40,
+          "executed_weight": 1.4,
+          "failed": 0,
+          "passed": 1,
+          "passed_weight": 1.4,
+          "score": 100,
+          "weight": 3.5
+        },
+        "reliability": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 1.15
+        },
+        "security": {
+          "blocked": 1,
+          "checks": 2,
+          "coverage": 52.6,
+          "executed_weight": 2,
+          "failed": 1,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 3.8
+        }
+      },
+      "gate": {
+        "policy": "advisory-v1",
+        "reasons": [
+          "1 high-severity finding(s) remain open.",
+          "Executed coverage is below 70% of planned weight.",
+          "Confidence is below the advisory release floor of 60.0."
+        ],
+        "status": "fail"
+      },
+      "limitations": [
+        "5 planned check(s) were blocked, skipped, or errored and count as coverage gaps, not passes.",
+        "Confidence is scoped engineering judgment, not a probability of zero defects.",
+        "Execution was halted by the kill switch: Automatic kill switch: high finding from check static.secrets.",
+        "Kill switch halted execution.",
+        "Static-only evidence: rendered behavior was not exercised."
+      ],
+      "penalties": {
+        "by_severity": {
+          "high": 1
+        },
+        "caps": [],
+        "severity_total": 20
+      },
+      "rationale": "Executed 3.4 of 10.9 planned weight (31% coverage); quality among executed checks was 41%; scope factor 0.90. Severity penalty was 20.0 points. Final confidence 0.0/100 (none).",
+      "score": 0
+    },
+    "contract_failures": {
+      "by_persona": {},
+      "degraded_personas": [],
+      "total": 0
+    },
+    "coverage": {
+      "blocked": 0,
+      "blockers": 0,
+      "blockers_by_persona": {},
+      "blockers_covered_elsewhere": 0,
+      "blockers_uncovered": 0,
+      "by_domain": {
+        "accessibility": {
+          "blocked": 0,
+          "blockers": 0,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 1
+        },
+        "data_integrity": {
+          "blocked": 0,
+          "blockers": 0,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 1
+        },
+        "functional": {
+          "blocked": 0,
+          "blockers": 0,
+          "error": 0,
+          "failed": 0,
+          "passed": 1,
+          "planned": 2,
+          "skipped": 1
+        },
+        "reliability": {
+          "blocked": 0,
+          "blockers": 0,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 1
+        },
+        "security": {
+          "blocked": 0,
+          "blockers": 0,
+          "error": 0,
+          "failed": 1,
+          "passed": 0,
+          "planned": 2,
+          "skipped": 1
+        }
+      },
+      "error": 0,
+      "executed": 2,
+      "executed_pct": 28.6,
+      "failed": 1,
+      "passed": 1,
+      "planned_not_run": 0,
+      "skipped": 5,
+      "total_checks": 7
+    },
+    "decision": {
+      "decision": "hold",
+      "rationale": "Execution was halted by the kill switch; the evidence set is intentionally incomplete."
+    },
+    "determinism": {
+      "clock_mode": "frozen",
+      "entropy": "seeded",
+      "seed": 1337
+    },
+    "error": "",
+    "evidence": {
+      "summary": {
+        "by_kind": {
+          "static_analysis": 2
+        },
+        "count": 2,
+        "total_bytes": 1536,
+        "verification": {
+          "affected": [],
+          "alert": {
+            "level": "ok",
+            "message": "Evidence verification passed."
+          },
+          "checked": 2,
+          "mismatches": [],
+          "missing": [],
+          "schema_version": "1.0",
+          "signature_error": "",
+          "signature_valid": true,
+          "tampered": false
+        }
+      }
+    },
+    "finding_counts": {
+      "critical": 0,
+      "high": 1,
+      "info": 0,
+      "low": 0,
+      "medium": 0
+    },
+    "findings": [
+      {
+        "check_id": "static.secrets",
+        "consequence": "The value may grant access to a service, environment, or customer record.",
+        "domain": "security",
+        "fingerprint": "36680b93a795abd5",
+        "location": "src/config.py:8",
+        "persona": "security",
+        "remediation": "Move the value to a secret manager, rotate it, and add a pre-commit secret scan.",
+        "reproduction": "Inspect the redacted match in the evidence file and confirm whether the value is live.",
+        "severity": "high",
+        "strength": "source_proven",
+        "suppressed": false,
+        "suppression_expires_at": "",
+        "suppression_owner": "",
+        "suppression_reason": "",
+        "suppression_ticket": "",
+        "tags": [
+          "secret",
+          "redacted"
+        ],
+        "title": "Credential-like value hard-coded in source (1 match in src/config.py)",
+        "verification": "Confirm the value is no longer present and that the old credential is invalid."
+      }
+    ],
+    "halted_reason": "Automatic kill switch: high finding from check static.secrets",
+    "intent": "Assess release readiness of the target.",
+    "invalid_findings": [],
+    "inventory": {
+      "available": true,
+      "ci_files": [
+        ".github/workflows/ci.yml"
+      ],
+      "env_files": [],
+      "env_files_ignored": [],
+      "env_files_tracked": [],
+      "excluded_file_count": 0,
+      "excluded_paths": [],
+      "excluded_patterns": [],
+      "files": [
+        "poetry.lock",
+        "pyproject.toml",
+        "requirements.txt",
+        ".github/workflows/ci.yml",
+        "src/app.py",
+        "src/config.py",
+        "src/page.html",
+        "tests/test_app.py"
+      ],
+      "has_ci": true,
+      "has_lockfile": true,
+      "has_manifest": true,
+      "has_markup": true,
+      "has_tests": true,
+      "languages": {
+        "HTML": 1,
+        "Python": 3,
+        "TOML": 1,
+        "YAML": 1
+      },
+      "lockfiles": [
+        "poetry.lock"
+      ],
+      "manifests": [
+        "pyproject.toml",
+        "requirements.txt"
+      ],
+      "markup_files": [
+        "src/page.html"
+      ],
+      "skipped_dirs": [
+        ".harness"
+      ],
+      "source_files": [
+        "src/app.py",
+        "src/config.py",
+        "src/page.html",
+        "tests/test_app.py"
+      ],
+      "test_files": [
+        "tests/test_app.py"
+      ],
+      "test_frameworks": [
+        "pytest"
+      ],
+      "total_bytes": 2129,
+      "total_files": 8,
+      "tracked_available": false,
+      "tracked_file_count": 0,
+      "truncated": false
+    },
+    "kill_switch": {
+      "armed": true,
+      "finding_id": "finding-d8cb781db6",
+      "manual": false,
+      "reason": "Automatic kill switch: high finding from check static.secrets",
+      "threshold": "high",
+      "triggered": true
+    },
+    "limitations": [
+      "5 planned check(s) were blocked, skipped, or errored and count as coverage gaps, not passes.",
+      "Confidence is scoped engineering judgment, not a probability of zero defects.",
+      "Execution was halted by the kill switch: Automatic kill switch: high finding from check static.secrets.",
+      "Kill switch halted execution.",
+      "Static-only evidence: rendered behavior was not exercised."
+    ],
+    "metering": {
+      "event_count": 10,
+      "event_types": {
+        "check_executed": 7,
+        "evidence_byte_stored": 2,
+        "run_started": 1
+      },
+      "run_event_count": 10,
+      "run_event_types": {
+        "check_executed": 7,
+        "evidence_byte_stored": 2,
+        "run_started": 1
+      },
+      "schema_version": "quality-harness.metering/v1"
+    },
+    "options": {
+      "clock_mode": "frozen",
+      "crawl": false,
+      "entropy_counter": 12,
+      "frozen_clock": "2026-11-14T00:00:00Z",
+      "headless": true,
+      "id_sequence": 12,
+      "kill_on": "high",
+      "max_checks": 20,
+      "max_pages": 5,
+      "metering": {
+        "event_count": 10,
+        "event_types": {
+          "check_executed": 7,
+          "evidence_byte_stored": 2,
+          "run_started": 1
+        },
+        "run_event_count": 10,
+        "run_event_types": {
+          "check_executed": 7,
+          "evidence_byte_stored": 2,
+          "run_started": 1
+        },
+        "schema_version": "quality-harness.metering/v1",
+        "sink": ".harness/metering/events.jsonl",
+        "workspace": "local"
+      },
+      "mobile": false,
+      "mobile_viewport": "390x844",
+      "no_browser": true,
+      "plugin_registry_fingerprint": "d038e592f6e0d9b5962362ec8403c59b78e875546697d17b36d3d5a1bbb71b64",
+      "policy": {
+        "id": "advisory-v1",
+        "version": "1.0"
+      },
+      "registry_fingerprint": "d038e592f6e0d9b5962362ec8403c59b78e875546697d17b36d3d5a1bbb71b64",
+      "seed": 1337,
+      "selected_personas": [],
+      "timeout_ms": 30000,
+      "trend": {
+        "baseline": true,
+        "coverage_delta": 0,
+        "new": [],
+        "persistent": [],
+        "previous_run_id": null,
+        "score_delta": 0
+      },
+      "viewport": "1440x900"
+    },
+    "personas": [
+      {
+        "blocker_schema_title": "AccessibilityBlocker",
+        "checks": [
+          "static.accessibility",
+          "browser.accessibility",
+          "browser.overflow",
+          "browser.focus_order"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "accessibility"
+        ],
+        "id": "accessibility",
+        "name": "Accessibility Specialist",
+        "path": "personas/accessibility.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "AccessibilityFinding",
+        "schema_valid": true,
+        "tools": [
+          "markup_a11y_scanner",
+          "browser_dom_snapshot",
+          "browser_accessibility_tree",
+          "browser_keyboard_probe",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      },
+      {
+        "blocker_schema_title": "FunctionalBlocker",
+        "checks": [
+          "static.full_assessment",
+          "static.test_category",
+          "static.functionality_category",
+          "static.browser_category",
+          "static.issues_category",
+          "static.demo_category",
+          "static.more_category",
+          "static.inventory",
+          "static.tests",
+          "static.ci",
+          "static.dependencies",
+          "browser.load",
+          "browser.console",
+          "browser.network",
+          "browser.content",
+          "browser.links",
+          "browser.steps"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "functional",
+          "reliability",
+          "content",
+          "data_integrity"
+        ],
+        "id": "functional",
+        "name": "Functional Release Specialist",
+        "path": "personas/functional.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "FunctionalFinding",
+        "schema_valid": true,
+        "tools": [
+          "source_inventory",
+          "test_inventory",
+          "ci_inventory",
+          "dependency_inventory",
+          "browser_navigate",
+          "browser_console",
+          "browser_network",
+          "browser_dom_snapshot",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      },
+      {
+        "blocker_schema_title": "SecurityBlocker",
+        "checks": [
+          "static.secrets",
+          "static.unsafe",
+          "browser.security"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "security",
+          "data_integrity"
+        ],
+        "id": "security",
+        "name": "Security and Privacy Specialist",
+        "path": "personas/security.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "SecurityFinding",
+        "schema_valid": true,
+        "tools": [
+          "secret_scanner",
+          "unsafe_pattern_scanner",
+          "browser_security_headers",
+          "browser_cookie_reader",
+          "browser_form_reader",
+          "browser_console",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      }
+    ],
+    "phases": [
+      {
+        "details": {
+          "browser_planned": false,
+          "inventory_available": true,
+          "manifests": [
+            "pyproject.toml",
+            "requirements.txt"
+          ],
+          "markup_files": 1,
+          "source_files": 4,
+          "test_files": 1,
+          "top_risks": [
+            {
+              "id": "risk-01",
+              "priority": "high",
+              "title": "The stated customer outcome may not be delivered"
+            },
+            {
+              "id": "risk-02",
+              "priority": "medium",
+              "title": "Evidence scope may be narrower than the release decision"
+            },
+            {
+              "id": "risk-03",
+              "priority": "medium",
+              "title": "Source-only evidence cannot establish rendered behavior"
+            },
+            {
+              "id": "risk-04",
+              "priority": "medium",
+              "title": "Rendered interfaces may carry accessibility barriers"
+            }
+          ]
+        },
+        "name": "risk_analysis",
+        "status": "completed",
+        "summary": "4 risk(s) ranked from intent, target shape, and inventory signals.",
+        "title": "Risk Analysis"
+      },
+      {
+        "details": {
+          "by_kind": {
+            "static": 7
+          },
+          "by_persona": {
+            "accessibility": 1,
+            "functional": 4,
+            "security": 2
+          },
+          "check_ids": [
+            "static.inventory",
+            "static.secrets",
+            "static.unsafe",
+            "static.tests",
+            "static.ci",
+            "static.dependencies",
+            "static.accessibility"
+          ]
+        },
+        "name": "test_planning",
+        "status": "completed",
+        "summary": "7 check(s) planned: 7 static, 0 browser, 0 plugin.",
+        "title": "Test Planning"
+      },
+      {
+        "details": {
+          "halted_reason": "Automatic kill switch: high finding from check static.secrets"
+        },
+        "name": "execution",
+        "status": "halted",
+        "summary": "Execution halted: Automatic kill switch: high finding from check static.secrets",
+        "title": "Execution"
+      },
+      {
+        "details": {
+          "manifest": ".harness/evidence/20261114T000000Z-537650/manifest.json",
+          "summary": {
+            "by_kind": {
+              "static_analysis": 2
+            },
+            "count": 2,
+            "manifest": ".harness/evidence/20261114T000000Z-537650/manifest.json",
+            "total_bytes": 1536
+          },
+          "verification": {
+            "affected": [],
+            "alert": {
+              "level": "ok",
+              "message": "Evidence verification passed."
+            },
+            "checked": 2,
+            "mismatches": [],
+            "missing": [],
+            "schema_version": "1.0",
+            "signature_error": "",
+            "signature_valid": true,
+            "tampered": false
+          }
+        },
+        "name": "evidence_collection",
+        "status": "completed",
+        "summary": "2 evidence artifact(s), 1536 bytes; manifest .harness/evidence/20261114T000000Z-537650/manifest.json.",
+        "title": "Evidence Collection"
+      },
+      {
+        "details": {
+          "band": "none",
+          "breakdown": {
+            "band": "none",
+            "base_score": 17.9,
+            "blocked_checks": 5,
+            "coverage_factor": 0.4833,
+            "coverage_ratio": 0.3111,
+            "executed_checks": 2,
+            "executed_weight": 3.4,
+            "failed_checks": 1,
+            "formula": "weighted-coverage-v1",
+            "halted": true,
+            "passed_checks": 1,
+            "passed_weight": 1.4,
+            "planned_checks": 7,
+            "policy_id": "advisory-v1",
+            "policy_version": "1.0",
+            "quality": 41.2,
+            "scope_factor": 0.9,
+            "scope_mode": "source",
+            "score": 0,
+            "severity_penalty": 20,
+            "total_weight": 10.93
+          },
+          "gate": {
+            "policy": "advisory-v1",
+            "reasons": [
+              "1 high-severity finding(s) remain open.",
+              "Executed coverage is below 70% of planned weight.",
+              "Confidence is below the advisory release floor of 60.0."
+            ],
+            "status": "fail"
+          },
+          "score": 0
+        },
+        "name": "confidence_scoring",
+        "status": "completed",
+        "summary": "Confidence 0.0/100 (none); gate fail; coverage 31.1%.",
+        "title": "Confidence Scoring"
+      }
+    ],
+    "policy": {
+      "id": "advisory-v1",
+      "version": "1.0"
+    },
+    "risks": [
+      {
+        "consequence": "A confident report can hide untested surfaces, making the ship decision look safer than it is.",
+        "domain": "reliability",
+        "id": "risk-02",
+        "priority": "medium",
+        "source": "scope",
+        "status": "open",
+        "title": "Evidence scope may be narrower than the release decision",
+        "weight_multiplier": 1.15
+      },
+      {
+        "consequence": "A page can compile and still fail for a real customer because Operate coverage is absent.",
+        "domain": "functional",
+        "id": "risk-03",
+        "priority": "medium",
+        "source": "target",
+        "status": "open",
+        "title": "Source-only evidence cannot establish rendered behavior",
+        "weight_multiplier": 1.15
+      },
+      {
+        "consequence": "Some customers cannot perceive, navigate, or operate the interface.",
+        "domain": "accessibility",
+        "id": "risk-04",
+        "priority": "medium",
+        "source": "inventory",
+        "status": "open",
+        "title": "Rendered interfaces may carry accessibility barriers",
+        "weight_multiplier": 1.15
+      },
+      {
+        "consequence": "The release can pass technical checks while failing the job the customer came to do.",
+        "domain": "functional",
+        "id": "risk-01",
+        "priority": "high",
+        "source": "intent",
+        "status": "open",
+        "title": "The stated customer outcome may not be delivered",
+        "weight_multiplier": 1.4
+      }
+    ],
+    "schema_version": "quality-harness.report/v1",
+    "status": "halted",
+    "target": {
+      "kind": "directory"
+    },
+    "trend": {
+      "baseline": true,
+      "coverage_delta": 0,
+      "new": [],
+      "persistent": [],
+      "previous_run_id": null,
+      "score_delta": 0
+    },
+    "workflow": {
+      "id": "release-confidence",
+      "name": "Release Confidence",
+      "phases": [
+        "risk_analysis",
+        "test_planning",
+        "execution",
+        "evidence_collection",
+        "confidence_scoring"
+      ],
+      "version": "1.0"
+    }
+  }
+}

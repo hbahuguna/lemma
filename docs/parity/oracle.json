@@ -1,0 +1,11 @@
+{
+  "assay_commit": "c3691d7f044edb53931a82c3ddf0c297b745e000",
+  "assay_repo": "../assay",
+  "python": "python3.11",
+  "fixture": "examples/sample-repo",
+  "determinism": {
+    "seed": 1337,
+    "clock_mode": "frozen",
+    "frozen_clock": "2026-11-14T00:00:00Z"
+  }
+}

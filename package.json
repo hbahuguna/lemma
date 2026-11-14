@@ -19,6 +19,8 @@
     "parity:check": "node scripts/parity/check.mjs",
     "parity:write": "node scripts/parity/check.mjs --write",
     "test": "vitest run",
+    "test:parity": "node scripts/parity/harness.mjs --test",
+    "parity:baselines": "node scripts/parity/harness.mjs --write-baselines",
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck",
     "changeset": "changeset",

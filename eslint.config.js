@@ -37,7 +37,7 @@ export default tseslint.config(
     extends: [tseslint.configs.disableTypeChecked],
   },
   {
-    files: ["scripts/**/*.{js,mjs,cjs,ts}", "**/vitest.config.ts"],
+    files: ["scripts/**/*.{js,mjs,cjs,ts}", "**/vitest.config.ts", "scripts/**/*.mjs"],
     extends: [tseslint.configs.disableTypeChecked],
     rules: {
       "no-undef": "off",

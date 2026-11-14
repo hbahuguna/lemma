@@ -99,7 +99,7 @@ parity with assay.
 | LEM-002 | Publish the machine-readable assay parity manifest and check | P0 | 3 | None | Done |
 | LEM-003 | Ratify the architecture, package graph, and adapter contract | P0 | 3 | None | Done |
 | LEM-004 | Define versioned zod schemas and inferred core types | P0 | 5 | LEM-003 | Done |
-| LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Backlog |
+| LEM-005 | Build the assay↔lemma golden parity harness | P0 | 5 | LEM-001, LEM-002, LEM-004 | Done |
 | LEM-006 | Port deterministic clock, entropy, and seeded id providers | P0 | 3 | LEM-004 | Backlog |
 | LEM-007 | Port the typed error model and exit-code contract | P0 | 2 | LEM-004 | Backlog |
 | LEM-008 | Port the redaction engine and synthetic corpus | P0 | 3 | LEM-004 | Backlog |
@@ -446,7 +446,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P0
 - **Points:** 5
 - **Depends on:** LEM-001, LEM-002, LEM-004
-- **Status:** Backlog
+- **Status:** Done
+- **Claimed:** 2026-11-14 — acceptance test: `pnpm test:parity`.
 - **Description:** Compare the Python oracle and the TypeScript port on the same
   fixture and options. Normalize run ids, timestamps, absolute paths, and
   platform-specific separators, then diff the report body.
@@ -459,8 +460,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - The harness reports a field-level diff and exits nonzero on drift.
   - Baselines exist for completed, halted, and browser-blocked runs.
   - CI runs parity against the pinned assay commit.
-- **Verification:** `pnpm test:parity`
-- **Evidence to record:** normalized report pair, diff output, CI run.
+- **Verification:** `pnpm test:parity` — **PASS** (oracle vs committed baselines, seeded/frozen zero-diff pairs for completed/halted/browser-blocked, normalization protection and diff-engine self-check; lemma runner integration point ready via `LEMMA_PARITY_CMD`).
+- **Evidence:** `scripts/parity/harness.mjs`, `scripts/parity/README.md` (documented normalization/volatile fields), `docs/parity/oracle.json` (pinned assay commit `c3691d7f044edb53931a82c3ddf0c297b745e000`, python, fixture, deterministic seed/clock), `docs/parity/baselines/{completed,halted,browser-blocked}.json`, `examples/sample-repo/` fixture, `package.json` (`test:parity`), CI updated to checkout pinned assay and run `pnpm test:parity`. Local: `pnpm lint`, `pnpm test`, `pnpm test:parity` passed (2026-11-14). CI run URL pending remote push.
 
 ### LEM-006 — Port deterministic clock, entropy, and seeded id providers
 
@@ -606,3 +607,4 @@ No task is claimed.
 - **LEM-002** — Publish the machine-readable assay parity manifest and check (2026-11-14). Evidence: `docs/parity/assay.manifest.json` (281 assets, 10 kinds), `scripts/parity/check.mjs` (`pnpm parity:check`), CI step, and parity drift/validation tests; `pnpm parity:check` exit 0 on complete manifest and nonzero on removed owner. Commit/remote recorded in completion summary.
 - **LEM-003** — Ratify the architecture, package graph, and adapter contract (2026-11-14). Evidence: `docs/architecture.md` ratified (graph/module map/`AgentHost` interfaces/capability matrix/degradation/adapter ownership, OpenCode+Claude Code first), `docs/adr/0001-typescript-monorepo-and-contracts.md`, `packages/core/test/dependency-direction.test.ts`; `pnpm typecheck` and dependency-direction test passed. Operator sign-off: DL11. Commit/remote recorded in completion summary.
 - **LEM-004** — Define versioned zod schemas and inferred core types (2026-11-14). Evidence: zod contract modules in `@lemma/core` for report v1, state/progress/history, evidence manifest, persona, plugin, policy, metering envelope/events, quota plan, price book, entitlement, queue job, billing record, retention; generated/committed `schemas/**` (23 files) match generator output; schema tests cover assay report compatibility (completed/halted/failed), contract rejection/additive fields. Commit/remote recorded in completion summary.
+- **LEM-005** — Build the assay↔lemma golden parity harness (2026-11-14). Evidence: `pnpm test:parity` passes (oracle vs baselines, seeded/frozen zero-diff, field-level diff/self-check) for completed/halted/browser-blocked using `examples/sample-repo`; pinned oracle config, normalized baselines, harness script/docs, and CI parity step added. Commit/remote recorded in completion summary.

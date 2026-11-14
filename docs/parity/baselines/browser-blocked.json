@@ -1,0 +1,884 @@
+{
+  "scenario": "browser-blocked",
+  "oracle_rc": 0,
+  "oracle_commit": "c3691d7f044edb53931a82c3ddf0c297b745e000",
+  "normalized": {
+    "blockers": [
+      {
+        "attempted_action": "Rendered controls expose usable names and structure",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.accessibility",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "accessibility",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "The live target loads with a meaningful response",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.load",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "functional",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "Transport, headers, cookies, and forms use safe defaults",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.security",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "security",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "The rendered page has no unhandled console errors",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.console",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "functional",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "The page has a clear title and heading structure",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.content",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "functional",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "Rendered links are safe and actionable",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.links",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "functional",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      },
+      {
+        "attempted_action": "Critical network requests succeed",
+        "boundary": "Browser execution is unavailable: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "check_id": "browser.network",
+        "covered_by": [],
+        "covered_elsewhere": false,
+        "persona": "functional",
+        "unblock_evidence": [
+          "Install Playwright and Chromium, serve the target, and rerun the check."
+        ]
+      }
+    ],
+    "checks": [
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "functional",
+        "expected": "A 2xx/3xx response, a non-empty title, and visible body content.",
+        "finding_ids": [],
+        "id": "browser.load",
+        "intent": "Establish that a real customer can reach a rendered product surface.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "functional",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "The live target loads with a meaningful response",
+        "weight": 2.52
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "reliability",
+        "expected": "No page errors and no error-level console messages during load.",
+        "finding_ids": [],
+        "id": "browser.console",
+        "intent": "Detect runtime failures that may be invisible to a happy-path screenshot.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "functional",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "The rendered page has no unhandled console errors",
+        "weight": 1.38
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "reliability",
+        "expected": "No failed requests and no unexpected 4xx/5xx responses during load.",
+        "finding_ids": [],
+        "id": "browser.network",
+        "intent": "Find failed APIs and missing assets that break a customer journey.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "functional",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "Critical network requests succeed",
+        "weight": 1.495
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "security",
+        "expected": "HTTPS, baseline security headers, secure cookies, and no insecure form targets.",
+        "finding_ids": [],
+        "id": "browser.security",
+        "intent": "Reduce session theft, mixed-content injection, and clickjacking exposure.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "security",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "Transport, headers, cookies, and forms use safe defaults",
+        "weight": 2.52
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "accessibility",
+        "expected": "Images have alternatives, form controls have labels, controls have accessible names, and IDs are unique.",
+        "finding_ids": [],
+        "id": "browser.accessibility",
+        "intent": "Ensure keyboard and assistive-technology users can identify and operate the page.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "accessibility",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "Rendered controls expose usable names and structure",
+        "weight": 1.4
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "content",
+        "expected": "One primary heading and a concise, descriptive page title.",
+        "finding_ids": [],
+        "id": "browser.content",
+        "intent": "Give customers and search systems a coherent page identity.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "functional",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "The page has a clear title and heading structure",
+        "weight": 0.8
+      },
+      {
+        "actual": "Browser checks were not executed: Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "domain": "functional",
+        "expected": "No empty or javascript: links, no insecure destinations on HTTPS pages, and noopener on new tabs.",
+        "finding_ids": [],
+        "id": "browser.links",
+        "intent": "Avoid dead ends, insecure destinations, and tabnabbing exposure.",
+        "kind": "browser",
+        "metadata": {
+          "limitation": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+          "viewport": "1440x900"
+        },
+        "persona": "functional",
+        "skip_reason": "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "status": "blocked",
+        "title": "Rendered links are safe and actionable",
+        "weight": 1.26
+      }
+    ],
+    "confidence": {
+      "band": "none",
+      "breakdown": {
+        "band": "none",
+        "base_score": 0,
+        "blocked_checks": 7,
+        "coverage_factor": 0.25,
+        "coverage_ratio": 0,
+        "executed_checks": 0,
+        "executed_weight": 0,
+        "failed_checks": 0,
+        "formula": "weighted-coverage-v1",
+        "halted": false,
+        "passed_checks": 0,
+        "passed_weight": 0,
+        "planned_checks": 7,
+        "policy_id": "advisory-v1",
+        "policy_version": "1.0",
+        "quality": 0,
+        "scope_factor": 0.9,
+        "scope_mode": "live",
+        "score": 0,
+        "severity_penalty": 0,
+        "total_weight": 11.375
+      },
+      "coverage": 0,
+      "domain_scores": {
+        "accessibility": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 1.4
+        },
+        "content": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 0.8
+        },
+        "functional": {
+          "blocked": 2,
+          "checks": 2,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 3.7800000000000002
+        },
+        "reliability": {
+          "blocked": 2,
+          "checks": 2,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 2.875
+        },
+        "security": {
+          "blocked": 1,
+          "checks": 1,
+          "coverage": 0,
+          "executed_weight": 0,
+          "failed": 0,
+          "passed": 0,
+          "passed_weight": 0,
+          "score": 0,
+          "weight": 2.52
+        }
+      },
+      "gate": {
+        "policy": "advisory-v1",
+        "reasons": [
+          "Executed coverage is below 70% of planned weight.",
+          "Confidence is below the advisory release floor of 60.0."
+        ],
+        "status": "fail"
+      },
+      "limitations": [
+        "7 planned check(s) were blocked, skipped, or errored and count as coverage gaps, not passes.",
+        "Automated accessibility checks do not establish WCAG conformance; human review is still required.",
+        "Confidence is scoped engineering judgment, not a probability of zero defects.",
+        "Live-only evidence: source and deployment configuration were not inspected.",
+        "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+        "Security checks are bounded and non-destructive; they are not a penetration test or a certification."
+      ],
+      "penalties": {
+        "by_severity": {},
+        "caps": [],
+        "severity_total": 0
+      },
+      "rationale": "Executed 0.0 of 11.4 planned weight (0% coverage); quality among executed checks was 0%; scope factor 0.90. Severity penalty was 0.0 points. Final confidence 0.0/100 (none).",
+      "score": 0
+    },
+    "contract_failures": {
+      "by_persona": {},
+      "degraded_personas": [],
+      "total": 0
+    },
+    "coverage": {
+      "blocked": 7,
+      "blockers": 7,
+      "blockers_by_persona": {
+        "accessibility": 1,
+        "functional": 5,
+        "security": 1
+      },
+      "blockers_covered_elsewhere": 0,
+      "blockers_uncovered": 7,
+      "by_domain": {
+        "accessibility": {
+          "blocked": 1,
+          "blockers": 1,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 0
+        },
+        "content": {
+          "blocked": 1,
+          "blockers": 1,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 0
+        },
+        "functional": {
+          "blocked": 2,
+          "blockers": 2,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 2,
+          "skipped": 0
+        },
+        "reliability": {
+          "blocked": 2,
+          "blockers": 2,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 2,
+          "skipped": 0
+        },
+        "security": {
+          "blocked": 1,
+          "blockers": 1,
+          "error": 0,
+          "failed": 0,
+          "passed": 0,
+          "planned": 1,
+          "skipped": 0
+        }
+      },
+      "error": 0,
+      "executed": 0,
+      "executed_pct": 0,
+      "failed": 0,
+      "passed": 0,
+      "planned_not_run": 0,
+      "skipped": 0,
+      "total_checks": 7
+    },
+    "decision": {
+      "decision": "hold",
+      "rationale": "Critical/high risk or low confidence blocks an advisory release decision."
+    },
+    "determinism": {
+      "clock_mode": "frozen",
+      "entropy": "seeded",
+      "seed": 1337
+    },
+    "error": "",
+    "evidence": {
+      "summary": {
+        "by_kind": {},
+        "count": 0,
+        "total_bytes": 0,
+        "verification": {
+          "affected": [],
+          "alert": {
+            "level": "ok",
+            "message": "Evidence verification passed."
+          },
+          "checked": 0,
+          "mismatches": [],
+          "missing": [],
+          "schema_version": "1.0",
+          "signature_error": "",
+          "signature_valid": true,
+          "tampered": false
+        }
+      }
+    },
+    "finding_counts": {
+      "critical": 0,
+      "high": 0,
+      "info": 0,
+      "low": 0,
+      "medium": 0
+    },
+    "findings": [],
+    "halted_reason": "",
+    "intent": "Assess release readiness of the target.",
+    "invalid_findings": [],
+    "inventory": {
+      "available": false,
+      "ci_files": [],
+      "env_files": [],
+      "env_files_ignored": [],
+      "env_files_tracked": [],
+      "excluded_file_count": 0,
+      "excluded_paths": [],
+      "excluded_patterns": [],
+      "files": [],
+      "has_ci": false,
+      "has_lockfile": false,
+      "has_manifest": false,
+      "has_markup": false,
+      "has_tests": false,
+      "languages": {},
+      "lockfiles": [],
+      "manifests": [],
+      "markup_files": [],
+      "skipped_dirs": [],
+      "source_files": [],
+      "test_files": [],
+      "test_frameworks": [],
+      "total_bytes": 0,
+      "total_files": 0,
+      "tracked_available": false,
+      "tracked_file_count": 0,
+      "truncated": false
+    },
+    "kill_switch": {
+      "armed": true,
+      "finding_id": "",
+      "manual": false,
+      "reason": "",
+      "threshold": "critical",
+      "triggered": false
+    },
+    "limitations": [
+      "7 planned check(s) were blocked, skipped, or errored and count as coverage gaps, not passes.",
+      "Automated accessibility checks do not establish WCAG conformance; human review is still required.",
+      "Confidence is scoped engineering judgment, not a probability of zero defects.",
+      "Live-only evidence: source and deployment configuration were not inspected.",
+      "Playwright is not installed (playwright unavailable). Install it with `pip install playwright` and `python -m playwright install chromium`, or run with --no-browser.",
+      "Security checks are bounded and non-destructive; they are not a penetration test or a certification."
+    ],
+    "metering": {
+      "event_count": 9,
+      "event_types": {
+        "browser_minute_consumed": 1,
+        "check_executed": 7,
+        "run_started": 1
+      },
+      "run_event_count": 9,
+      "run_event_types": {
+        "browser_minute_consumed": 1,
+        "check_executed": 7,
+        "run_started": 1
+      },
+      "schema_version": "quality-harness.metering/v1"
+    },
+    "options": {
+      "clock_mode": "frozen",
+      "crawl": false,
+      "entropy_counter": 17,
+      "frozen_clock": "2026-11-14T00:00:00Z",
+      "headless": true,
+      "id_sequence": 17,
+      "kill_on": "critical",
+      "max_checks": 20,
+      "max_pages": 5,
+      "metering": {
+        "event_count": 9,
+        "event_types": {
+          "browser_minute_consumed": 1,
+          "check_executed": 7,
+          "run_started": 1
+        },
+        "run_event_count": 9,
+        "run_event_types": {
+          "browser_minute_consumed": 1,
+          "check_executed": 7,
+          "run_started": 1
+        },
+        "schema_version": "quality-harness.metering/v1",
+        "sink": ".harness/metering/events.jsonl",
+        "workspace": "local"
+      },
+      "mobile": false,
+      "mobile_viewport": "390x844",
+      "no_browser": false,
+      "plugin_registry_fingerprint": "d038e592f6e0d9b5962362ec8403c59b78e875546697d17b36d3d5a1bbb71b64",
+      "policy": {
+        "id": "advisory-v1",
+        "version": "1.0"
+      },
+      "registry_fingerprint": "d038e592f6e0d9b5962362ec8403c59b78e875546697d17b36d3d5a1bbb71b64",
+      "seed": 1337,
+      "selected_personas": [],
+      "timeout_ms": 30000,
+      "trend": {
+        "baseline": true,
+        "coverage_delta": 0,
+        "new": [],
+        "persistent": [],
+        "previous_run_id": null,
+        "score_delta": 0
+      },
+      "viewport": "1440x900"
+    },
+    "personas": [
+      {
+        "blocker_schema_title": "AccessibilityBlocker",
+        "checks": [
+          "static.accessibility",
+          "browser.accessibility",
+          "browser.overflow",
+          "browser.focus_order"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "accessibility"
+        ],
+        "id": "accessibility",
+        "name": "Accessibility Specialist",
+        "path": "personas/accessibility.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "AccessibilityFinding",
+        "schema_valid": true,
+        "tools": [
+          "markup_a11y_scanner",
+          "browser_dom_snapshot",
+          "browser_accessibility_tree",
+          "browser_keyboard_probe",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      },
+      {
+        "blocker_schema_title": "FunctionalBlocker",
+        "checks": [
+          "static.full_assessment",
+          "static.test_category",
+          "static.functionality_category",
+          "static.browser_category",
+          "static.issues_category",
+          "static.demo_category",
+          "static.more_category",
+          "static.inventory",
+          "static.tests",
+          "static.ci",
+          "static.dependencies",
+          "browser.load",
+          "browser.console",
+          "browser.network",
+          "browser.content",
+          "browser.links",
+          "browser.steps"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "functional",
+          "reliability",
+          "content",
+          "data_integrity"
+        ],
+        "id": "functional",
+        "name": "Functional Release Specialist",
+        "path": "personas/functional.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "FunctionalFinding",
+        "schema_valid": true,
+        "tools": [
+          "source_inventory",
+          "test_inventory",
+          "ci_inventory",
+          "dependency_inventory",
+          "browser_navigate",
+          "browser_console",
+          "browser_network",
+          "browser_dom_snapshot",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      },
+      {
+        "blocker_schema_title": "SecurityBlocker",
+        "checks": [
+          "static.secrets",
+          "static.unsafe",
+          "browser.security"
+        ],
+        "contract_failure_streak": 0,
+        "contract_failures": 0,
+        "degraded": false,
+        "domains": [
+          "security",
+          "data_integrity"
+        ],
+        "id": "security",
+        "name": "Security and Privacy Specialist",
+        "path": "personas/security.md",
+        "required_fields": [
+          "title",
+          "severity",
+          "domain",
+          "strength",
+          "consequence",
+          "location",
+          "reproduction",
+          "remediation",
+          "verification"
+        ],
+        "schema_title": "SecurityFinding",
+        "schema_valid": true,
+        "tools": [
+          "secret_scanner",
+          "unsafe_pattern_scanner",
+          "browser_security_headers",
+          "browser_cookie_reader",
+          "browser_form_reader",
+          "browser_console",
+          "browser_screenshot"
+        ],
+        "version": "1.0"
+      }
+    ],
+    "phases": [
+      {
+        "details": {
+          "browser_planned": true,
+          "inventory_available": false,
+          "manifests": [],
+          "markup_files": 0,
+          "source_files": 0,
+          "test_files": 0,
+          "top_risks": [
+            {
+              "id": "risk-01",
+              "priority": "high",
+              "title": "The stated customer outcome may not be delivered"
+            },
+            {
+              "id": "risk-02",
+              "priority": "medium",
+              "title": "Evidence scope may be narrower than the release decision"
+            },
+            {
+              "id": "risk-03",
+              "priority": "high",
+              "title": "The live surface may expose transport, session, or runtime defects"
+            }
+          ]
+        },
+        "name": "risk_analysis",
+        "status": "completed",
+        "summary": "3 risk(s) ranked from intent, target shape, and inventory signals.",
+        "title": "Risk Analysis"
+      },
+      {
+        "details": {
+          "by_kind": {
+            "browser": 7
+          },
+          "by_persona": {
+            "accessibility": 1,
+            "functional": 5,
+            "security": 1
+          },
+          "check_ids": [
+            "browser.load",
+            "browser.console",
+            "browser.network",
+            "browser.security",
+            "browser.accessibility",
+            "browser.content",
+            "browser.links"
+          ]
+        },
+        "name": "test_planning",
+        "status": "completed",
+        "summary": "7 check(s) planned: 0 static, 7 browser, 0 plugin.",
+        "title": "Test Planning"
+      },
+      {
+        "details": {
+          "blocked": 7,
+          "executed": 0,
+          "findings": 0
+        },
+        "name": "execution",
+        "status": "completed",
+        "summary": "0 check(s) executed, 7 blocked/errored, 0 finding(s) recorded.",
+        "title": "Execution"
+      },
+      {
+        "details": {
+          "manifest": ".harness/evidence/20261114T000000Z-537650/manifest.json",
+          "summary": {
+            "by_kind": {},
+            "count": 0,
+            "manifest": ".harness/evidence/20261114T000000Z-537650/manifest.json",
+            "total_bytes": 0
+          },
+          "verification": {
+            "affected": [],
+            "alert": {
+              "level": "ok",
+              "message": "Evidence verification passed."
+            },
+            "checked": 0,
+            "mismatches": [],
+            "missing": [],
+            "schema_version": "1.0",
+            "signature_error": "",
+            "signature_valid": true,
+            "tampered": false
+          }
+        },
+        "name": "evidence_collection",
+        "status": "completed",
+        "summary": "0 evidence artifact(s), 0 bytes; manifest .harness/evidence/20261114T000000Z-537650/manifest.json.",
+        "title": "Evidence Collection"
+      },
+      {
+        "details": {
+          "band": "none",
+          "breakdown": {
+            "band": "none",
+            "base_score": 0,
+            "blocked_checks": 7,
+            "coverage_factor": 0.25,
+            "coverage_ratio": 0,
+            "executed_checks": 0,
+            "executed_weight": 0,
+            "failed_checks": 0,
+            "formula": "weighted-coverage-v1",
+            "halted": false,
+            "passed_checks": 0,
+            "passed_weight": 0,
+            "planned_checks": 7,
+            "policy_id": "advisory-v1",
+            "policy_version": "1.0",
+            "quality": 0,
+            "scope_factor": 0.9,
+            "scope_mode": "live",
+            "score": 0,
+            "severity_penalty": 0,
+            "total_weight": 11.375
+          },
+          "gate": {
+            "policy": "advisory-v1",
+            "reasons": [
+              "Executed coverage is below 70% of planned weight.",
+              "Confidence is below the advisory release floor of 60.0."
+            ],
+            "status": "fail"
+          },
+          "score": 0
+        },
+        "name": "confidence_scoring",
+        "status": "completed",
+        "summary": "Confidence 0.0/100 (none); gate fail; coverage 0.0%.",
+        "title": "Confidence Scoring"
+      }
+    ],
+    "policy": {
+      "id": "advisory-v1",
+      "version": "1.0"
+    },
+    "risks": [
+      {
+        "consequence": "A confident report can hide untested surfaces, making the ship decision look safer than it is.",
+        "domain": "reliability",
+        "id": "risk-02",
+        "priority": "medium",
+        "source": "scope",
+        "status": "open",
+        "title": "Evidence scope may be narrower than the release decision",
+        "weight_multiplier": 1.15
+      },
+      {
+        "consequence": "A visitor can lose a session, trust a tampered response, or see a broken page.",
+        "domain": "security",
+        "id": "risk-03",
+        "priority": "high",
+        "source": "target",
+        "status": "open",
+        "title": "The live surface may expose transport, session, or runtime defects",
+        "weight_multiplier": 1.4
+      },
+      {
+        "consequence": "The release can pass technical checks while failing the job the customer came to do.",
+        "domain": "functional",
+        "id": "risk-01",
+        "priority": "high",
+        "source": "intent",
+        "status": "open",
+        "title": "The stated customer outcome may not be delivered",
+        "weight_multiplier": 1.4
+      }
+    ],
+    "schema_version": "quality-harness.report/v1",
+    "status": "completed",
+    "target": {
+      "kind": "url"
+    },
+    "trend": {
+      "baseline": true,
+      "coverage_delta": 0,
+      "new": [],
+      "persistent": [],
+      "previous_run_id": null,
+      "score_delta": 0
+    },
+    "workflow": {
+      "id": "release-confidence",
+      "name": "Release Confidence",
+      "phases": [
+        "risk_analysis",
+        "test_planning",
+        "execution",
+        "evidence_collection",
+        "confidence_scoring"
+      ],
+      "version": "1.0"
+    }
+  }
+}
