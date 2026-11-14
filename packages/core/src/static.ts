@@ -135,6 +135,59 @@ export const MAX_SCAN_BYTES = 512 * 1024;
 export const MAX_SCAN_FILES = 2000;
 export const MAX_INVENTORY_FILES = 5000;
 
+// Issue markers are inventoried for the issues category. Counts only are
+// persisted, so an inline note cannot leak a credential into evidence.
+export const ISSUE_MARKER_PATTERN = /\b(TODO|FIXME|HACK|XXX)\b/g;
+
+// Extended "more" assessment surfaces are inventoried as deterministic counts
+// and paths/names only; no file contents are persisted.
+export const MORE_DOC_HINTS = new Set([
+  "readme",
+  "contributing",
+  "changelog",
+  "changes",
+  "license",
+  "security",
+  "support",
+  "code_of_conduct",
+  "architecture",
+]);
+export const MORE_EXAMPLE_HINTS = new Set(["example", "examples", "sample", "samples", "fixture", "fixtures"]);
+export const MORE_CONFIG_NAMES = new Set([
+  "dockerfile",
+  "docker-compose.yml",
+  "docker-compose.yaml",
+  "compose.yml",
+  "compose.yaml",
+  "makefile",
+  "justfile",
+  "tox.ini",
+  "pyproject.toml",
+  "package.json",
+  "tsconfig.json",
+  "webpack.config.js",
+  "vite.config.js",
+  "vite.config.ts",
+  ".eslintrc",
+  ".prettierrc",
+]);
+
+// Demo/example surfaces are inventoried for the demo category. Only paths and
+// entry-point names are persisted, never file contents.
+export const DEMO_HINTS = new Set([
+  "demo",
+  "demos",
+  "example",
+  "examples",
+  "sample",
+  "samples",
+  "sandbox",
+  "playground",
+  "quickstart",
+]);
+export const DEMO_DOC_HINTS = ["quickstart", "getting started", "run the demo", "demo"];
+export const DEMO_SCRIPT_NAMES = new Set(["demo", "start", "dev"]);
+
 export interface InventoryData {
   available: boolean;
   root: string;
@@ -920,6 +973,18 @@ export class StaticCheckRunner {
         return this.checkStaticUnsafe(check);
       case "static.accessibility":
         return this.checkStaticAccessibility(check);
+      case "static.test_category":
+        return this.checkStaticTestCategory(check);
+      case "static.functionality_category":
+        return this.checkStaticFunctionalityCategory(check);
+      case "static.browser_category":
+        return this.checkStaticBrowserCategory(check);
+      case "static.issues_category":
+        return this.checkStaticIssuesCategory(check);
+      case "static.demo_category":
+        return this.checkStaticDemoCategory(check);
+      case "static.more_category":
+        return this.checkStaticMoreCategory(check);
       default:
         return new CheckOutcome({
           status: CheckStatus.ERROR,
@@ -1362,5 +1427,323 @@ export class StaticCheckRunner {
       emitted += 1;
     }
     return outcome;
+  }
+
+  private readRootFile(rel: string): string {
+    try {
+      const full = path.join(this.root, rel);
+      const st = statSync(full);
+      if (!st.isFile() || st.size > MAX_SCAN_BYTES) return "";
+      const data = readFileSync(full);
+      if (data.subarray(0, 2048).includes(0)) return "";
+      return data.toString("utf8");
+    } catch {
+      return "";
+    }
+  }
+
+  async checkStaticTestCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const payload = {
+      category: "test",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      test_frameworks: this.inventory.test_frameworks,
+      manifests: this.inventory.manifests.length,
+    };
+    const evidence = await this.save(
+      "test-category-scope",
+      payload,
+      check,
+      "Test category assessment scope and test inventory summary.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Test category assessment recorded with ${this.inventory.test_files.length} test file(s).`,
+      evidence: [evidence],
+      metadata: { category: "test" },
+    });
+  }
+
+  async checkStaticFunctionalityCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const payload = {
+      category: "functionality",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      test_frameworks: this.inventory.test_frameworks,
+      manifests: this.inventory.manifests.length,
+    };
+    const evidence = await this.save(
+      "functionality-category-scope",
+      payload,
+      check,
+      "Functionality category assessment scope and inventory summary.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Functionality category assessment recorded for ${this.inventory.source_files.length} source file(s).`,
+      evidence: [evidence],
+      metadata: { category: "functionality" },
+    });
+  }
+
+  async checkStaticBrowserCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const payload = {
+      category: "browser",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      markup_files: this.inventory.markup_files.length,
+      manifests: this.inventory.manifests.length,
+    };
+    const evidence = await this.save(
+      "browser-category-scope",
+      payload,
+      check,
+      "Browser category assessment scope and inventory summary.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Browser category assessment recorded for ${this.inventory.source_files.length} source file(s).`,
+      evidence: [evidence],
+      metadata: { category: "browser" },
+    });
+  }
+
+  async checkStaticIssuesCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const markerCounts: Record<string, number> = {};
+    const markerFiles: string[] = [];
+    for (const [rel, fullPath] of this.iterFiles(CODE_EXTENSIONS)) {
+      const text = this.readText(fullPath);
+      if (!text) continue;
+      const matches = [...text.matchAll(ISSUE_MARKER_PATTERN)].map((m) => m[1] ?? "").filter(Boolean);
+      if (matches.length === 0) continue;
+      markerFiles.push(rel);
+      for (const marker of matches) {
+        const key = marker.toUpperCase();
+        markerCounts[key] = (markerCounts[key] ?? 0) + 1;
+      }
+    }
+    const payload = {
+      category: "issues",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      manifests: this.inventory.manifests.length,
+      issue_markers: markerCounts,
+      files_with_issue_markers: markerFiles.slice(0, 20),
+    };
+    const evidence = await this.save(
+      "issues-category-scope",
+      payload,
+      check,
+      "Issues category assessment scope and issue-marker inventory summary.",
+    );
+    const markerTotal = Object.values(markerCounts).reduce((a, b) => a + b, 0);
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Issues category assessment recorded with ${markerTotal} issue marker(s) in ${markerFiles.length} file(s).`,
+      evidence: [evidence],
+      metadata: {
+        category: "issues",
+        issue_markers: markerTotal,
+        files_with_issue_markers: markerFiles.length,
+      },
+    });
+  }
+
+  private demoEntrypoints(): string[] {
+    const found: string[] = [];
+    const packageText = this.readRootFile("package.json");
+    if (packageText) {
+      try {
+        const data = JSON.parse(packageText) as Record<string, unknown>;
+        const scripts = data.scripts;
+        if (scripts && typeof scripts === "object" && !Array.isArray(scripts)) {
+          for (const name of Object.keys(scripts).sort()) {
+            if (DEMO_SCRIPT_NAMES.has(name) || name.startsWith("demo:")) {
+              found.push(`script:${name}`);
+            }
+          }
+        }
+      } catch {
+        // ignore malformed package.json
+      }
+    }
+    const makefileText = this.readRootFile("Makefile");
+    if (makefileText) {
+      for (const line of makefileText.split(/\r?\n/)) {
+        const m = /^([A-Za-z0-9_.-]+):(?!=)/.exec(line);
+        if (m && DEMO_SCRIPT_NAMES.has(m[1]!)) {
+          found.push(`make:${m[1]!}`);
+        }
+      }
+    }
+    return [...new Set(found)].sort().slice(0, 10);
+  }
+
+  async checkStaticDemoCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const demoPaths: string[] = [];
+    const demoDirectories: string[] = [];
+    for (const rel of this.inventory.files) {
+      const parts = rel.split("/");
+      if (parts.length === 0) continue;
+      const directories = parts.slice(0, -1).map((p) => p.toLowerCase());
+      const stem = path.basename(parts[parts.length - 1]!, path.extname(parts[parts.length - 1]!)).toLowerCase();
+      if (!directories.some((part) => DEMO_HINTS.has(part)) && !DEMO_HINTS.has(stem)) continue;
+      demoPaths.push(rel);
+      for (const part of directories) {
+        if (DEMO_HINTS.has(part) && !demoDirectories.includes(part)) {
+          demoDirectories.push(part);
+        }
+      }
+    }
+    const sortedDemoPaths = [...demoPaths].sort().slice(0, 20);
+    const sortedDemoDirs = [...demoDirectories].sort().slice(0, 10);
+    const demoEntrypoints = this.demoEntrypoints();
+
+    const quickstartDocs: string[] = [];
+    for (const rel of [...this.inventory.files].sort()) {
+      const lower = rel.toLowerCase();
+      if (!lower.endsWith(".md") && !lower.endsWith(".mdx") && !lower.endsWith(".rst") && !lower.endsWith(".txt")) continue;
+      if (!lower.includes("readme") && !(`/${lower}`).includes("/docs/")) continue;
+      const text = this.readRootFile(rel).toLowerCase();
+      if (!text) continue;
+      if (DEMO_DOC_HINTS.some((hint) => text.includes(hint))) {
+        quickstartDocs.push(rel);
+      }
+    }
+
+    const limitation = "Demo surface inventory only; no behavioral demo evidence was collected because no URL was provided.";
+    const payload = {
+      category: "demo",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      manifests: this.inventory.manifests.length,
+      demo_paths: sortedDemoPaths,
+      demo_directories: sortedDemoDirs,
+      demo_entrypoints: demoEntrypoints,
+      quickstart_docs: quickstartDocs.slice(0, 10),
+      behavioral_evidence: false,
+      limitation,
+    };
+    const evidence = await this.save(
+      "demo-category-scope",
+      payload,
+      check,
+      "Demo category assessment scope, demo assets, and entry-point summary.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `Demo surface inventory recorded with ${sortedDemoPaths.length} demo path(s), ${demoEntrypoints.length} entry point(s), and ${quickstartDocs.length} documentation reference(s). No demo was launched or rendered.`,
+      evidence: [evidence],
+      metadata: {
+        category: "demo",
+        demo_paths: sortedDemoPaths.length,
+        demo_entrypoints: demoEntrypoints.length,
+        quickstart_docs: quickstartDocs.length,
+        behavioral_evidence: false,
+        limitation,
+      },
+    });
+  }
+
+  async checkStaticMoreCategory(check: StaticCheckLike): Promise<CheckOutcome> {
+    const files = [...this.inventory.files].sort();
+    const docs: string[] = [];
+    const examples: string[] = [];
+    const configs: string[] = [];
+    const scripts: string[] = [];
+
+    for (const rel of files) {
+      const lower = rel.toLowerCase();
+      const name = path.basename(lower);
+      const stem = path.basename(name, path.extname(name));
+      const parts = rel.split("/").map((p) => p.toLowerCase());
+      if (
+        (lower.endsWith(".md") || lower.endsWith(".mdx") || lower.endsWith(".rst") || lower.endsWith(".txt") || lower.endsWith(".adoc")) &&
+        (MORE_DOC_HINTS.has(stem) || name.includes("readme") || (`/${lower}`).includes("/docs/") || lower.startsWith("docs/"))
+      ) {
+        docs.push(rel);
+      }
+      if (parts.slice(0, -1).some((part) => MORE_EXAMPLE_HINTS.has(part)) || MORE_EXAMPLE_HINTS.has(stem)) {
+        examples.push(rel);
+      }
+      if (
+        MORE_CONFIG_NAMES.has(name) ||
+        (((name.endsWith(".yml") || name.endsWith(".yaml")) && (name.includes("docker") || name.includes("compose"))))
+      ) {
+        configs.push(rel);
+      }
+    }
+
+    const packageText = this.readRootFile("package.json");
+    if (packageText) {
+      try {
+        const data = JSON.parse(packageText) as Record<string, unknown>;
+        const scriptMap = data.scripts;
+        if (scriptMap && typeof scriptMap === "object" && !Array.isArray(scriptMap)) {
+          for (const name of Object.keys(scriptMap).sort().slice(0, 20)) {
+            scripts.push(`script:${name}`);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    for (const makeName of ["Makefile", "makefile", "Justfile", "justfile"]) {
+      const text = this.readRootFile(makeName);
+      if (!text) continue;
+      for (const line of text.split(/\r?\n/).slice(0, 200)) {
+        const m = /^([A-Za-z0-9_.-]+):(?!=)/.exec(line);
+        if (m) scripts.push(`task:${m[1]!}`);
+      }
+    }
+    const uniqueScripts = [...new Set(scripts)].sort().slice(0, 20);
+    const uniqueConfigs = [...new Set(configs)].sort().slice(0, 20);
+
+    const payload = {
+      category: "more",
+      intent: (check as { intent?: unknown }).intent ?? "",
+      expected: (check as { expected?: unknown }).expected ?? "",
+      source_available: this.inventory.available,
+      source_files: this.inventory.source_files.length,
+      test_files: this.inventory.test_files.length,
+      docs: docs.slice(0, 20),
+      examples: examples.slice(0, 20),
+      configs: uniqueConfigs,
+      scripts: uniqueScripts,
+      ci_files: [...(this.inventory.ci_files ?? [])].sort().slice(0, 20),
+      manifests: this.inventory.manifests.slice(0, 20),
+    };
+    const evidence = await this.save(
+      "more-category-scope",
+      payload,
+      check,
+      "Extended 'more' category assessment scope and additional surface inventory.",
+    );
+    return new CheckOutcome({
+      status: CheckStatus.PASSED,
+      actual: `More category assessment recorded with ${docs.length} doc(s), ${examples.length} example path(s), ${new Set(configs).size} config file(s), and ${uniqueScripts.length} script/task entry point(s).`,
+      evidence: [evidence],
+      metadata: {
+        category: "more",
+        docs: docs.length,
+        examples: examples.length,
+        configs: new Set(configs).size,
+        scripts: uniqueScripts.length,
+      },
+    });
   }
 }

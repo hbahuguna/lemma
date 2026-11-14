@@ -144,7 +144,7 @@ covers every assay category command with an owned check or a documented no-op.
 | LEM-030 | Port the accessibility markup scan | P1 | 3 | LEM-027 | Done |
 | LEM-031 | Port secret scanning and precision rules | P0 | 5 | LEM-027 | Done |
 | LEM-032 | Port unsafe-code rules | P0 | 3 | LEM-027 | Done |
-| LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Backlog |
+| LEM-033 | Port baseline category checks (test/functionality/browser/issues/demo/more) | P1 | 5 | LEM-014, LEM-027 | Done |
 | LEM-034 | Port full-assessment markers | P1 | 3 | LEM-027 | Backlog |
 | LEM-035 | Port CI root-scoping precision | P2 | 2 | LEM-029 | Backlog |
 | LEM-036 | Port risk tracked-file parity | P2 | 3 | LEM-024, LEM-027 | Backlog |
@@ -776,6 +776,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-030** — Port the accessibility markup scan (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/accessibility-scan/accessibility-scan.test.ts`, `docs/parity/evidence/LEM-030-accessibility-scan-test-output.txt` (`pnpm --filter @lemma/core test -- accessibility-scan`, 3/3). Commit/remote recorded in completion summary.
 - **LEM-031** — Port secret scanning and precision rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/secret-scan/secret-scan.test.ts`, `docs/parity/evidence/LEM-031-secret-scan-test-output.txt` (`pnpm --filter @lemma/core test -- secret-scan`, 5/5). Commit/remote recorded in completion summary.
 - **LEM-032** — Port unsafe-code rules (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/unsafe-scan/unsafe-scan.test.ts`, `docs/parity/evidence/LEM-032-unsafe-scan-test-output.txt` (`pnpm --filter @lemma/core test -- unsafe-scan`, 4/4). Commit/remote recorded in completion summary.
+- **LEM-033** — Port baseline category checks (test/functionality/browser/issues/demo/more) (2026-11-14). Evidence: `packages/core/src/static.ts`, `packages/core/test/category-checks/category-checks.test.ts`, `docs/parity/evidence/LEM-033-category-checks-test-output.txt` (`pnpm --filter @lemma/core test -- category-checks`, 5/5). Commit/remote recorded in completion summary.
+
+### LEM-033 — Port baseline category checks (test/functionality/browser/issues/demo/more)
+
+- **Epic:** E3 Evidence Checks and Personas
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-014, LEM-027
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- category-checks`.
+- **Description:** Port deterministic baseline static category scope checks for
+  `test`, `functionality`, `browser`, `issues`, `demo`, and `more` intents.
+- **Acceptance Criteria:**
+  - Core static runner implements and dispatches `static.test_category`,
+    `static.functionality_category`, `static.browser_category`,
+    `static.issues_category`, `static.demo_category`, and `static.more_category`
+    with assay-compatible evidence artifacts, payloads, actual strings, metadata,
+    and passed outcomes (`test-category-scope`, `functionality-category-scope`,
+    `browser-category-scope`, `issues-category-scope`, `demo-category-scope`,
+    `more-category-scope`).
+  - `issues` category scans code files for issue markers (`TODO/FIXME/HACK/XXX`)
+    and records marker counts/files in payload/metadata/actual deterministically.
+  - `demo` category inventories demo paths/directories, deterministic demo
+    entrypoints (package scripts/Makefile targets), quickstart docs, and records
+    `behavioral_evidence: false` with the no-URL limitation in payload/metadata/actual.
+  - `more` category inventories extended surfaces (docs/examples/configs/scripts,
+    CI/manifests) with deterministic limits/sorting and assay-compatible counts in
+    payload/metadata/actual; supporting constants/helpers and exports are added to
+    `@lemma/core` as needed with tests covering all six checks.
+- **Verification:** `pnpm --filter @lemma/core test -- category-checks` (targeted file: `packages/core/test/category-checks/category-checks.test.ts`) — **PASS** (5 tests). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
+- **Evidence:** `packages/core/src/static.ts` (`StaticCheckRunner` dispatch/methods and constants/helpers for `static.test_category`, `static.functionality_category`, `static.browser_category`, `static.issues_category`, `static.demo_category`, `static.more_category` with assay-compatible evidence names/descriptions/payloads, actuals, metadata, issue-marker/demo/more inventory behavior), exported via `@lemma/core`; `packages/core/test/category-checks/category-checks.test.ts` (all six category checks). Test output: `docs/parity/evidence/LEM-033-category-checks-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-032 — Port unsafe-code rules
 
