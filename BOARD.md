@@ -294,7 +294,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Done |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Done |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Done |
-| LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Backlog |
+| LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Done |
 | LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Backlog |
 | LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Backlog |
 | LEM-112 | Publish the adapter compatibility matrix and docs | P1 | 3 | LEM-108, LEM-109, LEM-110, LEM-111 | Backlog |
@@ -4705,6 +4705,61 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-109 — Add the OpenCode end-to-end parity suite
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-101, LEM-106, LEM-107
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cli build && pnpm --filter @lemma/adapters-opencode typecheck && pnpm --filter @lemma/adapters-opencode build && pnpm exec vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Add an automated OpenCode end-to-end parity suite that
+  exercises the full OpenCode integration path without a live OpenCode runtime:
+  installer-generated host assets, adapter manifest/host/capability-conformance
+  and command/catalog/prompt mapping, and deterministic CLI run/status/report
+  behavior over a fixed fixture, asserting parity with lemma contracts and
+  OpenCode packaging/template outputs.
+- **Acceptance Criteria:**
+  - `packages/adapters/opencode/test/opencode-e2e-parity.test.ts` provides an
+    automated OpenCode end-to-end parity suite runnable in this environment with
+    no live OpenCode host/runtime dependency (uses injected/fake host primitives
+    and CLI `main`/temp workspaces).
+  - **Install parity:** suite runs `lemma install opencode` (CLI `main`) into a
+    temp directory and verifies deterministic JSON success/dry-run-safe behavior
+    is not required beyond install path used, with installed assets matching
+    `OPENCODE_PACKAGING_MANIFEST` and shared templates: 59 catalog command files
+    + 5 operational command files (`assay`, `assay-status`, `assay-report`,
+    `assay-abort`, `assay-verify-evidence`) + 1 `lemma` skill at manifest paths,
+    and representative generated content parity for browser/demo/static/
+    operational commands and skill (no absolute checkout paths).
+  - **Adapter/command parity:** suite exercises `@lemma/adapters-opencode`
+    exports (`OPENCODE_ADAPTER_MANIFEST`, `OPENCODE_PACKAGING_MANIFEST`,
+    `createOpenCodeHost`, `createOpenCodeCommandDescriptors`,
+    `registerOpenCodeCommands`, `resolveOpenCodeCatalogInvocation`,
+    `buildOpenCodeBrowserAgentPrompt`) to assert manifest/host conformance and
+    capability honesty (including degraded native-form behavior as declared) and
+    catalog/intent/mode/builder/browser-prompt mapping parity for representative
+    commands (browser, demo, static) consistent with `@lemma/agent`.
+  - **Deterministic run parity:** suite runs `lemma run` against
+    `examples/sample-repo` in a temp workspace with deterministic flags (seeded/
+    frozen clock, fixed intent/target/root, output file) via CLI `main`, then
+    verifies `status` and `report`, asserting machine-readable JSON contract and
+    stable parity invariants: `quality-harness.report/v1` report with matching
+    run id/output, recorded lifecycle/status and resolved target, present and
+    internally consistent coverage/checks/findings/blockers/confidence/decision
+    fields and `.lemma` state/progress/evidence linkage for the run.
+  - Root `package.json` includes a `test:e2e` script that runs the OpenCode
+    end-to-end parity suite (host adapter e2e entry point).
+  - `pnpm --filter @lemma/cli build`,
+    `pnpm --filter @lemma/adapters-opencode typecheck`,
+    `pnpm --filter @lemma/adapters-opencode build`, and
+    `pnpm exec vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cli build && pnpm --filter @lemma/adapters-opencode typecheck && pnpm --filter @lemma/adapters-opencode build && pnpm exec vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts` (pass, 1 file, 3 tests).
+- **Evidence:** `packages/adapters/opencode/test/opencode-e2e-parity.test.ts`, `package.json` (`test:e2e`), `docs/parity/evidence/LEM-109-opencode-e2e-parity-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-108 — Produce per-host packaging manifests
 

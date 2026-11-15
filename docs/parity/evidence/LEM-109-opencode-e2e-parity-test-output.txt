@@ -1,0 +1,43 @@
+$ tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/cli.ts, src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/cli.js                293.00 B
+ESM dist/index.js              606.00 B
+ESM dist/chunk-6N37HVJ3.js     30.88 KB
+ESM dist/index.js.map          71.00 B
+ESM dist/cli.js.map            533.00 B
+ESM dist/chunk-6N37HVJ3.js.map 59.04 KB
+ESM ⚡️ Build success in 179ms
+DTS Build start
+DTS ⚡️ Build success in 5330ms
+DTS dist/cli.d.ts   20.00 B
+DTS dist/index.d.ts 2.40 KB
+$ tsc --noEmit
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     7.95 KB
+ESM dist/index.js.map 15.81 KB
+ESM ⚡️ Build success in 33ms
+DTS Build start
+DTS ⚡️ Build success in 4548ms
+DTS dist/index.d.ts 2.59 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/opencode/test/opencode-e2e-parity.test.ts (3 tests) 867ms
+   ✓ LEM-109 OpenCode end-to-end parity suite > runs deterministic CLI assessment and preserves status/report parity  755ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:46:40
+   Duration  3.01s (transform 683ms, setup 0ms, collect 968ms, tests 867ms, environment 0ms, prepare 296ms)
+

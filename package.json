@@ -24,7 +24,8 @@
     "test:watch": "vitest",
     "typecheck": "pnpm -r --if-present typecheck",
     "changeset": "changeset",
-    "version-packages": "changeset version"
+    "version-packages": "changeset version",
+    "test:e2e": "vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",
