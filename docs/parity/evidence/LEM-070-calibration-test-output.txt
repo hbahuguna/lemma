@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/calibration/calibration.test.ts (3 tests) 160ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:20:24
+   Duration  2.31s (transform 657ms, setup 0ms, collect 965ms, tests 160ms, environment 0ms, prepare 347ms)
+

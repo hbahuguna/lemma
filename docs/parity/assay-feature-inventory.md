@@ -36,7 +36,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/risk.py` | Risk ranking from intent, target, and inventory (`packages/core/src/risk.ts`: `RiskAnalyzer`/`analyzeRisk`, intent/target/scope/inventory-driven risks, tracked-file parity for env/CI scope—`env_files_tracked` preferred when `tracked_available` with filesystem fallback, CI-refresh risk driven by scoped `inventory.ci_files` so untracked-only CI is treated as absent—plus dedupe/numbering/cap and deterministic weights/evidence; tests `packages/core/test/risk/risk.test.ts`, `packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts`, outputs `docs/parity/evidence/LEM-024-risk-test-output.txt`, `docs/parity/evidence/LEM-036-risk-tracked-parity-test-output.txt`) | `@lemma/core/risk` | LEM-024, LEM-036 |
 | `harness/redact.py` | Redaction before persistence (`packages/core/src/redaction.ts`: `sanitizeUrl`, `redactText`, `redactSecretValue`, `redactUnknown`, `containsRedactionMarker`; corpus 30 shapes incl. Jira/storage state, artifact-scan evidence `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | `@lemma/core/redact` | LEM-008, LEM-123 |
 | `harness/exports.py` | SARIF, JUnit, and detached report-signature helpers | `@lemma/core/exports` | LEM-065 (SARIF `buildSarif`, `packages/core/src/exports.ts`, `./exports` wiring, tests `packages/core/test/exports/sarif.test.ts`, output `docs/parity/evidence/LEM-065-sarif-export-test-output.txt`), LEM-066 (JUnit `buildJunit`, tests `packages/core/test/exports/junit.test.ts`, output `docs/parity/evidence/LEM-066-junit-export-test-output.txt`), LEM-067 (`canonicalReport*`, `signReport`, `verifyReportSignature`, tests `packages/core/test/exports/report-signing.test.ts`, output `docs/parity/evidence/LEM-067-report-signing-test-output.txt`) |
-| `harness/calibration.py` | Labeled fixture calibration | `@lemma/core/calibration` | LEM-070, LEM-074 |
+| `harness/calibration.py` | Labeled fixture calibration | `@lemma/core/calibration` | LEM-070 (`packages/core/src/calibration.ts`, exports/index wiring, fixtures `calibration/fixtures/`, tests `packages/core/test/calibration/calibration.test.ts`, output `docs/parity/evidence/LEM-070-calibration-test-output.txt`), LEM-074 |
 | `harness/ssrf.py` | SSRF validation, DNS, allowlists, redirects (`packages/core/src/ssrf.ts`: `validateUrl`/`validateTargetUrl`, `validateRedirectChain`, `isSafeUrl`/`ssrfSafe`, `loadAllowlist` with injectable resolver, http/https+host checks, blocked metadata/local hostnames, default blocked/private ranges incl. link-local/metadata, CIDR/hostname allowlists with env/file/root loading, per-call resolution/rebinding checks, redirect-chain revalidation, and non-leaking typed `SsrfError`s; `@lemma/core` export + `@lemma/core/ssrf` subpath; tests `packages/core/test/ssrf/ssrf.test.ts`, output `docs/parity/evidence/LEM-059-ssrf-test-output.txt`) | `@lemma/core/ssrf` | LEM-059, LEM-125 |
 | `harness/step_planner.py` | Scenario step planning (`packages/core/src/steps.ts`: `StepAction`/`ScenarioPlan`, deterministic `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch and heuristic fallback; tests `packages/core/test/steps/steps.test.ts`, output `docs/parity/evidence/LEM-025-steps-test-output.txt`) | `@lemma/core/steps` | LEM-025 |
 | `harness/step_runner.py` | Scenario step execution/result contracts (`packages/core/src/steps.ts`: `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck` pass/fail/blocked outcomes, evidence/count metadata, deterministic failed-scenario findings; tests `packages/core/test/steps/steps.test.ts`). LEM-058 browser integration: scenario-file/JSON/text plan loading and Playwright-driven `executeScenarioPlan`/`browser.steps` execution+evaluation with injected execution/page support and blocked degradation (`packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, tests `packages/browser/test/browser-scenarios.test.ts`, output `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`) | `@lemma/core/steps`, `@lemma/browser` | LEM-025, LEM-058 |
@@ -98,7 +98,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma billing sync` | Ledger invoice → provider | LEM-118 |
 | `lemma billing disable` | Operator kill switch | LEM-118 |
 | `lemma billing enable` | Clear kill switch | LEM-118 |
-| `lemma calibrate` | Run labeled fixtures | LEM-070 |
+| `lemma calibrate` | Run labeled fixtures | LEM-070 (core calibration APIs/fixtures/report; CLI command pending LEM-085) |
 
 Exit codes to preserve: `0` pass, `1` policy threshold failed, `2` harness error
 or failed run, `3` kill-switch halt, `130` operator interrupt.
@@ -191,7 +191,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `examples/plugins/sample_check.py` | Signed plugin example | LEM-080 |
 | `examples/plugins/pyproject.toml` | Plugin packaging example | LEM-080 |
 | `examples/plugins/README.md` | Plugin authoring docs | LEM-080 |
-| `calibration/fixtures/` | Labeled confidence fixtures | LEM-070 |
+| `calibration/fixtures/` | Labeled confidence fixtures | LEM-070 (ported labeled fixtures under `calibration/fixtures/`) |
 | `policies/advisory-v1.json` | Default gate policy (ported to `policies/advisory-v1.json`, schema `quality-harness.policy/v1`; validated/loaded by core policy APIs; evidence `docs/parity/evidence/LEM-019-policy-test-output.txt`) | LEM-019 |
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
@@ -235,7 +235,7 @@ with rationale.
 | `test_exports.py` | LEM-065 (SARIF `packages/core/test/exports/sarif.test.ts`), LEM-066 (JUnit `packages/core/test/exports/junit.test.ts`) |
 | `test_suppression.py` | LEM-069 (`packages/core/src/suppressions.ts`, exports/index wiring, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt`) |
 | `test_trend.py` | LEM-068 (`packages/core/src/trends.ts` `computeTrendDiff`, exports wiring, tests `packages/core/test/trends/trend.test.ts`, output `docs/parity/evidence/LEM-068-trend-diff-test-output.txt`) |
-| `test_calibration.py` | LEM-070 |
+| `test_calibration.py` | LEM-070 (`packages/core/test/calibration/calibration.test.ts`, `docs/parity/evidence/LEM-070-calibration-test-output.txt`) |
 | `test_ssrf.py` | LEM-059, LEM-125 |
 | `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |
 | `test_failure_injection.py` | LEM-126 |
