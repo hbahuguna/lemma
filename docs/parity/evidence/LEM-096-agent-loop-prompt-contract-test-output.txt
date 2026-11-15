@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/agent-loop-prompt-contract.test.ts (3 tests) 1235ms
+   ✓ LEM-096 agent-loop and prompt-contract tests > agent-loop contract: need-context pause/resume, interactive wait, min runs, and final narrative hooks  1221ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:14:46
+   Duration  3.04s (transform 586ms, setup 0ms, collect 831ms, tests 1.23s, environment 0ms, prepare 325ms)
+

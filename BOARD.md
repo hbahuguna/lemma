@@ -272,8 +272,8 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Done |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Done |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Done |
-| LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | In Progress |
-| LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Backlog |
+| LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Done |
+| LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | In Progress |
 | LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | Backlog |
 
 ### E9: Adapter SDK and Host Integrations
@@ -4183,6 +4183,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `pnpm exec vitest run packages/agent/test/command-catalog-parity.test.ts`
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/command-catalog-parity.test.ts` (pass, 5 tests) and regression `packages/agent/test/command-catalog-parity.test.ts packages/agent/test/command-args.test.ts packages/agent/test/catalog.test.ts` (pass, 14 tests).
+- **Evidence:** `packages/agent/test/command-catalog-parity.test.ts`, `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-095 parity mappings for command contract, plugin command-args, and plugin test coverage).
+
+### LEM-096 — Build agent-loop and prompt-contract tests
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-090, LEM-091
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/agent-loop-prompt-contract.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Build contract/parity tests for the strict-judge agent loop
+  and browser agent prompt/context protocol, covering core control-flow,
+  safety, and prompt invariants.
+- **Acceptance Criteria:**
+  - `packages/agent/test/agent-loop-prompt-contract.test.ts` (or equivalent
+    dedicated suite) asserts agent-loop contract behavior for `@lemma/agent`:
+    strict decision parsing (`command`/`done`/`need_user_context`/invalid),
+    allowlisted command enforcement and arg/signature handling, cap
+    (max iterations) and min-harness-run early-completion rejection, dedupe of
+    executed commands (including signature-based duplicates), need-context
+    pause/resume and interactive wait behavior, and structured run
+    summaries/progress/final narrative hooks (including run IDs/execution
+    summary presence on completion/cap where applicable).
+  - The same suite asserts prompt-contract behavior: `shellQuote` escaping,
+    `CONTEXT_PROTOCOL` invariants (native `question` tool required, no
+    placeholder waits/shell pauses/stdin blocking, Skip/Paste/MCP/Secure
+    env-secret ref options, Jira native form path via `assay_jira_context`
+    with token-safe handling/no raw-token prompting), and
+    `buildBrowserAgentPrompt` embedding target/command/environment and key
+    invariants (deterministic harness-owned execution/evidence/scoring, fixed
+    phases, no repeated commands, coverage gaps never pass, secrets/credentials
+    handling, testing-environment/scenario scope, context protocol and iteration
+    flow).
+  - Tests are deterministic and do not require host SDKs, network, or browser
+    runtimes; harness/LLM/user-input behavior is exercised via injectable deps.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/agent-loop-prompt-contract.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/agent-loop-prompt-contract.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/agent/test/agent-loop-prompt-contract.test.ts`, `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-096 mappings for agent-loop and browser-agent-prompt plugin tests).
 - **Evidence:** `packages/agent/test/command-catalog-parity.test.ts`, `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-095 parity mappings for command contract, plugin command-args, and plugin test coverage).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
