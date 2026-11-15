@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import {
   CheckOutcome,
   CheckStatus,
@@ -36,6 +38,13 @@ export interface BrowserRuntimeOptions {
   /** Alias for maxPages. */
   max_pages?: number;
   /**
+   * Authenticated Playwright storage state: file path, `env:VAR`, or resolved
+   * state object (LEM-056). Resolved/injected state must not be persisted.
+   */
+  storageState?: string | Record<string, unknown>;
+  /** Alias for storageState. */
+  storage_state?: string | Record<string, unknown>;
+  /**
    * Test/extension hook: provide a custom Playwright loader. Returning/throwing
    * an unavailable module simulates a missing runtime.
    */
@@ -60,6 +69,85 @@ export class BrowserUnavailableError extends Error {
     super(reason);
     this.name = "BrowserUnavailableError";
     this.reason = reason;
+  }
+}
+
+export type BrowserStorageStateInput = string | Record<string, unknown>;
+
+/**
+ * Resolve and validate authenticated browser storage state (LEM-056).
+ * Accepts a file path, `env:VAR` reference, or already-resolved state object.
+ * Throws BrowserUnavailableError with assay-compatible boundaries on invalid
+ * input. Returned state must not be persisted to evidence/logs/outcomes.
+ */
+export function resolveBrowserStorageState(value: BrowserStorageStateInput): Record<string, unknown> {
+  if (value && typeof value === "object") {
+    validateBrowserStorageState(value);
+    return value;
+  }
+
+  let raw: string | undefined;
+  if (typeof value === "string" && value.startsWith("env:")) {
+    const variable = value.slice(4);
+    raw = process.env[variable];
+    if (raw === undefined) {
+      throw new BrowserUnavailableError(
+        `Storage state environment variable '${variable}' is not set.`,
+      );
+    }
+  } else if (typeof value === "string") {
+    try {
+      raw = readFileSync(value, "utf8");
+    } catch {
+      throw new BrowserUnavailableError(`Storage state file was not found: ${value}`);
+    }
+  } else {
+    throw new BrowserUnavailableError("Storage state is not valid JSON.");
+  }
+
+  let state: unknown;
+  try {
+    state = JSON.parse(raw);
+  } catch {
+    throw new BrowserUnavailableError("Storage state is not valid JSON.");
+  }
+
+  validateBrowserStorageState(state);
+  return state;
+}
+
+function validateBrowserStorageState(state: unknown): asserts state is Record<string, unknown> {
+  if (!state || typeof state !== "object" || Array.isArray(state)) {
+    throw new BrowserUnavailableError("Storage state must be a JSON object.");
+  }
+  const obj = state as Record<string, unknown>;
+  const cookies = obj.cookies;
+  const origins = obj.origins;
+  if (!Array.isArray(cookies) || !Array.isArray(origins)) {
+    throw new BrowserUnavailableError("Storage state cookies and origins must be arrays.");
+  }
+
+  const now = Date.now() / 1000;
+  let hasValidCookie = false;
+  for (const cookie of cookies) {
+    if (!cookie || typeof cookie !== "object" || Array.isArray(cookie)) {
+      throw new BrowserUnavailableError("Storage state contains an invalid cookie entry.");
+    }
+    const expires = (cookie as Record<string, unknown>).expires;
+    if (expires === undefined || expires === null || expires === 0 || expires === -1) {
+      hasValidCookie = true;
+    } else if (typeof expires === "number" && Number.isFinite(expires)) {
+      if (expires > now) hasValidCookie = true;
+    }
+  }
+
+  if (cookies.length > 0 && !hasValidCookie && origins.length === 0) {
+    throw new BrowserUnavailableError(
+      "Storage state has expired; provide a fresh state file or secret.",
+    );
+  }
+  if (cookies.length === 0 && origins.length === 0) {
+    throw new BrowserUnavailableError("Storage state is empty.");
   }
 }
 
@@ -415,6 +503,10 @@ async function captureWithPlaywright(
     throw new BrowserUnavailableError("Playwright Chromium launcher is unavailable.");
   }
   const headless = options?.headless ?? true;
+  const storageStateInput = options?.storageState ?? options?.storage_state;
+  const resolvedStorageState =
+    storageStateInput !== undefined ? resolveBrowserStorageState(storageStateInput) : undefined;
+
   const browser = (await chromium.launch({ headless })) as {
     newContext: (opts?: Record<string, unknown>) => Promise<{
       newPage: () => Promise<any>;
@@ -422,7 +514,11 @@ async function captureWithPlaywright(
     }>;
     close: () => Promise<void>;
   };
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const contextOptions: Record<string, unknown> = { viewport: { width: 1280, height: 720 } };
+  if (resolvedStorageState) {
+    contextOptions.storageState = resolvedStorageState;
+  }
+  const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
   const views: BrowserPageView[] = [];
   try {

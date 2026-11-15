@@ -30,7 +30,7 @@ function makeCheck(id: string, title = id): Check {
 
 function makeView(url: string, overrides: Partial<BrowserPageView> = {}): BrowserPageView {
   return {
-    navigation: { url, finalUrl: url, status: 200, headers: {}, error: undefined },
+    navigation: { url, finalUrl: url, status: 200, headers: {} },
     snapshot: { title: "OK", bodyTextLength: 100, h1s: ["H"], links: [] },
     consoleMessages: [],
     pageErrors: [],

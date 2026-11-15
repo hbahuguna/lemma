@@ -185,7 +185,7 @@ scan wearing a browser label.
 | LEM-053 | Port the browser accessibility check | P1 | 3 | LEM-050 | Done |
 | LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Done |
 | LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Done |
-| LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Backlog |
+| LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Done |
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Backlog |
 | LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Backlog |
 | LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-056** — Port authenticated storage-state injection (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (`resolveBrowserStorageState`, `storageState`/`storage_state` options, assay-compatible env/file/validation/expiry/empty handling, Playwright context injection without persisting resolved state, blocked degradation on resolution failure), `packages/browser/test/browser-storage-state.test.ts`, `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`, 6/6; browser suite 39/39); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-055** — Port the responsive/mobile pack (overflow, focus order) (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.overflow` viewport-aware horizontal overflow/offending-element evaluator and `browser.focus_order` positive-tabindex/focus-order-match evaluator with runtime integration), `packages/browser/test/browser-mobile-pack.test.ts`, `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`, 6/6; browser suite 33/33); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-054** — Port the bounded same-origin crawl (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (`discoverRoutes`/route normalization with bounded seed-only same-origin crawl exclusions, multi-route `evaluateBrowserCheckAcrossViews`/merge with `crawled`/`page_count`/`routes`/`routes_not_evaluated` metadata and navigation-failed-route handling, runtime crawl inputs/injected views and best-effort Playwright crawl capture), `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`, 5/5; browser suite 27/27); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-053** — Port the browser accessibility check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.accessibility` evaluator: missing alt, unlabeled form controls with excluded types, unnamed controls, duplicate ids, positive tabindex, missing lang, `manual_review_required` metadata, runtime integration), `packages/browser/test/browser-accessibility.test.ts`, `docs/parity/evidence/LEM-053-browser-accessibility-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-accessibility.test.ts`, 5/5; browser suite 22/22); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -803,7 +804,60 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-056 — Port authenticated storage-state injection
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-050
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts` 6/6 and full browser suite 39/39, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port authenticated browser storage-state injection from assay
+  into `@lemma/browser` so Playwright capture can run with a pre-authenticated
+  session while preserving blocked degradation and secret-handling guarantees.
+- **Acceptance Criteria:**
+  - `BrowserRuntimeOptions` (and runtime capture) accept storage state via
+    `storageState` and/or `storage_state` as a path, `env:VAR` reference, or
+    already-resolved state object. An exported resolver/loader (e.g.
+    `resolveBrowserStorageState`/`loadBrowserStorageState`) implements
+    assay-compatible semantics: `env:VAR` missing -> unavailable with
+    "Storage state environment variable '<VAR>' is not set."; file path missing
+    -> unavailable with "Storage state file was not found: <value>"; invalid JSON
+    -> "Storage state is not valid JSON."; non-object -> "Storage state must be a
+    JSON object."; cookies/origins not arrays or invalid cookie entry -> matching
+    validation errors; cookies present with no valid/unexpired cookie and no
+    origins -> "Storage state has expired; provide a fresh state file or secret.";
+    empty cookies and origins -> "Storage state is empty."; otherwise returns the
+    parsed/resolved state for Playwright context injection.
+  - When storage state is provided for Playwright capture, `runBrowserChecks`
+    injects the resolved state into the browser context (`storageState`/equivalent)
+    so authenticated navigation/capture can proceed. The resolved/raw storage
+    state (including cookie/session values) is never persisted in browser
+    outcomes, metadata, or evidence refs produced by the runtime.
+  - If storage-state resolution/loading fails, browser capture becomes unavailable
+    and `runBrowserChecks` degrades all requested browser checks to blocked
+    outcomes with actionable blocker boundaries derived from the storage-state
+    error (e.g. missing file / expired state) and does not crash. Injected
+    `pageView`/`pageViews` evaluation paths remain deterministic and unaffected
+    by storage-state resolution.
+  - Tests at `packages/browser/test/browser-storage-state.test.ts` cover:
+    resolution from file and `env:VAR`, missing env/file, invalid JSON/object,
+    expired/empty state, successful Playwright capture injection of resolved
+    storage state (via loader/launch hooks), and blocked degradation on missing
+    storage state; secrets from resolved state are not present in emitted
+    outcomes/metadata. Existing browser tests continue to pass. Evidence recorded
+    at `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt`.
+  - Parity inventory updated for LEM-056 scope: `harness/browser.py` row and
+    `test_authenticated_browser.py` mapping note storage-state injection/
+    resolution slice and evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`
+- **Evidence:** `packages/browser/src/runtime.ts`, `packages/browser/test/browser-storage-state.test.ts`, `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt`; parity inventory `harness/browser.py` and `test_authenticated_browser.py` updated (LEM-056 storage-state injection/resolution slice). Commit/remote recorded in completion summary.
+
 ### LEM-055 — Port the responsive/mobile pack (overflow, focus order)
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P1

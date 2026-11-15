@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-storage-state.test.ts (6 tests) 37ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  16:49:20
+   Duration  3.10s (transform 757ms, setup 0ms, collect 1.18s, tests 37ms, environment 0ms, prepare 442ms)
+
