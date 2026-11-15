@@ -29,6 +29,12 @@ import {
 } from "@lemma/core";
 
 import { CliUsageError, type CliCommandHandler, type CliCommandSpec } from "./index-types.js";
+import {
+  ASSAY_COMMAND_CATALOG,
+  renderAllCatalogCommandTemplates,
+  renderLemmaSkillTemplate,
+  renderOperationalCommandTemplate,
+} from "@lemma/agent";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -642,6 +648,107 @@ export const verifyEvidenceCommand: CliCommandHandler = async (argv) => {
   return { exitCode: EXIT_CODES.pass, stdoutJson: result };
 };
 
+
+const SUPPORTED_INSTALL_HOSTS = ["opencode", "claude-code", "codex", "antigravity", "cursor"] as const;
+type InstallHost = (typeof SUPPORTED_INSTALL_HOSTS)[number];
+
+function isInstallHost(v: string): v is InstallHost {
+  return (SUPPORTED_INSTALL_HOSTS as readonly string[]).includes(v);
+}
+
+function installLayout(host: InstallHost): { commandsDir: string; skillPath: string } {
+  switch (host) {
+    case "opencode":
+      return { commandsDir: ".opencode/commands", skillPath: ".opencode/skills/lemma/SKILL.md" };
+    case "claude-code":
+      return { commandsDir: ".claude/commands", skillPath: ".claude/skills/lemma/SKILL.md" };
+    case "codex":
+      return { commandsDir: ".codex/commands", skillPath: ".codex/skills/lemma/SKILL.md" };
+    case "antigravity":
+      return { commandsDir: ".antigravity/commands", skillPath: ".antigravity/skills/lemma/SKILL.md" };
+    case "cursor":
+      return { commandsDir: ".cursor/commands", skillPath: ".cursor/skills/lemma/SKILL.md" };
+  }
+}
+
+export const installCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const hostArg = positionals[0];
+  if (!hostArg) {
+    throw new CliUsageError("install requires a host argument", { hosts: [...SUPPORTED_INSTALL_HOSTS] });
+  }
+  if (!isInstallHost(hostArg)) {
+    throw new CliUsageError(`Unsupported install host: ${hostArg}`, {
+      host: hostArg,
+      hosts: [...SUPPORTED_INSTALL_HOSTS],
+    });
+  }
+  const dirArg = getString(flags, "dir") ?? getString(flags, "root") ?? process.cwd();
+  const targetDir = path.isAbsolute(dirArg) ? dirArg : path.resolve(process.cwd(), dirArg);
+  const dryRun = getBool(flags, "dry-run");
+  const force = getBool(flags, "force");
+  const cli = getString(flags, "cli") ?? "lemma";
+  const personasDir = getString(flags, "personas-dir") ?? "personas";
+  const stateRoot = getString(flags, "state-root") ?? ".lemma";
+
+  const layout = installLayout(hostArg);
+  const templateOpts = { cli, personasDir, stateRoot };
+
+  const assets: Array<{ relPath: string; content: string }> = [];
+  for (const cmd of ASSAY_COMMAND_CATALOG) {
+    const rendered = renderAllCatalogCommandTemplates(templateOpts, [cmd])[0];
+    if (rendered) {
+      assets.push({ relPath: path.join(layout.commandsDir, `${rendered.name}.md`), content: rendered.markdown });
+    }
+  }
+  for (const name of ["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"] as const) {
+    const rendered = renderOperationalCommandTemplate(name, templateOpts);
+    assets.push({ relPath: path.join(layout.commandsDir, `${rendered.name}.md`), content: rendered.markdown });
+  }
+  assets.push({ relPath: layout.skillPath, content: renderLemmaSkillTemplate(templateOpts) });
+
+  const written: string[] = [];
+  const skipped: string[] = [];
+  const planned: string[] = [];
+
+  for (const asset of assets) {
+    const absPath = path.join(targetDir, asset.relPath);
+    planned.push(asset.relPath);
+    let exists = false;
+    try {
+      await fs.stat(absPath);
+      exists = true;
+    } catch {
+      exists = false;
+    }
+    if (exists && !force) {
+      skipped.push(asset.relPath);
+      continue;
+    }
+    if (!dryRun) {
+      await fs.mkdir(path.dirname(absPath), { recursive: true });
+      await fs.writeFile(absPath, asset.content, "utf8");
+    }
+    written.push(asset.relPath);
+  }
+
+  return {
+    stdoutJson: {
+      schema_version: REPORT_SCHEMA,
+      status: dryRun ? "dry_run" : "installed",
+      command: "install",
+      host: hostArg,
+      dir: targetDir,
+      dry_run: dryRun,
+      force,
+      planned: planned.length,
+      written: written.length,
+      skipped: skipped.length,
+      files: { planned, written, skipped },
+    },
+  };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -658,5 +765,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "suppressions", description: "Alias for suppress.", handler: suppressCommand },
     { name: "calibrate", description: "Run calibration fixtures and emit a report.", handler: calibrateCommand },
     { name: "verify-evidence", description: "Verify evidence manifest and artifacts for a run.", handler: verifyEvidenceCommand },
+    { name: "install", description: "Install lemma host integration assets for a target host.", handler: installCommand },
   ];
 }

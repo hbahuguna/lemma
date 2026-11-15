@@ -1,0 +1,29 @@
+$ tsc --noEmit
+$ tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/cli.ts, src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js              606.00 B
+ESM dist/chunk-TFVMJVRR.js     31.42 KB
+ESM dist/cli.js                293.00 B
+ESM dist/index.js.map          71.00 B
+ESM dist/cli.js.map            533.00 B
+ESM dist/chunk-TFVMJVRR.js.map 59.95 KB
+ESM ⚡️ Build success in 95ms
+DTS Build start
+DTS ⚡️ Build success in 5179ms
+DTS dist/cli.d.ts   20.00 B
+DTS dist/index.d.ts 2.40 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/cli-install.test.ts (3 tests) 183ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:22:14
+   Duration  2.15s (transform 673ms, setup 0ms, collect 967ms, tests 183ms, environment 0ms, prepare 188ms)
+

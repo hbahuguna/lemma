@@ -292,7 +292,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Done |
-| LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Backlog |
+| LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Done |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Backlog |
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Backlog |
 | LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Backlog |
@@ -4665,6 +4665,46 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/agent typecheck && pnpm --filter @lemma/agent build && pnpm exec vitest run packages/agent/test/templates.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/agent/src/templates.ts`, `packages/agent/src/index.ts`, `packages/agent/test/templates.test.ts`, `docs/parity/evidence/LEM-106-templates-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-107 — Build the `lemma install <host>` installer
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-100, LEM-101
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Add a machine-first CLI installer command that installs
+  lemma host integration assets (command and skill templates) for a target host
+  into a project directory using shared template generators, without requiring
+  host runtimes, absolute checkout paths, or build-time host SDK dependencies.
+- **Acceptance Criteria:**
+  - `lemma install <host>` is registered in the CLI (help/dispatch) and accepts
+    supported hosts (`opencode`, `claude-code`, `codex`, `antigravity`,
+    `cursor`) with options for target directory (e.g. `--dir`/`--root`, default
+    cwd), `--dry-run`, and `--force`; invalid/missing host or usage errors are
+    reported as structured JSON errors per CLI contract.
+  - For a supported host, the installer generates deterministic host integration
+    assets from shared `@lemma/agent` templates (59 assay catalog command
+    templates + key operational command templates including `assay`, `status`,
+    `report`, `abort`, `verify-evidence`, and a lemma skill template) into
+    host-appropriate project-relative directories (no absolute checkout paths,
+    no hardcoded secrets). Output is written to disk unless `--dry-run`, and
+    existing files are not overwritten without `--force`.
+  - Command emits a single JSON result to stdout describing host, target
+    directory, dry-run/force flags, and planned/written/skipped file paths/counts
+    (machine-parseable), with progress/warnings (if any) on stderr only.
+  - `packages/cli/test/cli-install.test.ts` covers: install to a temp directory
+    (file creation and JSON result), `--dry-run` (no writes), and overwrite
+    behavior (`--force`/skip) for at least `opencode`, demonstrating
+    template-driven, deterministic output.
+  - `pnpm --filter @lemma/cli typecheck`,
+    `pnpm --filter @lemma/cli build`, and
+    `pnpm exec vitest run packages/cli/test/cli-install.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
