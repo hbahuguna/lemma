@@ -149,7 +149,7 @@ intent-gated category or as an explicit documented no-op with rationale.
 | `personas/README.md` | Contract authoring rules (ported verbatim to `packages/personas/README.md` and shipped in the `@lemma/personas` package `files`; diff evidence `docs/parity/evidence/LEM-043-assay-persona-diff.txt`) | LEM-043, LEM-047 |
 | Check catalog (core checks incl. static/browser and intent-gated category scope checks) | Stable ids, weights, intents, inputs, and full assay category intent mapping/coverage (`packages/core/src/checks.ts` `CHECK_CATALOG`/`catalogIds`/`ASSAY_CATEGORY_LABELS`/`ASSAY_CATEGORY_INTENTS`/mapping helpers; specialized + generic `static.category.<label>` documented no-op scope checks; planning/coverage tests `packages/core/test/checks/checks.test.ts`, `packages/core/test/category-coverage/category-coverage.test.ts`, outputs `docs/parity/evidence/LEM-014-checks-test-output.txt`, `docs/parity/evidence/LEM-037-category-coverage-test-output.txt`) | LEM-014, LEM-037 |
 | Ownership derivation | Frontmatter is the only owner source (`checkOwnership`/`ownershipErrorMessage`/`unknownPersonaCheckIds`/`validatePersonaChecks`/`validateOwnership` in `packages/core/src/personas.ts`; full 76-id catalog resolves to exactly one owner with `CHECK_CATALOG.persona` still empty; `planChecks` now uses the shared assay-compatible error message; tests `packages/core/test/ownership/ownership.test.ts`, output `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
-| Finding schema validation | Quarantine invalid findings, degraded streak | LEM-045 |
+| Finding schema validation | Quarantine invalid findings, degraded streak (`@lemma/core/findings` exports `draftPayload`/`findingFromPayload`/`quarantineFinding`/`recordValidContract`/`rebuildContractHealth`/`recordCheckFindings`; invalid drafts stay out of `state.findings`, scoring, and the kill switch; payload/errors are redacted before persistence; report exposes `invalid_findings`/`contract_failures`/`degraded_personas`; tests `packages/core/test/invalid-findings/invalid-findings.test.ts`, output `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
 | Blocker schema validation | One structured blocker per blocked check | LEM-046 |
 
 Browser check ids to preserve: `browser.load`, `browser.console`,
@@ -223,7 +223,7 @@ with rationale.
 | `test_report_schema.py` | LEM-020, LEM-073 (core report builder/schema validation behavior covered by `packages/core/test/report/report.test.ts`; CLI-produced report schema/contract parity continues in LEM-073) | LEM-020, LEM-073 |
 | `test_personas.py`, `test_persona_tools.py` | LEM-041 (frontmatter parser: `packages/core/test/personas/personas.test.ts`), LEM-042 (schema validation: `packages/core/test/persona-schema/persona-schema-validation.test.ts`), LEM-047, LEM-048 |
 | `test_ownership.py` | LEM-044 (ownership derivation/disjointness and planning errors ported to `packages/core/src/personas.ts` with the shared assay error message; tests `packages/core/test/ownership/ownership.test.ts`, output `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
-| `test_invalid_findings.py` | LEM-045 |
+| `test_invalid_findings.py` | LEM-045 (raw draft extraction, output-schema validation, quarantine without scoring/kill, redaction, consecutive-failure streaks/degradation, streak reset, and rebuild-after-resume-pruning covered by `packages/core/test/invalid-findings/invalid-findings.test.ts`, output `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
 | `test_blockers.py` | LEM-046 |
 | `test_plugins.py` | LEM-075–LEM-082 |
 | `test_browser_smoke.py`, `test_browser_capture.py`, `test_browser_crawl.py` | LEM-051, LEM-054, LEM-057, LEM-060 |
@@ -270,7 +270,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | D12 | Evidence checkpoint before progress write | LEM-016 |
 | D13 | Signed plugins; load failure is a blocked check | LEM-075, LEM-076 |
 | D16 | Persona frontmatter is the only ownership source (LEM-044 ports `checkOwnership`/`validateOwnership` and extends the functional frontmatter with lemma-only `static.category.*` scope markers; evidence `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
-| D17 | Invalid findings quarantined, never scored | LEM-045 |
+| D17 | Invalid findings quarantined, never scored (LEM-045 ports raw-payload extraction, schema validation/quarantine, redaction, contract-failure streaks, degradation, and rebuild-after-resume to `@lemma/core/findings`; evidence `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
 | D18 | One structured blocker per blocked check | LEM-046 |
 | D21 | Frozen metering v1 names and idempotency keys | LEM-113 |
 | D22 | Hashed scoped keys; opaque cross-tenant lookups | LEM-114 |

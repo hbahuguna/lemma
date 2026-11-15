@@ -10,6 +10,7 @@ import {
   type ClockMode,
 } from "./determinism.js";
 import { EvidenceStore } from "./evidence.js";
+import { rebuildContractHealth } from "./findings.js";
 import {
   CheckStatus,
   DomainPhaseName,
@@ -136,22 +137,6 @@ function computeCurrentRegistryFingerprint(options: OrchestratorRunOptions): str
   return registryFingerprint(null);
 }
 
-function rebuildContractState(state: RunStateDomain): void {
-  const failures: Record<string, number> = {};
-  const streaks: Record<string, number> = {};
-  const degraded: string[] = [];
-  for (const record of state.invalid_findings) {
-    const persona = String(record.persona || "");
-    failures[persona] = (failures[persona] ?? 0) + 1;
-    const streak = (streaks[persona] ?? 0) + 1;
-    streaks[persona] = streak;
-    if (streak >= 3 && !degraded.includes(persona)) degraded.push(persona);
-  }
-  state.contract_failures = failures;
-  state.contract_failure_streaks = streaks;
-  state.degraded_personas = degraded;
-}
-
 function prepareResumeState(state: RunStateDomain, requestedTarget: Target): void {
   if (state.status === RunStatus.HALTED) {
     throw new StateError(
@@ -197,7 +182,7 @@ function prepareResumeState(state: RunStateDomain, requestedTarget: Target): voi
     const beforeInvalid = state.invalid_findings.length;
     state.invalid_findings = state.invalid_findings.filter((f: InvalidFinding) => !rerunIds.has(String(f.check_id ?? "")));
     if (state.invalid_findings.length !== beforeInvalid) {
-      rebuildContractState(state);
+      rebuildContractHealth(state);
     }
     for (const check of state.checks) {
       if (rerunIds.has(check.id)) {

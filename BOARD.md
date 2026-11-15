@@ -165,7 +165,7 @@ a pass.
 | LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Done |
 | LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Done |
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Done |
-| LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Backlog |
+| LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Done |
 | LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Backlog |
 | LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Backlog |
 | LEM-048 | Port `personas scaffold` | P2 | 3 | LEM-047 | Backlog |
@@ -742,6 +742,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL10 | 2026-11-14 | Every adapter ships a capability manifest and passes the shared conformance kit before it is documented as supported. | "Works on my host" is not a support claim. | Add richer conformance levels if host surfaces diverge further. |
 | DL11 | 2026-11-14 | LEM-003 architecture/package graph/adapter contract ratified; operator sign-off recorded. | `docs/architecture.md` (ratified) and `docs/adr/0001-typescript-monorepo-and-contracts.md` lock dependency direction, host-neutral `AgentHost` contract, capabilities/degradation, and optionality boundaries; OpenCode and Claude Code named as first-ship adapters with explicit package owners. | Revisit via ADR/Decision Log if host surfaces or dependency boundaries materially change. |
 | DL12 | 2026-11-15 | The functional persona frontmatter owns the 52 lemma-only `static.category.<label>` scope markers; catalog definitions keep `persona: ""`. | LEM-037 added intent-gated documented-no-op category scope checks that assay's 24-check catalog does not have. Frontmatter must remain the only ownership source (D16), and every check must have exactly one owner, so the generalist functional contract declares the scope markers while the three assay bodies/schemas stay unchanged. | Move scope markers out of the persona-owned catalog if a distinct planner-owned scope record contract replaces them. |
+| DL13 | 2026-11-15 | Finding payload extraction, schema validation, quarantine, and contract-health accounting live in `@lemma/core/findings`, not in the orchestrator. | The orchestrator is a phase/state machine with host-neutral handlers; keeping the quarantine rules in a pure module lets the future CLI/agent execution path reuse them and keeps the deterministic behavior testable without a plugin loader. The package graph is unchanged. | Fold the module into `models` or `orchestrator` only if the execution loop becomes the sole caller. |
 
 ## Done
 
@@ -787,8 +788,73 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-045 — Port invalid-finding quarantine and degraded streaks
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-013, LEM-042
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test invalid-findings`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test invalid-findings` 7/7, related report/resume/conformance suites pass, `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and the core build pass.
+- **Description:** Port assay's execution-time persona output-contract handling:
+  extract finding drafts without inventing missing fields, validate each draft
+  against its owning persona schema, quarantine invalid drafts outside scoring
+  and kill-switch evaluation, maintain per-persona contract-failure totals and
+  consecutive streaks, mark a persona degraded after three consecutive failures,
+  reset the streak on a valid finding, and rebuild the counters after resume
+  pruning. The report/model/resume fields added by earlier tasks are reused, not
+  duplicated.
+- **Acceptance Criteria:**
+  - A new `@lemma/core` findings module (exported from the root entry point and
+    documented in `docs/architecture.md`) ports assay's raw-payload extraction
+    without deriving defaults: missing fields stay absent, non-object drafts
+    become `{ value: draft }`, and a throwing getter never aborts the run.
+  - `findingFromPayload` builds a `Finding` with the check's `persona` and
+    `check_id`, falls back to check evidence when the draft has none, and uses
+    assay's `sha256("<domain>|<trimmed-lowercase-title>|<location>|<severity>")`
+    first-16-hex fingerprint.
+  - `quarantineFinding` appends an `InvalidFinding` with
+    `contract: "persona_output_schema"`, deterministic id/timestamp through the
+    injected clock/entropy providers, redacted error strings and payload, and
+    increments `contract_failures` plus `contract_failure_streaks`; the persona
+    is appended once to `degraded_personas` when the streak reaches three.
+  - `recordValidContract` resets a non-zero streak to zero and leaves the
+    degraded list unchanged, matching assay. `rebuildContractHealth` recomputes
+    failures, streaks, and degraded personas from the remaining invalid records
+    (used by resume after rerun pruning).
+  - `recordCheckFindings(state, check, drafts, persona)` validates each draft
+    against the persona output schema, quarantines invalid drafts, records valid
+    findings with fingerprint de-duplication, evidence merge, and
+    `check.finding_ids` linkage, resets the streak for each valid finding, and
+    sets `check.metadata.invalid_findings` to the invalid count. When no persona
+    contract is supplied, validation errors are empty, matching assay.
+  - Invalid findings never enter `state.findings`, confidence scoring, or
+    kill-switch evaluation. Quarantined payloads and errors are redacted before
+    they can reach `progress.json` or the report.
+  - The orchestrator resume path uses the shared `rebuildContractHealth` helper
+    instead of a private duplicate, preserving rerun-pruning behavior.
+  - The report continues to expose sorted `invalid_findings`, aggregate
+    `contract_failures` (`total`, `by_persona`, `degraded_personas`), per-persona
+    `contract_failures`/`contract_failure_streak`/`degraded`, and the quarantine
+    and degradation limitation notes.
+  - Tests at `packages/core/test/invalid-findings/invalid-findings.test.ts`
+    cover: three invalid drafts quarantined without scoring or killing; exact
+    enum/nested-type/missing-field errors; a valid finding resetting the streak;
+    valid-finding de-duplication and evidence linkage; payload extraction with
+    missing/throwing fields; redaction; and contract-health rebuild after
+    pruning. Evidence is recorded under
+    `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`.
+  - No runtime dependency is added, the parity inventory rows for
+    `test_invalid_findings.py`, finding-schema validation, and D17 are updated,
+    and the acceptance test plus typecheck/lint/build pass.
+- **Verification:** `pnpm --filter @lemma/core test invalid-findings`
+- **Evidence to record:** invalid-findings test output, updated parity inventory
+  rows, architecture module map, and Decision Log entry.
 
 ### LEM-044 — Port ownership derivation and disjointness enforcement
 

@@ -1,0 +1,13 @@
+$ vitest run --config vitest.config.ts invalid-findings
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/invalid-findings/invalid-findings.test.ts (7 tests) 1846ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > quarantines invalid findings without scoring, linking, or killing the run  1218ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > resets the consecutive streak on a valid finding while keeping the failure total  621ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  13:45:17
+   Duration  3.56s (transform 415ms, setup 0ms, collect 596ms, tests 1.85s, environment 0ms, prepare 174ms)
+
