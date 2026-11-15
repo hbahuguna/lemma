@@ -33,6 +33,7 @@ export const IMPLEMENTED_BROWSER_CHECKS = new Set([
   "browser.content",
   "browser.links",
   "browser.security",
+  "browser.accessibility",
 ]);
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -450,6 +451,120 @@ function evalSecurity(view: BrowserPageView, navigation: BrowserNavigationResult
   return outcome;
 }
 
+function evalAccessibility(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
+  const outcome = baseOutcome(view);
+  const snapshot = view.snapshot ?? {};
+  const finalUrl = navigation.finalUrl || navigation.url;
+
+  const images = asArray(snapshot.images)
+    .map(asRecord)
+    .filter((item) => item.altPresent !== true);
+  const unlabeled = asArray(snapshot.inputs).map(asRecord).filter((item) => {
+    const type = asString(item.type).toLowerCase();
+    if (["hidden", "submit", "button", "reset", "image"].includes(type)) return false;
+    return item.hasLabel !== true;
+  });
+  const unnamed = asArray(snapshot.controls)
+    .map(asRecord)
+    .filter((item) => asString(item.name).trim().length === 0);
+  const duplicateIds = asArray(snapshot.duplicateIds ?? snapshot.duplicate_ids).map((item) => String(item));
+  const positiveTabindex = asNumber(snapshot.positiveTabindex ?? snapshot.positive_tabindex, 0);
+  const lang = asString(snapshot.lang).trim();
+
+  const selectorList = (items: Record<string, unknown>[]) =>
+    items.slice(0, 5).map((item) => asString(item.selector)).filter(Boolean).join(", ");
+
+  if (images.length > 0) {
+    outcome.addFinding(
+      `${images.length} image(s) are missing an alt attribute`,
+      Severity.MEDIUM,
+      "accessibility",
+      "Screen-reader users may miss information or hear an unhelpful URL.",
+      selectorList(images),
+      "Inspect the accessibility tree for images without an accessible name.",
+      Strength.OBSERVED,
+      'Add meaningful alt text, or alt="" for purely decorative images.',
+      "Confirm every image has an intentional alternative in the browser tree.",
+      ["a11y", "images"],
+    );
+  }
+  if (unlabeled.length > 0) {
+    outcome.addFinding(
+      `${unlabeled.length} form control(s) may lack a programmatic label`,
+      Severity.MEDIUM,
+      "accessibility",
+      "Assistive-technology users may not know what the field expects.",
+      selectorList(unlabeled),
+      "Inspect each control's accessible name and visible label.",
+      Strength.OBSERVED,
+      "Associate a persistent visible label; placeholders are not labels.",
+      "Confirm every control has a meaningful accessible name.",
+      ["a11y", "forms"],
+    );
+  }
+  if (unnamed.length > 0) {
+    outcome.addFinding(
+      `${unnamed.length} interactive control(s) have no accessible name`,
+      Severity.MEDIUM,
+      "accessibility",
+      "A keyboard or screen-reader user cannot tell what the control does.",
+      selectorList(unnamed),
+      "Inspect the accessibility tree for buttons and links with empty names.",
+      Strength.OBSERVED,
+      "Add visible text, aria-label, or aria-labelledby; icon-only controls need a name.",
+      "Confirm every control announces a useful name and role.",
+      ["a11y", "controls"],
+    );
+  }
+  if (duplicateIds.length > 0) {
+    outcome.addFinding(
+      `${duplicateIds.length} duplicate element id(s) were found`,
+      Severity.LOW,
+      "accessibility",
+      "Labels and references can point at the wrong element, confusing assistive technology.",
+      duplicateIds.slice(0, 5).join(", "),
+      "Inspect the DOM for repeated id values.",
+      Strength.OBSERVED,
+      "Make ids unique or use refs/relationships instead of global ids.",
+      "Re-scan the DOM and confirm ids are unique.",
+      ["a11y", "dom"],
+    );
+  }
+  if (positiveTabindex > 0) {
+    outcome.addFinding(
+      "Positive tabindex values change the natural focus order",
+      Severity.LOW,
+      "accessibility",
+      "Keyboard users can be sent to unexpected controls and lose context.",
+      sanitizeUrl(finalUrl),
+      "Tab through the page and compare focus order with the visual order.",
+      Strength.OBSERVED,
+      "Rely on DOM order; use tabindex 0 or -1 only where necessary.",
+      "Confirm the focus order follows the reading order.",
+      ["a11y", "keyboard"],
+    );
+  }
+  if (!lang) {
+    outcome.addFinding(
+      "The document language is not declared",
+      Severity.LOW,
+      "accessibility",
+      "Screen readers may pronounce content with the wrong language rules.",
+      sanitizeUrl(finalUrl),
+      "Inspect the html element's lang attribute.",
+      Strength.OBSERVED,
+      'Declare a valid language such as lang="en".',
+      "Confirm the language is exposed in the accessibility tree.",
+      ["a11y", "language"],
+    );
+  }
+
+  outcome.actual = `${images.length} image(s) without alt; ${unlabeled.length} unlabeled control(s); ${unnamed.length} unnamed control(s); ${duplicateIds.length} duplicate id(s).`;
+  outcome.metadata.manual_review_required = true;
+  if (outcome.findings.length === 0) outcome.status = CheckStatus.PASSED;
+  return outcome;
+}
+
 function evalLinks(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
   const outcome = baseOutcome(view);
   const snap = view.snapshot ?? {};
@@ -596,6 +711,9 @@ export function evaluateBrowserCheck(
         break;
       case "browser.security":
         outcome = evalSecurity(view, navigation);
+        break;
+      case "browser.accessibility":
+        outcome = evalAccessibility(view, navigation);
         break;
       default:
         return new CheckOutcome({

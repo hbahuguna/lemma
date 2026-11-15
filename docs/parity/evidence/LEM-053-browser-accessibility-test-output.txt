@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-accessibility.test.ts (5 tests) 13ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  15:16:03
+   Duration  5.11s (transform 1.15s, setup 0ms, collect 1.63s, tests 13ms, environment 4ms, prepare 706ms)
+
