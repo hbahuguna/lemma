@@ -206,7 +206,7 @@ reconcilable. Suppressions are auditable and never silent.
 | LEM-066 | Port JUnit export | P1 | 3 | LEM-020 | Done |
 | LEM-067 | Port report signing and verification | P1 | 3 | LEM-020 | Done |
 | LEM-068 | Port run-to-run trend diff | P1 | 3 | LEM-011, LEM-020 | Done |
-| LEM-069 | Port baseline suppression with owner and expiry | P1 | 3 | LEM-013 | Backlog |
+| LEM-069 | Port baseline suppression with owner and expiry | P1 | 3 | LEM-013 | Done |
 | LEM-070 | Port labeled calibration fixtures and `calibrate` | P1 | 3 | LEM-018 | Backlog |
 | LEM-071 | Port `verify-evidence` and the hold-on-tamper behavior | P1 | 3 | LEM-017 | Backlog |
 | LEM-072 | Port run-scoped and sink-wide metering summaries | P1 | 2 | LEM-020 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-069** — Port baseline suppression with owner and expiry (2026-11-15). Evidence: `packages/core/src/suppressions.ts` (`SuppressionStore` persisted under `.lemma/suppressions.json` with schema/validation/active-expired classification, audit events to `.lemma/events.jsonl`, and `applySuppressionsToFindings`/expired-suppression finding semantics), exports/index wiring, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt` (`pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI commands pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-068** — Port run-to-run trend diff (2026-11-15). Evidence: `packages/core/src/trends.ts` (`computeTrendDiff` with baseline/previous-run selection for same target, sorted new/resolved/persistent fingerprint diffs, rounded `score_delta`, explicit `coverage_delta` 0.0), exports/index wiring, `packages/core/test/trends/trend.test.ts`, `docs/parity/evidence/LEM-068-trend-diff-test-output.txt` (`pnpm exec vitest run packages/core/test/trends/trend.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated. Commit/remote recorded in completion summary.
 - **LEM-067** — Port report signing and verification (2026-11-15). Evidence: `packages/core/src/exports.ts` (`canonicalReportString`/`canonicalReportBytes`, `signReport`, `verifyReportSignature`, HMAC-SHA256 over canonicalized report JSON with constant-time verification), `packages/core/test/exports/report-signing.test.ts`, `docs/parity/evidence/LEM-067-report-signing-test-output.txt` (`pnpm exec vitest run packages/core/test/exports/report-signing.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI sign/verify commands pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-066** — Port JUnit export (2026-11-15). Evidence: `packages/core/src/exports.ts` (`buildJunit`, JUnit XML testsuite/testcase mapping with parity-aligned counts/status elements and redaction), `packages/core/test/exports/junit.test.ts`, `docs/parity/evidence/LEM-066-junit-export-test-output.txt` (`pnpm exec vitest run packages/core/test/exports/junit.test.ts`, 2/2). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI `lemma junit` pending LEM-085). Commit/remote recorded in completion summary.
@@ -815,6 +816,45 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-069 — Port baseline suppression with owner and expiry
+
+- **Epic:** E6 Reporting, Policy, and Exports
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; suppression tests 4/4 passed, plus `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass.
+- **Description:** Port baseline finding suppression with required owner/reason,
+  future expiry, durable storage, audit events, and expired-suppression
+  handling (core APIs/semantics; CLI commands remain LEM-085).
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a suppression store/API (e.g. `SuppressionStore` or
+    equivalent) persisted under `.lemma/suppressions.json` with schema/versioned
+    records containing fingerprint, owner, reason, ticket (optional), expiry,
+    and created timestamp.
+  - `add` validates required fingerprint/owner/reason and requires a valid
+    ISO-8601 expiry in the future; invalid/missing fields or non-future/invalid
+    expiry are rejected. `remove` requires an existing fingerprint. `list/load`
+    return stored suppressions and `active_and_expired(now?)` classifies records
+    (invalid expiry treated as expired).
+  - Every suppression mutation (`add`/`remove`) appends an audit event to
+    `.lemma/events.jsonl` (e.g. `suppression_added`/`suppression_removed`) with
+    relevant metadata; storage writes are atomic/safe.
+  - Core provides suppression application semantics for findings: active
+    suppressions mark matching findings as suppressed with owner/reason/ticket/
+    expiry metadata (visible, not deleted), while expired suppressions stop
+    applying and produce a low-severity expired-suppression finding
+    (`suppression-expired:<fingerprint>`, parity-aligned fields) without
+    duplicates; scoring remains unaffected by suppressed findings (existing
+    behavior preserved).
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`
+- **Evidence:** `packages/core/src/suppressions.ts`, `packages/core/src/index.ts`, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt`; parity inventory updated (LEM-069). Commit/remote recorded in completion summary.
 
 ### LEM-068 — Port run-to-run trend diff
 

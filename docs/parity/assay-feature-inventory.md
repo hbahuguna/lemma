@@ -68,9 +68,9 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma sign-report` | Detached HMAC report signature | LEM-067 (core API ported; CLI command pending LEM-085) |
 | `lemma verify-report` | Verify report signature | LEM-067 (core API ported; CLI command pending LEM-085) |
 | `lemma verify-evidence` | Offline manifest/artifact verification | LEM-071 |
-| `lemma suppress add` | Baseline suppression with owner/expiry | LEM-069 |
-| `lemma suppress list` | List suppressions | LEM-069 |
-| `lemma suppress remove` | Remove suppression | LEM-069 |
+| `lemma suppress add` | Baseline suppression with owner/expiry | LEM-069 (`packages/core/src/suppressions.ts` `SuppressionStore` store/audit/apply APIs, tests `packages/core/test/suppression/suppression.test.ts`, output `docs/parity/evidence/LEM-069-suppression-test-output.txt`; CLI command pending LEM-085) |
+| `lemma suppress list` | List suppressions | LEM-069 (core `SuppressionStore.load`/listing semantics; CLI pending LEM-085) |
+| `lemma suppress remove` | Remove suppression | LEM-069 (core `SuppressionStore.remove` with audit; CLI pending LEM-085) |
 | `lemma auth create-workspace` | Create workspace | LEM-114 |
 | `lemma auth list-workspaces` | List workspaces | LEM-114 |
 | `lemma auth create-key` | Issue scoped key, secret once | LEM-114 |
@@ -233,7 +233,7 @@ with rationale.
 | `test_test_category.py`, `test_functionality_category.py`, `test_issues_category.py`, `test_demo_category.py`, `test_more_category.py`, `test_full_category.py` | LEM-033, LEM-034, LEM-038 (core baseline category checks for test/functionality/browser/issues/demo/more covered by `packages/core/test/category-checks/category-checks.test.ts`; full-assessment marker check covered by `packages/core/test/full-assessment/full-assessment.test.ts`; report/orchestrator integration parity continues in LEM-034/LEM-038) |
 | `test_static_precision.py`, `test_scope_and_tracking.py` | LEM-031, LEM-032, LEM-035, LEM-036, LEM-039 (secrets/unsafe precision rules, scope/ignore behavior, CI/root and tracked-file parity covered by targeted core tests; deterministic labeled precision/recall corpus added at `packages/core/test/static-precision-recall-corpus/corpus.json` with `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`, output `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt`) |
 | `test_exports.py` | LEM-065 (SARIF `packages/core/test/exports/sarif.test.ts`), LEM-066 (JUnit `packages/core/test/exports/junit.test.ts`) |
-| `test_suppression.py` | LEM-069 |
+| `test_suppression.py` | LEM-069 (`packages/core/src/suppressions.ts`, exports/index wiring, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt`) |
 | `test_trend.py` | LEM-068 (`packages/core/src/trends.ts` `computeTrendDiff`, exports wiring, tests `packages/core/test/trends/trend.test.ts`, output `docs/parity/evidence/LEM-068-trend-diff-test-output.txt`) |
 | `test_calibration.py` | LEM-070 |
 | `test_ssrf.py` | LEM-059, LEM-125 |

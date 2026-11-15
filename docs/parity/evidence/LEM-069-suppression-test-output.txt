@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/suppression/suppression.test.ts (4 tests) 279ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:07:11
+   Duration  4.66s (transform 1.07s, setup 0ms, collect 1.45s, tests 279ms, environment 1ms, prepare 311ms)
+

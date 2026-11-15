@@ -26,3 +26,5 @@ export * from "./static.js";
 export * from "./personas.js";
 
 export * from "./ssrf.js";
+
+export * from "./suppressions.js";
