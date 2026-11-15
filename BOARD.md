@@ -220,7 +220,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | Backlog |
+| LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | In Progress |
 | LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | Backlog |
 | LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Backlog |
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Backlog |
@@ -821,6 +821,47 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-075 — Port the signed plugin registry
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P0
+- **Points:** 8
+- **Depends on:** LEM-014
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugins-registry.test.ts`.
+- **Description:** Port the signed check plugin registry in core: builtin
+  registration, plugin discovery/loading, HMAC-SHA256 signature verification
+  against a local trust store, definition validation, and blocked
+  definitions/reasons for plugins that cannot be imported, validated, or
+  verified (parity-aligned semantics; execution context/ownership integration
+  follow in LEM-076/LEM-077).
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a plugin registry API (e.g. `CheckRegistry`,
+    `buildRegistry`, `loadTrustKeys`, `signaturePayload`, `signPlugin`, entry-
+    point loading helpers) that registers built-in checks and discovered plugin
+    checks through the same registry surface (ids/definitions/source/evaluator
+    lookup, builtin/plugin/blocked counts, blocked reasons/owner hints).
+  - Plugin definitions are validated (e.g. stable check id format, known
+    requires/input kinds, supported plugin kinds, non-zero/valid weight, no
+    duplicate ids) and plugin signatures are verified with HMAC-SHA256 over the
+    canonical definition/entry-point payload using keys from the trust store
+    (e.g. `.lemma/plugins/trusted_keys.json` or compatible path/config); a
+    trusted key must be present for verification.
+  - A plugin that cannot be imported, loaded, validated, or signature-verified
+    does not fail the run/build: it becomes a registered blocked definition with
+    an actionable blocked reason/source/owner hint (coverage gap), not a pass.
+    Unsigned or wrongly-signed plugins are rejected/blocked; correctly signed
+    plugins with trusted keys register successfully.
+  - Registry state is deterministic and compatible with existing planning/
+    fingerprinting hooks (ids/order/fingerprint inputs stable for same inputs);
+    builtins remain discoverable through the registry.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugins-registry.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugins-registry.test.ts` (pass, 4 tests).
+- **Evidence:** `packages/core/src/plugins.ts`, `packages/core/src/index.ts` (exports), `packages/core/src/checks.ts` (`registryFingerprint` prefers concrete registry fingerprint when available), `packages/core/test/plugins/plugins-registry.test.ts`, `docs/parity/evidence/LEM-075-plugin-registry-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Correctly signed plugins register; unsigned/unknown-key/invalid-signature/import/discovery failures become blocked `plugin-blocked` definitions with actionable reasons (no run/build failure); trust store at `.lemma/plugins/trusted_keys.json` by default. Execution context wiring and ownership validation remain in LEM-076/LEM-077.
 
 ### LEM-074 — Build policy and calibration regression coverage
 

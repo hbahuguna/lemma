@@ -1171,6 +1171,8 @@ export function catalogIds(registry?: CheckRegistryLike | null): string[] {
 }
 
 export function registryFingerprint(registry?: CheckRegistryLike | null): string {
+  const fp = (registry as { fingerprint?: () => string } | null | undefined)?.fingerprint;
+  if (typeof fp === "function") return fp.call(registry);
   const definitions: readonly CheckDefinition[] = registry?.definitions ?? CHECK_CATALOG;
   const ids = registry?.ids ? [...registry.ids()] : definitions.map((d) => d.id);
   const sorted = [...ids].sort();

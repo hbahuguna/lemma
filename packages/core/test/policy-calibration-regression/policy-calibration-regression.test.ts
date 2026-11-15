@@ -46,7 +46,7 @@ describe("LEM-074 policy and calibration regression coverage", () => {
   it("keeps canonical advisory-v1 policy aligned with calibration baseline defaults", async () => {
     const raw = JSON.parse(await readFile(advisoryPolicyPath, "utf8")) as unknown;
     expect(isRecord(raw)).toBe(true);
-    const policyDoc = raw;
+    const policyDoc = raw as Record<string, unknown>;
     expect(policyDoc.schema_version).toBe("quality-harness.policy/v1");
     expect(policyDoc.id).toBe("advisory-v1");
     expect(policyDoc.version).toBe("1.0");
@@ -66,7 +66,6 @@ describe("LEM-074 policy and calibration regression coverage", () => {
       coverage_fail: 0.7,
     });
 
-    // Default calibration formula baseline: advisory policy produces expected advisory score shape.
     const check = normalizeCheck({
       id: "a",
       title: "a",
@@ -94,22 +93,26 @@ describe("LEM-074 policy and calibration regression coverage", () => {
     expect(report.fixture_count).toBe(fixtures.length);
     expect(fixtures.length).toBeGreaterThanOrEqual(12);
 
-    const summary = report.summary as Record<string, unknown>;
-    const expectedDecisions = summary.expected_decisions as Record<string, number>;
-    expect(expectedDecisions).toEqual({
+    const summary = report.summary as {
+      expected_decisions: Record<string, number>;
+      decision_matches: number;
+      decision_mismatches: number;
+      mismatched_fixtures: string[];
+      intentional_disagreements: string[];
+    };
+    expect(summary.expected_decisions).toEqual({
       ship: fixtures.filter((f) => f.expected_decision === "ship").length,
       review: fixtures.filter((f) => f.expected_decision === "review").length,
       hold: fixtures.filter((f) => f.expected_decision === "hold").length,
     });
-    expect(Object.keys(expectedDecisions).sort()).toEqual(["hold", "review", "ship"]);
+    expect(Object.keys(summary.expected_decisions).sort()).toEqual(["hold", "review", "ship"]);
 
-    const mismatched = (summary.mismatched_fixtures as string[]).slice().sort();
-    const intentional = (summary.intentional_disagreements as string[]).slice().sort();
-    // Regression guard: current labeled corpus has a single intentional disagreement and no unintended mismatches.
+    const mismatched = [...summary.mismatched_fixtures].sort();
+    const intentional = [...summary.intentional_disagreements].sort();
     expect(intentional).toEqual(["source-only"]);
     expect(mismatched).toEqual(intentional);
     expect(summary.decision_mismatches).toBe(mismatched.length);
-    expect((summary.decision_matches as number) + (summary.decision_mismatches as number)).toBe(report.fixture_count);
+    expect(summary.decision_matches + summary.decision_mismatches).toBe(report.fixture_count);
 
     const results = report.fixtures as Array<Record<string, unknown>>;
     const byId = new Map(results.map((r) => [String(r.id), r]));
@@ -130,7 +133,6 @@ describe("LEM-074 policy and calibration regression coverage", () => {
       expect(typeof result.gate).toBe("string");
     }
 
-    // Representative stable fixture expectations (default policy)
     expect(byId.get("full-pass")?.actual_decision).toBe("ship");
     expect(byId.get("full-pass")?.gate).toBe("pass");
     expect(byId.get("critical-finding")?.actual_decision).toBe("hold");
@@ -180,7 +182,6 @@ describe("LEM-074 policy and calibration regression coverage", () => {
     const defaultConfidence = scoreConfidence(checks, findings);
     expect(decisionFromConfidence(defaultConfidence)).toBe("ship");
 
-    // Stricter custom policy can change the decision for the same fixture inputs.
     const strictPolicy = policyFromDict({
       schema_version: "quality-harness.policy/v1",
       id: "strict-regression",
@@ -195,11 +196,10 @@ describe("LEM-074 policy and calibration regression coverage", () => {
       },
     });
     const strictConfidence = scoreConfidence(checks, findings, { policy: strictPolicy });
-    expect(strictConfidence.score).toBe(defaultConfidence.score); // gate-only change here
+    expect(strictConfidence.score).toBe(defaultConfidence.score);
     expect(strictConfidence.gate.status).not.toBe("pass");
     expect(["review", "hold"]).toContain(decisionFromConfidence(strictConfidence));
 
-    // Invalid policies remain rejected (no silent fallback).
     expect(() =>
       policyFromDict({
         schema_version: "quality-harness.policy/v1",
@@ -209,9 +209,8 @@ describe("LEM-074 policy and calibration regression coverage", () => {
       }),
     ).toThrow(PolicyError);
 
-    // Default calibration remains stable after interaction checks.
     const report = await runCalibration(fixturesDir);
-    const summary = report.summary as Record<string, unknown>;
-    expect((summary.mismatched_fixtures as string[]).slice().sort()).toEqual(["source-only"]);
+    const summary = report.summary as { mismatched_fixtures: string[] };
+    expect([...summary.mismatched_fixtures].sort()).toEqual(["source-only"]);
   });
 });

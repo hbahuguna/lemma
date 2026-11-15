@@ -34,3 +34,5 @@ export * from "./calibration.js";
 export { verifyEvidence } from "./evidence.js";
 
 export * from "./metering.js";
+
+export * from "./plugins.js";
