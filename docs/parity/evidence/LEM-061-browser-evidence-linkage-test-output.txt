@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-evidence-linkage.test.ts (1 test) 787ms
+   ✓ LEM-061 browser evidence, manifest, and report linkage > links captured browser artifacts through manifest, check outcomes/state, and report  786ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  17:58:17
+   Duration  3.57s (transform 596ms, setup 0ms, collect 1.85s, tests 787ms, environment 0ms, prepare 136ms)
+
