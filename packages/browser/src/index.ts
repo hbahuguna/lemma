@@ -1,9 +1,9 @@
 /**
  * @lemma/browser — Optional Playwright-backed Operate layer.
  *
- * LEM-050: optional runtime loading and blocked degradation. Browser checks are
- * blocked with actionable blockers when Playwright/Chromium is unavailable or the
- * browser runtime is disabled; this never fails the run.
+ * LEM-050: optional runtime loading and blocked degradation.
+ * LEM-051: load/console/network/content/links evaluators and runtime integration.
  */
 
+export * from "./checks.js";
 export * from "./runtime.js";

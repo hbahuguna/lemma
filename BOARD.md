@@ -180,7 +180,7 @@ scan wearing a browser label.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-050 | Add the optional Playwright runtime and blocked degradation | P0 | 5 | LEM-013 | Done |
-| LEM-051 | Port load, console, network, content, and link checks | P0 | 8 | LEM-050 | Backlog |
+| LEM-051 | Port load, console, network, content, and link checks | P0 | 8 | LEM-050 | Done |
 | LEM-052 | Port the browser security check | P1 | 3 | LEM-050 | Backlog |
 | LEM-053 | Port the browser accessibility check | P1 | 3 | LEM-050 | Backlog |
 | LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-051** — Port load, console, network, content, and link checks (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (assay-parity evaluators for `browser.load`/`browser.console`/`browser.network`/`browser.content`/`browser.links`, navigation-failure blocking, implemented-vs-unsupported runtime integration with injected/captured views), `packages/browser/test/browser-checks.test.ts`, `docs/parity/evidence/LEM-051-browser-checks-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-checks.test.ts`, 8/8; runtime regression 3/3); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-050** — Add the optional Playwright runtime and blocked degradation (2026-11-15). Evidence: `packages/browser/src/runtime.ts` and `packages/browser/src/index.ts` (optional Playwright probe/load, `BrowserUnavailableError`, `runBrowserChecks`/`degradeBrowserChecks`/`blockedBrowserOutcome` emitting one blocked outcome+blocker per browser check with no findings when runtime unavailable/disabled), `packages/browser/test/browser-runtime.test.ts`, `docs/parity/evidence/LEM-050-browser-runtime-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-runtime.test.ts`, 3/3); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-049** — Port tool capability enforcement and persona conformance tests (2026-11-15). Evidence: `packages/core/src/personas.ts` (`TOOL_CAPABILITY_PATTERN`, `validatePersonaToolCapabilities`, load-time enforcement), `packages/core/test/persona-conformance/persona-conformance.test.ts`, `docs/parity/evidence/LEM-049-persona-conformance-test-output.txt` (`pnpm --filter @lemma/core test persona-conformance`, 5/5); shipped specialists conform to schema/tool/ownership/catalog invariants under lemma's full 76-check catalog. Commit/remote recorded in completion summary.
 - **LEM-048** — Port `personas scaffold` (2026-11-15). Evidence: `packages/core/src/personas.ts` (`scaffoldPersona`, validation/template/atomic-write and `quality-harness.personas.scaffold/v1` results), `packages/core/test/persona-scaffold/persona-scaffold.test.ts`, `docs/parity/evidence/LEM-048-persona-scaffold-test-output.txt` (`pnpm --filter @lemma/core test persona-scaffold`, 4/4); scaffolded contracts load and lint with expected placeholder warning. Commit/remote recorded in completion summary.
@@ -798,7 +799,61 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-051 — Port load, console, network, content, and link checks
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P0
+- **Points:** 8
+- **Depends on:** LEM-050
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-checks.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-checks.test.ts` 8/8 and `packages/browser/test/browser-runtime.test.ts` 3/3, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port the core browser check evaluators for `browser.load`,
+  `browser.console`, `browser.network`, `browser.content`, and `browser.links`
+  from assay into `@lemma/browser`. Provide deterministic, unit-testable
+  evaluation over captured page observations and integrate these checks into the
+  browser runtime so available-browser execution can produce real outcomes (with
+  unavailable/disabled paths still degrading to blocked per LEM-050).
+- **Acceptance Criteria:**
+  - `@lemma/browser` implements assay-parity evaluators for `browser.load`,
+    `browser.console`, `browser.network`, `browser.content`, and `browser.links`
+    over captured page observations (navigation URL/final URL/status/error,
+    response headers as needed, DOM snapshot fields, console/page errors, network
+    entries, and evidence refs). Outcomes match assay behavior for status,
+    `actual` summaries, evidence attachment, and findings (title, severity,
+    domain, strength, consequence, location, reproduction, remediation,
+    verification, tags) including pass cases and representative failure cases
+    (navigation/HTTP/empty-title/low-content failures for load; console/page
+    errors; failed/non-success requests with favicon/aborted-request handling for
+    network; heading/title-structure issues for content; placeholder/javascript/
+    insecure/unsafe-target links for links).
+  - Evaluators are exported/testable without launching Playwright (pure
+    observation/view input). `browser.load` remains evaluable when navigation did
+    not complete; other checks are blocked by navigation failure when invoked in
+    a navigation-failed context consistent with assay's runner behavior.
+  - Runtime integration: when browser execution is disabled or runtime is
+    unavailable, `runBrowserChecks` preserves LEM-050 blocked degradation (no
+    regression). When runtime is available, `runBrowserChecks` can evaluate the
+    requested checks from this slice (supporting injected/captured observations
+    for deterministic tests and a basic Playwright-backed capture path for real
+    runs), and degrades any browser check id outside this slice as a blocked
+    outcome with an actionable "not implemented in this slice" blocker (never
+    passed/failed).
+  - Tests at `packages/browser/test/browser-checks.test.ts` cover evaluator
+    behavior for all five checks (pass and key finding cases) and runner
+    behavior for implemented vs unsupported checks / navigation-failure blocking.
+    Existing `packages/browser/test/browser-runtime.test.ts` continues to pass.
+    Evidence recorded at `docs/parity/evidence/LEM-051-browser-checks-test-output.txt`.
+  - Parity inventory updated for LEM-051 scope: `harness/browser.py` and
+    browser smoke/capture/crawl test mapping rows note the load/console/network/
+    content/links evaluator slice and evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-runtime.test.ts packages/browser/test/browser-checks.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-checks.test.ts`
+- **Evidence:** `packages/browser/src/checks.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/index.ts`, `packages/browser/test/browser-checks.test.ts`, `docs/parity/evidence/LEM-051-browser-checks-test-output.txt`; parity inventory `harness/browser.py` and browser test mapping rows updated (LEM-051 evaluator slice). Commit/remote recorded in completion summary.
+
 ### LEM-050 — Add the optional Playwright runtime and blocked degradation
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P0
