@@ -241,7 +241,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Done |
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Done |
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Done |
-| LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Backlog |
+| LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | In Progress |
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Backlog |
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Backlog |
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Backlog |
@@ -1343,6 +1343,46 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/agent-state.test.ts packages/agent/test/agent-loop.test.ts` (pass, 8 tests).
 - **Evidence:** `packages/agent/src/index.ts` (versioned `PersistedAgentState`, deterministic `.lemma/agent/<hash>.json` path/key, atomic save/load with core primitives, tolerant missing/corrupt/incompatible handling, persistence/resume in `runStrictJudgeLoop` via `cwd`/`stateKey`/`sessionID`/`userInput`, pending-context resume/apply and redacted persistence), `packages/agent/test/agent-state.test.ts`, `packages/agent/test/agent-loop.test.ts` (regression), `docs/parity/evidence/LEM-087-agent-state-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
+
+### LEM-088 — Port command argument builders
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-083
+- **Status:** In Progress
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/command-args.test.ts`.
+- **Description:** Port host-neutral command argument builders/invocation logic
+  (URL extraction, browser/demo/generic invocation builders, subcommand
+  passthrough and safe flag handling) for use by the agent loop and adapters.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports command-argument builder primitives ported from
+    assay semantics: `extractUrl`, `isUrl`, `SUBCOMMANDS` (CLI subcommand
+    passthrough set), and `browserInvocation`, `demoInvocation`,
+    `assayInvocation` (or equivalent) returning `{ args, error? }` for
+    persona-dir-scoped invocations.
+  - `browserInvocation` requires an explicit reachable http(s) URL (no
+    directory-only/missing target) and builds a live Playwright-oriented run
+    without `--no-browser`; bare URL gets comprehensive visible defaults
+    (crawl, `--max-pages 8`, mobile, headed, active, active-interactions) while
+    explicit user flags override defaults and only safe browser flags/tokens are
+    passed through (no target/`--no-browser` injection).
+  - `demoInvocation` falls back to a static inventory without a URL
+    (`--target . --no-browser --intent "Assay demo assessment"`), and uses a
+    URL for live browser checks with browser defaults/explicit overrides.
+  - `assayInvocation` passes CLI subcommands/help/version through unchanged,
+    uses an explicit URL as a browser target (no `--no-browser`), and keeps the
+    static default when no URL is present.
+  - `commandToArgs`/loop integration uses the ported builders for
+    `assay`/`assay-browser`/`assay-demo` command forms so allowlisted loop
+    behavior remains correct and existing agent loop/state tests continue to
+    pass.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/command-args.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm exec vitest run packages/agent/test/command-args.test.ts`
+- **Evidence to record:** command-args builder implementation and tests, command-args test output, and updated parity inventory (LEM-088 rows).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

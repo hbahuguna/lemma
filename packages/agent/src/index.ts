@@ -3,6 +3,7 @@
  *
  * LEM-086: strict-judge loop core (cap 7, allowlist, dedupe).
  * LEM-087: persisted agent state and in-session resume.
+ * LEM-088: command argument builders.
  */
 
 import { createHash } from "node:crypto";
@@ -10,7 +11,19 @@ import path from "node:path";
 
 import { atomicWriteJson, ensureDir, readJsonFile } from "@lemma/core";
 
+import { assayInvocation, browserInvocation, demoInvocation } from "./command-args.js";
+
 export const PACKAGE_NAME = "@lemma/agent" as const;
+
+export {
+  SUBCOMMANDS,
+  assayInvocation,
+  browserInvocation,
+  demoInvocation,
+  extractUrl,
+  isUrl,
+} from "./command-args.js";
+export type { Invocation } from "./command-args.js";
 
 export interface HarnessInvocation {
   args: string[];
@@ -142,27 +155,19 @@ export function isAllowedCommand(command: string): boolean {
 export function commandToArgs(command: string, personasDir = "personas"): HarnessInvocation {
   const trimmed = command.trim();
   if (!trimmed) return { args: [], error: "Empty command" };
-  if (trimmed === "assay-browser") {
-    return { args: ["run", "--personas-dir", personasDir], error: "assay-browser requires an explicit URL target" };
-  }
-  if (trimmed.startsWith("assay-browser ")) {
-    const rest = trimmed.slice("assay-browser ".length).trim();
-    if (!/^https?:\/\//i.test(rest.split(/\s+/)[0] ?? "")) {
-      return { args: [], error: "assay-browser requires an explicit http(s) URL target" };
-    }
-    const parts = rest.split(/\s+/).filter(Boolean);
-    const url = parts[0] ?? rest;
-    return { args: ["run", "--target", url, "--personas-dir", personasDir] };
+
+  // Ported builders for assay-style command forms.
+  if (trimmed === "assay-browser" || trimmed.startsWith("assay-browser ")) {
+    return browserInvocation(trimmed.slice("assay-browser".length).trim(), personasDir);
   }
   if (trimmed === "assay-demo" || trimmed.startsWith("assay-demo ")) {
-    const rest = trimmed === "assay-demo" ? "" : trimmed.slice("assay-demo ".length).trim();
-    return { args: ["run", ...(rest ? rest.split(/\s+/).filter(Boolean) : ["--target", "."]), "--personas-dir", personasDir] };
+    return demoInvocation(trimmed.slice("assay-demo".length).trim(), personasDir);
   }
-  if (trimmed === "assay") return { args: ["run", "--target", ".", "--personas-dir", personasDir] };
-  if (trimmed.startsWith("assay ")) {
-    const rest = trimmed.slice("assay ".length).trim();
-    return { args: ["run", ...rest.split(/\s+/).filter(Boolean), "--personas-dir", personasDir] };
+  if (trimmed === "assay" || trimmed.startsWith("assay ")) {
+    return assayInvocation(trimmed === "assay" ? "" : trimmed.slice("assay ".length).trim(), personasDir);
   }
+
+  // Direct CLI commands (allowlisted: run/report/status/abort)
   return { args: trimmed.split(/\s+/).filter(Boolean) };
 }
 
