@@ -35,6 +35,8 @@ export const IMPLEMENTED_BROWSER_CHECKS = new Set([
   "browser.links",
   "browser.security",
   "browser.accessibility",
+  "browser.overflow",
+  "browser.focus_order",
 ]);
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -644,6 +646,69 @@ function evalLinks(view: BrowserPageView, navigation: BrowserNavigationResult): 
   return outcome;
 }
 
+function evalOverflow(view: BrowserPageView, _navigation: BrowserNavigationResult): CheckOutcome {
+  const outcome = baseOutcome(view);
+  const snapshot = view.snapshot ?? {};
+  const viewportWidth = asNumber(snapshot.viewportWidth ?? snapshot.viewport_width, 390);
+  const scrollWidth = asNumber(snapshot.documentScrollWidth ?? snapshot.document_scroll_width, 0);
+  const overflowingRaw = asArray(snapshot.overflowingElements ?? snapshot.overflowing_elements);
+  const overflowing = overflowingRaw.map(asRecord);
+  if (scrollWidth > viewportWidth + 1 || overflowing.length > 0) {
+    const offender = overflowing[0] ?? { selector: "document", right: scrollWidth };
+    const selector = asString(offender.selector, "document") || "document";
+    outcome.addFinding(
+      `The page overflows the ${viewportWidth}px mobile viewport`,
+      Severity.MEDIUM,
+      "accessibility",
+      "Customers on small screens must scroll horizontally or lose content.",
+      selector,
+      `Resize the viewport to ${viewportWidth}px and inspect the overflowing element.`,
+      Strength.OBSERVED,
+      "Constrain widths, wrapping, and media so content fits the viewport.",
+      "Re-run the mobile check and confirm no horizontal overflow.",
+      ["responsive", "overflow", "mobile"],
+    );
+    outcome.actual = `Horizontal overflow: scroll width ${scrollWidth} > viewport ${viewportWidth}; offending element ${selector}.`;
+    outcome.metadata.offending_element = offender;
+    outcome.metadata.viewport_width = viewportWidth;
+    outcome.metadata.scroll_width = scrollWidth;
+  } else {
+    outcome.status = CheckStatus.PASSED;
+    outcome.actual = `No horizontal overflow: scroll width ${scrollWidth} <= viewport ${viewportWidth}.`;
+    outcome.metadata.viewport_width = viewportWidth;
+    outcome.metadata.scroll_width = scrollWidth;
+  }
+  return outcome;
+}
+
+function evalFocusOrder(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
+  const outcome = baseOutcome(view);
+  const snapshot = view.snapshot ?? {};
+  const positive = asNumber(snapshot.positiveTabindex ?? snapshot.positive_tabindex, 0);
+  const matches = snapshot.focusOrderMatchesDom ?? snapshot.focus_order_matches_dom;
+  const focusMatchesDom = matches === false ? false : true;
+  if (positive > 0 || !focusMatchesDom) {
+    outcome.addFinding(
+      "Keyboard focus order does not follow document order",
+      Severity.MEDIUM,
+      "accessibility",
+      "Keyboard and screen-reader users can be sent to controls out of visual order.",
+      sanitizeUrl(navigation.finalUrl || navigation.url),
+      "Tab through the page and compare focus order with the visual order.",
+      Strength.OBSERVED,
+      "Remove positive tabindex values and rely on DOM order.",
+      "Re-run the check and confirm focus follows the document order.",
+      ["a11y", "focus", "keyboard"],
+    );
+    outcome.actual = `${positive} positive tabindex value(s) disturbed focus order.`;
+  } else {
+    outcome.status = CheckStatus.PASSED;
+    outcome.actual = "Focus order follows document order.";
+  }
+  outcome.metadata.positive_tabindex_count = positive;
+  return outcome;
+}
+
 export function navigationFailedOutcome(
   check: Check,
   view: BrowserPageView,
@@ -715,6 +780,12 @@ export function evaluateBrowserCheck(
         break;
       case "browser.accessibility":
         outcome = evalAccessibility(view, navigation);
+        break;
+      case "browser.overflow":
+        outcome = evalOverflow(view, navigation);
+        break;
+      case "browser.focus_order":
+        outcome = evalFocusOrder(view, navigation);
         break;
       default:
         return new CheckOutcome({

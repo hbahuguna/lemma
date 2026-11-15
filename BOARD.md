@@ -184,7 +184,7 @@ scan wearing a browser label.
 | LEM-052 | Port the browser security check | P1 | 3 | LEM-050 | Done |
 | LEM-053 | Port the browser accessibility check | P1 | 3 | LEM-050 | Done |
 | LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Done |
-| LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Backlog |
+| LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Done |
 | LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Backlog |
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Backlog |
 | LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-055** — Port the responsive/mobile pack (overflow, focus order) (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.overflow` viewport-aware horizontal overflow/offending-element evaluator and `browser.focus_order` positive-tabindex/focus-order-match evaluator with runtime integration), `packages/browser/test/browser-mobile-pack.test.ts`, `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`, 6/6; browser suite 33/33); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-054** — Port the bounded same-origin crawl (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (`discoverRoutes`/route normalization with bounded seed-only same-origin crawl exclusions, multi-route `evaluateBrowserCheckAcrossViews`/merge with `crawled`/`page_count`/`routes`/`routes_not_evaluated` metadata and navigation-failed-route handling, runtime crawl inputs/injected views and best-effort Playwright crawl capture), `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`, 5/5; browser suite 27/27); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-053** — Port the browser accessibility check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.accessibility` evaluator: missing alt, unlabeled form controls with excluded types, unnamed controls, duplicate ids, positive tabindex, missing lang, `manual_review_required` metadata, runtime integration), `packages/browser/test/browser-accessibility.test.ts`, `docs/parity/evidence/LEM-053-browser-accessibility-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-accessibility.test.ts`, 5/5; browser suite 22/22); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-052** — Port the browser security check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.security` evaluator: HTTPS/transport, baseline headers with HSTS/CSP-or-report-only/frame-ancestors/Referrer-Policy, mixed content/insecure forms, weak session-like cookies, runtime integration), `packages/browser/test/browser-security.test.ts`, `docs/parity/evidence/LEM-052-browser-security-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-security.test.ts`, 6/6; browser suite 17/17); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -802,7 +803,60 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-055 — Port the responsive/mobile pack (overflow, focus order)
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-051
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts` 6/6 and full browser suite 33/33, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port the responsive/mobile browser checks (`browser.overflow`,
+  `browser.focus_order`) from assay into `@lemma/browser` as observation-based
+  evaluators integrated with the browser runtime. Evaluators must be ready for
+  mobile-pack use (viewport-aware observations/metadata) while CLI/mobile-mode
+  orchestration remains owned by later catalog/orchestrator tasks.
+- **Acceptance Criteria:**
+  - `@lemma/browser` implements assay-parity evaluator for `browser.overflow`
+    over captured observations: reads viewport width (from `snapshot.viewportWidth`
+    or `snapshot.viewport_width`, defaulting to 390 when not provided) and
+    `snapshot.documentScrollWidth`/`snapshot.overflowingElements`. If
+    `scrollWidth > viewportWidth + 1` or any overflowing element exists, emits
+    a failed medium accessibility finding (responsive/overflow/mobile tags,
+    offender location/selector) with `metadata.offending_element`,
+    `metadata.viewport_width`, and `metadata.scroll_width` and actual
+    `Horizontal overflow: scroll width {sw} > viewport {vw}; offending element {sel}.`;
+    otherwise passes with `metadata.viewport_width`/`metadata.scroll_width` and
+    `No horizontal overflow: scroll width {sw} <= viewport {vw}.`
+  - `@lemma/browser` implements assay-parity evaluator for `browser.focus_order`
+    over captured observations: uses `snapshot.positiveTabindex` and
+    `snapshot.focusOrderMatchesDom` (default true). If positive tabindex > 0 or
+    focus order does not match DOM, emits a failed medium accessibility finding
+    (a11y/focus/keyboard tags, final URL location) with actual
+    `{n} positive tabindex value(s) disturbed focus order.`; otherwise passes
+    with `Focus order follows document order.` Outcome sets
+    `metadata.positive_tabindex_count`.
+  - `IMPLEMENTED_BROWSER_CHECKS`/runtime integration include `browser.overflow`
+    and `browser.focus_order` (no longer degraded as "not implemented in this
+    slice" when runtime/observations are available), exported/testable without
+    Playwright, and respect navigation-failure blocking for non-load checks.
+  - Tests at `packages/browser/test/browser-mobile-pack.test.ts` cover:
+    overflow pass/fail cases with offender/viewport metadata and focus-order
+    pass/fail (positive tabindex and focusOrderMatchesDom false) plus runtime
+    integration from injected observations. Existing browser tests continue to
+    pass. Evidence recorded at
+    `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt`.
+  - Parity inventory updated for LEM-055 scope: `harness/browser.py` row and
+    `test_mobile_browser.py` mapping note responsive/mobile evaluator slice and
+    evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`
+- **Evidence:** `packages/browser/src/checks.ts`, `packages/browser/test/browser-mobile-pack.test.ts`, `packages/browser/test/browser-checks.test.ts`, `packages/browser/test/browser-crawl.test.ts` (unsupported-check regressions updated to target still-unimplemented checks), `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt`; parity inventory `harness/browser.py` and `test_mobile_browser.py` updated (LEM-055 responsive/mobile evaluator slice). Commit/remote recorded in completion summary.
+
 ### LEM-054 — Port the bounded same-origin crawl
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P1

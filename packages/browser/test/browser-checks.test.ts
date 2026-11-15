@@ -207,7 +207,7 @@ describe("LEM-051 runtime integration", () => {
     const outcomes = new Map<string, CheckOutcome>();
     await runBrowserChecks({
       url: "https://example.test/",
-      checks: [check("browser.load"), check("browser.console"), check("browser.overflow")],
+      checks: [check("browser.load"), check("browser.console"), check("browser.steps")],
       options: {
         playwrightLoader: () => Promise.resolve({ chromium: { launch: () => Promise.resolve({}) } }),
       },
@@ -221,7 +221,7 @@ describe("LEM-051 runtime integration", () => {
 
     expect(outcomes.get("browser.load")?.status).toBe(CheckStatus.PASSED);
     expect(outcomes.get("browser.console")?.status).toBe(CheckStatus.FAILED);
-    const unsupported = outcomes.get("browser.overflow");
+    const unsupported = outcomes.get("browser.steps");
     expect(unsupported?.status).toBe(CheckStatus.BLOCKED);
     expect(unsupported?.findings).toEqual([]);
     expect(String(unsupported?.blocker?.boundary)).toMatch(/not implemented/i);

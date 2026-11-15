@@ -159,7 +159,7 @@ describe("LEM-054 runBrowserChecks crawl integration (injected views)", () => {
     const outcomes = new Map<string, CheckOutcome>();
     await runBrowserChecks({
       url: "https://example.test/",
-      checks: [makeCheck("browser.load", "Page load"), makeCheck("browser.console", "Console"), makeCheck("browser.overflow")],
+      checks: [makeCheck("browser.load", "Page load"), makeCheck("browser.console", "Console"), makeCheck("browser.steps")],
       options: {
         crawl: true,
         maxPages: 5,
@@ -178,7 +178,7 @@ describe("LEM-054 runBrowserChecks crawl integration (injected views)", () => {
     expect(consoleOut?.status).toBe(CheckStatus.PASSED);
     expect(consoleOut?.metadata.crawled).toBe(true);
 
-    const unsupported = outcomes.get("browser.overflow");
+    const unsupported = outcomes.get("browser.steps");
     expect(unsupported?.status).toBe(CheckStatus.BLOCKED);
     expect(String(unsupported?.metadata?.not_implemented)).toBe("true");
   });

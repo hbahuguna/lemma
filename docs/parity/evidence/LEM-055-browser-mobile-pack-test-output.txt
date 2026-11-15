@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-mobile-pack.test.ts (6 tests) 10ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  16:36:40
+   Duration  3.65s (transform 806ms, setup 0ms, collect 1.25s, tests 10ms, environment 0ms, prepare 736ms)
+
