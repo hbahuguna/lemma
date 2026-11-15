@@ -12,6 +12,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import path from "node:path";
 
 import { PersonaError } from "./errors.js";
+import { atomicWriteFile } from "./state.js";
 
 export const PERSONA_FRONTMATTER_DELIMITER = "---" as const;
 
@@ -234,6 +235,10 @@ export const SUPPORTED_SCHEMA_TYPES = [
   "boolean",
   "null",
 ] as const;
+
+export const PERSONA_ID_PATTERN = /^[a-z][a-z0-9_-]*$/;
+export const CHECK_ID_PATTERN = /^[a-z][a-z0-9_.-]*$/;
+export const DOMAIN_ID_PATTERN = /^[a-z][a-z0-9_-]*$/;
 
 export type SupportedSchemaType = (typeof SUPPORTED_SCHEMA_TYPES)[number];
 
@@ -1005,4 +1010,214 @@ export async function lintPersonas(
 
 function issuesWithFile(issue: PersonaLintIssue, fileName: string): void {
   issue.file = fileName;
+}
+
+// ------------------------------------------------------------------- scaffold
+
+export interface PersonaScaffoldResult {
+  schema_version: "quality-harness.personas.scaffold/v1";
+  status: "created" | "overwritten" | "refused";
+  persona_id: string;
+  path: string;
+  reason?: string;
+  force?: boolean;
+  domains?: string[];
+  checks: string[];
+  next_steps: string[];
+}
+
+function validatedScaffoldValues(
+  personaId: string,
+  name?: string | null,
+  domains?: Iterable<string> | null,
+  checks?: Iterable<string> | null,
+): { cleanName: string; domainValues: string[]; checkValues: string[] } {
+  const cleanId = String(personaId ?? "").trim();
+  if (!PERSONA_ID_PATTERN.test(cleanId)) {
+    throw new PersonaError(
+      "Persona id must be lowercase letters, numbers, '-', or '_' and start with a letter.",
+    );
+  }
+  const derivedName = cleanId.replace(/-/g, " ").replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+  const cleanName = String(name ?? derivedName).trim();
+  if (!cleanName || /[\r\n]/.test(cleanName)) {
+    throw new PersonaError("Persona name must be non-empty single-line text.");
+  }
+  const domainValues = [...(domains ?? [cleanId])]
+    .map((item) => String(item).trim())
+    .filter((item) => item.length > 0);
+  if (domainValues.length === 0 || domainValues.some((item) => !DOMAIN_ID_PATTERN.test(item))) {
+    throw new PersonaError(
+      "Persona domains must be lowercase words using letters, numbers, '-', or '_'.",
+    );
+  }
+  const checkValues = [...(checks ?? [`plugin.${cleanId}.placeholder`])]
+    .map((item) => String(item).trim())
+    .filter((item) => item.length > 0);
+  if (checkValues.length === 0 || checkValues.some((item) => !CHECK_ID_PATTERN.test(item))) {
+    throw new PersonaError(
+      "Persona checks must be non-empty ids using lowercase letters, numbers, '.', '-', or '_'.",
+    );
+  }
+  if (new Set(checkValues).size !== checkValues.length) {
+    throw new PersonaError("Persona checks must not contain duplicate ids.");
+  }
+  return { cleanName, domainValues, checkValues };
+}
+
+function scaffoldTemplate(
+  personaId: string,
+  name: string,
+  domains: string[],
+  checks: string[],
+): string {
+  const schemaTitleBase = name.replace(/ /g, "");
+  const outputSchema = {
+    type: "object",
+    title: `${schemaTitleBase}Finding`,
+    required: [...CORE_FINDING_FIELDS],
+    properties: {
+      title: { type: "string" },
+      severity: {
+        type: "string",
+        enum: ["critical", "high", "medium", "low", "info"],
+      },
+      domain: { type: "string", enum: domains },
+      strength: {
+        type: "string",
+        enum: ["observed", "source_proven", "suspected"],
+      },
+      consequence: { type: "string" },
+      location: { type: "string" },
+      reproduction: { type: "string" },
+      evidence: { type: "array", items: { type: "string" } },
+      remediation: { type: "string" },
+      verification: { type: "string" },
+      tags: { type: "array", items: { type: "string" } },
+    },
+  };
+  const blockerSchema = {
+    type: "object",
+    title: `${schemaTitleBase}Blocker`,
+    required: [...CORE_BLOCKER_FIELDS],
+    properties: {
+      persona: { type: "string" },
+      check_id: { type: "string" },
+      attempted_action: { type: "string" },
+      boundary: { type: "string" },
+      unblock_evidence: { type: "array", items: { type: "string" } },
+      covered_elsewhere: { type: "boolean" },
+      covered_by: { type: "array", items: { type: "string" } },
+    },
+  };
+  const frontmatter = [
+    "---",
+    `id: ${personaId}`,
+    `name: ${name}`,
+    "version: 1.0",
+    "domains:",
+    ...domains.map((item) => `  - ${item}`),
+    "tools:",
+    "  - source_inventory",
+    "checks:",
+    ...checks.map((item) => `  - ${item}`),
+    "---",
+  ];
+  return `${frontmatter.join("\n")}
+
+## Role
+
+State the release-risk judgment this specialist owns. Replace this text with
+the concrete decision the persona makes.
+
+## Available tools
+
+| Tool | Use | Boundary |
+| --- | --- | --- |
+| \`source_inventory\` | Read the inspected source inventory. | Read-only. |
+
+Tools are capabilities, not suggestions. Remove or replace this table before
+the persona participates in a run.
+
+## Output schema
+
+Every finding must validate against this contract.
+
+\`\`\`json
+${JSON.stringify(outputSchema, null, 2)}
+\`\`\`
+
+## Blocker schema
+
+Every refusal must validate against this contract.
+
+\`\`\`json
+${JSON.stringify(blockerSchema, null, 2)}
+\`\`\`
+
+## Refusal handling
+
+Refuse and return a structured blocker when the evidence needed for a
+conclusion is outside the declared tools or scope. State what was attempted,
+the boundary that stopped it, the evidence that would unblock it, and whether
+another check covers the gap. Never convert a refusal into a pass.
+`;
+}
+
+/**
+ * Write a valid starter persona contract atomically.
+ */
+export async function scaffoldPersona(
+  personaId: string,
+  directory: string,
+  options: {
+    name?: string | null;
+    domains?: Iterable<string> | null;
+    checks?: Iterable<string> | null;
+    force?: boolean;
+  } = {},
+): Promise<PersonaScaffoldResult> {
+  const { cleanName, domainValues, checkValues } = validatedScaffoldValues(
+    personaId,
+    options.name,
+    options.domains,
+    options.checks,
+  );
+  const filePath = path.join(directory, `${personaId}.md`);
+  const nextSteps = [
+    "Edit the role and tool boundaries for the specialist.",
+    "Replace the scaffold check id with an installed plugin check or an unowned built-in check.",
+    `Run 'lemma personas lint --personas-dir ${directory}'.`,
+  ];
+
+  const info = await stat(filePath).catch(() => null);
+  if (info && !options.force) {
+    return {
+      schema_version: "quality-harness.personas.scaffold/v1",
+      status: "refused",
+      persona_id: personaId,
+      path: filePath,
+      reason: "Persona file already exists; pass --force to overwrite it.",
+      force: false,
+      checks: checkValues,
+      next_steps: ["Re-run with --force to overwrite the existing contract."],
+    };
+  }
+  if (info?.isDirectory()) {
+    throw new PersonaError(`Persona path is a directory: ${filePath}`);
+  }
+
+  const existed = Boolean(info);
+  const template = scaffoldTemplate(personaId, cleanName, domainValues, checkValues);
+  await atomicWriteFile(filePath, template, { mode: 0o644 });
+  return {
+    schema_version: "quality-harness.personas.scaffold/v1",
+    status: existed ? "overwritten" : "created",
+    persona_id: personaId,
+    path: filePath,
+    force: Boolean(options.force),
+    domains: domainValues,
+    checks: checkValues,
+    next_steps: nextSteps,
+  };
 }
