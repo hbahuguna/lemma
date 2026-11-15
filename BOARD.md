@@ -289,7 +289,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
+| LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | In Progress |
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Backlog |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Backlog |
@@ -4528,6 +4528,53 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-codex typecheck && pnpm --filter @lemma/adapters-codex build && pnpm exec vitest run packages/adapters/codex/test/codex-adapter.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/adapters/codex/package.json`, `packages/adapters/codex/src/index.ts`, `packages/adapters/codex/test/codex-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-103-codex-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-103).
+
+### LEM-104 — Build the Antigravity adapter
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-086, LEM-088, LEM-098, LEM-099, LEM-100
+- **Status:** In Progress
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-antigravity typecheck && pnpm --filter @lemma/adapters-antigravity build && pnpm exec vitest run packages/adapters/antigravity/test/antigravity-adapter.test.ts`.
+- **Description:** Build the Antigravity host adapter on the shared adapter SDK
+  and host-neutral agent primitives, providing an installable, capability-honest
+  Antigravity integration surface (manifest, host wiring, command mapping/helpers)
+  without embedding check/scoring/phase logic or requiring host SDKs at
+  build/test time.
+- **Acceptance Criteria:**
+  - `packages/adapters/antigravity` (`@lemma/adapters-antigravity`) exports a
+    machine-readable Antigravity adapter manifest (`id: "antigravity"`) with
+    declared capabilities and adapter metadata, plus a testable Antigravity host
+    adapter API (factory/wrapper) implementing the shared `AgentHost` contract
+    via injected host primitives/callbacks (no hard dependency on Antigravity
+    host SDKs in package runtime/build dependencies).
+  - The adapter bridges core host interactions to the shared contract:
+    command/tool registration, progress/final messaging, question handling,
+    session context, optional MCP resource discovery and optional form/secret
+    resolution hooks when provided, with capability negotiation/degradation
+    semantics (no silent emulation; missing capabilities produce declared
+    limitations/flags). Default capabilities are capability-honest/provisional
+    for Antigravity (e.g. native forms/session events/background jobs unavailable
+    by default where TBD/unverified; worktrees unavailable).
+  - The adapter provides Antigravity-facing command mapping/helpers built on
+    `@lemma/agent` primitives (catalog/intent/builders and prompt/context/Jira
+    helpers as applicable) so assay command surfaces can be registered/invoked
+    consistently without duplicating product logic in the adapter.
+  - `packages/adapters/antigravity/test/antigravity-adapter.test.ts` verifies:
+    manifest validity/identity, `create`/host API behavior, command mapping
+    helpers, and conformance-kit pass for a representative Antigravity host
+    configuration (and honest degradation where optional/TBD capabilities are
+    absent).
+  - `docs/architecture.md` records a provisional/honest Antigravity adapter
+    extension/capability note for this surface (TBD/unverified treated as
+    unavailable by default unless explicitly provided), and
+    `pnpm --filter @lemma/adapters-antigravity typecheck`,
+    `pnpm --filter @lemma/adapters-antigravity build`, and
+    `pnpm exec vitest run packages/adapters/antigravity/test/antigravity-adapter.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-antigravity typecheck && pnpm --filter @lemma/adapters-antigravity build && pnpm exec vitest run packages/adapters/antigravity/test/antigravity-adapter.test.ts`
+- **Evidence to record:** `packages/adapters/antigravity/src/*`, `packages/adapters/antigravity/test/antigravity-adapter.test.ts`, `packages/adapters/antigravity/package.json`, `docs/architecture.md`, test output/evidence note, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

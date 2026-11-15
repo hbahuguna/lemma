@@ -163,6 +163,14 @@ descriptors. This does not claim a verified Codex command-pack/host API format;
 unknown/limited capabilities remain declared limitations until host-specific
 validation (`LEM-103` follow-on packaging/E2E tasks).
 
+**LEM-104 Antigravity adapter note (2026-11-16, provisional/honest):** The
+`@lemma/adapters-antigravity` surface declares capability-honest defaults for
+the current unverified Antigravity host extension surface (native forms/session
+events/background jobs unavailable by default where TBD/unverified; worktrees
+unavailable; commands/tools/question/MCP/progress/model invocation supported via
+injected primitives when provided). TBD/unverified capabilities remain declared
+limitations through manifest/negotiation until host-specific validation.
+
 ### Degradation rules
 
 | Missing capability | Required behavior |
@@ -238,5 +246,5 @@ The adapter never parses evidence itself. It renders the report contract.
 | Playwright distribution (peer dep vs bundled) | LEM-050 |
 | Claude Code form/MCP surface | LEM-102 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
 | Codex command-pack format | LEM-103 (provisional helper/shape recorded 2026-11-16; host format verification remains follow-on) |
-| Antigravity extension surface | LEM-104 |
+| Antigravity extension surface | LEM-104 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
 | Cursor MCP/command surface | LEM-105 |
