@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/exports/junit.test.ts (2 tests) 14ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  19:47:20
+   Duration  1.38s (transform 113ms, setup 0ms, collect 120ms, tests 14ms, environment 0ms, prepare 338ms)
+

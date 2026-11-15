@@ -158,3 +158,65 @@ export function buildSarif(reportInput: Record<string, unknown>): Record<string,
     ],
   };
 }
+
+
+function xmlEscape(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+export function buildJunit(reportInput: Record<string, unknown>): string {
+  const report = redactForExport(reportInput) as Record<string, unknown>;
+  const checksRaw = Array.isArray(report.checks) ? report.checks : [];
+  const checks = checksRaw.filter(isRecord);
+
+  let failures = 0;
+  let errors = 0;
+  let skipped = 0;
+  for (const check of checks) {
+    const status = asString(check.status);
+    if (status === "failed") failures += 1;
+    if (status === "error" || status === "blocked") errors += 1;
+    if (status === "skipped" || status === "blocked") skipped += 1;
+  }
+
+  const suiteAttrs = [
+    `name="quality-harness"`,
+    `tests="${checks.length}"`,
+    `failures="${failures}"`,
+    `errors="${errors}"`,
+    `skipped="${skipped}"`,
+    `time="0"`,
+  ].join(" ");
+
+  const lines: string[] = [];
+  lines.push('<?xml version="1.0" encoding="UTF-8"?>');
+  lines.push(`<testsuite ${suiteAttrs}>`);
+
+  for (const check of checks) {
+    const status = asString(check.status || "planned");
+    const id = xmlEscape(asString(check.id));
+    const domain = xmlEscape(asString(check.domain));
+    const actualRaw = asString(check.actual);
+    const actual = xmlEscape(actualRaw);
+    lines.push(`  <testcase name="${id}" classname="${domain}" time="0" status="${xmlEscape(status)}">`);
+    if (status === "failed") {
+      lines.push(`    <failure message="${actual}">${actual}</failure>`);
+    } else if (status === "error") {
+      lines.push(`    <error message="${actual}">${actual}</error>`);
+    } else if (status === "blocked") {
+      const msg = xmlEscape(`blocked: ${actualRaw}`);
+      lines.push(`    <skipped message="${msg}">${msg}</skipped>`);
+    } else if (status === "skipped") {
+      lines.push(`    <skipped message="${actual}">${actual}</skipped>`);
+    }
+    lines.push("  </testcase>");
+  }
+
+  lines.push("</testsuite>");
+  return lines.join("\n");
+}
