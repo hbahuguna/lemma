@@ -223,7 +223,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | Done |
 | LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | Done |
 | LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Done |
-| LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Backlog |
+| LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Done |
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Backlog |
 | LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Backlog |
 | LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Backlog |
@@ -935,6 +935,43 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-ownership.test.ts` (pass, 4 tests).
 - **Evidence:** `packages/core/src/plugins.ts` (`CheckRegistry.validateOwnership` using `checkOwnership`/`ownershipErrorMessage`; builtin ownership errors throw `PersonaError`, plugin/`plugin-blocked` ownership failures block as coverage gaps with existing blocked reasons preserved and owner hint set for singly-owned blocked checks), `packages/core/test/plugins/plugin-ownership.test.ts`, `docs/parity/evidence/LEM-077-plugin-ownership-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Orchestrator/planning integration and conformance remain in later E7 tasks.
+
+### LEM-078 — Define the TypeScript plugin authoring API
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-075, LEM-076
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-authoring-api.test.ts`. Taken out of order vs unblocked P0 `LEM-079` (dep `LEM-075` done) at explicit user request.
+- **Description:** Define the TypeScript API for authoring lemma check plugins
+  (definition, evaluator/context, and signed plugin export shape) so third-party
+  checks can be implemented against stable core types/helpers without depending
+  on internal orchestrator details.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports a stable plugin authoring surface (and a `./plugins`
+    subpath export/build target) including `definePlugin(...)` (and/or
+    definition helper) that constructs a typed `CheckPlugin` object with
+    `definition`, `evaluate`, and optional `signature`, compatible with
+    `CheckRegistry` loading/validation/signing and `PluginCheckRunner`.
+  - Authoring types are exported for plugin authors: at minimum `CheckPlugin`,
+    `PluginContext`, `PluginEvaluator`, plugin definition input/shape, and
+    outcome/finding helpers or re-exports needed to return valid `CheckOutcome`
+    results (including evidence via `context.saveJson`).
+  - `definePlugin(...)` preserves/infers definition and evaluator typing,
+    normalizes authoring input into a registry-compatible definition (stable id,
+    kind/intent/expected/requires/base_weight/domain fields as required by
+    validation/signing), and rejects or surfaces invalid authoring shapes in a
+    deterministic, typed way consistent with existing plugin validation.
+  - A plugin authored via the API can be registered with a trusted signature and
+    executed by `PluginCheckRunner` to produce a valid `CheckOutcome` with
+    evidence, demonstrating end-to-end authoring compatibility.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-authoring-api.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-authoring-api.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/core/src/plugins.ts` (`definePlugin`, `definePluginDefinition`, `PluginDefinitionInput`/`DefinePluginInput` and exported authoring types; deterministic normalization/validation aligned with registry), `packages/core/src/index.ts` export, `packages/core/package.json` + `@lemma/core/plugins` subpath build/export, `packages/core/test/plugins/plugin-authoring-api.test.ts`, `docs/parity/evidence/LEM-078-plugin-authoring-api-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. End-to-end authored+signed+registered+executed plugin with `context.saveJson` evidence verified. Sample plugin/docs, trust-store helper split, and conformance remain in LEM-079–LEM-082.
 
 ### LEM-074 — Build policy and calibration regression coverage
 

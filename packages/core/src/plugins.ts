@@ -44,6 +44,30 @@ export interface CheckPlugin {
   signature?: string;
 }
 
+/**
+ * Authoring-time plugin definition input. Normalized to a registry-compatible
+ * `CheckDefinition` (stable id, kind/intent/expected/requires/base_weight/domain).
+ */
+export interface PluginDefinitionInput {
+  id: string;
+  title?: string;
+  name?: string;
+  domain: string;
+  persona?: string;
+  kind?: string;
+  intent?: string;
+  description?: string;
+  expected: string;
+  base_weight?: number;
+  requires?: string;
+}
+
+export interface DefinePluginInput<TDef extends PluginDefinitionInput = PluginDefinitionInput> {
+  definition: TDef;
+  evaluate: PluginEvaluator;
+  signature?: string;
+}
+
 export interface PluginEntryPoint {
   name: string;
   value: string;
@@ -331,7 +355,11 @@ function parseSignature(signature: string): { keyId: string; digest: string } {
   return { keyId: parts[1], digest: parts[2] };
 }
 
-function toCheckDefinition(input: unknown): CheckDefinition {
+/**
+ * Normalize and validate a plugin-authored definition into the registry/check
+ * definition shape used for loading, planning, signing, and validation.
+ */
+export function definePluginDefinition(input: unknown): CheckDefinition {
   if (!isRecord(input)) {
     throw new PluginError("Plugin definition must be an object.");
   }
@@ -343,8 +371,9 @@ function toCheckDefinition(input: unknown): CheckDefinition {
   const expected = typeof input.expected === "string" ? input.expected : "";
   const persona = typeof input.persona === "string" ? input.persona : "";
   const requires = typeof input.requires === "string" ? input.requires : "any";
-  const baseWeight = typeof input.base_weight === "number" ? input.base_weight : Number(input.base_weight ?? 1);
-  return {
+  const rawWeight = input.base_weight;
+  const baseWeight = typeof rawWeight === "number" ? rawWeight : Number(rawWeight ?? 1);
+  const def: CheckDefinition = {
     id,
     title,
     domain,
@@ -355,6 +384,48 @@ function toCheckDefinition(input: unknown): CheckDefinition {
     base_weight: Number.isFinite(baseWeight) ? baseWeight : 1,
     requires,
   };
+  if (!CHECK_ID_PATTERN.test(def.id)) {
+    throw new PluginError(
+      `Check id '${def.id}' must start with a lower-case letter and use only lower-case letters, digits, '.', '_', or '-'.`,
+    );
+  }
+  if (!def.title.trim()) throw new PluginError(`Check '${def.id}' needs a non-empty title.`);
+  if (!def.domain.trim()) throw new PluginError(`Check '${def.id}' needs a non-empty domain.`);
+  if (!["static", "browser", "plugin"].includes(def.kind)) {
+    throw new PluginError(`Check '${def.id}' has unknown kind '${def.kind}'; use static, browser, or plugin.`);
+  }
+  if (!KNOWN_INPUT_REQUIREMENTS.has(def.requires)) {
+    throw new PluginError(
+      `Check '${def.id}' has unknown input requirement '${def.requires}'; use ${Array.from(KNOWN_INPUT_REQUIREMENTS).sort().join(", ")}.`,
+    );
+  }
+  if (!Number.isFinite(def.base_weight) || def.base_weight <= 0) {
+    throw new PluginError(`Check '${def.id}' base_weight must be greater than zero.`);
+  }
+  return def;
+}
+
+function toCheckDefinition(input: unknown): CheckDefinition {
+  return definePluginDefinition(input);
+}
+
+/**
+ * Define a typed, registry-compatible check plugin for authoring/export.
+ * The returned object can be signed and loaded by `CheckRegistry`.
+ */
+export function definePlugin<TDef extends PluginDefinitionInput>(input: DefinePluginInput<TDef>): CheckPlugin {
+  if (!isRecord(input)) {
+    throw new PluginError("Plugin must be an object with definition and evaluate.");
+  }
+  if (typeof input.evaluate !== "function") {
+    throw new PluginError("Plugin evaluator is not callable.");
+  }
+  const definition = definePluginDefinition(input.definition);
+  return {
+    definition,
+    evaluate: input.evaluate,
+    ...(typeof input.signature === "string" && input.signature ? { signature: input.signature } : {}),
+  };
 }
 
 function pluginFromLoaded(loaded: unknown): CheckPlugin {
@@ -362,7 +433,7 @@ function pluginFromLoaded(loaded: unknown): CheckPlugin {
     return {
       definition: toCheckDefinition(loaded.definition),
       evaluate: loaded.evaluate as unknown as PluginEvaluator,
-      signature: typeof loaded.signature === "string" ? loaded.signature : "",
+      ...(typeof loaded.signature === "string" && loaded.signature ? { signature: loaded.signature } : {}),
     };
   }
   if (isRecord(loaded) && typeof loaded.id === "string" && typeof loaded.evaluate === "function") {
@@ -370,7 +441,7 @@ function pluginFromLoaded(loaded: unknown): CheckPlugin {
     return {
       definition: toCheckDefinition(loaded),
       evaluate: loaded.evaluate as unknown as PluginEvaluator,
-      signature: typeof loaded.signature === "string" ? loaded.signature : "",
+      ...(typeof loaded.signature === "string" && loaded.signature ? { signature: loaded.signature } : {}),
     };
   }
   if (isRecord(loaded) && "definition" in loaded && "evaluate" in loaded) {
@@ -380,7 +451,7 @@ function pluginFromLoaded(loaded: unknown): CheckPlugin {
     return {
       definition: toCheckDefinition(def),
       evaluate: ev as unknown as PluginEvaluator,
-      signature: typeof loaded.signature === "string" ? loaded.signature : "",
+      ...(typeof loaded.signature === "string" && loaded.signature ? { signature: loaded.signature } : {}),
     };
   }
   throw new PluginError("Entry point must load a CheckPlugin (or an object with definition, evaluate, and signature).");
