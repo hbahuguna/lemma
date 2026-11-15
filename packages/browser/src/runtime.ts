@@ -41,7 +41,10 @@ export interface BrowserRuntimeOptions {
   noBrowser?: boolean;
   /** Alias for noBrowser. */
   disabled?: boolean;
+  /** Run browser headless (default true). Explicit true forces headless. */
   headless?: boolean;
+  /** Request a visible browser window (headless false) unless headless is forced. */
+  headed?: boolean;
   timeoutMs?: number;
   /** Browser viewport as "WxH" (e.g. "1440x900") or { width, height }. */
   viewport?: string | BrowserViewport;
@@ -49,12 +52,26 @@ export interface BrowserRuntimeOptions {
   viewportWidth?: number;
   /** Viewport height (used with viewportWidth when viewport not provided). */
   viewportHeight?: number;
+  /** Enable mobile mode defaults (viewport/mobile context contracts). */
+  mobile?: boolean;
+  /** Alias for mobile. */
+  mobilePack?: boolean;
+  /** Mobile viewport override/default (e.g. "390x844" or { width, height }). */
+  mobileViewport?: string | BrowserViewport;
+  /** Alias for mobileViewport. */
+  mobile_viewport?: string | BrowserViewport;
   /** Enable bounded same-origin crawl (LEM-054). */
   crawl?: boolean;
   /** Maximum pages to capture/evaluate when crawling (seed included). */
   maxPages?: number;
   /** Alias for maxPages. */
   max_pages?: number;
+  /** Enable safe active browser probes (default false; probes may be unimplemented). */
+  active?: boolean;
+  /** Allow interactive active-probe actions when active probing is enabled (default true). */
+  activeInteractions?: boolean;
+  /** Alias for activeInteractions. */
+  active_interactions?: boolean;
   /**
    * Authenticated Playwright storage state: file path, `env:VAR`, or resolved
    * state object (LEM-056). Resolved/injected state must not be persisted.
@@ -99,13 +116,14 @@ export interface BrowserRuntimeOptions {
 }
 
 export const DEFAULT_BROWSER_VIEWPORT = "1440x900" as const;
+export const DEFAULT_MOBILE_VIEWPORT = "390x844" as const;
+export const DEFAULT_CRAWL_MAX_PAGES = 5 as const;
 
-export function resolveBrowserViewport(options?: BrowserRuntimeOptions): BrowserViewport & { label: string } {
-  const fallback = { width: 1440, height: 900, label: DEFAULT_BROWSER_VIEWPORT };
-  if (!options) return fallback;
-  const v = options.viewport;
-  if (typeof v === "string") {
-    const m = /^\s*(\d+)x(\d+)\s*$/i.exec(v);
+function parseViewportValue(
+  value: unknown,
+): { width: number; height: number; label: string } | null {
+  if (typeof value === "string") {
+    const m = /^\s*(\d+)x(\d+)\s*$/i.exec(value);
     if (m) {
       const width = Number(m[1]);
       const height = Number(m[2]);
@@ -113,19 +131,68 @@ export function resolveBrowserViewport(options?: BrowserRuntimeOptions): Browser
         return { width, height, label: `${width}x${height}` };
       }
     }
-  } else if (v && typeof v === "object") {
-    const width = Number((v as { width?: unknown }).width);
-    const height = Number((v as { height?: unknown }).height);
+    return null;
+  }
+  if (value && typeof value === "object") {
+    const width = Number((value as { width?: unknown }).width);
+    const height = Number((value as { height?: unknown }).height);
     if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
       return { width, height, label: `${width}x${height}` };
     }
   }
+  return null;
+}
+
+export function resolveMobileEnabled(options?: BrowserRuntimeOptions): boolean {
+  return options?.mobile === true || options?.mobilePack === true;
+}
+
+export function resolveHeadless(options?: BrowserRuntimeOptions): boolean {
+  if (!options) return true;
+  if (options.headless === true) return true;
+  if (options.headed === true) return false;
+  return options.headless ?? true;
+}
+
+export function resolveActiveDefaults(options?: BrowserRuntimeOptions): {
+  active: boolean;
+  activeInteractions: boolean;
+} {
+  const active = options?.active === true;
+  const rawInteractions = options?.activeInteractions ?? options?.active_interactions;
+  const activeInteractions = typeof rawInteractions === "boolean" ? rawInteractions : true;
+  return { active, activeInteractions };
+}
+
+export function resolveBrowserMaxPages(options?: BrowserRuntimeOptions): number {
+  const explicit = options?.maxPages ?? options?.max_pages;
+  if (explicit !== undefined && explicit !== null) {
+    const n = Math.trunc(Number(explicit));
+    return Number.isFinite(n) && n > 0 ? n : 1;
+  }
+  return options?.crawl === true ? DEFAULT_CRAWL_MAX_PAGES : 1;
+}
+
+export function resolveBrowserViewport(options?: BrowserRuntimeOptions): BrowserViewport & { label: string } {
+  const desktopFallback = { width: 1440, height: 900, label: DEFAULT_BROWSER_VIEWPORT };
+  const mobileFallback = { width: 390, height: 844, label: DEFAULT_MOBILE_VIEWPORT };
+  if (!options) return desktopFallback;
+
+  const explicit = parseViewportValue(options.viewport);
+  if (explicit) return explicit;
+
   const w = Number(options.viewportWidth);
   const h = Number(options.viewportHeight);
   if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
     return { width: w, height: h, label: `${w}x${h}` };
   }
-  return fallback;
+
+  const mobile = resolveMobileEnabled(options);
+  const mobileViewport = parseViewportValue(options.mobileViewport ?? options.mobile_viewport);
+  if (mobileViewport) return mobileViewport;
+  if (mobile) return mobileFallback;
+
+  return desktopFallback;
 }
 
 function applyViewportMetadata(outcome: CheckOutcome, viewportLabel: string): CheckOutcome {
@@ -406,9 +473,7 @@ export async function degradeBrowserChecks(
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Playwright is an optional untyped runtime dependency; interop uses dynamic APIs */
 
 function getMaxPages(options?: BrowserRuntimeOptions): number {
-  const raw = options?.maxPages ?? options?.max_pages ?? 1;
-  const n = Math.trunc(Number(raw));
-  return Number.isFinite(n) && n > 0 ? n : 1;
+  return resolveBrowserMaxPages(options);
 }
 
 async function captureSinglePage(
@@ -742,8 +807,9 @@ async function captureWithPlaywright(
   if (!chromium || typeof chromium.launch !== "function") {
     throw new BrowserUnavailableError("Playwright Chromium launcher is unavailable.");
   }
-  const headless = options?.headless ?? true;
+  const headless = resolveHeadless(options);
   const viewport = resolveBrowserViewport(options);
+  const mobile = resolveMobileEnabled(options);
   const storageStateInput = options?.storageState ?? options?.storage_state;
   const resolvedStorageState =
     storageStateInput !== undefined ? resolveBrowserStorageState(storageStateInput) : undefined;
@@ -762,6 +828,10 @@ async function captureWithPlaywright(
   const videoDir = flags.video && tempDir ? join(tempDir, "video") : undefined;
 
   const contextOptions: Record<string, unknown> = { viewport: { width: viewport.width, height: viewport.height } };
+  if (mobile) {
+    contextOptions.isMobile = true;
+    contextOptions.hasTouch = true;
+  }
   if (resolvedStorageState) {
     contextOptions.storageState = resolvedStorageState;
   }
@@ -939,7 +1009,7 @@ async function resolveBrowserStepsOutcome(input: RunBrowserChecksInput, probeAva
     if (!chromium || typeof chromium.launch !== "function") {
       return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Playwright Chromium launcher is unavailable for scenario execution.");
     }
-    const browser = (await chromium.launch({ headless: opts.headless ?? true })) as {
+    const browser = (await chromium.launch({ headless: resolveHeadless(opts) })) as {
       newContext: (opts?: Record<string, unknown>) => Promise<{ newPage: () => Promise<BrowserScenarioPageLike>; close: () => Promise<void> }>;
       close: () => Promise<void>;
     };

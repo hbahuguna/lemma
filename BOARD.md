@@ -192,7 +192,7 @@ scan wearing a browser label.
 | LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Done |
 | LEM-061 | Verify browser evidence, manifest, and report linkage | P0 | 3 | LEM-016, LEM-051 | Done |
 | LEM-062 | Port viewport and check metadata contracts | P2 | 2 | LEM-051, LEM-055 | Done |
-| LEM-063 | Port browser defaults (crawl, mobile, headed, active) | P1 | 3 | LEM-054, LEM-055 | Backlog |
+| LEM-063 | Port browser defaults (crawl, mobile, headed, active) | P1 | 3 | LEM-054, LEM-055 | Done |
 | LEM-064 | Build the browser regression suite | P1 | 5 | LEM-051, LEM-054, LEM-055, LEM-058 | Backlog |
 
 ### E6: Reporting, Policy, and Exports
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-063** — Port browser defaults (crawl, mobile, headed, active) (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (crawl max-pages default 5 when enabled/unset, mobile/headed/active option defaults and normalization/resolvers, mobile viewport default `390x844` when mobile without explicit viewport, Playwright launch/headless/context viewport+mobile hints), `packages/browser/test/browser-defaults.test.ts`, `docs/parity/evidence/LEM-063-browser-defaults-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-defaults.test.ts`, 5/5). `pnpm --filter @lemma/browser typecheck/build`, `pnpm lint`, and targeted crawl/runtime/viewport regressions pass. Parity inventory updated. Commit/remote recorded in completion summary.
 - **LEM-062** — Port viewport and check metadata contracts (2026-11-15). Evidence: `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts` (runtime/options viewport resolution for Playwright capture, `metadata.viewport` `WxH` contract attached to browser outcomes incl. blocked/not-implemented/steps and injected/direct-evaluator paths, crawl/merged outcomes preserve viewport + crawl metadata, overflow/focus metadata preserved), `packages/browser/test/browser-viewport-metadata.test.ts`, `docs/parity/evidence/LEM-062-browser-viewport-metadata-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-viewport-metadata.test.ts`, 4/4). `pnpm --filter @lemma/browser typecheck/build`, `pnpm lint`, and targeted existing browser regressions (crawl/mobile/runtime/checks) pass. Claimed out of priority order vs unblocked higher-priority `LEM-063`/`LEM-064` at explicit user request. Parity inventory updated. Commit/remote recorded in completion summary.
 - **LEM-061** — Verify browser evidence, manifest, and report linkage (2026-11-15). Evidence: `packages/browser/test/browser-evidence-linkage.test.ts` (skippable local Playwright+Chromium integration against `examples/demo-web/`: `runBrowserChecks` + core `EvidenceStore` capture/save, finalized manifest with portable `.lemma/evidence/<run_id>/` artifact entries/hashes, manifest verify clean, browser check `evidence` refs preserved via `recordCheckOutcome`, and `buildReport` check/report evidence refs + `evidence.directory`/`summary` consistent with manifest), `docs/parity/evidence/LEM-061-browser-evidence-linkage-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-evidence-linkage.test.ts`, 1/1; executed in this environment); parity inventory `harness/browser.py` row updated (LEM-061). `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-060** — Port browser fixtures and the CI smoke/blocked legs (2026-11-15). Evidence: `examples/demo-web/` (assay-parity fixture), `packages/browser/test/browser-smoke-leg.test.ts` (skippable local Playwright+Chromium smoke: serves demo-web, non-blocked `browser.load`, screenshot/console/network evidence), `packages/browser/test/browser-blocked-leg.test.ts` (disabled/unavailable runtime blocked-degradation, no false pass), `docs/parity/evidence/LEM-060-browser-legs-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-smoke-leg.test.ts packages/browser/test/browser-blocked-leg.test.ts`, 3/3; smoke executed in this environment); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Claimed out of P0-priority order vs unblocked `LEM-061` at explicit user request. Commit/remote recorded in completion summary.
@@ -809,6 +810,46 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-063 — Port browser defaults (crawl, mobile, headed, active)
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-054, LEM-055
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-defaults.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; browser defaults tests 5/5 passed, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass (targeted crawl/runtime/viewport regressions passed).
+- **Description:** Port browser runtime option defaults/contracts for crawl, mobile,
+  headed, and active behavior to align with assay parity.
+- **Acceptance Criteria:**
+  - **Crawl defaults:** `crawl` defaults to `false`. When `options.crawl` is
+    enabled and no explicit `maxPages`/`max_pages` is provided, the effective
+    max-pages default is `5` (assay parity). Explicit `maxPages`/`max_pages`
+    override the default. Existing bounded same-origin crawl behavior remains
+    intact.
+  - **Mobile defaults:** `@lemma/browser` runtime options accept mobile-mode
+    defaults (`mobile` and/or compatible aliases/viewport option such as
+    `mobileViewport`). When mobile mode is enabled and no explicit `viewport`
+    is provided, the effective viewport defaults to `390x844` and is applied to
+    Playwright capture context and recorded as `metadata.viewport` on produced
+    outcomes. An explicit `viewport` overrides the mobile default.
+  - **Headed defaults:** Browser runs are headless by default. Runtime options
+    accept `headed` (show browser) in addition to `headless`, with deterministic
+    precedence consistent with assay intent (explicit `headless: true` forces
+    headless; otherwise `headed: true` requests a visible browser; default is
+    headless).
+  - **Active defaults:** Runtime options accept active-probe defaults/contracts
+    (`active` defaults to `false`, `activeInteractions`/`active_interactions`
+    defaults to `true`) and expose/normalize them without breaking existing
+    browser execution paths (active probes may remain unimplemented in this
+    slice, but option defaults/contracts are present and non-regressive).
+  - `pnpm lint`, `pnpm --filter @lemma/browser typecheck`,
+    `pnpm --filter @lemma/browser build`, and
+    `pnpm exec vitest run packages/browser/test/browser-defaults.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-defaults.test.ts`
+- **Evidence:** `packages/browser/src/runtime.ts`, `packages/browser/test/browser-defaults.test.ts`, `docs/parity/evidence/LEM-063-browser-defaults-test-output.txt`; parity inventory `harness/browser.py` row updated (LEM-063). Commit/remote recorded in completion summary.
 
 ### LEM-062 — Port viewport and check metadata contracts
 
