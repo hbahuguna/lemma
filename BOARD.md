@@ -290,7 +290,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
+| LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | In Progress |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Backlog |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Backlog |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Backlog |
@@ -4576,6 +4576,52 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-antigravity typecheck && pnpm --filter @lemma/adapters-antigravity build && pnpm exec vitest run packages/adapters/antigravity/test/antigravity-adapter.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/adapters/antigravity/package.json`, `packages/adapters/antigravity/src/index.ts`, `packages/adapters/antigravity/test/antigravity-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-104-antigravity-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-104).
+
+### LEM-105 — Build the Cursor adapter
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-086, LEM-088, LEM-098, LEM-099, LEM-100
+- **Status:** In Progress
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`.
+- **Description:** Build the Cursor host adapter on the shared adapter SDK and
+  host-neutral agent primitives, providing an installable, capability-honest
+  Cursor integration surface (manifest, host wiring, command mapping/helpers)
+  without embedding check/scoring/phase logic or requiring host SDKs at
+  build/test time.
+- **Acceptance Criteria:**
+  - `packages/adapters/cursor` (`@lemma/adapters-cursor`) exports a
+    machine-readable Cursor adapter manifest (`id: "cursor"`) with declared
+    capabilities and adapter metadata, plus a testable Cursor host adapter API
+    (factory/wrapper) implementing the shared `AgentHost` contract via injected
+    host primitives/callbacks (no hard dependency on Cursor host SDKs in package
+    runtime/build dependencies).
+  - The adapter bridges core host interactions to the shared contract:
+    command/tool registration, progress/final messaging, question handling,
+    session context, optional MCP resource discovery and optional form/secret
+    resolution hooks when provided, with capability negotiation/degradation
+    semantics (no silent emulation; missing capabilities produce declared
+    limitations/flags). Default capabilities are capability-honest/provisional
+    for Cursor (e.g. partial question UI and limited session events treated as
+    unavailable by default, native forms/background jobs/worktrees unavailable).
+  - The adapter provides Cursor-facing command mapping/helpers built on
+    `@lemma/agent` primitives (catalog/intent/builders and prompt/context/Jira
+    helpers as applicable) so assay command surfaces can be registered/invoked
+    consistently without duplicating product logic in the adapter.
+  - `packages/adapters/cursor/test/cursor-adapter.test.ts` verifies: manifest
+    validity/identity, `create`/host API behavior, command mapping helpers, and
+    conformance-kit pass for a representative Cursor host configuration (and
+    honest degradation where optional/partial/limited capabilities are absent).
+  - `docs/architecture.md` records a provisional/honest Cursor adapter
+    MCP/command/capability note for this surface (partial/limited/unverified
+    treated as unavailable by default unless explicitly provided), and
+    `pnpm --filter @lemma/adapters-cursor typecheck`,
+    `pnpm --filter @lemma/adapters-cursor build`, and
+    `pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`
+- **Evidence to record:** `packages/adapters/cursor/src/*`, `packages/adapters/cursor/test/cursor-adapter.test.ts`, `packages/adapters/cursor/package.json`, `docs/architecture.md`, test output/evidence note, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

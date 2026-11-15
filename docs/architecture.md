@@ -171,6 +171,15 @@ unavailable; commands/tools/question/MCP/progress/model invocation supported via
 injected primitives when provided). TBD/unverified capabilities remain declared
 limitations through manifest/negotiation until host-specific validation.
 
+**LEM-105 Cursor adapter note (2026-11-16, provisional/honest):** The
+`@lemma/adapters-cursor` surface declares capability-honest defaults for the
+current unverified Cursor host surface (partial question UI and limited session
+events treated as unavailable by default for honest degradation; native forms/
+background jobs/worktrees unavailable; commands/tools/MCP/progress/model
+invocation supported via injected primitives when provided). Partial/limited/
+unverified capabilities remain declared limitations through manifest/negotiation
+until host-specific validation.
+
 ### Degradation rules
 
 | Missing capability | Required behavior |
@@ -247,4 +256,4 @@ The adapter never parses evidence itself. It renders the report contract.
 | Claude Code form/MCP surface | LEM-102 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
 | Codex command-pack format | LEM-103 (provisional helper/shape recorded 2026-11-16; host format verification remains follow-on) |
 | Antigravity extension surface | LEM-104 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
-| Cursor MCP/command surface | LEM-105 |
+| Cursor MCP/command surface | LEM-105 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |

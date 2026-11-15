@@ -1,0 +1,45 @@
+Scope: all 13 workspace projects
+[WARN] There are cyclic workspace dependencies: /Users/skaparwan/github/lemma/packages/browser, /Users/skaparwan/github/lemma/packages/core
+✓ Lockfile passes supply-chain policies (verified 5m ago)
+Progress: resolved 1, reused 0, downloaded 0, added 0
+[WARN] deprecated eslint@9.39.5: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+
+   ╭──────────────────────────────────────────╮
+   │                                          │
+   │   Update available! 11.15.1 → 12.21.0.   │
+   │   Changelog: https://pnpm.io/v/12.21.0   │
+   │     To update, run: pnpm self-update     │
+   │                                          │
+   ╰──────────────────────────────────────────╯
+
+Progress: resolved 14, reused 14, downloaded 0, added 0
+Progress: resolved 115, reused 115, downloaded 0, added 0
+Progress: resolved 285, reused 210, downloaded 0, added 0
+Already up to date
+Progress: resolved 354, reused 279, downloaded 0, added 0, done
+
+Done in 6.4s using pnpm v11.15.1
+$ tsc --noEmit
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     7.50 KB
+ESM dist/index.js.map 14.93 KB
+ESM ⚡️ Build success in 91ms
+DTS Build start
+DTS ⚡️ Build success in 7472ms
+DTS dist/index.d.ts 2.43 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/cursor/test/cursor-adapter.test.ts (3 tests) 16ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:09:57
+   Duration  2.37s (transform 750ms, setup 0ms, collect 1.06s, tests 16ms, environment 0ms, prepare 366ms)
+

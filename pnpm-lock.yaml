@@ -68,6 +68,9 @@ importers:
 
   packages/adapters/cursor:
     dependencies:
+      '@lemma/adapters-sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@lemma/agent':
         specifier: workspace:*
         version: link:../../agent
