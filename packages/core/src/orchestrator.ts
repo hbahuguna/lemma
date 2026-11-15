@@ -1,5 +1,5 @@
 import { HarnessError, KillSwitchHaltError, StateError } from "./errors.js";
-import { registryFingerprint } from "./checks.js";
+import { registryFingerprint, type CheckRegistryLike } from "./checks.js";
 import {
   currentDeterminism,
   entropyCounter,
@@ -50,7 +50,10 @@ export interface OrchestratorRunOptions {
   runId?: string;
   options?: Record<string, unknown>;
   resume?: boolean;
+  /** Precomputed registry fingerprint (wins over `registry` when provided). */
   registryFingerprint?: string;
+  /** Registry used to compute/validate the run fingerprint (plugin-aware). */
+  registry?: CheckRegistryLike | null;
   evidenceStore?: EvidenceStore;
   stateDirName?: string;
   seed?: number | null;
@@ -133,6 +136,9 @@ function markRemainingPhasesSkipped(state: RunStateDomain, fromIndex: number, re
 function computeCurrentRegistryFingerprint(options: OrchestratorRunOptions): string {
   if (typeof options.registryFingerprint === "string" && options.registryFingerprint.length > 0) {
     return options.registryFingerprint;
+  }
+  if (options.registry) {
+    return registryFingerprint(options.registry);
   }
   return registryFingerprint(null);
 }

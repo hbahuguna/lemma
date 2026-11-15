@@ -226,7 +226,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Done |
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Done |
 | LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Done |
-| LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Backlog |
+| LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Done |
 | LEM-082 | Build the plugin conformance suite | P1 | 5 | LEM-075, LEM-076, LEM-077 | Backlog |
 
 ### E8: CLI and Agent Core
@@ -1045,7 +1045,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/sample-plugin-example.test.ts` (pass, 2 tests).
 - **Evidence:** `examples/plugins/sample-check.ts` (unsigned-by-default `PLUGIN` via `definePlugin`, `context.saveJson`, manifest/evidence outcome), `examples/plugins/package.json` (installable/entry-point shape with `lemma.checks` hint), `examples/plugins/README.md` (authoring, `.lemma/plugins/trusted_keys.json` trust-store/signing, ownership, refusal/blocker guidance), `packages/core/test/plugins/sample-plugin-example.test.ts`, `docs/parity/evidence/LEM-080-sample-plugin-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (sample files + `harness/plugins.py`/`test_plugins.py` rows). `eslint.config.js` updated to ignore `examples/**` for type-aware lint. Conformance/resume remain in LEM-081–LEM-082.
 
-### LEM-074 — Build policy and calibration regression coverage
+### LEM-081 — Port resume protection against a changed plugin registry
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-021, LEM-075
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-resume-registry.test.ts`. Taken out of order vs unblocked P1 `LEM-082` (deps `LEM-075`–`LEM-077` done) at explicit user request.
+- **Description:** Guard run resume against a changed plugin/check registry so
+  pending work is never replayed against a different evaluator/trust/definition
+  set.
+- **Acceptance Criteria:**
+  - Resume compares the saved registry fingerprint recorded for the run against
+    the current registry fingerprint (including plugin registry state) and
+    rejects with a `StateError` when they differ, before resuming/replaying
+    work.
+  - On a fingerprint mismatch, saved progress/state and evidence/manifest remain
+    byte-identical (failed resume attempt is read-only and does not mutate run
+    artifacts).
+  - When the registry fingerprint is unchanged (including unchanged plugin
+    registry), resume succeeds and preserves the run identity/fingerprint.
+  - Protection covers plugin-registry changes that affect the fingerprint (e.g.
+    added/removed plugin checks or changed trust/plugin state reflected in the
+    registry fingerprint), consistent with `registryFingerprint`/`CheckRegistry`
+    behavior.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-resume-registry.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-resume-registry.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/core/src/orchestrator.ts` (accepts `registry` in run/resume options for plugin-aware fingerprint computation/validation; existing mismatch guard rejects with `StateError` before replay), `packages/core/test/plugins/plugin-resume-registry.test.ts`, `docs/parity/evidence/LEM-081-plugin-resume-registry-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Unchanged plugin registry resumes with preserved identity; changed plugin set/trust state fingerprints are rejected without mutating progress or evidence. Conformance remains in LEM-082.
 
 - **Epic:** E6 Reporting, Policy, and Exports
 - **Priority:** P2
