@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/exports/sarif.test.ts (3 tests) 19ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  19:41:37
+   Duration  1.59s (transform 101ms, setup 0ms, collect 103ms, tests 19ms, environment 0ms, prepare 369ms)
+

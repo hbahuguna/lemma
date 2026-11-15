@@ -202,7 +202,7 @@ reconcilable. Suppressions are auditable and never silent.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-065 | Port SARIF export | P1 | 3 | LEM-020 | Backlog |
+| LEM-065 | Port SARIF export | P1 | 3 | LEM-020 | Done |
 | LEM-066 | Port JUnit export | P1 | 3 | LEM-020 | Backlog |
 | LEM-067 | Port report signing and verification | P1 | 3 | LEM-020 | Backlog |
 | LEM-068 | Port run-to-run trend diff | P1 | 3 | LEM-011, LEM-020 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-065** — Port SARIF export (2026-11-15). Evidence: `packages/core/src/exports.ts` (`buildSarif`, SARIF 2.1.0 schema/version, quality-harness rules/results mapping, severity-level mapping, location/evidence relatedLocations, redaction), exports/index/package wiring (`@lemma/core/exports`), `packages/core/test/exports/sarif.test.ts`, `docs/parity/evidence/LEM-065-sarif-export-test-output.txt` (`pnpm exec vitest run packages/core/test/exports/sarif.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI `lemma sarif` pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-064** — Build the browser regression suite (2026-11-15). Evidence: `packages/browser/test/browser-regression-suite.test.ts` (deterministic/injected regression coverage for LEM-051 core checks, LEM-054 crawl discovery/merge metadata, LEM-055 overflow/focus_order contracts, and LEM-058 `browser.steps` pass/fail/blocked scenario outcomes), `docs/parity/evidence/LEM-064-browser-regression-suite-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-regression-suite.test.ts`, 7/7). `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Parity inventory updated. Commit/remote recorded in completion summary.
 - **LEM-063** — Port browser defaults (crawl, mobile, headed, active) (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (crawl max-pages default 5 when enabled/unset, mobile/headed/active option defaults and normalization/resolvers, mobile viewport default `390x844` when mobile without explicit viewport, Playwright launch/headless/context viewport+mobile hints), `packages/browser/test/browser-defaults.test.ts`, `docs/parity/evidence/LEM-063-browser-defaults-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-defaults.test.ts`, 5/5). `pnpm --filter @lemma/browser typecheck/build`, `pnpm lint`, and targeted crawl/runtime/viewport regressions pass. Parity inventory updated. Commit/remote recorded in completion summary.
 - **LEM-062** — Port viewport and check metadata contracts (2026-11-15). Evidence: `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts` (runtime/options viewport resolution for Playwright capture, `metadata.viewport` `WxH` contract attached to browser outcomes incl. blocked/not-implemented/steps and injected/direct-evaluator paths, crawl/merged outcomes preserve viewport + crawl metadata, overflow/focus metadata preserved), `packages/browser/test/browser-viewport-metadata.test.ts`, `docs/parity/evidence/LEM-062-browser-viewport-metadata-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-viewport-metadata.test.ts`, 4/4). `pnpm --filter @lemma/browser typecheck/build`, `pnpm lint`, and targeted existing browser regressions (crawl/mobile/runtime/checks) pass. Claimed out of priority order vs unblocked higher-priority `LEM-063`/`LEM-064` at explicit user request. Parity inventory updated. Commit/remote recorded in completion summary.
@@ -811,6 +812,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-065 — Port SARIF export
+
+- **Epic:** E6 Reporting, Policy, and Exports
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-020
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/exports/sarif.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; SARIF export tests 3/3 passed, plus `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass.
+- **Description:** Port SARIF 2.1.0 report export for `quality-harness.report/v1`
+  findings to `@lemma/core/exports` with redaction and parity-aligned mapping.
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a SARIF 2.1.0 export API (e.g. `buildSarif(report)` in
+    exports module/subpath) that converts a lemma report into a SARIF document
+    with `$schema`/`version`, a single run, tool driver name `quality-harness`,
+    and `rules`/`results` derived from report findings.
+  - Each finding maps to a stable rule/result: rule id/name derived from check/finding
+    identity, severity mapped to SARIF levels (`critical|high -> error`,
+    `medium -> warning`, others -> `note`), rule/result descriptions/help include
+    finding title/consequence/remediation as applicable, result locations use
+    finding location, and finding evidence paths are represented as related
+    locations when present. Useful properties (severity/domain/tags/fingerprint/
+    persona/strength/check identity) are preserved.
+  - Export output is redacted (no secret/token/credential values leaked); secret
+    values present in finding/report fields are replaced with redaction markers.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/exports/sarif.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/core/test/exports/sarif.test.ts`
+- **Evidence:** `packages/core/src/exports.ts`, `packages/core/src/index.ts`, `packages/core/package.json` (`./exports` subpath/build wiring), `packages/core/test/exports/sarif.test.ts`, `docs/parity/evidence/LEM-065-sarif-export-test-output.txt`; parity inventory updated (LEM-065). Commit/remote recorded in completion summary.
 
 ### LEM-064 — Build the browser regression suite
 
