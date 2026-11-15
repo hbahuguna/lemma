@@ -1,0 +1,37 @@
+1:# Adapter compatibility matrix and host integration docs
+30:## Compatibility matrix
+98:## Per-host status
+65:## Install and packaging
+18:| `opencode` | OpenCode | `@lemma/adapters-opencode` | OpenCode | Implemented; in-repo e2e parity suite (LEM-109) |
+19:| `claude-code` | Claude Code | `@lemma/adapters-claude-code` | Claude Code | Implemented; in-repo e2e suite (LEM-110) |
+20:| `codex` | Codex | `@lemma/adapters-codex` | Codex | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+21:| `antigravity` | Antigravity | `@lemma/adapters-antigravity` | Antigravity | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+22:| `cursor` | Cursor | `@lemma/adapters-cursor` | Cursor | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+37:| Capability | `opencode` | `claude-code` | `codex` | `antigravity` | `cursor` |
+74:# hosts: opencode | claude-code | codex | antigravity | cursor
+89:| `opencode` | `.opencode/commands` | `.opencode/skills/lemma/SKILL.md` |
+90:| `claude-code` | `.claude/commands` | `.claude/skills/lemma/SKILL.md` |
+91:| `codex` | `.codex/commands` | `.codex/skills/lemma/SKILL.md` |
+92:| `antigravity` | `.antigravity/commands` | `.antigravity/skills/lemma/SKILL.md` |
+93:| `cursor` | `.cursor/commands` | `.cursor/skills/lemma/SKILL.md` |
+100:### OpenCode (`@lemma/adapters-opencode`)
+106:### Claude Code (`@lemma/adapters-claude-code`)
+112:### Codex (`@lemma/adapters-codex`) — provisional
+114:- **Surfaces:** `CODEX_ADAPTER_MANIFEST`, `CODEX_PACKAGING_MANIFEST`, `createCodexHost`, `createCodexCommandDescriptors`/`registerCodexCommands`, `createCodexCommandPack` (format `lemma.codex-command-pack/provisional`), `resolveCodexCatalogInvocation`, `buildCodexBrowserAgentPrompt`.
+118:### Antigravity (`@lemma/adapters-antigravity`) — provisional
+124:### Cursor (`@lemma/adapters-cursor`) — provisional
+135:- **Adapters:** `packages/adapters/*/test/*-adapter.test.ts` (`docs/parity/evidence/LEM-101-opencode-adapter-test-output.txt`, `LEM-102-claude-code-adapter-test-output.txt`, `LEM-103-codex-adapter-test-output.txt`, `LEM-104-antigravity-adapter-test-output.txt`, `LEM-105-cursor-adapter-test-output.txt`)
+137:- **Suites:** OpenCode e2e parity `packages/adapters/opencode/test/opencode-e2e-parity.test.ts` (`docs/parity/evidence/LEM-109-opencode-e2e-parity-test-output.txt`), Claude Code e2e `packages/adapters/claude-code/test/claude-code-e2e.test.ts` (`docs/parity/evidence/LEM-110-claude-code-e2e-test-output.txt`), Codex/Antigravity/Cursor smoke `packages/adapters/{codex,antigravity,cursor}/test/*-smoke.test.ts` (`docs/parity/evidence/LEM-111-host-smoke-test-output.txt`)
+18:| `opencode` | OpenCode | `@lemma/adapters-opencode` | OpenCode | Implemented; in-repo e2e parity suite (LEM-109) |
+19:| `claude-code` | Claude Code | `@lemma/adapters-claude-code` | Claude Code | Implemented; in-repo e2e suite (LEM-110) |
+20:| `codex` | Codex | `@lemma/adapters-codex` | Codex | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+21:| `antigravity` | Antigravity | `@lemma/adapters-antigravity` | Antigravity | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+22:| `cursor` | Cursor | `@lemma/adapters-cursor` | Cursor | Implemented (provisional host surface); in-repo smoke suite (LEM-111) |
+103:- **Verification:** adapter/conformance/mapping tests (LEM-101) and in-repo OpenCode end-to-end parity suite (LEM-109) covering install/assets, adapter/host/conformance/command-prompt mapping, and deterministic CLI run/status/report parity without a live OpenCode runtime.
+109:- **Verification:** adapter/conformance/mapping tests (LEM-102) and in-repo Claude Code end-to-end suite (LEM-110) covering install/assets, adapter/host/conformance/command-prompt mapping, and deterministic CLI run/status/report parity without a live Claude Code runtime.
+115:- **Verification:** adapter/conformance/mapping/command-pack tests (LEM-103) and in-repo Codex smoke suite (LEM-111) covering install/assets, adapter/host conformance, and representative command/command-pack/prompt mapping.
+121:- **Verification:** adapter/conformance/mapping tests (LEM-104) and in-repo Antigravity smoke suite (LEM-111) covering install/assets, adapter/host conformance, and representative command/prompt mapping.
+127:- **Verification:** adapter/conformance/mapping tests (LEM-105) and in-repo Cursor smoke suite (LEM-111) covering install/assets, adapter/host conformance, and representative command/prompt mapping.
+137:- **Suites:** OpenCode e2e parity `packages/adapters/opencode/test/opencode-e2e-parity.test.ts` (`docs/parity/evidence/LEM-109-opencode-e2e-parity-test-output.txt`), Claude Code e2e `packages/adapters/claude-code/test/claude-code-e2e.test.ts` (`docs/parity/evidence/LEM-110-claude-code-e2e-test-output.txt`), Codex/Antigravity/Cursor smoke `packages/adapters/{codex,antigravity,cursor}/test/*-smoke.test.ts` (`docs/parity/evidence/LEM-111-host-smoke-test-output.txt`)
+---
+exit:0

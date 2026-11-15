@@ -119,31 +119,33 @@ export interface CommandDescriptor {
 }
 ```
 
-### Capability matrix (target)
+### Capability matrix and compatibility status
+
+Published, maintained compatibility matrix and per-host docs: **[`docs/adapters.md`](./adapters.md)**.
+
+The table below summarizes **declared adapter default capabilities** (current in-repo
+adapter manifests) and provisional host-surface notes. Unverified/TBD host APIs remain
+declared limitations with honest degradation (never silently emulated).
 
 | Capability | OpenCode | Claude Code | Codex | Antigravity | Cursor |
 | --- | --- | --- | --- | --- | --- |
-| Slash commands | Yes | Yes | Yes (command pack) | Yes | Yes |
-| Registered tools | Yes | Via MCP/plugin | Limited | Yes | Via MCP |
-| Native question UI | Yes | Yes | Yes | Yes | Partial |
-| Native forms | Yes | TBD | No | TBD | No |
+| Slash commands | Yes | Yes | Yes (provisional command-pack helper) | Yes | Yes |
+| Registered tools | Yes | Yes (injected primitives) | No (limited/unverified) | Yes | Yes (injected primitives) |
+| Question UI | Yes | Yes | Yes | Yes | No (partial/unverified; default unavailable) |
+| Native forms | No (paste/env-ref default) | No (TBD/unverified) | No | No (TBD/unverified) | No |
 | MCP resource discovery | Yes | Yes | Yes | Yes | Yes |
-| Session event stream | Yes | Hooks/events | Limited | TBD | Limited |
-| Model invocation from plugin | Yes | Yes | Yes | Yes | Yes |
-| Background jobs | Yes | Limited | No | TBD | No |
-| Worktree management | Yes | No | No | No | No |
+| Session event stream | Yes | Yes | No (limited/unverified) | No (TBD/unverified) | No (limited/unverified) |
+| Progress stream | Yes | Yes | Yes | Yes | Yes |
+| Model invocation | Yes | Yes | Yes | Yes | Yes |
+| Background tasks | Yes | No (limited/unverified) | No | No (TBD/unverified) | No |
+| Worktrees | Yes | No | No | No | No |
 
-`TBD` must be resolved by the adapter task and recorded in the compatibility
-doc. A missing capability is a declared limitation, not an emulated success.
-
-**LEM-099 spike/negotiation note (2026-11-16, provisional):** OpenCode and
-Claude Code surfaces remain the primary near-term targets, but host API details
-for Codex command-pack/MCP/model/session behavior, Antigravity extension and
-tool/form/session surfaces, and Cursor command/MCP/question/form/background
-behavior are **not yet verified against current host APIs in this environment**.
-Until adapter-specific spikes/E2E validation (`LEM-103`–`LEM-105`, `LEM-111`)
-confirm them, these rows must be treated as provisional; unknown/TBD capabilities
-stay declared limitations (never silently emulated).
+**LEM-099 spike/negotiation note (2026-11-16, provisional):** host API details for
+Codex command-pack/MCP/model/session behavior, Antigravity extension and
+tool/form/session surfaces, and Cursor command/MCP/question/form/background behavior
+are **not yet verified** against live host APIs in this environment. Until live
+host validation confirms them, these capabilities remain provisional and must be
+declared as limitations when unavailable (never silently emulated).
 
 **LEM-102 Claude Code adapter note (2026-11-16, provisional/honest):** The
 `@lemma/adapters-claude-code` surface treats native forms as unavailable by

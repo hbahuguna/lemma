@@ -66,6 +66,16 @@ The work queue, acceptance criteria, and parity contract live in
 [`BOARD.md`](./BOARD.md). The source-to-target mapping lives in
 [`docs/parity/assay-feature-inventory.md`](./docs/parity/assay-feature-inventory.md).
 
+
+## Host adapters and install (pre-alpha)
+
+Implemented adapter packages and a machine-first installer exist for OpenCode,
+Claude Code, Codex, Antigravity, and Cursor (`lemma install <host>`). Capability
+declarations, degradation behavior, install layouts, and current verification
+status are documented in [`docs/adapters.md`](./docs/adapters.md). Live host-runtime
+integration and unverified host API surfaces remain provisional where noted.
+
+
 ## How to work the board
 
 Read [`AGENTS.md`](./AGENTS.md) first. Then:

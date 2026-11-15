@@ -297,7 +297,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Done |
 | LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Done |
 | LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Done |
-| LEM-112 | Publish the adapter compatibility matrix and docs | P1 | 3 | LEM-108, LEM-109, LEM-110, LEM-111 | Backlog |
+| LEM-112 | Publish the adapter compatibility matrix and docs | P1 | 3 | LEM-108, LEM-109, LEM-110, LEM-111 | Done |
 
 ### E10: Commercial Parity
 
@@ -4705,6 +4705,49 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-112 — Publish the adapter compatibility matrix and docs
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-108, LEM-109, LEM-110, LEM-111
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `test -f docs/adapters.md && rg -n "^# Adapter compatibility matrix and host integration docs$" docs/adapters.md && rg -n "^## Compatibility matrix$" docs/adapters.md && rg -n "^## Per-host status$" docs/adapters.md && rg -n "^## Install and packaging$" docs/adapters.md && rg -n "opencode|claude-code|codex|antigravity|cursor" docs/adapters.md && rg -n "LEM-109|LEM-110|LEM-111" docs/adapters.md`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Publish a clear, maintained adapter compatibility matrix and
+  host integration documentation reflecting current adapter packages, packaging/
+  install behavior, capability declarations and degradation, and verified
+  in-repo test/smoke evidence (without claiming unverified live host APIs).
+- **Acceptance Criteria:**
+  - `docs/adapters.md` exists and documents all five hosts (`opencode`,
+    `claude-code`, `codex`, `antigravity`, `cursor`) with: adapter/package
+    identifiers, install command/layouts and packaging manifest/asset summary,
+    a capability compatibility matrix (declared adapter defaults vs notes on
+    unverified/provisional host surfaces), required degradation/limitation
+    behavior, and current verification status/evidence references (LEM-101–105
+    adapters, LEM-106 templates, LEM-107 installer, LEM-108 packaging manifests,
+    LEM-109 OpenCode e2e parity, LEM-110 Claude Code e2e, LEM-111
+    Codex/Antigravity/Cursor smoke suites).
+  - Compatibility/docs are capability-honest: Codex/Antigravity/Cursor and any
+    unverified host APIs/capabilities are marked provisional/TBD where not
+    verified in this environment; missing capabilities are documented as
+    declared limitations with degradation behavior (never silent emulation).
+  - `docs/architecture.md` is updated to reference the published compatibility
+    matrix/docs and to reflect current adapter/matrix status consistently (no
+    stale "TBD must be resolved..." as an open gap for completed adapter tasks
+    except genuinely unverified host API items called out as provisional).
+  - `README.md` and/or `docs/cli-and-agent.md` include concise pointers to host
+    adapter install/integration docs (`lemma install <host>`, supported hosts,
+    and where to find the compatibility matrix).
+  - `BOARD.md` and `docs/parity/assay-feature-inventory.md` are updated with
+    LEM-112 completion details and evidence/ownership for the published adapter
+    compatibility matrix/docs.
+  - `test -f docs/adapters.md && rg -n "^# Adapter compatibility matrix and host integration docs$" docs/adapters.md && rg -n "^## Compatibility matrix$" docs/adapters.md && rg -n "^## Per-host status$" docs/adapters.md && rg -n "^## Install and packaging$" docs/adapters.md && rg -n "opencode|claude-code|codex|antigravity|cursor" docs/adapters.md && rg -n "LEM-109|LEM-110|LEM-111" docs/adapters.md`
+    passes in this environment.
+- **Verification:** `test -f docs/adapters.md && rg -n "^# Adapter compatibility matrix and host integration docs$" docs/adapters.md && rg -n "^## Compatibility matrix$" docs/adapters.md && rg -n "^## Per-host status$" docs/adapters.md && rg -n "^## Install and packaging$" docs/adapters.md && rg -n "opencode|claude-code|codex|antigravity|cursor" docs/adapters.md && rg -n "LEM-109|LEM-110|LEM-111" docs/adapters.md` (pass; output recorded).
+- **Evidence:** `docs/adapters.md`, `docs/architecture.md`, `docs/cli-and-agent.md`, `README.md`, `docs/parity/evidence/LEM-112-adapter-docs-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-111 — Add Codex, Antigravity, and Cursor smoke suites
 

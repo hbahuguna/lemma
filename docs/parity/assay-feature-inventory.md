@@ -205,6 +205,8 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 (LEM-095 command-builder/catalog parity coverage in `packages/agent/test/command-catalog-parity.test.ts`, output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`; LEM-096 agent-loop/prompt-contract coverage in `packages/agent/test/agent-loop-prompt-contract.test.ts`, output `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |
 | `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 |
 
+| Adapter compatibility matrix and docs | Published per-host adapter compatibility matrix, install/layouts, capability declarations/degradation, and verification status | LEM-112 — `docs/adapters.md` with cross-links from `docs/architecture.md`, `docs/cli-and-agent.md`, `README.md`; evidence `docs/parity/evidence/LEM-112-adapter-docs-test-output.txt` |
+
 ## 7. Test-suite mapping
 
 Every Python test must have a TypeScript successor or an explicit retirement

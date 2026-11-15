@@ -184,6 +184,17 @@ The agent loop provides host-consumable progress and narrative outputs:
 **Tests/evidence:** `packages/agent/test/progress-narrative.test.ts`,
 `docs/parity/evidence/LEM-094*`.
 
+
+## Host adapters and installation
+
+`lemma install <host>` installs deterministic, host-appropriate command/skill assets
+for supported hosts (`opencode`, `claude-code`, `codex`, `antigravity`, `cursor`)
+into a project directory using shared templates and packaging manifests (JSON stdout,
+`--dir`/`--root`, `--dry-run`, `--force`). See the published
+[adapter compatibility matrix and host integration docs](./adapters.md) for per-host
+packages, declared capabilities/degradation, install layouts, and verification status.
+
+
 ## Related references
 
 - Product/invariant contract: [`README.md`](../README.md), [`AGENTS.md`](../AGENTS.md)
