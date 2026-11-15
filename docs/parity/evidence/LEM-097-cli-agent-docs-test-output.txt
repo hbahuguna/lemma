@@ -1,0 +1,6 @@
+11:## CLI behavior
+33:## Command surface
+58:## Agent loop
+91:## Command catalog and builders
+120:## Context protocol and question flow
+165:## Progress and final narrative

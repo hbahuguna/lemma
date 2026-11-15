@@ -273,8 +273,8 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Done |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Done |
 | LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Done |
-| LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | In Progress |
-| LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | Backlog |
+| LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Done |
+| LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | In Progress |
 
 ### E9: Adapter SDK and Host Integrations
 
@@ -4225,7 +4225,44 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/agent-loop-prompt-contract.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/agent/test/agent-loop-prompt-contract.test.ts`, `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-096 mappings for agent-loop and browser-agent-prompt plugin tests).
-- **Evidence:** `packages/agent/test/command-catalog-parity.test.ts`, `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-095 parity mappings for command contract, plugin command-args, and plugin test coverage).
+
+### LEM-097 — Publish CLI and agent behavior docs
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-083, LEM-086
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `test -f docs/cli-and-agent.md && rg -n "^## CLI behavior$|^## Command surface$|^## Agent loop$|^## Context protocol and question flow$|^## Command catalog and builders$|^## Progress and final narrative$" docs/cli-and-agent.md`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Publish developer-facing documentation for lemma's CLI and
+  host-neutral agent behavior, covering command/IO contracts and the bounded
+  agent loop, catalog/builders, context/Jira/MCP/secret-reference behavior,
+  progress/run summaries, and final narrative semantics.
+- **Acceptance Criteria:**
+  - `docs/cli-and-agent.md` exists and documents **CLI behavior**: machine-first
+    contract (`lemma run` JSON to stdout, progress/warnings to stderr), key
+    commands/surfaces relevant to current implementation (`run`, `status`,
+    `report`, `abort`, `prune` and the ported management/export/verification
+    command families as applicable), and state/evidence/reporting expectations
+    at a behavior level consistent with current invariants (`.lemma/`, hashed
+    evidence, blocked/skipped/errored/refused = coverage gaps).
+  - The same doc documents **agent behavior**: strict-judge bounded loop
+    (deterministic harness-owned control, cap/allowlist/dedupe/min-harness-run
+    semantics), persisted state/in-session resume, command argument builders and
+    the 59-command catalog/intent mapping (browser URL-required live,
+    demo static-without-URL/live-with-URL, others static with intent),
+    browser prompt/invariants, context protocol/question flow (need_context/
+    need_method, Skip/Paste/MCP/Secure env-secret ref), Jira context flow and
+    token-safe/redaction guarantees, MCP resource discovery and secret-reference
+    handling (no raw secrets persisted/echoed), and progress/run summaries/final
+    narrative behavior.
+  - Documentation is accurate to current `lemma` implementation/contracts (no
+    host-SDK coupling in core behavior, no invented capabilities), and includes
+    pointers to relevant packages/source areas and evidence/tests where useful.
+  - `test -f docs/cli-and-agent.md && rg -n "^## CLI behavior$|^## Command surface$|^## Agent loop$|^## Context protocol and question flow$|^## Command catalog and builders$|^## Progress and final narrative$" docs/cli-and-agent.md` passes in this environment.
+- **Verification:** `test -f docs/cli-and-agent.md && rg -n "^## CLI behavior$|^## Command surface$|^## Agent loop$|^## Context protocol and question flow$|^## Command catalog and builders$|^## Progress and final narrative$" docs/cli-and-agent.md` (pass).
+- **Evidence:** `docs/cli-and-agent.md`, `docs/parity/evidence/LEM-097-cli-agent-docs-test-output.txt`, updated `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
