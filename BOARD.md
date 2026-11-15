@@ -272,7 +272,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Done |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Done |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Done |
-| LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Backlog |
+| LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | In Progress |
 | LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Backlog |
 | LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | Backlog |
 
@@ -4142,6 +4142,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     in this environment (existing agent tests remain green).
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/progress-narrative.test.ts` (pass, 4 tests) and regression `packages/agent/test/progress-narrative.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts packages/agent/test/context-flow.test.ts packages/agent/test/mcp-secret-ref.test.ts` (pass, 19 tests).
 - **Evidence:** `packages/agent/src/index.ts` (progress callbacks at key loop points, `extractRunIds`/`summarizeRunOutput`/`buildExecutionSummary` exports, structured redacted per-run summaries and run ID tracking, and execution-summary narrative in final/cap/context-request `sendFinal` outputs), `packages/agent/test/progress-narrative.test.ts`, `docs/parity/evidence/LEM-094-progress-narrative-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
+
+### LEM-095 — Build command-builder and catalog parity tests
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-086, LEM-088, LEM-089
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/command-catalog-parity.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Build parity-oriented tests for command argument builders and
+  the assay command catalog/intent mapping, covering the ported contracts used
+  by agent and host adapters.
+- **Acceptance Criteria:**
+  - `packages/agent/test/command-catalog-parity.test.ts` (or equivalent dedicated
+    parity suite) asserts builder parity: `extractUrl`/`isUrl`, `SUBCOMMANDS`
+    coverage for known harness subcommands, `browserInvocation` requires a
+    reachable http(s) URL (no directory-only fallback), builds live browser runs
+    without `--no-browser` with comprehensive defaults and explicit-flag
+    overrides/safe passthrough, `demoInvocation` uses static inventory without
+    URL and live browser with URL (no `--no-browser` when URL provided),
+    `assayInvocation` uses explicit URL as live target, keeps static default
+    when no URL is present, and passes CLI subcommands/help/version through
+    unchanged.
+  - The same parity suite asserts catalog/intent mapping parity: `ASSAY_COMMAND_CATALOG`
+    contains the canonical 59 commands in assay order with expected
+    name/label/intent values, `assay-browser` maps to URL-required live browser
+    semantics (no static fallback), `assay-demo` maps to static-without-URL and
+    live-with-URL semantics, and all other catalog commands map to deterministic
+    static runs with `--target . --no-browser --personas-dir <dir> --intent
+    "Assay <label> assessment"`; unknown commands return null/undefined as
+    appropriate.
+  - Parity coverage includes loop-facing integration points where applicable
+    (e.g. `commandToArgs`/builder delegation for `assay`, `assay-browser`,
+    `assay-demo` forms) so adapter/agent invocation behavior remains consistent
+    with the ported builders.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/command-catalog-parity.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/command-catalog-parity.test.ts` (pass, 5 tests) and regression `packages/agent/test/command-catalog-parity.test.ts packages/agent/test/command-args.test.ts packages/agent/test/catalog.test.ts` (pass, 14 tests).
+- **Evidence:** `packages/agent/test/command-catalog-parity.test.ts`, `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-095 parity mappings for command contract, plugin command-args, and plugin test coverage).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

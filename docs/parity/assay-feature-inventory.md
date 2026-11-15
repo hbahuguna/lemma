@@ -202,7 +202,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `.github/workflows/billing-coverage.yml` | Billing coverage job | LEM-121 |
 | `.github/workflows/pr.yml` | Fork-safe PR automation | LEM-136 |
 | `.github/actions/quality-harness/` | Composite PR action | LEM-136 |
-| `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 |
+| `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 (LEM-095 command-builder/catalog parity coverage in `packages/agent/test/command-catalog-parity.test.ts`, output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`) |
 | `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 |
 
 ## 7. Test-suite mapping
@@ -249,10 +249,10 @@ with rationale.
 | `test_retention.py` | LEM-120 |
 | `test_packaging.py` | LEM-134 |
 | `test_github_action.py` | LEM-136 |
-| `test_assay_command_contract.py` | LEM-095 |
+| `test_assay_command_contract.py` | LEM-095 (`packages/agent/test/command-catalog-parity.test.ts` ports command-builder/catalog contract parity for host-neutral agent APIs; output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`) |
 | `tests/plugin/agent-loop.test.mjs` | LEM-096 |
 | `tests/plugin/browser-agent-prompt.test.mjs` | LEM-096 |
-| `tests/plugin/command-args.test.mjs` | LEM-095 |
+| `tests/plugin/command-args.test.mjs` | LEM-095 (`packages/agent/test/command-args.test.ts`, parity-expanded in `packages/agent/test/command-catalog-parity.test.ts`; output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`) |
 | `tests/plugin/jira-context.test.mjs` | LEM-092 (`packages/agent/test/jira-context.test.ts`, `docs/parity/evidence/LEM-092-jira-context-test-output.txt`) |
 
 ## 8. Behavior decisions to preserve
