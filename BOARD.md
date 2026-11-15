@@ -240,7 +240,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Done |
 | LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Done |
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Done |
-| LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Backlog |
+| LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | In Progress |
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Backlog |
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Backlog |
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Backlog |
@@ -1308,6 +1308,40 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/agent-loop.test.ts` (pass, 5 tests).
 - **Evidence:** `packages/agent/src/index.ts`, `packages/agent/test/agent-loop.test.ts`, `docs/parity/evidence/LEM-086-agent-loop-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Implements `runStrictJudgeLoop` with cap 7 (total steps including initial), allowlist (`run/report/status/abort/assay-browser/assay-demo`), signature-based dedupe (no reruns), strict JSON decision parsing (command/context/done/invalid), min-harness-run guard on early done, and injectable deps; interactive persistence/context protocol remain LEM-087/LEM-091.
+
+### LEM-087 — Port agent state persistence and in-session resume
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-010, LEM-086
+- **Status:** In Progress
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/agent-state.test.ts`.
+- **Description:** Port persisted agent-loop state and in-session resume
+  behavior so bounded loop progress can be safely saved, reloaded, and resumed
+  without repeating executed steps.
+- **Acceptance Criteria:**
+  - `@lemma/agent` provides persisted agent-state primitives: versioned
+    serializable state (key/goal/session/test plan, executed command signatures,
+    run summaries/current report, iteration/step counters, and optional pending
+    context/request fields), deterministic state path/key derivation under
+    `.lemma/agent/`, and atomic save/load helpers (using core atomic/fs
+    primitives) that tolerate missing/corrupt/incompatible state safely.
+  - `runStrictJudgeLoop` (or equivalent) supports persistence/resume options
+    (`cwd`, `stateKey`, optional `sessionID`, `userInput`/resume input): when a
+    matching saved state exists it is restored (rehydrating dedupe set and
+    progress) instead of rerunning completed/executed steps; state is saved on
+    pause/progress/completion/cap/context-request outcomes as applicable.
+  - In-session resume can apply provided user input to a pending context/request
+    state (e.g. skip or provided context text) to clear/progress the pending
+    step and continue the loop without re-executing previously executed
+    commands; no secrets are persisted in saved agent state.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/agent-state.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm exec vitest run packages/agent/test/agent-state.test.ts`
+- **Evidence to record:** agent state persistence/resume implementation and tests, state test output, and updated parity inventory (LEM-087 rows).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
