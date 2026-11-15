@@ -1,10 +1,20 @@
 import { createHmac, timingSafeEqual, createHash } from "node:crypto";
+import { existsSync, statSync } from "node:fs";
 import * as fsSync from "node:fs";
 import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { CHECK_CATALOG, type CheckDefinition, type CheckRegistryLike } from "./checks.js";
 import { PluginError } from "./errors.js";
+import type { EvidenceStore } from "./evidence.js";
+import {
+  CheckOutcome,
+  CheckStatus,
+  type BlockerDraft,
+  type Check,
+  type FindingDraft,
+  type Target,
+} from "./models.js";
 
 export const PLUGIN_ENTRY_POINT_GROUP = "lemma.checks";
 export const ASSAY_ENTRY_POINT_GROUP = "quality_harness.checks";
@@ -15,26 +25,17 @@ export const KNOWN_INPUT_REQUIREMENTS = new Set(["source", "url", "markup", "man
 const CHECK_ID_PATTERN = /^[a-z][a-z0-9_.-]*$/;
 
 export interface PluginContext {
-  check: { id: string };
-  target: unknown;
-  root?: string | null;
+  /** The read-only execution surface exposed to a plugin evaluator. */
+  check: Check;
+  target: Target;
+  root: string | null;
   inventory: unknown;
-  evidence: { runDir?: string; root?: string; saveJson?: (...args: never[]) => unknown };
+  evidence: EvidenceStore;
   log: (message: string) => void;
-  saveJson?: (name: string, payload: unknown, description?: string, kind?: string) => string;
+  saveJson: (name: string, payload: unknown, description?: string, kind?: string) => Promise<string>;
 }
 
-export interface CheckOutcomeLike {
-  status: string;
-  actual?: string;
-  evidence?: string[];
-  findings?: unknown[];
-  blocker?: unknown;
-  metadata?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-export type PluginEvaluator = (context: PluginContext) => CheckOutcomeLike | Promise<CheckOutcomeLike>;
+export type PluginEvaluator = (context: PluginContext) => CheckOutcome | Promise<CheckOutcome>;
 
 export interface CheckPlugin {
   definition: CheckDefinition;
@@ -59,6 +60,210 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function canonicalJson(value: unknown): string {
   return JSON.stringify(value);
+}
+
+function isValidCheckStatus(status: unknown): status is CheckStatus {
+  return typeof status === "string" && (Object.values(CheckStatus) as string[]).includes(status);
+}
+
+function isFindingDraftLike(value: unknown): value is FindingDraft {
+  return isRecord(value)
+    && typeof value.title === "string"
+    && typeof value.severity === "string"
+    && typeof value.domain === "string"
+    && typeof value.strength === "string"
+    && typeof value.consequence === "string";
+}
+
+function isBlockerDraftLike(value: unknown): value is BlockerDraft {
+  return isRecord(value)
+    && typeof value.attempted_action === "string"
+    && typeof value.boundary === "string"
+    && Array.isArray(value.unblock_evidence)
+    && typeof value.covered_elsewhere === "boolean"
+    && Array.isArray(value.covered_by);
+}
+
+function normalizeStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.filter((v): v is string => typeof v === "string");
+}
+
+function normalizeOutcomeForValidation(outcome: CheckOutcome): {
+  status: string;
+  evidence: string[];
+  findings: FindingDraft[];
+  blocker: BlockerDraft | null;
+} {
+  return {
+    status: outcome.status,
+    evidence: normalizeStringArray(outcome.evidence),
+    findings: Array.isArray(outcome.findings) ? outcome.findings : [],
+    blocker: outcome.blocker ?? null,
+  };
+}
+
+function resolveEvidencePath(evidence: EvidenceStore, raw: string): string | null {
+  if (typeof raw !== "string" || !raw) return null;
+  const candidate = path.isAbsolute(raw) ? path.resolve(raw) : path.resolve(evidence.root, raw);
+  const runDir = path.resolve(evidence.runDir);
+  const rel = path.relative(runDir, candidate);
+  if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+  try {
+    if (!existsSync(candidate) || !statSync(candidate).isFile()) return null;
+  } catch {
+    return null;
+  }
+  return candidate;
+}
+
+function invalidEvidencePaths(evidence: EvidenceStore, paths: readonly string[] | undefined): string[] {
+  const invalid: string[] = [];
+  for (const raw of paths ?? []) {
+    if (resolveEvidencePath(evidence, raw) === null) invalid.push(String(raw));
+  }
+  return invalid;
+}
+
+/**
+ * Create a blocked CheckOutcome for a plugin check that cannot be executed
+ * (e.g. registry-blocked definition). This is a coverage gap, not a pass/fatal.
+ */
+export function blockedPluginOutcome(check: Pick<Check, "id" | "title" | "expected">, reason: string): CheckOutcome {
+  const boundary = String(reason || `Plugin check '${check.id}' is blocked.`);
+  const outcome = new CheckOutcome({
+    status: CheckStatus.BLOCKED,
+    actual: boundary,
+    evidence: [],
+    findings: [],
+    blocker: null,
+    metadata: { limitation: boundary, boundary },
+  });
+  outcome.addBlocker(
+    check.expected || check.title || `Run plugin check '${check.id}'.`,
+    boundary,
+    [
+      `Resolve the plugin issue for '${check.id}' (install/verify/sign/fix ownership or configuration) and re-run.`,
+    ],
+    false,
+    [],
+  );
+  return outcome;
+}
+
+export class PluginCheckRunner {
+  /** Execute a plugin evaluator with a bounded, evidence-backed context. */
+
+  readonly target: Target;
+  readonly root: string | null;
+  readonly inventory: unknown;
+  readonly evidence: EvidenceStore;
+  readonly log: (message: string) => void;
+
+  constructor(
+    target: Target,
+    root: string | null | undefined,
+    inventory: unknown,
+    evidence: EvidenceStore,
+    log?: (message: string) => void,
+  ) {
+    this.target = target;
+    this.root = root ?? null;
+    this.inventory = inventory;
+    this.evidence = evidence;
+    this.log = log ?? (() => {});
+  }
+
+  createContext(check: Check): PluginContext {
+    return {
+      check,
+      target: this.target,
+      root: this.root ?? null,
+      inventory: this.inventory,
+      evidence: this.evidence,
+      log: this.log,
+      saveJson: (name: string, payload: unknown, description = "", kind = "plugin") =>
+        this.evidence.saveJson(name, payload, kind, description, check.id),
+    };
+  }
+
+  async run(check: Check, evaluator: PluginEvaluator): Promise<CheckOutcome> {
+    const context = this.createContext(check);
+    let outcome: unknown;
+    try {
+      outcome = await evaluator(context);
+    } catch (err) {
+      const name = (err as Error)?.name ?? "Error";
+      const msg = err instanceof Error ? err.message : String(err);
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: `Plugin check crashed: ${name}: ${msg}`,
+        metadata: { error: msg },
+      });
+    }
+
+    if (!(outcome instanceof CheckOutcome)) {
+      const typeName = outcome === null ? "null" : typeof outcome === "object" ? (outcome as { constructor?: { name?: string } }).constructor?.name ?? "object" : typeof outcome;
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: `Plugin did not return a CheckOutcome (got ${String(typeName)}).`,
+      });
+    }
+
+    const co = outcome;
+    if (!isValidCheckStatus(co.status)) {
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: `Plugin returned an unknown check status: ${JSON.stringify(co.status)}.`,
+      });
+    }
+
+    const normalized = normalizeOutcomeForValidation(co);
+    if (!Array.isArray(co.findings) || normalized.findings.some((d) => !isFindingDraftLike(d))) {
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: "Plugin findings must be FindingDraft instances.",
+      });
+    }
+    if (co.blocker !== null && co.blocker !== undefined && !isBlockerDraftLike(co.blocker)) {
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: "Plugin blocker must be a BlockerDraft instance.",
+      });
+    }
+
+    const invalid = invalidEvidencePaths(this.evidence, normalized.evidence);
+    if (invalid.length > 0) {
+      return new CheckOutcome({
+        status: CheckStatus.ERROR,
+        actual: "Plugin returned evidence outside this run's evidence directory.",
+        metadata: { limitation: `Invalid plugin evidence paths: ${invalid.slice(0, 5).join(", ")}` },
+      });
+    }
+
+    if (normalized.findings.length > 0) {
+      const allowed = new Set(normalized.evidence);
+      for (const draft of normalized.findings) {
+        const draftEvidence = normalizeStringArray(draft.evidence);
+        if (draftEvidence.some((p) => !allowed.has(p))) {
+          return new CheckOutcome({
+            status: CheckStatus.ERROR,
+            actual: "Plugin finding evidence must be included in the check evidence.",
+          });
+        }
+      }
+      if (normalized.evidence.length === 0 && normalized.findings.some((d) => normalizeStringArray(d.evidence).length === 0)) {
+        return new CheckOutcome({
+          status: CheckStatus.ERROR,
+          actual: "Plugin findings require evidence before they can be recorded.",
+        });
+      }
+    }
+
+    // ensure normalized arrays on returned outcome
+    co.evidence = normalized.evidence;
+    return co;
+  }
 }
 
 export function signaturePayload(definition: CheckDefinition, entryPoint: string): Buffer {

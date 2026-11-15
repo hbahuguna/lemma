@@ -220,8 +220,8 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | In Progress |
-| LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | Backlog |
+| LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | Done |
+| LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | In Progress |
 | LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Backlog |
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Backlog |
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Backlog |
@@ -862,6 +862,44 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugins-registry.test.ts` (pass, 4 tests).
 - **Evidence:** `packages/core/src/plugins.ts`, `packages/core/src/index.ts` (exports), `packages/core/src/checks.ts` (`registryFingerprint` prefers concrete registry fingerprint when available), `packages/core/test/plugins/plugins-registry.test.ts`, `docs/parity/evidence/LEM-075-plugin-registry-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Correctly signed plugins register; unsigned/unknown-key/invalid-signature/import/discovery failures become blocked `plugin-blocked` definitions with actionable reasons (no run/build failure); trust store at `.lemma/plugins/trusted_keys.json` by default. Execution context wiring and ownership validation remain in LEM-076/LEM-077.
+
+### LEM-076 — Port the plugin context and blocked-failure handling
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-075
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-context.test.ts`.
+- **Description:** Port the plugin execution context and failure handling so a
+  broken, missing, or misbehaving plugin becomes a blocked coverage gap instead
+  of a run failure.
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a plugin execution context and runner (e.g.
+    `PluginContext`, `PluginCheckRunner`) that exposes check/target/root/
+    inventory/evidence/log surfaces to evaluators and a `saveJson` helper that
+    persists evidence via `EvidenceStore` under the check and returns a run-
+    relative evidence path suitable for `CheckOutcome.evidence`.
+  - `PluginCheckRunner.run(...)` executes the evaluator with the bounded context
+    and returns a `CheckOutcome`: evaluator crashes/exceptions become an ERROR
+    outcome (not a fatal run failure); non-`CheckOutcome` returns, unknown check
+    statuses, non-`FindingDraft` findings, non-`BlockerDraft` blockers, or
+    invalid/unsafe evidence references produce ERROR outcomes with actionable
+    messages.
+  - Runner enforces evidence integrity for plugin outcomes: referenced evidence
+    paths must resolve inside the run evidence directory and exist as files;
+    finding evidence must be included in check evidence, and findings require
+    evidence before they can be recorded.
+  - Blocked-failure handling: core exposes helpers to produce blocked outcomes
+    for blocked plugin checks/registry-blocked reasons (coverage gap, no
+    evaluator execution), carrying an actionable boundary/blocker draft (not a
+    pass/fatal). `PluginContext`/runner APIs are exported from `@lemma/core`.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-context.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-context.test.ts` (pass, 5 tests; `plugins-registry.test.ts` 4/4 still pass).
+- **Evidence:** `packages/core/src/plugins.ts` (`PluginContext`, `PluginCheckRunner` with `saveJson`/crash+validation handling and run-evidence integrity checks, `blockedPluginOutcome`), `packages/core/src/index.ts` exports, `packages/core/test/plugins/plugin-context.test.ts`, `docs/parity/evidence/LEM-076-plugin-context-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Evaluator failures/misbehavior yield ERROR/blocked outcomes (coverage gaps) instead of fatal run failure; registry ownership/planning integration follows in LEM-077+.
 
 ### LEM-074 — Build policy and calibration regression coverage
 

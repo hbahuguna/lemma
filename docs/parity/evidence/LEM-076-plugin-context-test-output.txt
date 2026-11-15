@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/plugins/plugins-registry.test.ts (4 tests) 38ms
+ ✓ packages/core/test/plugins/plugin-context.test.ts (5 tests) 50ms
+
+ Test Files  2 passed (2)
+      Tests  9 passed (9)
+   Start at  21:34:15
+   Duration  2.93s (transform 770ms, setup 0ms, collect 1.97s, tests 89ms, environment 1ms, prepare 1.23s)
+
