@@ -285,7 +285,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | --- | --- | --- | --- | --- | --- |
 | LEM-098 | Implement the shared `AgentHost` adapter SDK | P0 | 5 | LEM-003, LEM-083 | Done |
 | LEM-099 | Implement capability negotiation and graceful degradation | P0 | 5 | LEM-098 | Done |
-| LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Backlog |
+| LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Done |
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
@@ -4347,6 +4347,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts` (pass, 6 tests).
 - **Evidence:** `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/capability-negotiation.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-099-capability-negotiation-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-100 — Build the adapter conformance kit and fake host
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-098, LEM-099
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts packages/adapters/sdk/test/adapter-conformance-kit.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Provide a shared adapter conformance kit and fake host so
+  adapters can be validated against the canonical AgentHost contract and
+  capability/degradation rules without host SDK dependencies or duplicated test
+  logic.
+- **Acceptance Criteria:**
+  - `@lemma/adapters-sdk` exports host-neutral fake-host and conformance-kit
+    APIs/types, including at minimum: a machine-readable adapter manifest type
+    and validator, a configurable fake `AgentHost` implementation for tests, and
+    a reusable conformance assertion/validation API that checks host+manifest
+    contract compliance.
+  - The fake host implements the `AgentHost` contract with deterministic,
+    configurable behavior/capabilities (including optional methods/capabilities)
+    and records interactions needed by tests (e.g. registered commands/tools and
+    progress/final/question/form/MCP/secret/session activity) without silent
+    emulation of unavailable capabilities.
+  - The conformance kit validates core contract and honesty requirements:
+    manifest/host identity and capability consistency, required AgentHost
+    method behavior, optional capability/method alignment, and integration with
+    capability negotiation/graceful-degradation semantics (declared limitations
+    and degradation flags for unavailable capabilities such as question UI,
+    native forms, MCP resources, session events, model invocation, and progress
+    stream) as applicable to the host under test.
+  - `packages/adapters/sdk/test/adapter-conformance-kit.test.ts` demonstrates the
+    kit/fake host: a conformant fake-host case passes, and intentionally
+    non-conformant cases are rejected with actionable failures (e.g. manifest/
+    capability mismatch or dishonest optional-capability behavior).
+  - `pnpm --filter @lemma/adapters-sdk typecheck`,
+    `pnpm --filter @lemma/adapters-sdk build`, and
+    `pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts packages/adapters/sdk/test/adapter-conformance-kit.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts packages/adapters/sdk/test/adapter-conformance-kit.test.ts` (pass, 3 files / 9 tests).
+- **Evidence:** `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/adapter-conformance-kit.test.ts`, `docs/parity/evidence/LEM-100-adapter-conformance-kit-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-100).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

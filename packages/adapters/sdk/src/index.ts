@@ -394,3 +394,329 @@ export async function flushBufferedProgress(
   }
   return messages;
 }
+
+export interface AdapterManifest {
+  id: HostId;
+  capabilities: HostCapabilities;
+  name?: string;
+  version?: string;
+  packageName?: string;
+  description?: string;
+  metadata?: Record<string, unknown>;
+}
+
+export interface ManifestValidationResult {
+  ok: boolean;
+  errors: string[];
+}
+
+export function validateAdapterManifest(manifest: AdapterManifest): ManifestValidationResult {
+  const errors: string[] = [];
+  if (!manifest || typeof manifest !== "object") {
+    return { ok: false, errors: ["manifest must be an object"] };
+  }
+  if (!isHostId(manifest.id)) {
+    errors.push(`manifest.id must be one of: ${HOST_IDS.join(", ")}`);
+  }
+  if (!manifest.capabilities || typeof manifest.capabilities !== "object") {
+    errors.push("manifest.capabilities must be an object");
+  } else {
+    for (const key of Object.keys(DEFAULT_HOST_CAPABILITIES) as CapabilityKey[]) {
+      if (typeof manifest.capabilities[key] !== "boolean") {
+        errors.push(`manifest.capabilities.${key} must be boolean`);
+      }
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+export function assertValidAdapterManifest(manifest: AdapterManifest): void {
+  const result = validateAdapterManifest(manifest);
+  if (!result.ok) {
+    throw new Error(`Invalid adapter manifest: ${result.errors.join("; ")}`);
+  }
+}
+
+export interface FakeHostOptions {
+  id?: HostId;
+  capabilities?: Partial<HostCapabilities>;
+  session?: Partial<SessionContext>;
+  mcpResources?: McpResource[];
+  answerQuestion?: (request: QuestionRequest) => Promise<QuestionAnswer> | QuestionAnswer;
+  answerForm?: (request: FormRequest) => Promise<FormAnswer | null> | FormAnswer | null;
+  resolveSecret?: (ref: SecretRef) => Promise<string> | string;
+}
+
+export interface FakeHostRecords {
+  commands: CommandDescriptor[][];
+  tools: ToolDescriptor[][];
+  progress: string[];
+  finals: string[];
+  questions: QuestionRequest[];
+  forms: FormRequest[];
+  mcpResourceRequests: number;
+  secretRequests: SecretRef[];
+}
+
+export class FakeAgentHost implements AgentHost {
+  readonly id: HostId;
+  readonly capabilities: HostCapabilities;
+  readonly records: FakeHostRecords = {
+    commands: [],
+    tools: [],
+    progress: [],
+    finals: [],
+    questions: [],
+    forms: [],
+    mcpResourceRequests: 0,
+    secretRequests: [],
+  };
+
+  private readonly session: SessionContext;
+  private readonly mcpResources: McpResource[];
+  private readonly questionHandler?: FakeHostOptions["answerQuestion"];
+  private readonly formHandler?: FakeHostOptions["answerForm"];
+  private readonly secretHandler?: FakeHostOptions["resolveSecret"];
+
+  collectForm?: (request: FormRequest) => Promise<FormAnswer | null>;
+  listMcpResources?: () => Promise<McpResource[]>;
+  resolveSecret?: (ref: SecretRef) => Promise<string>;
+
+  constructor(options: FakeHostOptions = {}) {
+    this.id = options.id ?? "opencode";
+    this.capabilities = createCapabilities(options.capabilities);
+    this.session = {
+      host: this.id,
+      sessionId: options.session?.sessionId ?? "ses_fake",
+      ...(options.session?.cwd !== undefined ? { cwd: options.session.cwd } : {}),
+      ...(options.session?.workspaceRoot !== undefined
+        ? { workspaceRoot: options.session.workspaceRoot }
+        : {}),
+      ...(options.session?.metadata !== undefined ? { metadata: options.session.metadata } : {}),
+    };
+    this.mcpResources = options.mcpResources ? [...options.mcpResources] : [];
+    this.questionHandler = options.answerQuestion;
+    this.formHandler = options.answerForm;
+    this.secretHandler = options.resolveSecret;
+
+    if (this.capabilities.nativeForms) {
+      this.collectForm = async (request: FormRequest): Promise<FormAnswer | null> => {
+        this.records.forms.push(request);
+        if (this.formHandler) {
+          return await this.formHandler(request);
+        }
+        return {
+          values: Object.fromEntries(request.fields.map((f) => [f.id, f.defaultValue ?? ""])),
+          submitted: true,
+        };
+      };
+    } else {
+      delete this.collectForm;
+    }
+
+    if (this.capabilities.mcpResources) {
+      this.listMcpResources = async (): Promise<McpResource[]> => {
+        this.records.mcpResourceRequests += 1;
+        return [...this.mcpResources];
+      };
+    } else {
+      delete this.listMcpResources;
+    }
+
+    this.resolveSecret = async (ref: SecretRef): Promise<string> => {
+      this.records.secretRequests.push(ref);
+      if (this.secretHandler) {
+        return await this.secretHandler(ref);
+      }
+      return ref.env ?? ref.id ?? "resolved";
+    };
+  }
+
+  async registerCommands(commands: CommandDescriptor[]): Promise<void> {
+    this.records.commands.push([...commands]);
+  }
+
+  async registerTools(tools: ToolDescriptor[]): Promise<void> {
+    this.records.tools.push([...tools]);
+  }
+
+  async sendProgress(message: string): Promise<void> {
+    this.records.progress.push(message);
+  }
+
+  async sendFinal(message: string): Promise<void> {
+    this.records.finals.push(message);
+  }
+
+  async askQuestion(request: QuestionRequest): Promise<QuestionAnswer> {
+    this.records.questions.push(request);
+    if (this.questionHandler) {
+      return await this.questionHandler(request);
+    }
+    const first = request.options?.[0];
+    const value = first?.value ?? first?.label ?? "skip";
+    return first?.value !== undefined ? { value, optionValue: first.value } : { value };
+  }
+
+  getSession(): SessionContext {
+    return {
+      host: this.session.host,
+      ...(this.session.sessionId !== undefined ? { sessionId: this.session.sessionId } : {}),
+      ...(this.session.cwd !== undefined ? { cwd: this.session.cwd } : {}),
+      ...(this.session.workspaceRoot !== undefined
+        ? { workspaceRoot: this.session.workspaceRoot }
+        : {}),
+      ...(this.session.metadata !== undefined ? { metadata: { ...this.session.metadata } } : {}),
+    };
+  }
+}
+
+export function createFakeHost(options: FakeHostOptions = {}): FakeAgentHost {
+  return new FakeAgentHost(options);
+}
+
+export interface AdapterConformanceInput {
+  host: AgentHost;
+  manifest: AdapterManifest;
+}
+
+export interface AdapterConformanceOptions {
+  /** Optional command/tool samples to exercise registration. */
+  sampleCommands?: CommandDescriptor[];
+  sampleTools?: ToolDescriptor[];
+  sampleQuestion?: QuestionRequest;
+  sampleForm?: FormRequest;
+}
+
+function assert(condition: unknown, message: string): asserts condition {
+  if (!condition) throw new Error(message);
+}
+
+function sameCapabilities(a: HostCapabilities, b: HostCapabilities): boolean {
+  return (Object.keys(DEFAULT_HOST_CAPABILITIES) as CapabilityKey[]).every((k) => a[k] === b[k]);
+}
+
+export async function assertAdapterConformance(
+  input: AdapterConformanceInput,
+  options: AdapterConformanceOptions = {},
+): Promise<CapabilityNegotiationResult> {
+  const { host, manifest } = input;
+  assertValidAdapterManifest(manifest);
+  assert(host.id === manifest.id, `manifest.id (${manifest.id}) must match host.id (${host.id})`);
+  assert(
+    sameCapabilities(host.capabilities, manifest.capabilities),
+    "manifest.capabilities must match host.capabilities",
+  );
+
+  const negotiation = negotiateCapabilities(manifest.capabilities);
+  assert(
+    sameCapabilities(negotiation.effective, manifest.capabilities),
+    "effective capabilities must match declared capabilities (no silent emulation)",
+  );
+
+  const session = host.getSession();
+  assert(session && session.host === host.id, "getSession().host must match host.id");
+
+  const sampleCommands = options.sampleCommands ?? [
+    {
+      name: "assay-run",
+      description: "Run assessment",
+      intent: "Run assessment",
+      allowedSubcommands: ["run", "status", "report"],
+      mode: "static",
+    },
+  ];
+  const sampleTools = options.sampleTools ?? [
+    { name: "assay_jira_context", description: "Collect Jira context" },
+  ];
+  await host.registerCommands(sampleCommands);
+  await host.registerTools(sampleTools);
+  await host.sendProgress("conformance:progress");
+  await host.sendFinal("conformance:final");
+
+  const question = options.sampleQuestion ?? {
+    question: "Need context?",
+    options: [{ label: "Skip", value: "skip" }],
+    allowFreeform: true,
+  };
+  const answer = await host.askQuestion(question);
+  assert(answer && typeof answer.value === "string", "askQuestion must return an answer with string value");
+
+  if (host.capabilities.nativeForms) {
+    assert(typeof host.collectForm === "function", "nativeForms capability requires collectForm");
+    const form = await host.collectForm(
+      options.sampleForm ?? { fields: [{ id: "note", label: "Note", type: "text" }] },
+    );
+    assert(form === null || (form && typeof form.submitted === "boolean" && form.values && typeof form.values === "object"),
+      "collectForm must return a form answer or null",
+    );
+  } else {
+    assert(
+      typeof host.collectForm !== "function",
+      "nativeForms unavailable must not expose collectForm (no silent emulation)",
+    );
+    assert(
+      negotiation.limitations.some((l) => l.code === "native_form_unavailable"),
+      "nativeForms unavailable must produce native_form_unavailable limitation",
+    );
+  }
+
+  if (host.capabilities.mcpResources) {
+    assert(typeof host.listMcpResources === "function", "mcpResources capability requires listMcpResources");
+    const resources = await host.listMcpResources();
+    assert(Array.isArray(resources), "listMcpResources must return an array");
+  } else {
+    assert(
+      typeof host.listMcpResources !== "function",
+      "mcpResources unavailable must not expose listMcpResources (no silent emulation)",
+    );
+    assert(
+      negotiation.limitations.some((l) => l.code === "mcp_unavailable"),
+      "mcpResources unavailable must produce mcp_unavailable limitation",
+    );
+  }
+
+  if (!host.capabilities.questionUi) {
+    assert(
+      negotiation.limitations.some((l) => l.code === "question_ui_unavailable") &&
+        negotiation.degradation.usePlainChatForQuestions,
+      "questionUi unavailable must produce question_ui_unavailable limitation and plain-chat degradation",
+    );
+  }
+  if (!host.capabilities.sessionEvents) {
+    assert(
+      negotiation.limitations.some((l) => l.code === "session_events_unavailable") &&
+        negotiation.degradation.interactiveResumeDisabled &&
+        negotiation.degradation.persistedStateResumeEnabled,
+      "sessionEvents unavailable must disable interactive resume but keep persisted-state resume",
+    );
+  }
+  if (!host.capabilities.modelInvoke) {
+    assert(
+      negotiation.limitations.some((l) => l.code === "model_invocation_unavailable") &&
+        negotiation.degradation.stopAgentLoopAfterDeterministicRun,
+      "modelInvoke unavailable must stop agent loop after deterministic run",
+    );
+  }
+  if (!host.capabilities.progressStream) {
+    assert(
+      negotiation.limitations.some((l) => l.code === "progress_stream_unavailable") &&
+        negotiation.degradation.bufferProgressAtPhaseBoundaries,
+      "progressStream unavailable must buffer progress at phase boundaries",
+    );
+  }
+
+  return negotiation;
+}
+
+export function createAdapterManifest(
+  id: HostId,
+  capabilities: Partial<HostCapabilities> | HostCapabilities,
+  extra: Omit<Partial<AdapterManifest>, "id" | "capabilities"> = {},
+): AdapterManifest {
+  return {
+    id,
+    capabilities: createCapabilities(capabilities),
+    ...extra,
+  };
+}
