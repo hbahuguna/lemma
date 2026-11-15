@@ -37,6 +37,7 @@ export const IMPLEMENTED_BROWSER_CHECKS = new Set([
   "browser.accessibility",
   "browser.overflow",
   "browser.focus_order",
+  "browser.steps",
 ]);
 
 function asRecord(value: unknown): Record<string, unknown> {

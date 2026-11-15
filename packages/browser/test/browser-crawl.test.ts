@@ -178,8 +178,9 @@ describe("LEM-054 runBrowserChecks crawl integration (injected views)", () => {
     expect(consoleOut?.status).toBe(CheckStatus.PASSED);
     expect(consoleOut?.metadata.crawled).toBe(true);
 
-    const unsupported = outcomes.get("browser.steps");
-    expect(unsupported?.status).toBe(CheckStatus.BLOCKED);
-    expect(String(unsupported?.metadata?.not_implemented)).toBe("true");
+    const steps = outcomes.get("browser.steps");
+    expect(steps?.status).toBe(CheckStatus.BLOCKED);
+    // no scenario provided in this crawl-only test; browser.steps remains blocked but is implemented/integrated
+    expect(String(steps?.blocker?.boundary ?? "")).toMatch(/scenario|browser/i);
   });
 });

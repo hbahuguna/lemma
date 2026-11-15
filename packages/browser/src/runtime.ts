@@ -5,8 +5,11 @@ import { join } from "node:path";
 import {
   CheckOutcome,
   CheckStatus,
+  evaluateScenarioCheck,
   type BlockerDraft,
   type Check,
+  type ScenarioExecutionResult,
+  type ScenarioPlan,
 } from "@lemma/core";
 
 import {
@@ -19,6 +22,7 @@ import {
   type BrowserPageView,
 } from "./checks.js";
 import { redactHarPayload, redactTraceBytes, type BrowserCaptureEvidenceStore } from "./capture.js";
+import { executeScenarioPlan, loadScenarioPlan, loadScenarioPlanFromFile, type BrowserScenarioPageLike } from "./scenarios.js";
 
 export interface PlaywrightModuleLike {
   chromium?: {
@@ -59,6 +63,18 @@ export interface BrowserRuntimeOptions {
   captureVideo?: boolean;
   /** Alias for captureVideo. */
   capture_video?: boolean;
+  /** Precomputed scenario execution result for `browser.steps` (deterministic injection). */
+  scenarioExecution?: ScenarioExecutionResult | Record<string, unknown>;
+  /** Scenario plan object or JSON string for `browser.steps`. */
+  scenarioPlan?: ScenarioPlan | Record<string, unknown> | string;
+  /** Alias for scenarioPlan. */
+  scenario?: ScenarioPlan | Record<string, unknown> | string;
+  /** Natural-language scenario text to compile (heuristic) for `browser.steps`. */
+  scenarioText?: string;
+  /** Scenario file path (JSON plan or text) for `browser.steps`. */
+  scenarioFile?: string;
+  /** Alias for scenarioFile. */
+  scenario_file?: string;
   /**
    * Test/extension hook: provide a custom Playwright loader. Returning/throwing
    * an unavailable module simulates a missing runtime.
@@ -318,6 +334,8 @@ export interface RunBrowserChecksInput {
   views?: ReadonlyArray<BrowserPageView | Record<string, unknown>>;
   /** Optional evidence store for Playwright capture paths. */
   evidence?: BrowserEvidenceStoreLike;
+  /** Optional injected Playwright-like page for scenario execution/testing. */
+  scenarioPage?: BrowserScenarioPageLike;
 }
 
 /**
@@ -766,6 +784,128 @@ async function captureWithPlaywright(
 }
 /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
+
+function toScenarioOutcome(execution: ScenarioExecutionResult | null | undefined): CheckOutcome {
+  const out = evaluateScenarioCheck(execution);
+  const findings = Array.isArray(out.findings)
+    ? out.findings.map((f) => {
+        const ev = (f as { evidence?: unknown }).evidence;
+        return {
+          ...f,
+          evidence: Array.isArray(ev) ? ev.filter((x): x is string => typeof x === "string") : [],
+        };
+      })
+    : [];
+  return new CheckOutcome({
+    status: out.status,
+    actual: out.actual,
+    evidence: Array.isArray(out.evidence) ? out.evidence : [],
+    findings,
+    metadata: out.metadata && typeof out.metadata === "object" ? (out.metadata) : {},
+  });
+}
+
+function resolveScenarioPlanInput(input: RunBrowserChecksInput): ScenarioPlan | null {
+  const opts = input.options ?? {};
+  const baseUrl = input.url;
+  const fromFile = opts.scenarioFile ?? opts.scenario_file;
+  try {
+    if (typeof fromFile === "string" && fromFile.trim()) {
+      return loadScenarioPlanFromFile(fromFile, { baseUrl });
+    }
+    const planInput = opts.scenarioPlan ?? opts.scenario ?? opts.scenarioText;
+    if (planInput !== undefined && planInput !== null) {
+      if (typeof planInput === "string") {
+        if (planInput.trim() === "") return null;
+        return loadScenarioPlan(planInput, { baseUrl });
+      }
+      const rec = planInput as Record<string, unknown>;
+      if (Array.isArray(rec.steps) && typeof rec.title === "string") {
+        return loadScenarioPlan(rec, { baseUrl });
+      }
+      return loadScenarioPlan(rec, { baseUrl });
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function normalizeScenarioExecution(value: unknown): ScenarioExecutionResult | null {
+  if (!value || typeof value !== "object") return null;
+  const v = value as Record<string, unknown>;
+  if (typeof v.passed !== "boolean" || typeof v.total_steps !== "number") return null;
+  return {
+    title: typeof v.title === "string" ? v.title : "Scenario",
+    target_url: typeof v.target_url === "string" ? v.target_url : (typeof v.targetUrl === "string" ? v.targetUrl : ""),
+    passed: v.passed,
+    total_steps: v.total_steps,
+    passed_steps: typeof v.passed_steps === "number" ? v.passed_steps : 0,
+    failed_steps: typeof v.failed_steps === "number" ? v.failed_steps : 0,
+    skipped_steps: typeof v.skipped_steps === "number" ? v.skipped_steps : 0,
+    duration_ms: typeof v.duration_ms === "number" ? v.duration_ms : 0,
+    results: Array.isArray(v.results) ? (v.results as ScenarioExecutionResult["results"]) : [],
+    evidence_refs: v.evidence_refs && typeof v.evidence_refs === "object" ? (v.evidence_refs as Record<string, string>) : {},
+    error: typeof v.error === "string" ? v.error : "",
+  };
+}
+
+async function resolveBrowserStepsOutcome(input: RunBrowserChecksInput, probeAvailable: boolean): Promise<CheckOutcome> {
+  const opts = input.options ?? {};
+  const injected = normalizeScenarioExecution(opts.scenarioExecution);
+  if (injected) return toScenarioOutcome(injected);
+
+  const plan = resolveScenarioPlanInput(input);
+  if (!plan) {
+    return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "No scenario plan or execution was provided for browser.steps.");
+  }
+
+  // If an injectable page is provided, execute directly (deterministic/test path).
+  if (input.scenarioPage) {
+    try {
+      const execOpts = opts.timeoutMs === undefined ? {} : { timeoutMs: opts.timeoutMs };
+      const exec = await executeScenarioPlan(input.scenarioPage, plan, input.evidence, execOpts);
+      return toScenarioOutcome(exec);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, `Scenario execution could not run: ${reason}`);
+    }
+  }
+
+  if (!probeAvailable) {
+    return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Browser runtime is unavailable for scenario execution.");
+  }
+
+  // Best-effort: run scenario in a lightweight Playwright session.
+  try {
+    const probe = await probeBrowserRuntime(opts);
+    if (!probe.available || !probe.playwright) {
+      return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, probe.reason ?? "Browser runtime is unavailable for scenario execution.");
+    }
+    const chromium = probe.playwright.chromium as { launch?: (options?: Record<string, unknown>) => Promise<unknown> } | undefined;
+    if (!chromium || typeof chromium.launch !== "function") {
+      return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Playwright Chromium launcher is unavailable for scenario execution.");
+    }
+    const browser = (await chromium.launch({ headless: opts.headless ?? true })) as {
+      newContext: (opts?: Record<string, unknown>) => Promise<{ newPage: () => Promise<BrowserScenarioPageLike>; close: () => Promise<void> }>;
+      close: () => Promise<void>;
+    };
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
+    try {
+      const execOpts = { label: "scenario", ...(opts.timeoutMs === undefined ? {} : { timeoutMs: opts.timeoutMs }) };
+      const exec = await executeScenarioPlan(page, plan, input.evidence, execOpts);
+      return toScenarioOutcome(exec);
+    } finally {
+      try { await context.close(); } catch { /* noop */ }
+      try { await browser.close(); } catch { /* noop */ }
+    }
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, `Scenario execution could not run: ${reason}`);
+  }
+}
+
 /**
  * Run browser checks with optional runtime. If runtime is unavailable/disabled
  * or the check is outside this runtime slice, blocked outcomes are emitted.
@@ -777,10 +917,32 @@ export async function runBrowserChecks(
   input: RunBrowserChecksInput,
 ): Promise<void> {
   const { checks, onOutcome, options, evidence } = input;
+  const hasSteps = checks.some((c) => c.id === "browser.steps");
+  const nonSteps = checks.filter((c) => c.id !== "browser.steps");
+
+  let stepsOutcome: CheckOutcome | null = null;
+  if (hasSteps) {
+    const injected = normalizeScenarioExecution(options?.scenarioExecution);
+    if (injected) {
+      stepsOutcome = toScenarioOutcome(injected);
+    }
+  }
+
   const probe = await probeBrowserRuntime(options);
   if (!probe.available || !probe.playwright) {
     const reason = probe.reason ?? "Browser runtime is unavailable.";
-    await degradeBrowserChecks(checks, reason, onOutcome);
+    if (nonSteps.length > 0) {
+      await degradeBrowserChecks(nonSteps, reason, onOutcome);
+    }
+    if (hasSteps) {
+      const out = stepsOutcome ?? (await resolveBrowserStepsOutcome(input, false));
+      for (const check of checks.filter((c) => c.id === "browser.steps")) {
+        // Preserve injected/precomputed execution outcomes; otherwise block with actionable reason.
+        await onOutcome(check, stepsOutcome ? stepsOutcome : (out.status === CheckStatus.BLOCKED ? out : blockedBrowserOutcome(check, reason)));
+      }
+    } else if (nonSteps.length === 0) {
+      await degradeBrowserChecks(checks, reason, onOutcome);
+    }
     return;
   }
 
@@ -813,8 +975,19 @@ export async function runBrowserChecks(
 
   const multi = views.length > 1 || (options?.crawl === true && getMaxPages(options) > 1);
 
+  if (hasSteps && !stepsOutcome) {
+    stepsOutcome = await resolveBrowserStepsOutcome(input, true);
+  }
+
   for (const check of checks) {
     try {
+      if (check.id === "browser.steps") {
+        await onOutcome(
+          check,
+          stepsOutcome ?? blockedBrowserOutcome(check, "No scenario plan or execution was provided for browser.steps."),
+        );
+        continue;
+      }
       if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
         await onOutcome(check, notImplementedOutcome(check));
         continue;

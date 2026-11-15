@@ -187,7 +187,7 @@ scan wearing a browser label.
 | LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Done |
 | LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Done |
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Done |
-| LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Backlog |
+| LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Done |
 | LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Backlog |
 | LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Backlog |
 | LEM-061 | Verify browser evidence, manifest, and report linkage | P0 | 3 | LEM-016, LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-058** — Port scenario-file execution and `browser.steps` (2026-11-15). Evidence: `packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts`, `packages/browser/src/index.ts` (scenario plan loading/compilation, Playwright-driven `executeScenarioPlan`, `browser.steps` runtime integration/evaluation with injected execution/page support and blocked degradation), `packages/browser/test/browser-scenarios.test.ts`, `docs/parity/evidence/LEM-058-browser-steps-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts`, 5/5; browser suite 48/48); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-057** — Port HAR, trace, and video capture with redaction (2026-11-15). Evidence: `packages/browser/src/capture.ts` and `packages/browser/src/runtime.ts` (capture flags, Playwright HAR/trace/video recording/finalization, redacted HAR/trace-zip/video persistence with evidence refs and cleanup; common capture refs in `packages/browser/src/checks.ts`), `packages/browser/test/browser-capture-artifacts.test.ts`, `docs/parity/evidence/LEM-057-browser-capture-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`, 4/4; browser suite 43/43); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-056** — Port authenticated storage-state injection (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (`resolveBrowserStorageState`, `storageState`/`storage_state` options, assay-compatible env/file/validation/expiry/empty handling, Playwright context injection without persisting resolved state, blocked degradation on resolution failure), `packages/browser/test/browser-storage-state.test.ts`, `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`, 6/6; browser suite 39/39); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-055** — Port the responsive/mobile pack (overflow, focus order) (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.overflow` viewport-aware horizontal overflow/offending-element evaluator and `browser.focus_order` positive-tabindex/focus-order-match evaluator with runtime integration), `packages/browser/test/browser-mobile-pack.test.ts`, `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`, 6/6; browser suite 33/33); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -805,7 +806,63 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-058 — Port scenario-file execution and `browser.steps`
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-051
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts` 5/5 and full browser suite 48/48, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port scenario-file/plan execution and the `browser.steps` check
+  into `@lemma/browser`, building on `@lemma/core/steps` planning/evaluation
+  contracts so ticket-driven browser scenarios can be loaded, executed against
+  Playwright, and reported deterministically.
+- **Acceptance Criteria:**
+  - Scenario loading/compilation helpers (exported) accept: (1) a JSON scenario
+    plan object/file content with `title`/`steps` (and optional `source`,
+    `target_url`/`targetUrl`) producing an explicit `ScenarioPlan`, and (2)
+    natural-language/text instructions compiled into a `ScenarioPlan` via
+    `HeuristicStepPlanner` (from `@lemma/core/steps`) with provided base/target
+    URL. File-path inputs (`scenarioFile`/`scenario_file` or equivalent helper)
+    are read and resolved without persisting secrets.
+  - Browser scenario execution (`executeScenarioPlan`/equivalent, exported and
+    Playwright-injectable/mockable) runs plan steps against a Playwright
+    page/context and returns a `ScenarioExecutionResult` (core steps contract):
+    supports core actions `goto`, `click`, `fill`, `select`, `assert_text`,
+    `assert_visible`, `assert_no_errors`, `wait`, and `screenshot` with per-step
+    pass/fail results, timing, redacted errors, and best-effort evidence refs
+    (including failure screenshots when possible). Execution continues after a
+    failed step to gather evidence; overall pass requires all steps passed.
+  - `browser.steps` is implemented/integrated: when a scenario plan and
+    executable browser context/page are available (or an injected execution
+    result is provided for deterministic evaluation), the runtime/check evaluates
+    `browser.steps` using `evaluateScenarioCheck` (core) producing
+    passed/failed/blocked outcomes with scenario metadata and evidence refs.
+    `IMPLEMENTED_BROWSER_CHECKS` includes `browser.steps` and it is no longer
+    degraded as "not implemented in this slice" when runnable.
+  - `runBrowserChecks`/runtime options accept scenario inputs (`scenarioPlan`,
+    `scenarioFile`/`scenario_file`, and/or precomputed `scenarioExecution`/
+    result injection for tests). When browser runtime/capture is unavailable or
+    no runnable scenario context exists, `browser.steps` degrades/blocks with an
+    actionable boundary (no crash, no false pass).
+  - Tests at `packages/browser/test/browser-scenarios.test.ts` cover plan
+    loading/compilation (JSON + heuristic text), step execution behavior with a
+    mocked Playwright page/context/evidence (including failure continuation and
+    result fields), and `browser.steps` outcome evaluation/integration
+    (pass/fail/blocked). Existing browser tests continue to pass. Evidence
+    recorded at `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`.
+  - Parity inventory updated for LEM-058 scope: `harness/browser.py`,
+    `harness/step_runner.py`/scenario rows, and browser check/test mappings note
+    scenario-file execution and `browser.steps` slice with evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts`
+- **Evidence:** `packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts`, `packages/browser/src/index.ts`, `packages/browser/test/browser-scenarios.test.ts`, `packages/browser/test/browser-checks.test.ts`, `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`; parity inventory `harness/browser.py` and `harness/step_runner.py` updated (LEM-058 scenario-file execution and `browser.steps` slice). Commit/remote recorded in completion summary.
+
 ### LEM-057 — Port HAR, trace, and video capture with redaction
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P2

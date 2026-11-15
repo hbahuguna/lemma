@@ -221,11 +221,11 @@ describe("LEM-051 runtime integration", () => {
 
     expect(outcomes.get("browser.load")?.status).toBe(CheckStatus.PASSED);
     expect(outcomes.get("browser.console")?.status).toBe(CheckStatus.FAILED);
-    const unsupported = outcomes.get("browser.steps");
-    expect(unsupported?.status).toBe(CheckStatus.BLOCKED);
-    expect(unsupported?.findings).toEqual([]);
-    expect(String(unsupported?.blocker?.boundary)).toMatch(/not implemented/i);
-    expect(String(unsupported?.metadata?.not_implemented)).toBe("true");
+    const steps = outcomes.get("browser.steps");
+    // browser.steps is implemented, but no scenario context is provided here
+    expect(steps?.status).toBe(CheckStatus.BLOCKED);
+    expect(steps?.findings).toEqual([]);
+    expect(String(steps?.blocker?.boundary ?? "")).toMatch(/scenario|browser/i);
   });
 
   it("keeps browser.load evaluable and blocks other implemented checks on navigation failure", async () => {
