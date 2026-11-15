@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/exports/report-signing.test.ts (3 tests) 13ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  19:51:38
+   Duration  1.70s (transform 101ms, setup 0ms, collect 99ms, tests 13ms, environment 0ms, prepare 226ms)
+

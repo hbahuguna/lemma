@@ -1,3 +1,5 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+
 import { redactText, redactUnknown, sanitizeUrl } from "./redaction.js";
 
 export const SARIF_SCHEMA = "https://json.schemastore.org/sarif-2.1.0.json" as const;
@@ -219,4 +221,52 @@ export function buildJunit(reportInput: Record<string, unknown>): string {
 
   lines.push("</testsuite>");
   return lines.join("\n");
+}
+
+
+function canonicalizeJson(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map((item) => canonicalizeJson(item));
+  }
+  if (isRecord(value)) {
+    const out: Record<string, unknown> = {};
+    for (const key of Object.keys(value).sort()) {
+      out[key] = canonicalizeJson(value[key]);
+    }
+    return out;
+  }
+  return value;
+}
+
+export function canonicalReportString(report: Record<string, unknown>): string {
+  return JSON.stringify(canonicalizeJson(report));
+}
+
+export function canonicalReportBytes(report: Record<string, unknown>): Uint8Array {
+  return new TextEncoder().encode(canonicalReportString(report));
+}
+
+function keyBytes(key: string | Uint8Array): Uint8Array {
+  return typeof key === "string" ? new TextEncoder().encode(key) : key;
+}
+
+export function signReport(report: Record<string, unknown>, key: string | Uint8Array): string {
+  return createHmac("sha256", keyBytes(key)).update(canonicalReportBytes(report)).digest("hex");
+}
+
+export function verifyReportSignature(
+  report: Record<string, unknown>,
+  signature: string,
+  key: string | Uint8Array,
+): boolean {
+  const expected = signReport(report, key);
+  const sig = typeof signature === "string" ? signature : "";
+  const a = Buffer.from(expected, "hex");
+  const b = Buffer.from(sig, "hex");
+  if (a.length !== b.length) return false;
+  try {
+    return timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
 }
