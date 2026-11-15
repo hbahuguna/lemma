@@ -40,6 +40,35 @@ export type { AssayCommand, CatalogCommandKind, CatalogInvocationResult } from "
 export { CONTEXT_PROTOCOL, buildBrowserAgentPrompt, shellQuote } from "./browser-agent-prompt.js";
 export type { BrowserAgentPromptInput } from "./browser-agent-prompt.js";
 
+export {
+  adfToText,
+  buildJiraFormFields,
+  collectJiraForm,
+  createHttpFormApi,
+  fetchJiraIssue,
+  formatJiraContext,
+  getJiraFormApi,
+  normalizeJiraSite,
+  parseJiraTarget,
+  readLocalServiceConfig,
+  redactSecrets,
+  registerJiraContextTool,
+  sanitizeError,
+  summarizeJiraIssue,
+} from "./jira-context.js";
+export type {
+  JiraContextToolContext,
+  JiraContextToolDefinition,
+  JiraFormApi,
+  JiraFormDetail,
+  JiraFormField,
+  JiraFormInfo,
+  JiraFormPayload,
+  JiraFormPrefill,
+  JiraIssueContext,
+  LocalServiceConfig,
+} from "./jira-context.js";
+
 export interface HarnessInvocation {
   args: string[];
   env?: Record<string, string | undefined>;

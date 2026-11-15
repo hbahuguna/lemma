@@ -47,7 +47,13 @@ LEM-001 -> LEM-003 -> LEM-004 -> LEM-007 -> LEM-010
         -> LEM-153 -> LEM-145 -> LEM-146 -> LEM-152 -> LEM-155
         -> LEM-156 -> LEM-157 -> LEM-158 -> LEM-159 -> LEM-160
         -> LEM-161 -> LEM-162 -> LEM-163 -> LEM-164
-        -> LEM-109 / LEM-110 -> LEM-139 (parity sign-off)
+        -> LEM-165 -> LEM-166 -> LEM-167 -> LEM-168 -> LEM-169
+        -> LEM-170 -> LEM-171 -> LEM-172 -> LEM-175 -> LEM-179
+        -> LEM-180 -> LEM-186 -> LEM-187 -> LEM-188 -> LEM-189
+        -> LEM-190 -> LEM-191 -> LEM-193 -> LEM-194 -> LEM-195
+        -> LEM-196 -> LEM-197 -> LEM-198 -> LEM-199 -> LEM-200
+        -> LEM-201 -> LEM-204 -> LEM-109 / LEM-110
+        -> LEM-139 (parity sign-off)
 ```
 
 Why this order:
@@ -77,6 +83,8 @@ divergence needs an ADR and a Decision Log row.
 | G2 | Evidence parity | Static, browser, persona, plugin, policy, export, and suppression behavior match the parity corpus | LEM-027–LEM-082 |
 | G2.5 | CARBON-parity UX | HTML export, dashboard (live view, screenshots, journey maps, Release Brief, settings), bug-hunting workflow, and extended dynamic a11y all pass acceptance tests; parity inventory rows updated | LEM-141–LEM-155 |
 | G2.75 | Pro tier parity | Commercial tier boundary ADR, specialist command surface, property proofs, test inventory, quality history, Jira/Xray and TestRail integrations, model evaluation workflow, and evidence revision/comparison all pass acceptance tests; unlicensed invocation returns typed `ProUnavailableError` with no fabricated pass | LEM-156–LEM-164 |
+| G2.8 | Advanced quality workflows | Additional core workflows, advanced dimension workflows, confidence-engineering workspace, execution modes, evidence-level classification, regression lifecycle, browser adapter contract, OpenAPI coverage, and continuous workflows all pass acceptance tests | LEM-165–LEM-195 |
+| G2.9 | Cloud tier parity | Cloud execution, steered plans, custom personas, exploratory bots, annotated evidence, health score, benchmarks, model API, reports API, private cloud, and expert review all pass acceptance tests | LEM-196–LEM-206 |
 | G3 | Agent parity | CLI, agent loop, command catalog, browser prompt, and Jira context match the OpenCode product behavior | LEM-083–LEM-097 |
 | G4 | Host surface | One shared adapter contract, five adapters, installer, and conformance kit; OpenCode and Claude Code pass E2E | LEM-098–LEM-112 |
 | G5 | Commercial parity | Metering, auth, quota, ledger, signup, billing, queue, and retention match assay | LEM-113–LEM-122 |
@@ -95,6 +103,9 @@ divergence needs an ADR and a Decision Log row.
 | G | Release | LEM-123–LEM-140 | Hardened, documented, signed, published |
 | H | CARBON-parity UX | LEM-141–LEM-155 | Conversational manager, bug-hunting workflow, background checks, demo, slash commands, local dashboard, HTML export, screenshots, journey maps, Release Brief, settings UI, dynamic a11y, native MCP server, optional analytics, Pro navigation |
 | I | Pro tier | LEM-156–LEM-164 | Commercial tier boundary, specialist commands, property proofs, test inventory, quality history, Jira/Xray and TestRail integrations, model evaluation workflow, evidence revisions |
+| J | Additional core workflows | LEM-165–LEM-172 | Continue-deferred, auto-fix loop, dedicated browser command, human context, feedback loop, test generation, test-intent management, framework upgrade |
+| K | Advanced quality and execution model | LEM-173–LEM-195 | Load, stress, state-hunting, agent-readiness, GEO, i18n, review, release-decision, incident, forever, confidence workspace, eval design/review, execution modes, run sizes, evidence levels, regression lifecycle, command preview, browser adapter, Vibium, OpenAPI, continuous, project-state |
+| L | Cloud tier parity | LEM-196–LEM-206 | Cloud execution, steered plans, custom personas, bots, annotated evidence, health score, benchmarks, model API, reports API, private cloud, expert review |
 
 ---
 
@@ -258,7 +269,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Done |
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Done |
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Done |
-| LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Backlog |
+| LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Done |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Backlog |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Backlog |
 | LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Backlog |
@@ -433,6 +444,99 @@ without the same opt-out posture as the core.
 | LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Backlog |
 | LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Backlog |
 
+### E20: Additional Core Workflows (Free Tier Parity)
+
+**Outcome:** The remaining free-tier CARBON commands that Lemma does not yet
+cover. Each is a first-class catalog entry, host-neutral, evidence-backed, and
+bounded. No behavior is invented: each command maps to a documented CARBON
+workflow and produces durable `.lemma/` artifacts.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Backlog |
+| LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Backlog |
+| LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Backlog |
+| LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Backlog |
+| LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Backlog |
+| LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Backlog |
+| LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Backlog |
+
+### E21: Advanced Quality Workflows
+
+**Outcome:** Focused, dimension-specific workflows that CARBON ships as
+first-class commands. Each is bounded, evidence-backed, and — when it cannot
+produce a real signal — records an explicit coverage gap, never a fabricated
+pass.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
+| LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Backlog |
+| LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
+| LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Backlog |
+| LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Backlog |
+
+### E22: AI Systems / Confidence Engineering Workflows
+
+**Outcome:** The confidence-engineering workspace and review family for AI
+systems (prompts, models, RAG, ranking, agents). All workflows are bounded,
+write durable `.confidence/` artifacts, and — like every lemma workflow — never
+fabricate a pass.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-183 | Build the confidence-engineering workspace (`.confidence/`) | P3 | 8 | LEM-020, LEM-089 | Backlog |
+| LEM-184 | Build the AI evaluation design and review workflows | P3 | 8 | LEM-163, LEM-183 | Backlog |
+| LEM-185 | Build the specialized review workflows (security, skeptical, statistical, release) | P3 | 8 | LEM-179, LEM-183 | Backlog |
+
+### E23: Execution Model, Evidence Discipline, and Browser Adapters
+
+**Outcome:** Explicit execution modes, perspective scaling, a truth-model
+classification for evidence, a regression lifecycle, command preview, a
+formal browser adapter contract, OpenAPI-driven coverage, and continuous
+workflows. These turn the deterministic engine into a disciplined,
+auditable system.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | Backlog |
+| LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Backlog |
+| LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Backlog |
+| LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Backlog |
+| LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Backlog |
+| LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Backlog |
+| LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Backlog |
+| LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Backlog |
+| LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Backlog |
+| LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Backlog |
+
+### E24: Premium Cloud Parity (Commercial Tier Extension)
+
+**Outcome:** Cloud execution, steered test plans, custom personas, exploratory
+bots, annotated evidence, health scores, benchmarks, fine-tuned QA model API,
+reports REST API, private-cloud deployment, and human expert review. Requires
+the commercial tier boundary (LEM-156) and cloud infrastructure (LEM-119) to
+land first.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Backlog |
+| LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Backlog |
+| LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Backlog |
+| LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Backlog |
+| LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Backlog |
+| LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Backlog |
+| LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Backlog |
+| LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Backlog |
+| LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Backlog |
+| LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Backlog |
+| LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Backlog |
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -1795,6 +1899,1347 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   `packages/cli/test/pro-revisions/*`,
   `docs/parity/evidence/LEM-164-revision-compare-test-output.txt`
 
+### LEM-165 — Build the "continue deferred checks" workflow (`/lemma-more`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-015, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-more` (and `lemma more`) command that, after a
+  bounded run ends, resumes with the next highest-value deferred checks. The
+  deferred set is derived from the run's own `maxChecks` cut line, so the
+  command never invents work.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runMore({ runId, stateStore, options })` that loads
+    the prior run, reads the deferred-check set (checks that were planned but
+    not executed because of `maxChecks`), and runs only those checks, extending
+    the same run id.
+  - `lemma more` is registered in the command catalog (LEM-089) and mapped to
+    the `run` intent; slash `/lemma-more` is wired in LEM-154's router once it
+    lands.
+  - The deferred set is derived only from the run's own plan; the command
+    refuses with a typed `StateError` if the run has no deferred checks
+    (no fabricated work), and refuses if the run's registry fingerprint no
+    longer matches (per LEM-021).
+  - Every continued check follows the same evidence, ownership, and quarantine
+    rules as the original run; no check can be re-run if it already succeeded,
+    and skipped checks are recorded explicitly.
+  - Determinism: same seed + frozen clock + same run produce byte-identical
+    extended-run artifacts (modulo documented volatile fields).
+  - Tests cover deferred-set derivation, empty-deferred refusal, fingerprint
+    mismatch refusal, evidence linkage, and determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- more`
+- **Evidence (planned):** `packages/core/src/more.ts`,
+  `packages/core/test/more/*`,
+  `docs/parity/evidence/LEM-165-more-test-output.txt`
+
+### LEM-166 — Build the bounded auto test-fix-retest loop (`/lemma-auto`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-015, LEM-083
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-auto` (and `lemma auto`) workflow that runs a
+  bounded local test-fix-retest loop with explicit stop conditions, user
+  approval before any file mutation, and durable cycle state under
+  `.lemma/auto/`. Never loops indefinitely, never mutates files without
+  approval.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runAutoLoop({ root, target, maxCycles, stopOn, approveMutation })`
+    returning a typed `AutoLoopResult` with per-cycle evidence under
+    `.lemma/auto/<run_id>/<cycle>/`.
+  - Stop conditions are explicit and documented: `maxCycles` (default ≤ 5),
+    wall-clock budget, no-new-findings, no-progress, or manual kill. Exceeding
+    any condition halts cleanly with `halted` status, not a crash.
+  - Every file mutation is gated by a callback (`approveMutation`) that the CLI
+    or agent must resolve; a decline stops the loop and records the declined
+    mutation as a typed result. Silent mutation is not possible.
+  - Cycle state is persisted under `.lemma/auto/` via `@lemma/core/state`
+    atomic writes; resume replays from the last completed cycle; fingerprint
+    mismatch refusal applies (per LEM-021).
+  - All evidence (before/after state, diffs, command transcripts) is redacted
+    and linked from the run; the resulting report extends the same run id.
+  - Determinism: with a stub model and frozen clock, the cycle sequence is
+    byte-identical given the same seed; the loop never claims a pass it did not
+    observe.
+  - Tests cover cycle cap, wall-clock cap, no-progress halt, mutation approval
+    gate, resume, fingerprint mismatch refusal, and determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- auto-loop && pnpm test --filter @lemma/cli -- auto`
+- **Evidence (planned):** `packages/core/src/auto-loop.ts`,
+  `packages/core/test/auto-loop/*`,
+  `packages/cli/test/auto/*`,
+  `docs/parity/evidence/LEM-166-auto-loop-test-output.txt`
+
+### LEM-167 — Build the dedicated browser inspection command (`/lemma-browser`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-051, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a first-class `/lemma-browser` (and `lemma browser`)
+  command for focused browser inspection/exercise, distinct from the general
+  `/lemma` run. Records page observations, screenshots, console/network
+  evidence, and fix prompts; never turns inspection into a fabricated pass.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runBrowserInspection({ target, checks?, scope? })`
+    that reuses the existing browser check runtime (LEM-051) but is scoped to a
+    user-selected page/check subset, and writes durable evidence under
+    `.lemma/evidence/<run_id>/browser/`.
+  - The command is registered in the catalog (LEM-089) and mapped to the
+    `browser` intent; `/lemma-browser` is routed via LEM-154 once it lands.
+  - Every observation carries an evidence reference: screenshot (via LEM-144),
+    console transcript, network transcript, and the fix prompt attached to
+    each finding (a short, deterministic suggestion derived from the check).
+  - Browser-unavailable runs stay `blocked` (per LEM-050) with an explicit
+    blocker and no fabricated screenshot.
+  - Tests cover subset scoping, evidence linkage, blocked behavior, fix-prompt
+    determinism, and catalog wiring.
+- **Verification (planned):** `pnpm test --filter @lemma/browser -- inspection && pnpm test --filter @lemma/core -- browser-command`
+- **Evidence (planned):** `packages/core/src/browser-command.ts`,
+  `packages/browser/src/inspection.ts`,
+  `packages/browser/test/inspection/*`,
+  `docs/parity/evidence/LEM-167-browser-command-test-output.txt`
+
+### LEM-168 — Build the human decision-context workflow (`/lemma-human`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-human` (and `lemma human`) workflow that asks,
+  retains, and records only the human context that materially changes
+  confidence, risk, or release readiness. Questions are pre-defined, versioned,
+  and stored under `.lemma/human/decision-context.json`; unanswered questions
+  never become a fabricated pass.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runHumanContext({ runId, questions })` where
+    `questions` is a versioned catalog (`schemas/human/decision-context.v1.json`)
+    with stable ids prefixed `HUM-` and a documented "materiality" field
+    (why the answer changes confidence/risk/readiness).
+  - Answers are persisted via `@lemma/core/state` atomic writes to
+    `.lemma/human/decision-context.json`; reads are typed; corrupt reads raise
+    `StateError`; the file is versioned and resumable.
+  - When an unanswered `HUM-*` question is material to the current decision,
+    the run's `decision` is escalated to `hold` with an explicit blocker
+    referencing the unanswered question. Silence never produces a pass.
+  - The command is registered in the catalog (LEM-089) and routed via
+    `/lemma-human` (LEM-154).
+  - Redaction is applied before persistence; no free-form text is stored unless
+    a question explicitly requests it, and even then redaction runs first.
+  - Tests cover question catalog integrity, materiality gating, unanswered →
+    `hold`, atomic write, corrupt-read error, redaction, and resumability.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- human-context`
+- **Evidence (planned):** `packages/core/src/human-context.ts`,
+  `schemas/human/decision-context.v1.schema.json`,
+  `packages/core/test/human-context/*`,
+  `docs/parity/evidence/LEM-168-human-context-test-output.txt`
+
+### LEM-169 — Build the private feedback loop with self-hosted review service
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-020, LEM-083
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a scoped private feedback loop: a user can request
+  feedback on a specific evidence set, and reviewers (internal or external) can
+  respond via a self-hosted review service. All feedback lands as durable local
+  context under `.lemma/feedback/`. No remote service is required; the
+  self-hosted service is optional and deployed privately.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `createFeedbackRequest({ runId, scope, reviewers })`
+    and `ingestFeedback({ requestId, response })` writing to
+    `.lemma/feedback/<request_id>/` via `@lemma/core/state` atomic writes.
+  - A review service ships under `feedback-service/` (Node.js, no external
+    runtime dependency) that self-hosts and issues branded invitation links;
+    the invitation token is scoped to the request and expires, and the service
+    is documented in `feedback-service/README.md`.
+  - Feedback responses are validated against `schemas/feedback/response.v1.json`
+    and attached to the originating findings/checks as redacted local context;
+    ingestion is idempotent given the same response id.
+  - Redaction is applied before persistence; the invitation token is never
+    logged; the review service is off by default and enabled only by an
+    explicit `lemma feedback serve` command.
+  - Unlicensed invocation for this feature returns `ProUnavailableError` only
+    if the ADR (LEM-156) classifies feedback as Pro-tier; otherwise the free
+    tier supports it (the ADR must decide and be cited in the evidence).
+  - Tests cover request creation, invitation expiry, response schema,
+    idempotent ingestion, redaction, and off-by-default behavior.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- feedback && pnpm test --filter feedback-service -- integration`
+- **Evidence (planned):** `packages/core/src/feedback.ts`,
+  `feedback-service/*`, `schemas/feedback/response.v1.schema.json`,
+  `packages/core/test/feedback/*`,
+  `docs/parity/evidence/LEM-169-feedback-test-output.txt`
+
+### LEM-170 — Build the test generation workflow (`/lemma-generate`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-014, LEM-058
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-generate` (and `lemma generate`) workflow that
+  generates prioritized, planned tests from code, pages, requirements, and
+  recordings. Generates test intent, not executed tests; each generated intent
+  is bounded, reviewable, and loadable by the existing scenario runner.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runGenerate({ source, scope, maxTests })` where
+    `source` is one of `code`, `page`, `requirements`, `recording`, or `custom`;
+    returns a typed `GenerateResult` with prioritized test intents under
+    `.lemma/tests/generated/`.
+  - Every generated intent conforms to the same scenario format used by
+    LEM-058 (`browser.steps`-compatible); no invalid intent is persisted; the
+    generator produces prioritized output (highest-value tests first) with a
+    documented priority rule.
+  - `maxTests` is enforced; generated intents are capped and the overflow is
+    surfaced as an explicit "not generated" list, never silently dropped.
+  - Generation is deterministic given the same source + seed; the ordering and
+    the resulting file contents are stable.
+  - No test is executed by this command; execution remains the responsibility
+    of the standard run path. The generated intents are not marked as
+    `reviewed: true` unless a human explicitly promotes them (LEM-189).
+  - Tests cover each source kind, intent schema validation, priority ordering,
+    cap enforcement, determinism, and "not generated" overflow.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- generate`
+- **Evidence (planned):** `packages/core/src/generate.ts`,
+  `packages/core/test/generate/*`,
+  `docs/parity/evidence/LEM-170-generate-test-output.txt`
+
+### LEM-171 — Build the durable test-intent management workflow (`/lemma-tests`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-014, LEM-020
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-tests` (and `lemma tests`) workflow that
+  creates, imports, converts, repairs, bakes, and manages durable local test
+  intent. Imports TestRail, Xray, XML, XLSX, DOCX, and code-defined tests into
+  the same scenario format; exports back to the same formats.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `manageTests({ action, format, input?, output? })`
+    with actions `create`, `import`, `convert`, `repair`, `bake`, `list`,
+    `delete`, and formats `testrail`, `xray`, `xml`, `xlsx`, `docx`,
+    `lemma-native`.
+  - Every imported test is validated against the scenario schema (LEM-058);
+    invalid imports raise a typed error and do not partially write; the
+    overflow/rejection is recorded explicitly.
+  - Baking generates the local `.lemma/tests/<suite>/` tree and a
+    reproducible manifest; `list` returns the current tests, `delete` refuses
+    to remove `reviewed: true` tests without an explicit `--force`.
+  - Round-trip tests assert that `import → bake → export` preserves stable ids
+    and semantics for each supported format.
+  - Redaction applies to imported content (any secret-shaped string is stripped
+    or flagged, never persisted raw).
+  - Tests cover each action/format combination, schema validation, overflow,
+    round-trip stability, delete refusal, and redaction.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- test-intent`
+- **Evidence (planned):** `packages/core/src/test-intent.ts`,
+  `packages/core/src/test-intent/parsers/*`,
+  `packages/core/test/test-intent/*`,
+  `docs/parity/evidence/LEM-171-test-intent-test-output.txt`
+
+### LEM-172 — Build the test-framework upgrade workflow (`/lemma-upgrade`)
+
+- **Epic:** E20 Additional Core Workflows
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-171
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-upgrade` (and `lemma upgrade`) workflow that
+  modernizes Selenium, Playwright, Cypress, pytest, JUnit, TestRail, Xray,
+  spreadsheets, and manual tests into lemma's native scenario format. Each
+  upgrade is bounded, reviewable, and reversible.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runUpgrade({ source, target?, dryRun? })` supporting
+    at minimum: `selenium`, `playwright`, `cypress`, `pytest`, `junit`,
+    `testrail`, `xray`, `xlsx`, `docx`, `manual`.
+  - Every upgrade produces a dry-run report first; applying changes requires
+    `dryRun: false` and an approval callback (mirroring LEM-166's mutation
+    gate). Refusal leaves the source untouched.
+  - The upgraded output is a set of `lemma-native` tests under
+    `.lemma/tests/upgraded/`, each validated against the scenario schema and
+    tagged with its origin so re-runs are traceable.
+  - Reversibility: the original source is preserved; upgrades never delete or
+    overwrite source files.
+  - Tests cover each supported source kind, dry-run-first behavior, approval
+    gate, schema validation, origin tagging, and non-destructive behavior.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- upgrade`
+- **Evidence (planned):** `packages/core/src/upgrade.ts`,
+  `packages/core/test/upgrade/*`,
+  `docs/parity/evidence/LEM-172-upgrade-test-output.txt`
+
+### LEM-173 — Build the load-readiness assessment workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a bounded load-readiness workflow that replays recorded
+  browser journeys and reviewed traffic against a target with hard limits,
+  producing a Load report. Load is real, bounded, and opt-in; the workflow
+  refuses when the environment has no safe target.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runLoad({ journeys, traffic, target, limits, approve })`
+    returning a `LoadReport` validated against `schemas/load/load_report.v1.json`.
+  - Load must be explicitly approved by the operator (`approve` callback); a
+    non-approved call raises `HarnessError` and does not send any traffic.
+  - Hard limits are enforced: max concurrent connections, max total requests,
+    max wall-clock time; exceeding any limit halts cleanly with `halted`
+    status.
+  - Safe-target validation reuses LEM-059's SSRF rules; non-safe targets are
+    rejected before any traffic.
+  - Every load run writes evidence under `.lemma/evidence/<run_id>/load/`
+    (request/response transcripts, timing histograms) with redaction applied.
+  - Tests cover approval gate, hard-limit halts, unsafe-target rejection,
+    report schema, evidence persistence, and redaction.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- load`
+- **Evidence (planned):** `packages/core/src/load.ts`,
+  `schemas/load/load_report.v1.schema.json`,
+  `packages/core/test/load/*`,
+  `docs/parity/evidence/LEM-173-load-test-output.txt`
+
+### LEM-174 — Build the stress-risk review workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a stress-risk review workflow that (a) reads code/config
+  to identify stress risks, (b) optionally runs bounded local tight loops, and
+  (c) records approved stress/recovery experiments. Never runs a stress test
+  without explicit approval; always records results as evidence, not claims.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runStressReview({ root, target, approve })`
+    returning a `StressReport` validated against
+    `schemas/stress/stress_report.v1.json`.
+  - Static phase: reads code/config for documented risk patterns (unbounded
+    loops, missing limits, retries without backoff) and records them as
+    findings with stable ids.
+  - Bounded-loop phase: runs only when `approve` is provided; hard caps on
+    concurrency and duration are enforced; exceeding any cap halts cleanly.
+  - Recovery phase: optional, requires explicit approval per experiment and
+    records recovery times as evidence; cannot be run without a labelled
+    recovery scenario.
+  - Tests cover static-only mode, bounded-loop approval, hard caps, recovery
+    approval, report schema, and evidence persistence.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- stress`
+- **Evidence (planned):** `packages/core/src/stress.ts`,
+  `schemas/stress/stress_report.v1.schema.json`,
+  `packages/core/test/stress/*`,
+  `docs/parity/evidence/LEM-174-stress-test-output.txt`
+
+### LEM-175 — Build the state-hunting workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a state-hunting workflow that actively hunts lost,
+  stale, or inconsistent state: multi-tab/API event sequences, save/reload,
+  export/reimport, and malformed stored data. Bounded and evidence-backed; no
+  fabricated bug.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runStateHunt({ target, sequences, maxSteps, seed })`
+    returning a `StateHuntReport` validated against
+    `schemas/state/state_hunt_report.v1.json`.
+  - Sequences are driven by a documented, bounded planner (multi-tab, reload,
+    export/import, malformed-data); each step records evidence (screenshots,
+    storage/state snapshots via LEM-016) with redaction applied.
+  - `maxSteps` and wall-clock caps are enforced; exceeding either halts
+    cleanly with `halted` status.
+  - Findings are only emitted when a state transition is observed to violate a
+    documented invariant; "no bug found" is never reported as a pass — the run
+    reports `UNCHANGED` coverage with the sequences it exercised.
+  - Determinism: same seed + frozen clock + same target → same findings and
+    evidence fingerprints (modulo documented volatile fields).
+  - Tests cover sequence planning, cap enforcement, invariant checks,
+    evidence linkage, determinism, and "no-bug" honest reporting.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- state-hunt`
+- **Evidence (planned):** `packages/core/src/state-hunt.ts`,
+  `schemas/state/state_hunt_report.v1.schema.json`,
+  `packages/core/test/state-hunt/*`,
+  `docs/parity/evidence/LEM-175-state-hunt-test-output.txt`
+
+### LEM-176 — Build the agent-readiness testing workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Test whether an agent can discover, understand, and safely
+  use a website/API/tool. Produces an Agent Readiness report covering
+  discovery, semantics, safety, and observability.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runAgentReadiness({ target, capabilities })`
+    returning an `AgentReadinessReport` validated against
+    `schemas/agent_readiness/report.v1.json`.
+  - Checks cover: discoverability (robots/sitemap/well-known, OpenAPI,
+    structured data), semantics (labels, stable ids, meaningful URLs),
+    safety (destructive actions gated, approval flows), and observability
+    (error shapes, logs, trace ids).
+  - The report cites evidence for every check; unchecked items are reported
+    as `unknown`, never as a pass.
+  - Tests cover each dimension, evidence linkage, `unknown` reporting, and
+    report schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- agent-readiness`
+- **Evidence (planned):** `packages/core/src/agent-readiness.ts`,
+  `schemas/agent_readiness/report.v1.schema.json`,
+  `packages/core/test/agent-readiness/*`,
+  `docs/parity/evidence/LEM-176-agent-readiness-test-output.txt`
+
+### LEM-177 — Build the AI-search SEO / GEO evaluation workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Evaluate AI-search SEO readiness: crawl/indexing
+  eligibility, grounded answers, credibility signals, structured data, and
+  measured citation behaviour. Produces a GEO report; no fabricated rankings.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runGeo({ target })` returning a `GeoReport`
+    validated against `schemas/geo/report.v1.json`.
+  - Checks cover: crawler eligibility (robots, sitemap, well-known), structured
+    data validity, credibility signals (author, citations, dates), and
+    grounding (how answers are constructed from the page — measured, not
+    inferred).
+  - Every check cites evidence (fetched resources, structured-data extracts,
+    snapshot references); unchecked items are reported as `unknown`.
+  - Tests cover each check, evidence linkage, `unknown` reporting, and report
+    schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- geo`
+- **Evidence (planned):** `packages/core/src/geo.ts`,
+  `schemas/geo/report.v1.schema.json`,
+  `packages/core/test/geo/*`,
+  `docs/parity/evidence/LEM-177-geo-test-output.txt`
+
+### LEM-178 — Build the internationalization and localization review workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an i18n/localization review workflow: requirements
+  matrix, implementation gaps, runtime evidence, contextual translation review
+  with RTL/plurals/formats. Report distinguishes observed gaps from
+  uninspected locales.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runIntl({ target, locales, requirements? })`
+    returning an `IntlReport` validated against
+    `schemas/intl/report.v1.json`.
+  - The workflow produces: a requirements matrix (RTL, plurals, date/number
+    formats, text expansion), implementation gaps (hardcoded strings, missing
+    translations), and runtime evidence (rendered pages per locale with
+    redaction).
+  - Contextual translation review runs only where a reviewer (human or
+    approved model) is available; otherwise the report marks those locales
+    `unreviewed`, never `pass`.
+  - Locales not inspected are reported explicitly as `unreviewed` with a
+    reason; no locale is silently skipped.
+  - Tests cover requirements-matrix construction, implementation-gap detection,
+    runtime evidence, `unreviewed` reporting, and report schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- intl`
+- **Evidence (planned):** `packages/core/src/intl.ts`,
+  `schemas/intl/report.v1.schema.json`,
+  `packages/core/test/intl/*`,
+  `docs/parity/evidence/LEM-178-intl-test-output.txt`
+
+### LEM-179 — Build the independent evidence review workflow (`/lemma-review`)
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an independent evidence-review workflow that challenges
+  code, behavior, assumptions, interactions, and evidence. The reviewer is a
+  distinct persona from the one who produced the findings; disagreement is
+  recorded, not hidden.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runReview({ runId, reviewer })` where `reviewer` is
+    a persona distinct from the originating check's owner (per LEM-044); the
+    workflow refuses with a typed `PersonaError` if the reviewer is the same
+    owner.
+  - The review produces a `ReviewReport` validated against
+    `schemas/review/report.v1.json` that records: disagreements per finding,
+    weakened evidence, unsupported assumptions, and a stable `review_id`.
+  - Disagreements do not auto-override the run's decision; they are attached
+    to the report as explicit review notes with `status: "contested"` and are
+    surfaced in the dashboard (LEM-143) and HTML report (LEM-142).
+  - The review itself is evidence-backed: every disagreement cites the
+    evidence it challenges and the evidence it offers.
+  - Tests cover owner-distinct enforcement, disagreement recording,
+    "contested" status propagation, dashboard/HTML surfacing, and report
+    schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- review`
+- **Evidence (planned):** `packages/core/src/review.ts`,
+  `schemas/review/report.v1.schema.json`,
+  `packages/core/test/review/*`,
+  `docs/parity/evidence/LEM-179-review-test-output.txt`
+
+### LEM-180 — Build the explicit release-decision workflow (`/lemma-release`)
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-019, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an explicit release-decision workflow: decide SHIP /
+  CANARY / HOLD / ROLL BACK / MORE EVIDENCE with documented reversibility and
+  signals. Every decision cites evidence; no decision is made from a score
+  alone.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runReleaseDecision({ report, policy?, history? })`
+    returning a `ReleaseDecision` validated against
+    `schemas/release/decision.v1.json` with one of five decisions.
+  - The workflow requires: score AND coverage AND blockers/refusals AND
+    reviewer sign-off (via LEM-179) AND unanswered `HUM-*` questions (via
+    LEM-168) to all be explicit. Missing any of these downgrades to
+    `MORE EVIDENCE`, never to `SHIP`.
+  - Reversibility is recorded: `ROLL BACK` requires a documented rollback
+    plan; `CANARY` requires a documented canary scope; `HOLD` requires the
+    specific reason. All are attached to the decision record.
+  - The decision is surfaced in the dashboard (LEM-143) and the HTML report
+    (LEM-142); the workflow never mutates the run's own evidence.
+  - Tests cover all five decisions, downgrade-to-MORE-EVIDENCE behavior,
+    reversibility recording, dashboard/HTML surfacing, and decision schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- release-decision`
+- **Evidence (planned):** `packages/core/src/release-decision.ts`,
+  `schemas/release/decision.v1.schema.json`,
+  `packages/core/test/release-decision/*`,
+  `docs/parity/evidence/LEM-180-release-decision-test-output.txt`
+
+### LEM-181 — Build the AI-incident containment workflow
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an AI-incident containment workflow: contain an AI
+  incident (prompt injection, data leak, unsafe tool use), preserve traces,
+  and promote production failures into regressions (via LEM-189). Every step
+  is bounded and evidence-backed.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runIncident({ incidentId, traces, promote? })`
+    returning an `IncidentReport` validated against
+    `schemas/incident/report.v1.json`.
+  - The workflow records the containment actions (with approval gates where
+    destructive), preserves trace references in an incident directory under
+    `.lemma/incidents/<incident_id>/`, and never overwrites existing evidence.
+  - Promotion of a trace to a regression uses the LEM-189 lifecycle (candidate
+    → observed → repeatable → promoted), and the resulting regression is
+    linked from the incident report.
+  - Redaction is applied before persisting traces; tokens, cookies, and
+    credential-shaped strings are stripped.
+  - Tests cover containment actions, approval gates, trace preservation,
+    regression promotion, redaction, and report schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- incident`
+- **Evidence (planned):** `packages/core/src/incident.ts`,
+  `schemas/incident/report.v1.schema.json`,
+  `packages/core/test/incident/*`,
+  `docs/parity/evidence/LEM-181-incident-test-output.txt`
+
+### LEM-182 — Build the continuous testing workflow (`/lemma-forever`)
+
+- **Epic:** E21 Advanced Quality Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-084, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/lemma-forever` (and `lemma forever`) continuous
+  workflow that learns, expands coverage, and hunts bugs after two
+  confirmations; durable checkpoints and a live mission report.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runForever({ root, target, maxCycles, checkpointEvery })`
+    returning a `ForeverResult` with per-cycle evidence under
+    `.lemma/forever/<run_id>/`.
+  - Expansion is bounded by `maxCycles` and wall-clock caps; only confirmed
+    findings (observed twice with the same fingerprint) trigger coverage
+    expansion; unconfirmed findings are recorded but never trigger expansion.
+  - Every cycle writes a checkpoint via `@lemma/core/state` atomic writes;
+    resume replays from the last checkpoint; fingerprint mismatch refusal
+    applies (per LEM-021).
+  - A live mission report is served through the dashboard (LEM-143); the CLI
+    surfaces the same report as JSON.
+  - Determinism: same seed + frozen clock + same root → byte-identical
+    checkpoints (modulo documented volatile fields).
+  - Tests cover cycle cap, wall-clock cap, confirmed-vs-unconfirmed expansion,
+    checkpoint write/resume, fingerprint refusal, dashboard surfacing, and
+    determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- forever && pnpm test --filter @lemma/cli -- forever`
+- **Evidence (planned):** `packages/core/src/forever.ts`,
+  `packages/core/test/forever/*`,
+  `packages/cli/test/forever/*`,
+  `docs/parity/evidence/LEM-182-forever-test-output.txt`
+
+### LEM-183 — Build the confidence-engineering workspace (`.confidence/`)
+
+- **Epic:** E22 AI Systems / Confidence Engineering Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-020, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Create a durable `.confidence/` workspace for risks, claims,
+  evals, traces, and release decisions for AI systems (prompts, models, RAG,
+  ranking, agents). The workspace is versioned, atomic, redacted, and
+  resumable.
+- **Acceptance Criteria:**
+  - `.confidence/` contains documented subdirectories: `risks/`, `claims/`,
+    `evals/`, `traces/`, `decisions/`, `reviews/`; every read/write goes
+    through `@lemma/core/state` atomic writes; corrupt reads raise
+    `StateError`.
+  - A versioned workspace manifest (`schemas/confidence/workspace.v1.json`)
+    lists every artifact with a stable id and fingerprint; the manifest is
+    regenerated atomically and never partially written.
+  - The workspace is created by `lemma confidence init`; the command is
+    registered in the catalog (LEM-089); it refuses to overwrite an existing
+    workspace without `--force`.
+  - Redaction is applied before persistence across every subdirectory.
+  - Tests cover init, manifest regeneration, corrupt-read error, atomic write,
+    `--force` refusal, and redaction.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- confidence-workspace`
+- **Evidence (planned):** `packages/core/src/confidence.ts`,
+  `schemas/confidence/workspace.v1.schema.json`,
+  `packages/core/test/confidence/*`,
+  `docs/parity/evidence/LEM-183-confidence-workspace-test-output.txt`
+
+### LEM-184 — Build the AI evaluation design and review workflows
+
+- **Epic:** E22 AI Systems / Confidence Engineering Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-163, LEM-183
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add `carbon_eval`-equivalent workflows: design, implement,
+  run, and analyze sampled evaluations against a model endpoint. Includes a
+  design review step (populations, cases, repetitions, oracles, dependence,
+  blockers) before any run.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runEvalDesign({ workspace, risks, claims })` and
+    `runEvalExecute({ design, modelConfig })` returning typed results validated
+    against `schemas/confidence/eval_design.v1.json` and
+    `schemas/confidence/eval_run.v1.json`.
+  - Design review produces a documented checklist (populations, cases,
+    repetitions, oracles, dependence, blockers) and refuses to execute a run
+    whose design fails the review; refusal is recorded, not silently skipped.
+  - Execution reuses LEM-163's `runModelEval` under the hood; the workspace
+    receives the results under `.confidence/evals/<eval_id>/`.
+  - Analysis reports per-outcome counts, per-case transitions, and blocked
+    cases; the workflow never claims statistical significance without the
+    statistical review (LEM-185).
+  - Tests cover design checklist enforcement, execution wiring to LEM-163,
+    workspace persistence, analysis reporting, and refusal paths.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- eval-design`
+- **Evidence (planned):** `packages/core/src/eval-design.ts`,
+  `schemas/confidence/eval_design.v1.schema.json`,
+  `schemas/confidence/eval_run.v1.schema.json`,
+  `packages/core/test/eval-design/*`,
+  `docs/parity/evidence/LEM-184-eval-design-test-output.txt`
+
+### LEM-185 — Build the specialized review workflows (security, skeptical, statistical, release)
+
+- **Epic:** E22 AI Systems / Confidence Engineering Workflows
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-179, LEM-183
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add four specialized review workflows on top of the
+  independent review (LEM-179): security (prompt injection, untrusted
+  channels, leakage, tenant boundaries, tool permissions), skeptical (weak
+  evidence, misleading averages, hidden severe failures, confidence theater),
+  statistical (pairing, ordinal scores, clusters, repetitions, intervals,
+  multiplicity), and release (independent synthesis of code, evals, severe
+  failures, production signals, reversibility).
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runSpecializedReview({ kind, runId, workspace })`
+    with `kind` one of `security`, `skeptical`, `statistical`, `release`;
+    returns a typed `SpecializedReviewReport` validated against
+    `schemas/confidence/specialized_review.v1.json`.
+  - Each review kind has a documented checklist (committed as JSON under
+    `schemas/confidence/checklists/<kind>.v1.json`) that the workflow
+    enforces; unchecked items are reported as `unreviewed`, never a pass.
+  - Reviews write to `.confidence/reviews/<review_id>/` via atomic writes;
+    findings link to the underlying evidence in `.confidence/evals/` and
+    `.confidence/claims/`.
+  - Release review consumes the other three reviews and the release decision
+    workflow (LEM-180) when present; missing inputs downgrade to
+    `MORE EVIDENCE`.
+  - Tests cover each kind's checklist enforcement, evidence linkage,
+    `unreviewed` reporting, release-review downgrade behavior, and schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- specialized-review`
+- **Evidence (planned):** `packages/core/src/specialized-review.ts`,
+  `schemas/confidence/specialized_review.v1.schema.json`,
+  `schemas/confidence/checklists/*.json`,
+  `packages/core/test/specialized-review/*`,
+  `docs/parity/evidence/LEM-185-specialized-review-test-output.txt`
+
+### LEM-186 — Add explicit execution modes (Plan / Test / Review / Focused / Learn)
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-015, LEM-083
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add explicit execution modes: `plan`, `test`, `review`,
+  `focused`, `learn`. The mode is chosen before a run and changes the
+  documented evidence semantics; a mode is recorded in the run and cannot be
+  silently changed mid-run.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `ExecutionMode` and mode-aware `run({ mode, ... })`;
+    each mode has documented evidence semantics in
+    `docs/execution-modes.md` and a typed `ModeMismatchError` for invalid
+    mode transitions.
+  - `plan` produces planned tests only, `test` executes planned tests,
+    `review` executes independent review (LEM-179), `focused` runs a bounded
+    subset, `learn` runs exploration without producing final findings.
+  - The mode is recorded in the run's progress state and in the final report;
+    resume enforces the same mode (a resumed run cannot change mode).
+  - Tests cover each mode, mode mismatch error, evidence-per-mode contract,
+    and resume enforcement.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- execution-modes`
+- **Evidence (planned):** `packages/core/src/execution-modes.ts`,
+  `docs/execution-modes.md`, `packages/core/test/execution-modes/*`,
+  `docs/parity/evidence/LEM-186-execution-modes-test-output.txt`
+
+### LEM-187 — Add run-size scaling (Quick / Medium / Large) with perspective counts
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-015, LEM-044
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add run-size scaling: Quick (2 perspectives), Medium (4),
+  Large (6), with explicit cut lines and documented evidence expectations per
+  size. Sizes are chosen before a run and recorded; the run cannot silently
+  shrink or grow.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `RunSize` (`quick | medium | large`) and size-aware
+    planning; the perspective count is recorded in the run and enforced
+    (quick = 2, medium = 4, large = 6).
+  - Cut lines are documented per size (which check families are in/out);
+    out-of-scope checks are reported as explicit coverage notes, not silent
+    skips.
+  - The chosen size is recorded in the run state and the report; resume
+    enforces the same size.
+  - Tests cover perspective counts, cut-line behavior, coverage notes, size
+    resume enforcement, and report surfacing.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- run-size`
+- **Evidence (planned):** `packages/core/src/run-size.ts`,
+  `docs/run-sizes.md`, `packages/core/test/run-size/*`,
+  `docs/parity/evidence/LEM-187-run-size-test-output.txt`
+
+### LEM-188 — Add E0–E3 truth-model classification to evidence
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-016, LEM-020
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Classify every finding with an explicit truth level: E3
+  (observed live behavior + captured result), E2 (corroborated, e.g. source
+  + test), E1 (inspected source only), E0 (unknown). No finding claims a
+  higher level than its evidence supports.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `EvidenceLevel` (`E0 | E1 | E2 | E3`) and a
+    `classifyFinding(finding, evidence)` helper that returns the highest level
+    the evidence supports; findings whose declared level exceeds the supported
+    level are downgraded with a typed note.
+  - The classifier is strict: E3 requires executed behavior AND a captured
+    result (e.g. screenshot, HTTP response); E2 requires corroborating
+    evidence across ≥ 2 independent sources; E1 is source-only; E0 is
+    unknown.
+  - The classified level is persisted in the report and surfaced in the
+    dashboard (LEM-143) and HTML report (LEM-142); policy gates (LEM-019) can
+    require a minimum level for SHIP.
+  - Classification is deterministic (same finding + evidence → same level).
+  - Tests cover each level, downgrade path, policy gate interaction,
+    dashboard/HTML surfacing, and determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- evidence-level`
+- **Evidence (planned):** `packages/core/src/evidence-level.ts`,
+  `packages/core/test/evidence-level/*`,
+  `docs/parity/evidence/LEM-188-evidence-level-test-output.txt`
+
+### LEM-189 — Add the regression-promotion lifecycle
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-171, LEM-188
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add the regression lifecycle: candidate → observed →
+  repeatable → explicitly promoted regression. Promotion is a durable,
+  auditable operation; no finding becomes a regression without explicit
+  promotion.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `RegressionStore` with `promote({ findingId, lifecycleStep })`
+    where `lifecycleStep` is `candidate | observed | repeatable | promoted`;
+    each step is written atomically to `.lemma/regressions/<id>.json`.
+  - Transition rules are strict: `promoted` requires at least one `repeatable`
+    observation with the same fingerprint; a skip transition raises
+    `StateError`.
+  - Promoted regressions are referenced from the report and are eligible for
+    the continuous workflows (LEM-182, LEM-194) as first-class checks.
+  - Every transition is appended as an audit event (JSONL) with previous/new
+    state and a stable id.
+  - Tests cover each transition, skip-transition refusal, audit event,
+    report linkage, and continuous-workflow eligibility.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- regression-lifecycle`
+- **Evidence (planned):** `packages/core/src/regression-lifecycle.ts`,
+  `packages/core/test/regression-lifecycle/*`,
+  `docs/parity/evidence/LEM-189-regression-lifecycle-test-output.txt`
+
+### LEM-190 — Add command preview and live checklist
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-083, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Every command shows a "Lemma will:" plan before executing,
+  and a live checklist distinguishes planned/observed/blocked/skipped. The
+  preview is deterministic and never claims execution before it happens.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `previewCommand({ command, args, run })` returning a
+    typed `CommandPreview` (steps, expected evidence, expected duration) that
+    is printed to stdout (JSON) and shown in the dashboard (LEM-143) and HTML
+    report (LEM-142).
+  - A live checklist during execution distinguishes `planned`, `observed`,
+    `blocked`, and `skipped` items; the checklist is streamed via
+    `StateStore` events (LEM-011) and rendered in the dashboard.
+  - Preview content is deterministic given the same command + args + run
+    state; nothing is fabricated.
+  - Tests cover preview content, live checklist states, dashboard rendering,
+    HTML surfacing, and determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- command-preview`
+- **Evidence (planned):** `packages/core/src/command-preview.ts`,
+  `packages/core/test/command-preview/*`,
+  `docs/parity/evidence/LEM-190-command-preview-test-output.txt`
+
+### LEM-191 — Build the CARBON Browser–style adapter contract
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-050, LEM-098
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a formal browser adapter contract: negotiate adapter
+  capabilities before dispatch, re-plan when a channel is missing, and never
+  silently drop a channel. The contract is host-neutral and adapter-agnostic;
+  Playwright is the reference adapter.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `BrowserAdapter` and `BrowserAdapterCapabilities`
+    interfaces (navigation, screenshots, console, network, storage, viewport,
+    crawl) with a versioned schema (`schemas/browser/adapter.v1.json`).
+  - Adapters declare capabilities at registration time; the engine negotiates
+    before dispatch and re-plans if a required channel is missing (e.g. no
+    console channel → skip console-dependent checks with an explicit coverage
+    note; never a fabricated pass).
+  - Playwright (LEM-051) is refactored to implement `BrowserAdapter` and
+    declare its capabilities; blocked-runtime behavior (LEM-050) is preserved
+    end-to-end.
+  - Tests cover capability negotiation, re-plan on missing channel, explicit
+    coverage notes, Playwright adapter conformance, and blocked-runtime
+    preservation.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- browser-adapter && pnpm test --filter @lemma/browser -- adapter-conformance`
+- **Evidence (planned):** `packages/core/src/browser-adapter.ts`,
+  `schemas/browser/adapter.v1.schema.json`,
+  `packages/browser/src/adapter.ts`,
+  `packages/core/test/browser-adapter/*`,
+  `packages/browser/test/adapter-conformance/*`,
+  `docs/parity/evidence/LEM-191-browser-adapter-test-output.txt`
+
+### LEM-192 — Add Vibium integration (native CLI + existing tests)
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-191
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a Vibium adapter: run native Vibium tests, preserve
+  native arguments, and record adapter version and evidence handles. Vibium
+  is not the reference adapter, but it must implement the same contract.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes a `VibiumAdapter` implementing `BrowserAdapter`
+    (LEM-191) with declared capabilities; the adapter runs the native Vibium
+    CLI with arguments preserved verbatim.
+  - Results are translated to lemma's `CheckOutcome` shape with evidence
+    handles (screenshots, console, network where Vibium supports them);
+    unsupported channels are declared missing and re-planned per LEM-191.
+  - Adapter version and the native CLI version are recorded in evidence so
+    runs are reproducible.
+  - Blocked behavior when Vibium is unavailable mirrors LEM-050.
+  - Tests cover native CLI invocation, argument preservation, result
+    translation, version recording, missing-channel re-plan, and blocked
+    behavior.
+- **Verification (planned):** `pnpm test --filter @lemma/browser -- vibium`
+- **Evidence (planned):** `packages/browser/src/vibium-adapter.ts`,
+  `packages/browser/test/vibium/*`,
+  `docs/parity/evidence/LEM-192-vibium-test-output.txt`
+
+### LEM-193 — Add OpenAPI-driven API coverage
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-058, LEM-171
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Learn from OpenAPI specs or traffic; generate positive,
+  negative, boundary, auth, tenant, and idempotency API cases. Map API
+  failures back to UI flows so a broken endpoint becomes an actionable
+  finding.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runApiCoverage({ spec?, traffic?, target })`
+    returning an `ApiCoverageReport` validated against
+    `schemas/api/coverage_report.v1.json`.
+  - Cases are generated across the six documented classes (positive,
+    negative, boundary, auth, tenant, idempotency); every case cites its
+    source (spec operation or observed traffic) and is capped at a documented
+    `maxCases`.
+  - API failures are mapped to UI flows via a documented mapping (operation →
+    screen → user journey) where available; unmapped failures are still
+    reported but flagged `ui_flow: unknown`.
+  - Safe-target validation reuses LEM-059's SSRF rules; runs against
+    non-safe targets are rejected before any request.
+  - Tests cover case generation per class, cap enforcement, source citation,
+    UI-flow mapping, SSRF refusal, and report schema.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- api-coverage`
+- **Evidence (planned):** `packages/core/src/api-coverage.ts`,
+  `schemas/api/coverage_report.v1.schema.json`,
+  `packages/core/test/api-coverage/*`,
+  `docs/parity/evidence/LEM-193-api-coverage-test-output.txt`
+
+### LEM-194 — Add continuous-confidence workflows (PR, nightly, scheduled)
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-136, LEM-171
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add continuous workflows: GitHub Actions PR validation,
+  nightly regression, and scheduled runs; durable build history. Builds on
+  the existing GitHub Action (LEM-136) and consumes promoted regressions
+  (LEM-189).
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes `runContinuous({ trigger, config })` where
+    `trigger` is `pr | nightly | scheduled`; results are written to a
+    durable history under `.lemma/continuous/<trigger>/`.
+  - GitHub Actions workflows ship for PR and nightly; scheduled runs are
+    documented with a supported cron example.
+  - PR validation runs a bounded subset (documented in the workflow) and
+    comments one marker-based PR summary (per LEM-136's contract); nightly
+    runs the full default catalog plus promoted regressions.
+  - Continuous history is bounded (documented retention); corruption raises
+    a typed error and never corrupts the run.
+  - Tests cover each trigger, PR-comment marker, nightly scope, scheduled
+    cron, history retention, and corrupt-read error.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- continuous && pnpm test --filter @lemma/cli -- continuous`
+- **Evidence (planned):** `packages/core/src/continuous.ts`,
+  `.github/workflows/pr-validate.yml`, `.github/workflows/nightly.yml`,
+  `packages/core/test/continuous/*`,
+  `docs/parity/evidence/LEM-194-continuous-test-output.txt`
+
+### LEM-195 — Add durable project-state structure
+
+- **Epic:** E23 Execution Model, Evidence Discipline, and Browser Adapters
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-010, LEM-171
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add the structured project-state layout matching CARBON's
+  `.carbon/` structure: `.lemma/framework/`, `.lemma/learning/`,
+  `.lemma/recordings/`, `.lemma/tests/`, `.lemma/auto/`. Every read/write
+  goes through the shared primitives.
+- **Acceptance Criteria:**
+  - `.lemma/` subdirectories are documented in
+    `docs/project-state-layout.md`: `framework/`, `learning/`, `recordings/`,
+    `tests/`, `auto/`, `continuous/`, `regressions/`, `humans/`,
+    `confidence/`, `incidents/`, plus the existing `state/`, `evidence/`,
+    `events.jsonl`, `history.json`.
+  - `@lemma/core` exports a documented `ProjectState` helper that creates,
+    reads, and prunes these directories using `@lemma/core/state` atomic
+    writes; no package reimplements the primitives.
+  - `lemma doctor` (or equivalent) validates the layout and reports missing
+    or corrupt directories with typed errors; corrupted state is preserved
+    for inspection, never silently deleted.
+  - Tests cover layout creation, atomic writes per subdirectory, doctor
+    validation, and preservation of corrupt state.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- project-state`
+- **Evidence (planned):** `docs/project-state-layout.md`,
+  `packages/core/src/project-state.ts`,
+  `packages/core/test/project-state/*`,
+  `docs/parity/evidence/LEM-195-project-state-test-output.txt`
+
+### LEM-196 — Build cloud execution infrastructure with parallel agents
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-119, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Run multiple test agents in parallel across pages,
+  journeys, and quality dimensions. Requires the tenant queue (LEM-119) and
+  the commercial tier boundary (LEM-156); the free tier remains local-only.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `runCloudAssessment({ tenants, plan, parallelism })`
+    using the tenant queue (LEM-119) and existing metering (LEM-113–LEM-115);
+    every parallel agent runs in its own tenant-scoped sandbox.
+  - Parallelism is bounded by tenant quota (LEM-115) and documented per-tier
+    limits; exceeding quota raises a typed `QuotaError`.
+  - Cross-agent state does not leak: each agent's `.lemma/` sub-tree is
+    isolated; the aggregate report is built from per-agent reports.
+  - Failed agents are recorded as explicit coverage gaps, never aggregated
+    into a pass.
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - Tests cover parallelism, quota enforcement, isolation, failed-agent
+    handling, aggregation, and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- cloud-execution`
+- **Evidence (planned):** `packages/pro/src/cloud-execution.ts`,
+  `packages/pro/test/cloud-execution/*`,
+  `docs/parity/evidence/LEM-196-cloud-execution-test-output.txt`
+
+### LEM-197 — Build the steered test-plan configuration UI
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-143, LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Full test-plan steering: features, checks, personas, test
+  cases, bots, specs/docs upload, and context/connection. Extends the free
+  settings UI (LEM-146) into a Pro-only plan builder.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes a plan schema
+    (`schemas/pro/steered_plan.v1.json`) covering features, checks, personas,
+    test cases, bots, spec/doc uploads, and connection context.
+  - The dashboard (LEM-143) gains a Pro-only `/plan` route that renders the
+    steered plan, token-protected and license-gated; unlicensed use returns
+    `ProUnavailableError`.
+  - Uploads are validated, size-bounded, and redacted; no raw credentials are
+    stored. Uploaded specs/docs are referenced by hash from the plan.
+  - The plan is persisted under `.lemma/pro/plan.json` via atomic writes;
+    every change is audited (JSONL).
+  - Tests cover plan schema, dashboard route, license gate, upload validation,
+    redaction, atomic persistence, and audit events.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- steered-plan`
+- **Evidence (planned):** `packages/pro/src/steered-plan.ts`,
+  `packages/pro/src/dashboard/plan.ts`,
+  `schemas/pro/steered_plan.v1.schema.json`,
+  `packages/pro/test/steered-plan/*`,
+  `docs/parity/evidence/LEM-197-steered-plan-test-output.txt`
+
+### LEM-198 — Build the custom persona panel
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-044, LEM-197
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add custom personas and a diverse persona panel generator
+  that reacts like real users. Custom personas remain data contracts, not
+  prompt fragments; ownership is enforced exactly as in the free tier
+  (LEM-044).
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `addPersona({ contract })` and
+    `generatePanel({ size, diversity })` where generated personas are valid
+    persona frontmatter contracts and pass `lintPersonas` (LEM-047).
+  - Ownership rules (LEM-044) are unchanged: a custom persona must own at
+    least one check, and check ownership remains disjoint.
+  - Panel generation is bounded (documented `maxSize`); generated personas are
+    persisted under `.lemma/pro/personas/` and are opt-in per run.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover contract validation, ownership enforcement, panel bounds,
+    persistence, opt-in behavior, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- persona-panel`
+- **Evidence (planned):** `packages/pro/src/personas.ts`,
+  `packages/pro/test/persona-panel/*`,
+  `docs/parity/evidence/LEM-198-persona-panel-test-output.txt`
+
+### LEM-199 — Build the exploratory-bot configuration
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-196, LEM-197
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Choose how many agents roam and how far each goes. Bounded
+  by documented caps; roving agents produce evidence, never fabricated
+  findings.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `configureBots({ count, depth, scope })` persisted in
+    the steered plan (LEM-197); `count` and `depth` are capped per tier.
+  - Each bot writes its own evidence under `.lemma/pro/bots/<bot_id>/`; the
+    aggregate report cites per-bot evidence and distinguishes "explored but
+    no finding" from "found".
+  - Bot behavior is deterministic per seed; the same plan + seed produces the
+    same bot assignments.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover cap enforcement, per-bot evidence, "no finding" honesty,
+    determinism, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- bots`
+- **Evidence (planned):** `packages/pro/src/bots.ts`,
+  `packages/pro/test/bots/*`,
+  `docs/parity/evidence/LEM-199-bots-test-output.txt`
+
+### LEM-200 — Add the annotated evidence bundle
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-144, LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a rich evidence bundle per finding: annotated
+  screenshots, persona reactions, severity, and pass/fail. Extends LEM-144's
+  raw screenshots into a curated, reviewable bundle.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `buildEvidenceBundle({ finding, screenshots, persona })`
+    returning a bundle validated against
+    `schemas/pro/evidence_bundle.v1.json` (screenshots with annotations,
+    persona reaction text, severity, pass/fail, evidence fingerprint).
+  - Annotations are structured (region, label, note) and stored under
+    `.lemma/evidence/<run_id>/bundle/<finding_id>/` via atomic writes.
+  - Persona reactions are recorded only when a persona contract is attached;
+    otherwise the field is `null` and reported as "no persona reaction",
+    never fabricated.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover bundle schema, annotation structure, persona-reaction
+    attribution, missing-persona nullability, atomic write, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- evidence-bundle`
+- **Evidence (planned):** `packages/pro/src/evidence-bundle.ts`,
+  `schemas/pro/evidence_bundle.v1.schema.json`,
+  `packages/pro/test/evidence-bundle/*`,
+  `docs/parity/evidence/LEM-200-evidence-bundle-test-output.txt`
+
+### LEM-201 — Add the overall health score and severity-ranked issue view
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-018, LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an overall health score that rolls up every check,
+  test, and persona, and a severity-ranked issue view. Health is explainable
+  and reproducible; severity ranking is documented.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `computeHealthScore({ report })` validated against
+    `schemas/pro/health_score.v1.json`; the score is accompanied by a
+    breakdown (per dimension, per check family, per persona) so it is
+    explainable.
+  - Health scoring is deterministic and cites its formula in the schema
+    description; changing the formula requires a new schema version.
+  - The severity-ranked view sorts findings by documented severity + evidence
+    level (LEM-188) + confidence, and is surfaced in the dashboard (LEM-143)
+    and HTML report (LEM-142).
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover score computation, breakdown, determinism, ranking order,
+    dashboard/HTML surfacing, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- health-score`
+- **Evidence (planned):** `packages/pro/src/health-score.ts`,
+  `schemas/pro/health_score.v1.schema.json`,
+  `packages/pro/test/health-score/*`,
+  `docs/parity/evidence/LEM-201-health-score-test-output.txt`
+
+### LEM-202 — Build category benchmarks and competitive intelligence
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Show how a target compares to category peers. Benchmarks
+  are sourced from documented, consented aggregates only; no target is
+  benchmarked without explicit opt-in.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `computeBenchmark({ target, category, consent })`
+    validated against `schemas/pro/benchmark.v1.json`; a call without
+    `consent: true` raises a typed `ConsentRequiredError`.
+  - Benchmarks are computed only from documented aggregates; no per-tenant
+    data is included; the schema documents exactly what is aggregated and how
+    the target is ranked.
+  - The output cites the benchmark version, sample size, and last-updated
+    timestamp; missing data is reported as `insufficient_sample`, never
+    extrapolated.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover consent gate, aggregate source, schema, insufficient-sample
+    reporting, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- benchmark`
+- **Evidence (planned):** `packages/pro/src/benchmark.ts`,
+  `schemas/pro/benchmark.v1.schema.json`,
+  `packages/pro/test/benchmark/*`,
+  `docs/parity/evidence/LEM-202-benchmark-test-output.txt`
+
+### LEM-203 — Build the TAI-style fine-tuned QA model API
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Ship an OpenAI-compatible fine-tuned QA model API for
+  lemma's Pro tier. Model training data and evaluation are documented; the
+  API is OpenAI-compatible at the wire level.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes an HTTP service under `pro-services/model-api/`
+    speaking the OpenAI `chat/completions` wire format; versioned model id is
+    documented.
+  - The model API is metered through the existing metering envelope
+    (LEM-113); unauthorized requests are rejected with a typed error before
+    inference.
+  - Training data provenance, evaluation results, and known limitations are
+    documented in `pro-services/model-api/README.md`; the model never claims
+    to replace human review.
+  - Wire-format conformance is validated by a repo-owned OpenAI-compatible
+    client fixture; streaming and non-streaming are both covered.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover wire conformance, metering, auth rejection, streaming and
+    non-streaming responses, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- model-api`
+- **Evidence (planned):** `pro-services/model-api/*`,
+  `packages/pro/test/model-api/*`,
+  `docs/parity/evidence/LEM-203-model-api-test-output.txt`
+
+### LEM-204 — Build the Test Reports REST API
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-083, LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a programmatic REST API for testing and report
+  retrieval. `POST /api/reports` starts a run; `GET /api/reports/{id}` returns
+  the report. Auth, quota, and metering use the existing Pro-tier contracts.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes a REST API under `pro-services/reports-api/` with
+    `POST /api/reports` and `GET /api/reports/{id}`; request/response shapes
+    are documented under `schemas/pro/reports_api.v1.json`.
+  - Auth uses the Pro-tier scoped-key contract (LEM-114); every request is
+    quota-checked (LEM-115) and metered (LEM-113).
+  - Async jobs are queued through LEM-119 and expose a `status` field;
+    reports are retrievable only by the owning tenant.
+  - Wire conformance is validated by a repo-owned client fixture; the API
+    never leaks cross-tenant data.
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover wire conformance, auth rejection, quota enforcement, metering,
+    tenant isolation, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- reports-api`
+- **Evidence (planned):** `pro-services/reports-api/*`,
+  `schemas/pro/reports_api.v1.schema.json`,
+  `packages/pro/test/reports-api/*`,
+  `docs/parity/evidence/LEM-204-reports-api-test-output.txt`
+
+### LEM-205 — Add private-cloud deployment support
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 8
+- **Depends on:** LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Support running the Pro tier inside a customer's VPC,
+  including tunnels/proxies for pre-production pages and advanced auth/header
+  handling. Data never leaves the customer's network unless explicitly
+  configured.
+- **Acceptance Criteria:**
+  - Deployment assets ship under `deploy/private-cloud/` covering at minimum:
+    container image (built per LEM-135), Helm chart or Compose file,
+    configuration schema, and a documented upgrade path.
+  - Data flows: all state, evidence, and reports remain inside the VPC; the
+    only outbound traffic is (a) licence validation and (b) explicitly
+    configured tunnels/proxies. Both are documented, and disable-able.
+  - Tunnels/proxies for pre-production pages are configured via the
+    Pro-tier settings schema (LEM-197) and validated; unsafe targets are
+    rejected per LEM-059.
+  - Auth/headers advanced handling is documented and supports custom header
+    injection with redaction.
+  - Tests cover deployment dry-run, data-flow assertions (no outbound except
+    documented), tunnel/proxy validation, header injection, and unsafe-target
+    rejection.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- private-cloud`
+- **Evidence (planned):** `deploy/private-cloud/*`,
+  `packages/pro/test/private-cloud/*`,
+  `docs/parity/evidence/LEM-205-private-cloud-test-output.txt`
+
+### LEM-206 — Add enterprise human-expert review tier
+
+- **Epic:** E24 Premium Cloud Parity
+- **Priority:** P3
+- **Points:** 5
+- **Depends on:** LEM-196
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a human-expert review tier where experts review AI
+  findings and add feedback. Expert feedback is treated as durable local
+  context, not a hidden override; every expert note is attributable and
+  auditable.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `requestExpertReview({ runId, findings })` and
+    `ingestExpertReview({ reviewId, response })` writing to
+    `.lemma/pro/expert-reviews/<review_id>/` via atomic writes.
+  - Expert reviews are attributable (named reviewer or scoped anonymous id)
+    and their notes are attached to the report as explicit review notes;
+    the run's own decision is not silently overridden — it is annotated.
+  - Expert input is redacted before persistence; no raw credentials or
+    secrets are stored.
+  - Every expert review is metered (LEM-113) and quota-checked (LEM-115).
+  - Unlicensed invocation returns `ProUnavailableError`.
+  - Tests cover request/ingest flow, attribution, non-override semantics,
+    redaction, metering, and license gate.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- expert-review`
+- **Evidence (planned):** `packages/pro/src/expert-review.ts`,
+  `packages/pro/test/expert-review/*`,
+  `docs/parity/evidence/LEM-206-expert-review-test-output.txt`
+
 ---
 
 ## Blockers
@@ -1808,6 +3253,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | assay is still the oracle and will keep changing. | Parity can drift during migration. | Pin the assay commit in `LEM-002`/`LEM-005`; re-baseline deliberately and record the new commit. |
 | No local web server/token-auth pattern exists yet for the dashboard. | LEM-143–LEM-147 cannot ship until the serving pattern is chosen and reviewed. | Spike a localhost-only, token-protected static server during LEM-143; record the decision in `docs/adr/`. |
 | The Pro tier requires an entitlement/licensing decision and a signed npm package with provenance; neither exists yet. | LEM-156–LEM-164 cannot ship until the commercial tier boundary ADR (LEM-156) is signed off and LEM-134 (signed npm publishing with provenance) lands. | Ratify ADR 0006 before claiming LEM-157; block the Pro tier release on LEM-134 in the same gate as the rest of the release. |
+| The Pro tier's cloud workflows (LEM-196–LEM-206) require the cloud package boundary and metering contracts (LEM-113–LEM-122) to be complete; they do not exist yet. | LEM-196–LEM-206 cannot ship until LEM-119 (tenant queue) and LEM-115 (quota) are Done, and the packaging ADR (LEM-156) classifies cloud execution as Pro-tier. | Block the cloud-tier release on LEM-115, LEM-119, and the ADR sign-off; the core-tier workflows (LEM-165–LEM-195) are not blocked by this. |
+| The fine-tuned QA model API (LEM-203) requires a training-data provenance and evaluation decision that the board has not yet recorded. | LEM-203 cannot claim conformance without documenting training data, evaluation, and known limits. | Write the provenance/evaluation ADR alongside LEM-203's initial scope; block LEM-203's release on it. |
 
 ## Decision Log
 
@@ -1831,6 +3278,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL16 | 2026-11-15 | The dashboard runs locally on `127.0.0.1` with token auth and no remote dependency. | The privacy-first, local-first posture must extend to visual reporting; a remote host would contradict DL8 and the assay privacy model. | Move to a hosted dashboard only if a customer explicitly requires it and privacy review signs off. |
 | DL17 | 2026-11-16 | The commercial tier ships as a separate `@lemma/pro` package (or `@lemma/cloud/pro` subpath, per ADR 0006) with an entitlement gate and a typed `ProUnavailableError`. The free `@lemma/core` never imports `@lemma/pro`; the dependency direction is enforced in CI. | Keeps the open-source core fully functional without entitlement infrastructure, makes the commercial boundary auditable, and matches the existing LEM-113–LEM-122 cloud-package posture. | Reconsider a single-package split only if the Pro tier surface shrinks to a handful of feature flags that no longer justify a separate package. |
 | DL18 | 2026-11-16 | Every Pro-tier capability refuses cleanly when unlicensed (`ProUnavailableError`), never partially executes, and never fabricates a pass. Pro-tier evidence, when produced, uses the same evidence store, redaction engine, and trust-store patterns as the core. | The "no false release signal" invariant must hold across tiers; a half-enabled Pro feature would break that invariant in a way the free tier never could. | Weaken only if a real, reviewed case demonstrates a safe partial mode that cannot produce a false pass. |
+| DL19 | 2026-11-16 | Additional free-tier CARBON commands (LEM-165–LEM-172), advanced quality workflows (LEM-173–LEM-182), and the confidence-engineering workspace (LEM-183–LEM-185) ship in the open-source core, not the Pro tier. | These workflows are documented in the public CARBON Core command catalog; keeping them in `@lemma/core` preserves the "free tier is the whole deterministic engine" posture and keeps the Pro tier about scale, packaging, and integrations. | Reclassify into the Pro tier only if a workflow proves to require Pro-tier metering or infrastructure to be safe. |
+| DL20 | 2026-11-16 | Execution modes (LEM-186), run sizes (LEM-187), E0–E3 truth model (LEM-188), regression lifecycle (LEM-189), command preview (LEM-190), browser adapter contract (LEM-191), and OpenAPI coverage (LEM-193) ship in the core, not the Pro tier. | These turn the deterministic engine into a disciplined, auditable system and are prerequisites for both tiers; putting them behind a paywall would make the free tier unable to produce trustworthy evidence. | Reconsider only if the E0–E3 truth model turns out to be a differentiating Pro-tier feature in a future ADR. |
+| DL21 | 2026-11-16 | Cloud execution (LEM-196), steered plans (LEM-197), custom personas (LEM-198), exploratory bots (LEM-199), annotated evidence bundles (LEM-200), health scores (LEM-201), benchmarks (LEM-202), fine-tuned QA model API (LEM-203), reports REST API (LEM-204), private cloud (LEM-205), and human-expert review (LEM-206) ship in `@lemma/pro` (or the `@lemma/cloud/pro` subpath per ADR 0006), never in `@lemma/core`. | These require metering, quota, tenant isolation, and/or a fine-tuned model; they cannot be safely provided without the Pro-tier infrastructure. Keeping them out of the free tier protects the core's air-gapped, account-free posture (DL4, DL8). | Revisit per feature if a subset can be offered account-free without regressing the free tier's privacy posture. |
 
 ## Done
 
@@ -2580,6 +4030,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment (with existing agent tests remaining green).
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/context-flow.test.ts packages/agent/test/agent-state.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/browser-agent-prompt.test.ts packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts` (pass, 24 tests).
 - **Evidence:** `packages/agent/src/index.ts` (context protocol primitives: `isContextReply`, `parseContextReply`, `formatContextRequest`, `applyContextResponse`, structured `need_context`/`need_method` pending and transitions, MCP resource discovery hook usage, interactive `requestUserInput` wait, resumable non-interactive flow, and `runStrictJudgeLoop` integration for `need_user_context` decisions while preserving cap/allowlist/dedupe/min-run invariants and redacted/no-secret persistence), `packages/agent/test/context-flow.test.ts`, `docs/parity/evidence/LEM-091-context-flow-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
+
+### LEM-092 — Port the native Jira form tool, ADF flattening, and redaction
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-008, LEM-091
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/jira-context.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port Jira context utilities and native-form tool flow:
+  Jira form field/prefill handling, issue fetch and summarization, ADF
+  flattening, and secret/token redaction with token-safe error/output handling.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports Jira context primitives including: `buildJiraFormFields`
+    (four-field native form with token field omitted when `tokenRef` provided),
+    `parseJiraTarget`/`normalizeJiraSite`, `adfToText`, `redactSecrets`/`sanitizeError`,
+    `summarizeJiraIssue`, and `formatJiraContext`, preserving token-safe behavior
+    (no raw token in summaries/formatted output/errors).
+  - Jira collection/fetch flow is injectable/testable: `collectJiraForm` works with
+    a form API abstraction (create/get/poll, cancel/answer handling), `fetchJiraIssue`
+    uses injectable fetch and maps auth/not-found/HTTP failures to actionable
+    token-free errors while returning redacted planning context; form/tool helpers
+    support token-ref/env-token usage without requiring raw token in chat.
+  - Form API/tool wiring helpers are provided as host-integration utilities without
+    host SDK imports (e.g. session-form/raw-client/HTTP form API resolution,
+    `registerJiraContextTool`-style registration/factory behavior) so adapters can
+    mount the native Jira context tool; tool output and errors never include the
+    Jira token.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/jira-context.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/jira-context.test.ts` (pass, 4 tests).
+- **Evidence:** `packages/agent/src/jira-context.ts` (Jira form fields/prefill and token-ref handling, target parsing/normalization, ADF flattening, secret redaction/sanitization, issue summarization/formatting, injectable form collection and fetch with token-free error mapping, and host-integration helpers `getJiraFormApi`/`createHttpFormApi`/`readLocalServiceConfig`/`registerJiraContextTool` without host SDK imports), `packages/agent/src/index.ts` (exports), `packages/agent/test/jira-context.test.ts`, `docs/parity/evidence/LEM-092-jira-context-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
