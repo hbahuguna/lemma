@@ -295,7 +295,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Done |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Done |
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Done |
-| LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Backlog |
+| LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Done |
 | LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Backlog |
 | LEM-112 | Publish the adapter compatibility matrix and docs | P1 | 3 | LEM-108, LEM-109, LEM-110, LEM-111 | Backlog |
 
@@ -4705,6 +4705,62 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-110 — Add the Claude Code end-to-end suite
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-102, LEM-106, LEM-107
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cli build && pnpm --filter @lemma/adapters-claude-code typecheck && pnpm --filter @lemma/adapters-claude-code build && pnpm exec vitest run packages/adapters/claude-code/test/claude-code-e2e.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Add an automated Claude Code end-to-end suite that exercises
+  the full Claude Code integration path without a live Claude Code runtime:
+  installer-generated host assets, adapter manifest/host/capability-conformance
+  and command/catalog/prompt mapping, and deterministic CLI run/status/report
+  behavior over a fixed fixture, asserting parity with lemma contracts and
+  Claude Code packaging/template outputs.
+- **Acceptance Criteria:**
+  - `packages/adapters/claude-code/test/claude-code-e2e.test.ts` provides an
+    automated Claude Code end-to-end suite runnable in this environment with no
+    live Claude Code host/runtime dependency (uses injected/fake host primitives
+    and CLI `main`/temp workspaces).
+  - **Install parity:** suite runs `lemma install claude-code` (CLI `main`)
+    into a temp directory and verifies deterministic JSON success with installed
+    assets matching `CLAUDE_CODE_PACKAGING_MANIFEST` and shared templates: 59
+    catalog command files + 5 operational command files (`assay`,
+    `assay-status`, `assay-report`, `assay-abort`, `assay-verify-evidence`) +
+    1 `lemma` skill at manifest paths (`.claude/commands`, `.claude/skills/lemma/SKILL.md`),
+    and representative generated content parity for browser/demo/static/
+    operational commands and skill (no absolute checkout paths).
+  - **Adapter/command parity:** suite exercises `@lemma/adapters-claude-code`
+    exports (`CLAUDE_CODE_ADAPTER_MANIFEST`, `CLAUDE_CODE_PACKAGING_MANIFEST`,
+    `createClaudeCodeHost`, `createClaudeCodeCommandDescriptors`,
+    `registerClaudeCodeCommands`, `resolveClaudeCodeCatalogInvocation`,
+    `buildClaudeCodeBrowserAgentPrompt`) to assert manifest/host conformance and
+    capability honesty (including declared degraded/unavailable capabilities per
+    provisional Claude Code defaults) and catalog/intent/mode/builder/browser-
+    prompt mapping parity for representative commands (browser, demo, static)
+    consistent with `@lemma/agent`.
+  - **Deterministic run parity:** suite runs `lemma run` against
+    `examples/sample-repo` in a temp workspace with deterministic flags (seeded/
+    frozen clock, fixed intent/target/root, output file) via CLI `main`, then
+    verifies `status` and `report`, asserting machine-readable JSON contract and
+    stable parity invariants: `quality-harness.report/v1` report with matching
+    run id/output, recorded lifecycle/status and resolved target, present and
+    internally consistent coverage/checks/findings/blockers/confidence/decision
+    fields and `.lemma` state/progress/evidence linkage for the run.
+  - Root `package.json` `test:e2e` script includes the Claude Code end-to-end
+    suite (host adapter e2e entry point runs OpenCode and Claude Code suites).
+  - `pnpm --filter @lemma/cli build`,
+    `pnpm --filter @lemma/adapters-claude-code typecheck`,
+    `pnpm --filter @lemma/adapters-claude-code build`, and
+    `pnpm exec vitest run packages/adapters/claude-code/test/claude-code-e2e.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cli build && pnpm --filter @lemma/adapters-claude-code typecheck && pnpm --filter @lemma/adapters-claude-code build && pnpm exec vitest run packages/adapters/claude-code/test/claude-code-e2e.test.ts` (pass, 1 file, 3 tests).
+- **Evidence:** `packages/adapters/claude-code/test/claude-code-e2e.test.ts`, `package.json` (`test:e2e` updated), `docs/parity/evidence/LEM-110-claude-code-e2e-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-109 — Add the OpenCode end-to-end parity suite
 
