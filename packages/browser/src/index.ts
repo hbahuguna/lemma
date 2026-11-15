@@ -1,6 +1,9 @@
 /**
  * @lemma/browser — Optional Playwright-backed Operate layer.
  *
- * See docs/architecture.md for the package graph and dependency direction.
+ * LEM-050: optional runtime loading and blocked degradation. Browser checks are
+ * blocked with actionable blockers when Playwright/Chromium is unavailable or the
+ * browser runtime is disabled; this never fails the run.
  */
-export const PACKAGE_NAME = "@lemma/browser" as const;
+
+export * from "./runtime.js";
