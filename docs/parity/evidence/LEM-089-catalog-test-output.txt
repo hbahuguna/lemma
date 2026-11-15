@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/catalog.test.ts (4 tests) 10ms
+ ✓ packages/agent/test/agent-loop.test.ts (5 tests) 11ms
+ ✓ packages/agent/test/command-args.test.ts (5 tests) 12ms
+ ✓ packages/agent/test/agent-state.test.ts (3 tests) 373ms
+
+ Test Files  4 passed (4)
+      Tests  17 passed (17)
+   Start at  23:47:02
+   Duration  3.42s (transform 1.08s, setup 0ms, collect 5.07s, tests 406ms, environment 1ms, prepare 2.27s)
+

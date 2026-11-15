@@ -25,6 +25,15 @@ export {
 } from "./command-args.js";
 export type { Invocation } from "./command-args.js";
 
+export {
+  ASSAY_COMMAND_CATALOG,
+  assayIntent,
+  buildCatalogInvocation,
+  getAssayCommand,
+  getCatalogCommandKind,
+} from "./catalog.js";
+export type { AssayCommand, CatalogCommandKind, CatalogInvocationResult } from "./catalog.js";
+
 export interface HarnessInvocation {
   args: string[];
   env?: Record<string, string | undefined>;

@@ -242,7 +242,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Done |
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Done |
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Done |
-| LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Backlog |
+| LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Done |
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Backlog |
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Backlog |
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Backlog |
@@ -1384,6 +1384,39 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/command-args.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 13 tests).
 - **Evidence:** `packages/agent/src/command-args.ts`, `packages/agent/src/index.ts` (exports + `commandToArgs` integration for `assay`/`assay-browser`/`assay-demo`), `packages/agent/test/command-args.test.ts`, regression in `packages/agent/test/agent-loop.test.ts` and `packages/agent/test/agent-state.test.ts`, `docs/parity/evidence/LEM-088-command-args-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Ports `extractUrl`/`isUrl`/`SUBCOMMANDS` and `browserInvocation`/`demoInvocation`/`assayInvocation` with browser defaults, safe flag passthrough, URL-required browser/demo live runs, and subcommand/help/version passthrough.
+
+### LEM-089 — Port the 59-command catalog and intent mapping
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-088
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/catalog.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Port the host-neutral assay slash-command catalog and
+  intent/invocation mapping so adapters and agent surfaces can register and run
+  the canonical command set deterministically.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports the canonical 59-command assay catalog (name/label
+    entries matching assay order/values) and helpers to resolve catalog entries
+    and intent strings (`Assay <label> assessment`).
+  - Catalog intent/invocation mapping is host-neutral and deterministic:
+    `assay-browser` maps to live browser invocation semantics (URL-required,
+    builder-backed; no static `--no-browser` fallback), `assay-demo` maps to
+    demo invocation semantics (static inventory without URL, live browser with
+    URL), and all other catalog commands map to static assessment runs
+    (`run --target . --no-browser --personas-dir <dir> --intent "Assay <label> assessment"`).
+  - Helpers expose sufficient metadata for adapters/loop to select behavior
+    (e.g. command name/label/intent, browser/demo/static kind, invocation
+    builder result and/or error) without importing host SDKs or embedding host
+    prompts.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/catalog.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 17 tests).
+- **Evidence:** `packages/agent/src/catalog.ts`, `packages/agent/src/index.ts` (exports catalog/intent/mapping helpers and types), `packages/agent/test/catalog.test.ts`, `docs/parity/evidence/LEM-089-catalog-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Exports `ASSAY_COMMAND_CATALOG` (59 entries, assay order), `getAssayCommand`, `assayIntent` (`Assay <label> assessment`), `getCatalogCommandKind`, and `buildCatalogInvocation` mapping browser→builder-backed URL-required live semantics, demo→static inventory/live-by-URL, others→deterministic static `run --target . --no-browser` with intent.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
