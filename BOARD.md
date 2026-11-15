@@ -169,7 +169,7 @@ a pass.
 | LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Done |
 | LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Done |
 | LEM-048 | Port `personas scaffold` | P2 | 3 | LEM-047 | Done |
-| LEM-049 | Port tool capability enforcement and persona conformance tests | P1 | 3 | LEM-043, LEM-044 | Backlog |
+| LEM-049 | Port tool capability enforcement and persona conformance tests | P1 | 3 | LEM-043, LEM-044 | Done |
 
 ### E5: Browser and Operate Layer
 
@@ -789,12 +789,54 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-049** — Port tool capability enforcement and persona conformance tests (2026-11-15). Evidence: `packages/core/src/personas.ts` (`TOOL_CAPABILITY_PATTERN`, `validatePersonaToolCapabilities`, load-time enforcement), `packages/core/test/persona-conformance/persona-conformance.test.ts`, `docs/parity/evidence/LEM-049-persona-conformance-test-output.txt` (`pnpm --filter @lemma/core test persona-conformance`, 5/5); shipped specialists conform to schema/tool/ownership/catalog invariants under lemma's full 76-check catalog. Commit/remote recorded in completion summary.
 - **LEM-048** — Port `personas scaffold` (2026-11-15). Evidence: `packages/core/src/personas.ts` (`scaffoldPersona`, validation/template/atomic-write and `quality-harness.personas.scaffold/v1` results), `packages/core/test/persona-scaffold/persona-scaffold.test.ts`, `docs/parity/evidence/LEM-048-persona-scaffold-test-output.txt` (`pnpm --filter @lemma/core test persona-scaffold`, 4/4); scaffolded contracts load and lint with expected placeholder warning. Commit/remote recorded in completion summary.
 - **LEM-047** — Port `personas lint` (2026-11-15). Evidence: `packages/core/src/personas.ts` (`lintPersonas`, assay-compatible lint report/types/codes for load/schema/ownership/registry/placeholder diagnostics), `packages/core/test/persona-lint/persona-lint.test.ts`, `docs/parity/evidence/LEM-047-persona-lint-test-output.txt` (`pnpm --filter @lemma/core test persona-lint`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-046** — Port structured blocker and refusal records (2026-11-15). Evidence: `packages/core/src/outcomes.ts` (`blockerPayload`, `unblockHints`, `recordBlockedCheck`, `recordCheckOutcome`), `@lemma/core/outcomes` export/build wiring, `packages/core/test/blockers/blockers.test.ts`, `docs/parity/evidence/LEM-046-blockers-test-output.txt` (`pnpm --filter @lemma/core test blockers`, 6/6); blocked outcomes now produce one redacted blocker with no findings, forced-blocked refusals, dedupe, hints, and report/coverage integration verified. Commit/remote recorded in completion summary.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-049 — Port tool capability enforcement and persona conformance tests
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-043, LEM-044
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test persona-conformance`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test persona-conformance` 5/5, `pnpm lint`, `pnpm --filter @lemma/core typecheck`, and the core build pass.
+- **Description:** Complete the persona layer with tool capability enforcement and
+  a shipped-persona conformance suite. Persona contracts must declare only
+  well-formed tool capabilities, and the three specialist contracts must satisfy
+  the full load/schema/ownership/catalog conformance invariants.
+- **Acceptance Criteria:**
+  - Tool capability enforcement: persona frontmatter `tools` entries are
+    validated as non-empty, unique capability identifiers matching
+    `^[a-z][a-z0-9_]*$` during contract loading (`loadPersona`/`personaFromDocument`);
+    invalid or duplicate tool capabilities raise deterministic `PersonaError`s,
+    and `lintPersonas` reports them without stopping at first failure.
+    `TOOL_CAPABILITY_PATTERN` and `validatePersonaToolCapabilities` (or
+    equivalent exported API) are available from `@lemma/core/personas` and the
+    root entry point.
+  - Persona conformance tests at
+    `packages/core/test/persona-conformance/persona-conformance.test.ts` port and
+    adapt assay `test_personas.py` for lemma's shipped contracts: the three
+    specialists load with non-empty domains/tools/checks and valid object schemas;
+    every referenced check exists in `catalogIds()`; ownership is disjoint and
+    covers the full catalog (`checkOwnership`/`validateOwnership`); each
+    specialist schema accepts a valid payload for an owned domain and rejects a
+    payload missing a required field or carrying an out-of-contract severity;
+    malformed contracts (missing required section, invalid/duplicate tool
+    capability) raise `PersonaError`.
+  - Existing persona contracts (`packages/personas/*.md`) and scaffold output
+    remain valid under tool capability enforcement.
+  - No runtime dependency added, parity inventory rows for
+    `harness/personas.py`/`test_personas.py` (LEM-049) updated, and acceptance
+    test plus typecheck/lint/build pass. Evidence recorded under
+    `docs/parity/evidence/LEM-049-persona-conformance-test-output.txt`.
+- **Verification:** `pnpm --filter @lemma/core test persona-conformance`
+- **Evidence to record:** persona-conformance test output and updated parity inventory.
 
 ### LEM-048 — Port `personas scaffold`
 

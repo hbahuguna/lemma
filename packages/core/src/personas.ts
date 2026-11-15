@@ -239,6 +239,34 @@ export const SUPPORTED_SCHEMA_TYPES = [
 export const PERSONA_ID_PATTERN = /^[a-z][a-z0-9_-]*$/;
 export const CHECK_ID_PATTERN = /^[a-z][a-z0-9_.-]*$/;
 export const DOMAIN_ID_PATTERN = /^[a-z][a-z0-9_-]*$/;
+export const TOOL_CAPABILITY_PATTERN = /^[a-z][a-z0-9_]*$/;
+
+export function validatePersonaToolCapabilities(
+  tools: readonly unknown[],
+  source = "persona",
+): string[] {
+  const validated: string[] = [];
+  const seen = new Set<string>();
+  for (let index = 0; index < tools.length; index += 1) {
+    const tool = tools[index];
+    if (typeof tool !== "string" || tool.trim().length === 0) {
+      throw new PersonaError(
+        `${source}: frontmatter tool capability at index ${index} must be a non-empty string`,
+      );
+    }
+    if (!TOOL_CAPABILITY_PATTERN.test(tool)) {
+      throw new PersonaError(
+        `${source}: frontmatter tool capability '${tool}' must match ${TOOL_CAPABILITY_PATTERN.source}`,
+      );
+    }
+    if (seen.has(tool)) {
+      throw new PersonaError(`${source}: duplicate frontmatter tool capability '${tool}'`);
+    }
+    seen.add(tool);
+    validated.push(tool);
+  }
+  return validated;
+}
 
 export type SupportedSchemaType = (typeof SUPPORTED_SCHEMA_TYPES)[number];
 
@@ -486,7 +514,10 @@ export function personaFromDocument(document: PersonaDocument, source = "persona
   }
 
   const domains = frontmatterList(metadata, "domains", source);
-  const tools = frontmatterList(metadata, "tools", source);
+  const rawTools = metadata.tools;
+  const tools = Array.isArray(rawTools)
+    ? validatePersonaToolCapabilities(rawTools, source)
+    : frontmatterList(metadata, "tools", source);
   const checks = frontmatterList(metadata, "checks", source);
 
   const sections = document.sections;
@@ -792,7 +823,7 @@ function relativePersonaFile(filePath: string, directory: string): string {
 function lintErrorCode(message: string): string {
   const text = message.toLowerCase();
   if (text.includes("missing required section")) return "missing_section";
-  if (text.includes("frontmatter")) return "frontmatter";
+  if (text.includes("frontmatter") || text.includes("tool capability")) return "frontmatter";
   if (text.includes("output schema") || text.includes("blocker schema")) return "schema";
   if (text.includes("section is empty")) return "empty_section";
   return "invalid_persona";
