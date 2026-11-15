@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/report/report-contract.test.ts (2 tests) 42ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:46:50
+   Duration  2.85s (transform 833ms, setup 0ms, collect 1.30s, tests 42ms, environment 0ms, prepare 530ms)
+

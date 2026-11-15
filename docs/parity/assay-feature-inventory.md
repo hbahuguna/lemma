@@ -166,8 +166,8 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 
 | Assay asset | Capability | Lemma task |
 | --- | --- | --- |
-| `schemas/report/report.v1.schema.json` | Published report contract (updated to assay-compatible `quality-harness.report/v1` shape with schema-version enum; validated by `packages/core/src/report.ts` and `packages/core/test/report/report.test.ts`; compatibility/contract test expansion continues in LEM-073) | LEM-020, LEM-073 |
-| `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` references report schema; report contract/builder alignment landed in LEM-020) | LEM-004, LEM-020 |
+| `schemas/report/report.v1.schema.json` | Published report contract (updated to assay-compatible `quality-harness.report/v1` shape with schema-version enum; validated by `packages/core/src/report.ts` and `packages/core/test/report/report.test.ts`; compatibility/contract tests in `packages/core/test/report/report-contract.test.ts`, output `docs/parity/evidence/LEM-073-report-contract-test-output.txt`) | LEM-020, LEM-073 |
+| `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` references report schema; report contract/builder alignment landed in LEM-020; index/schema alignment asserted in LEM-073 contract tests) | LEM-004, LEM-020, LEM-073 |
 | `schemas/metering/envelope.v1.schema.json` | Event envelope | LEM-113 |
 | `schemas/metering/run_started.v1.schema.json` | Run event | LEM-113 |
 | `schemas/metering/check_executed.v1.schema.json` | Check event | LEM-113 |
@@ -175,7 +175,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `schemas/metering/evidence_byte_stored.v1.schema.json` | Evidence-byte event | LEM-113 |
 | `schemas/metering/export_generated.v1.schema.json` | Export event | LEM-113 |
 | `schemas/metering/index.json` | Metering schema index | LEM-004, LEM-113 |
-| Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage (implemented/validated in `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/test/report/report.test.ts`; evidence `docs/parity/evidence/LEM-020-report-test-output.txt`; broader contract/CLI parity in LEM-073) | LEM-020, LEM-073 |
+| Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage (implemented/validated in `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/test/report/report.test.ts`, `packages/core/test/report/report-contract.test.ts`; evidence `docs/parity/evidence/LEM-020-report-test-output.txt`, `docs/parity/evidence/LEM-073-report-contract-test-output.txt`; CLI-produced report contract parity continues in LEM-084/085+) | LEM-020, LEM-073 |
 | Metering v1 event names | Frozen names and idempotency keys | LEM-113 |
 | Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy (`policies/advisory-v1.json`, `packages/core/src/scoring.ts` policy validation/load/defaulting and gate semantics; tests `packages/core/test/policy/policy.test.ts`, output `docs/parity/evidence/LEM-019-policy-test-output.txt`; policy/calibration regression coverage continues in LEM-074) | LEM-019, LEM-074 |
 | Quota plan contract | `quality-harness.quota-plan/v1` | LEM-115 |
@@ -203,7 +203,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `.github/workflows/pr.yml` | Fork-safe PR automation | LEM-136 |
 | `.github/actions/quality-harness/` | Composite PR action | LEM-136 |
 | `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 |
-| `schemas/` release staging | Published schemas as artifacts | LEM-073, LEM-134 |
+| `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 |
 
 ## 7. Test-suite mapping
 
@@ -220,7 +220,7 @@ with rationale.
 | `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 |
 | `test_scoring.py` | LEM-018 |
 | `test_policy.py` | LEM-019, LEM-074 (core policy contract/gate behavior covered by `packages/core/test/policy/policy.test.ts`; CLI/report integration and additional regression coverage continue in later tasks) | LEM-019, LEM-074 |
-| `test_report_schema.py` | LEM-020, LEM-073 (core report builder/schema validation behavior covered by `packages/core/test/report/report.test.ts`; CLI-produced report schema/contract parity continues in LEM-073) | LEM-020, LEM-073 |
+| `test_report_schema.py` | LEM-020, LEM-073 (core report builder/schema validation behavior covered by `packages/core/test/report/report.test.ts`; published-schema/index + compatibility/contract behavior covered by `packages/core/test/report/report-contract.test.ts`, output `docs/parity/evidence/LEM-073-report-contract-test-output.txt`; CLI-produced report schema/contract parity continues in later CLI tasks) |
 | `test_personas.py`, `test_persona_tools.py` | LEM-041 (frontmatter parser: `packages/core/test/personas/personas.test.ts`), LEM-042 (schema validation: `packages/core/test/persona-schema/persona-schema-validation.test.ts`), LEM-047 (lint core: `packages/core/test/persona-lint/persona-lint.test.ts`, output `docs/parity/evidence/LEM-047-persona-lint-test-output.txt`; CLI lint command in LEM-084), LEM-048 (scaffold core: `packages/core/test/persona-scaffold/persona-scaffold.test.ts`, output `docs/parity/evidence/LEM-048-persona-scaffold-test-output.txt`; CLI scaffold command in LEM-084), LEM-049 (persona conformance: `packages/core/test/persona-conformance/persona-conformance.test.ts`, output `docs/parity/evidence/LEM-049-persona-conformance-test-output.txt`) |
 | `test_ownership.py` | LEM-044 (ownership derivation/disjointness and planning errors ported to `packages/core/src/personas.ts` with the shared assay error message; tests `packages/core/test/ownership/ownership.test.ts`, output `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
 | `test_invalid_findings.py` | LEM-045 (raw draft extraction, output-schema validation, quarantine without scoring/kill, redaction, consecutive-failure streaks/degradation, streak reset, and rebuild-after-resume-pruning covered by `packages/core/test/invalid-findings/invalid-findings.test.ts`, output `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
