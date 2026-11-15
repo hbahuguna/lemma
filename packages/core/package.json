@@ -26,6 +26,10 @@
     "./outcomes": {
       "types": "./dist/outcomes.d.ts",
       "import": "./dist/outcomes.js"
+    },
+    "./ssrf": {
+      "types": "./dist/ssrf-export.d.ts",
+      "import": "./dist/ssrf-export.js"
     }
   },
   "main": "./dist/index.js",
@@ -34,7 +38,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "schemas:generate": "tsx ../../scripts/schemas/generate.ts",

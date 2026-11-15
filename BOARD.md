@@ -188,7 +188,7 @@ scan wearing a browser label.
 | LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Done |
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Done |
 | LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Done |
-| LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Backlog |
+| LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Done |
 | LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Backlog |
 | LEM-061 | Verify browser evidence, manifest, and report linkage | P0 | 3 | LEM-016, LEM-051 | Backlog |
 | LEM-062 | Port viewport and check metadata contracts | P2 | 2 | LEM-051, LEM-055 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-059** — Port SSRF-safe target validation and allowlists (2026-11-15). Evidence: `packages/core/src/ssrf.ts`, `packages/core/src/ssrf-export.ts`, `packages/core/src/index.ts`, `packages/core/package.json` (`validateUrl`/`validateRedirectChain`/`isSafeUrl`/`loadAllowlist`, injectable resolver, default blocked hosts/ranges, hostname/CIDR allowlists and env/file/root loading, per-call rebinding checks, redirect-chain revalidation, non-leaking `SsrfError`), `packages/core/test/ssrf/ssrf.test.ts`, `docs/parity/evidence/LEM-059-ssrf-test-output.txt` (`pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`, 8/8 with pre-existing unrelated core schema-suite failures in full run); `pnpm --filter @lemma/core typecheck` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-058** — Port scenario-file execution and `browser.steps` (2026-11-15). Evidence: `packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts`, `packages/browser/src/index.ts` (scenario plan loading/compilation, Playwright-driven `executeScenarioPlan`, `browser.steps` runtime integration/evaluation with injected execution/page support and blocked degradation), `packages/browser/test/browser-scenarios.test.ts`, `docs/parity/evidence/LEM-058-browser-steps-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts`, 5/5; browser suite 48/48); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-057** — Port HAR, trace, and video capture with redaction (2026-11-15). Evidence: `packages/browser/src/capture.ts` and `packages/browser/src/runtime.ts` (capture flags, Playwright HAR/trace/video recording/finalization, redacted HAR/trace-zip/video persistence with evidence refs and cleanup; common capture refs in `packages/browser/src/checks.ts`), `packages/browser/test/browser-capture-artifacts.test.ts`, `docs/parity/evidence/LEM-057-browser-capture-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`, 4/4; browser suite 43/43); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-056** — Port authenticated storage-state injection (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (`resolveBrowserStorageState`, `storageState`/`storage_state` options, assay-compatible env/file/validation/expiry/empty handling, Playwright context injection without persisting resolved state, blocked degradation on resolution failure), `packages/browser/test/browser-storage-state.test.ts`, `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`, 6/6; browser suite 39/39); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -805,6 +806,53 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-059 — Port SSRF-safe target validation and allowlists
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-010
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; SSRF test suite 8/8 passed, plus `pnpm --filter @lemma/core typecheck` and `pnpm lint` pass.
+- **Description:** Port SSRF-safe URL target validation and allowlist handling
+  from assay into `@lemma/core` so targets are checked before navigation/use,
+  private/link-local/loopback/metadata destinations are blocked by default, and
+  explicit allowlists can safely opt in specific hosts/CIDRs.
+- **Acceptance Criteria:**
+  - Core SSRF module added at `packages/core/src/ssrf.ts` and exported from
+    `@lemma/core` (and `@lemma/core/ssrf` subpath as needed): `validateUrl`
+    (compat `validateTargetUrl`), `validateRedirectChain`, `isSafeUrl` (compat
+    `ssrfSafe`), and `loadAllowlist` with injectable DNS resolver support.
+  - `validateUrl` requires `http`/`https` and a host; blocks known metadata/local
+    hostnames by default (`metadata.google.internal`, `metadata`,
+    `kubernetes.default.svc`) unless explicitly allowlisted by name; resolves
+    hostnames (or accepts IP literals) and rejects blocked/unsafe addresses
+    (loopback, link-local, private, multicast, reserved, unspecified, and cloud
+    metadata `169.254.169.254`) unless covered by an explicit allowlist
+    CIDR/entry; named-host allowlist still requires resolution and cannot permit
+    metadata address `169.254.169.254`.
+  - Allowlist parsing/loading: entries may be hostnames or CIDR strings (invalid
+    CIDR is a typed/config error). `loadAllowlist` reads `QH_SSRF_ALLOWLIST`
+    (comma-separated), optional `QH_SSRF_ALLOWLIST_FILE`, and when `root` is
+    provided `.harness/ssrf-allowlist.json` and/or `ssrf-allowlist.json`
+    (supporting `{allow|allowlist}` array/string forms), with unreadable/invalid
+    config surfaced as an error.
+  - DNS resolution is checked per validation call (supports rebinding detection
+    when resolver results change) and redirect chains are revalidated at every
+    hop via `validateRedirectChain`. Resolution failures produce a typed target
+    error; validation errors do not leak resolved internal IP addresses.
+  - Tests at `packages/core/test/ssrf/ssrf.test.ts` cover: private/localhost/
+    metadata rejection (including no leaked internal addresses in messages),
+    public target allowed via injected resolver, localhost allowed only with
+    config/env allowlist, CIDR allowlist override, DNS rebinding checked per
+    call, redirect-chain revalidation, and allowlist loading from environment.
+    Parity inventory updated for `harness/ssrf.py` (LEM-059 slice/evidence).
+  - `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and
+    `pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts` pass.
+- **Verification:** `pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`
+- **Evidence:** `packages/core/src/ssrf.ts`, `packages/core/src/ssrf-export.ts`, `packages/core/src/index.ts`, `packages/core/package.json`, `packages/core/test/ssrf/ssrf.test.ts`, `docs/parity/evidence/LEM-059-ssrf-test-output.txt`; parity inventory `harness/ssrf.py` updated (LEM-059 slice/evidence). Commit/remote recorded in completion summary.
 
 ### LEM-058 — Port scenario-file execution and `browser.steps`
 
