@@ -1,0 +1,14 @@
+$ vitest run --config vitest.config.ts blockers
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/blockers/blockers.test.ts (6 tests) 2025ms
+   ✓ LEM-046 structured blocker and refusal records > records one structured blocker for a blocked outcome and discards findings  784ms
+   ✓ LEM-046 structured blocker and refusal records > forces a passed outcome with a blocker to blocked and records one blocker  738ms
+   ✓ LEM-046 structured blocker and refusal records > redacts blocker text and blocked metadata before persistence  494ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  14:00:44
+   Duration  4.57s (transform 615ms, setup 0ms, collect 880ms, tests 2.03s, environment 0ms, prepare 359ms)
+

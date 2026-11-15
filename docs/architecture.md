@@ -58,6 +58,7 @@ All adapters implement the shared `AgentHost` contract and capability manifest, 
 | `workflows` | Versioned workflow loader, phase-order validation, built-in fallback |
 | `checks` | Stable check catalog, registry, intent-linked planning |
 | `findings` | Persona output-contract validation, invalid-finding quarantine, contract-failure streaks, finding fingerprints |
+| `outcomes` | Check outcome application, structured blocker/refusal records, non-blocked finding/quarantine integration |
 | `personas` | Frontmatter parsing, contract loading, schema validation, ownership derivation/disjointness enforcement |
 | `static` | Source inventory, git-aware scanning, secret/unsafe/a11y rules |
 | `evidence` | Hashed artifact store, checkpoint manifest, signing, verification |

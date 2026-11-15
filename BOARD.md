@@ -166,7 +166,7 @@ a pass.
 | LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Done |
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Done |
 | LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Done |
-| LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Backlog |
+| LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Done |
 | LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Backlog |
 | LEM-048 | Port `personas scaffold` | P2 | 3 | LEM-047 | Backlog |
 | LEM-049 | Port tool capability enforcement and persona conformance tests | P1 | 3 | LEM-043, LEM-044 | Backlog |
@@ -743,6 +743,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL11 | 2026-11-14 | LEM-003 architecture/package graph/adapter contract ratified; operator sign-off recorded. | `docs/architecture.md` (ratified) and `docs/adr/0001-typescript-monorepo-and-contracts.md` lock dependency direction, host-neutral `AgentHost` contract, capabilities/degradation, and optionality boundaries; OpenCode and Claude Code named as first-ship adapters with explicit package owners. | Revisit via ADR/Decision Log if host surfaces or dependency boundaries materially change. |
 | DL12 | 2026-11-15 | The functional persona frontmatter owns the 52 lemma-only `static.category.<label>` scope markers; catalog definitions keep `persona: ""`. | LEM-037 added intent-gated documented-no-op category scope checks that assay's 24-check catalog does not have. Frontmatter must remain the only ownership source (D16), and every check must have exactly one owner, so the generalist functional contract declares the scope markers while the three assay bodies/schemas stay unchanged. | Move scope markers out of the persona-owned catalog if a distinct planner-owned scope record contract replaces them. |
 | DL13 | 2026-11-15 | Finding payload extraction, schema validation, quarantine, and contract-health accounting live in `@lemma/core/findings`, not in the orchestrator. | The orchestrator is a phase/state machine with host-neutral handlers; keeping the quarantine rules in a pure module lets the future CLI/agent execution path reuse them and keeps the deterministic behavior testable without a plugin loader. The package graph is unchanged. | Fold the module into `models` or `orchestrator` only if the execution loop becomes the sole caller. |
+| DL14 | 2026-11-15 | Check outcome application and structured blocker/refusal records live in `@lemma/core/outcomes` (and the `@lemma/core/outcomes` subpath), reusing `findings` for non-blocked finding validation. | Blocker recording is a deterministic contract (one per check, no findings, redaction, schema validation) shared by future CLI/agent/plugin execution paths; a dedicated module keeps refusal semantics testable and host-neutral. | Merge into `findings` if outcome/finding/refusal responsibilities converge. |
 
 ## Done
 
@@ -788,9 +789,73 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-046** — Port structured blocker and refusal records (2026-11-15). Evidence: `packages/core/src/outcomes.ts` (`blockerPayload`, `unblockHints`, `recordBlockedCheck`, `recordCheckOutcome`), `@lemma/core/outcomes` export/build wiring, `packages/core/test/blockers/blockers.test.ts`, `docs/parity/evidence/LEM-046-blockers-test-output.txt` (`pnpm --filter @lemma/core test blockers`, 6/6); blocked outcomes now produce one redacted blocker with no findings, forced-blocked refusals, dedupe, hints, and report/coverage integration verified. Commit/remote recorded in completion summary.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-046 — Port structured blocker and refusal records
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-042
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test blockers`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test blockers` 6/6, `pnpm lint`, `pnpm --filter @lemma/core typecheck`, and the core build pass.
+- **Description:** Port assay's structured refusal/blocker handling: every blocked
+  check produces exactly one redacted blocker record (or reuses an existing one),
+  blocked outcomes discard findings, a passed outcome carrying a blocker is forced
+  to blocked, and blocker payloads are derived/validated against the owning persona
+  blocker contract. Recording must integrate with existing check state, coverage,
+  report, and resume behavior.
+- **Acceptance Criteria:**
+  - A new `@lemma/core/outcomes` module (exported from the root entry point and
+    as the `@lemma/core/outcomes` subpath, and added to the core build) ports
+    assay's blocker/refusal recording:
+    - `blockerPayload` derives a raw payload from a `BlockerDraft` or fallback
+      values (attempted action from draft/check expected/title/id; boundary from
+      draft/explicit boundary/outcome actual/metadata boundary/limitation/check
+      actual/skip reason/default text; unblock evidence from the draft, or
+      `[metadata.note]` when string, else a deterministic hint for
+      persona-owner, plugin/signature/trust, browser/playwright/chromium/operate,
+      source/static/inventory, or generic boundaries; covered_elsewhere/covered_by
+      normalized).
+    - `blockerFromPayload`/recording creates a redacted `Blocker` with
+      deterministic id/timestamp, validates it against the persona's
+      `blocker_schema` when a persona is present and logs a warning on contract
+      violations (matching assay), appends at most one blocker per `check_id`,
+      forces the check to `blocked`, clears `finding_ids` and removes findings
+      for that check, and sets `skip_reason` from the limitation/boundary.
+    - `recordCheckOutcome` applies a `CheckOutcome` to `RunStateDomain`: sets
+      evidence, redacts/sets actual and metadata appropriately, treats blocked
+      status or any blocker draft (including existing blocker) as a refusal that
+      discards finding drafts with a warning, records the blocker once, and for
+      non-blocked outcomes records findings through `recordCheckFindings`.
+      Completed terminal statuses receive `completed_at`; skipped checks record a
+      skip reason.
+  - Persona blocker schema validation remains available (`validateBlocker` /
+    `validatePayload`), and runtime blocker records are checked against the
+    owning persona blocker contract.
+  - Blockers remain visible in state/report/coverage (one per blocked check,
+    by-domain/by-persona counts, covered/uncovered totals) and are redacted before
+    persistence; resume/rerun pruning continues to drop blockers for rerun checks.
+  - Tests at `packages/core/test/blockers/blockers.test.ts` cover: blocked
+    outcome produces exactly one blocker and no findings; passed outcome with a
+    blocker is forced to blocked; finding drafts are discarded for blocked
+    outcomes; duplicate recording is a no-op after the first blocker; fallback
+    payload derivation and unblock hints; blocker/actual/metadata redaction in
+    persisted progress; persona blocker-contract warning path; coverage/report
+    blocker totals; and non-blocked `recordCheckOutcome` finding/quarantine flow.
+    Evidence is recorded under
+    `docs/parity/evidence/LEM-046-blockers-test-output.txt`.
+  - No runtime dependency is added, the parity inventory rows for
+    `harness/outcomes.py` (LEM-046), blocker schema validation, `test_blockers.py`,
+    and D18 are updated, and the acceptance test plus typecheck/lint/build pass.
+- **Verification:** `pnpm --filter @lemma/core test blockers`
+- **Evidence to record:** blockers test output, updated parity inventory rows,
+  package export/build updates, and Decision Log entry if module boundaries
+  change.
 
 ### LEM-045 — Port invalid-finding quarantine and degraded streaks
 
