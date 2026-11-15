@@ -161,7 +161,7 @@ a pass.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-041 | Port the persona frontmatter parser | P0 | 3 | LEM-013 | Backlog |
+| LEM-041 | Port the persona frontmatter parser | P0 | 3 | LEM-013 | Done |
 | LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Backlog |
 | LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Backlog |
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Backlog |
@@ -784,6 +784,55 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-038** — Port the sample-repo, demo-web, and static fixtures (2026-11-14). Evidence: `examples/sample-repo/`, `examples/demo-web/`, `tests/fixtures/redaction_corpus.json`, `docs/parity/evidence/LEM-038-fixtures-parity.txt` (fixture parity checks vs assay). Commit/remote recorded in completion summary.
 - **LEM-039** — Build the static precision and recall corpus (2026-11-14). Evidence: `packages/core/test/static-precision-recall-corpus/corpus.json`, `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`, `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt` (`pnpm --filter @lemma/core test -- static-precision-recall`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
+- **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
+
+### LEM-041 — Port the persona frontmatter parser
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test personas`.
+- **Description:** Port assay's persona frontmatter parser (the YAML subset in
+  `harness/personas.py`) into `@lemma/core/personas` without adding a runtime
+  YAML dependency, so persona contracts can be read deterministically with typed
+  errors, and so later tasks can layer schema validation, ownership, and lint on
+  top of the same parse.
+- **Acceptance Criteria:**
+  - `parseFrontmatter(text)` reads a `---`-delimited YAML-subset block and
+    returns a key→value map. It requires the opening `---` on the first line and
+    a closing `---` line; a missing opening or closing delimiter throws a typed
+    `PersonaError` with `errorCode === "persona_error"` and a deterministic
+    message.
+  - Scalar parsing matches assay `_parse_scalar`: trimmed plain strings; single-
+    or double-quoted values unquoted; `true`/`false` (case-insensitive) become
+    booleans; `^-?\d+$` becomes an integer; `[a, b]` becomes a recursively
+    parsed array (empty `[]` stays empty); an empty value becomes an empty list;
+    everything else stays a string.
+  - Block-list parsing matches assay `parse_frontmatter`: `- item` lines
+    (including indented lines) append `parseFrontmatterScalar(item)` to the
+    current key, creating/resetting the key to a list when needed; a list item
+    before any key throws `PersonaError`; a non-list frontmatter line without a
+    `:` throws `PersonaError`; a later scalar key updates the current key.
+  - `splitFrontmatter(text)`/`parsePersonaDocument(text)` separate frontmatter
+    from body at the closing delimiter and expose the body, and
+    `splitSections(body)` maps `## Heading` titles (trimmed and lowercased) to
+    trimmed section bodies, with later duplicate headings winning, matching
+    assay `_split_sections`.
+  - `readPersonaDocument(path)` reads a UTF-8 persona file and parses it; a read
+    failure throws `PersonaError`. Parsing is text-only (no evaluation, no
+    filesystem/network access), deterministic, and preserves key insertion
+    order, with no clock or entropy use.
+  - The parser API is exported from `@lemma/core` and available through the
+    `@lemma/core/personas` subpath (`package.json` export + tsup build entry),
+    adding no runtime dependency.
+  - `packages/core/test/personas/personas.test.ts` covers delimiter/error cases,
+    every scalar encoding, block lists, section splitting, a full assay-style
+    persona document, and file reading; test output is recorded under
+    `docs/parity/evidence/LEM-041-personas-test-output.txt`.
+- **Verification:** `pnpm --filter @lemma/core test personas` (targeted: `packages/core/test/personas/personas.test.ts`) — **PASS** (7 tests). `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and `pnpm --filter @lemma/core build` (emits `dist/personas.js`/`dist/personas.d.ts`) passed (2026-11-14).
+- **Evidence:** `packages/core/src/personas.ts` (assay-compatible `parseFrontmatterScalar`/`parseFrontmatter`/`splitFrontmatter`/`splitSections`/`parsePersonaDocument`/`readPersonaDocument`, typed `PersonaError`), exported from `@lemma/core` and via `@lemma/core/personas` (`package.json` export + tsup entry); `packages/core/test/personas/personas.test.ts` (7 tests: scalar encodings, full fixture, block lists, malformed frontmatter, section splitting, full document, unreadable file), fixture `packages/core/test/personas/fixtures/fixture-specialist.md`. Test output: `docs/parity/evidence/LEM-041-personas-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-034 — Port full-assessment markers
 

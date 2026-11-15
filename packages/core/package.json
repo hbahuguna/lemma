@@ -18,6 +18,10 @@
     "./cloud": {
       "types": "./dist/cloud.d.ts",
       "import": "./dist/cloud.js"
+    },
+    "./personas": {
+      "types": "./dist/personas.d.ts",
+      "import": "./dist/personas.js"
     }
   },
   "main": "./dist/index.js",
@@ -26,7 +30,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/browser.ts src/cloud.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/browser.ts src/cloud.ts src/personas.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "schemas:generate": "tsx ../../scripts/schemas/generate.ts",
