@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-viewport-metadata.test.ts (4 tests) 13ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  19:00:54
+   Duration  1.74s (transform 497ms, setup 0ms, collect 709ms, tests 13ms, environment 0ms, prepare 196ms)
+

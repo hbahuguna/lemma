@@ -25,6 +25,8 @@ export interface BrowserPageView {
   cookies?: Array<Record<string, unknown>>;
   evidenceRefs: Record<string, string>;
   label?: string;
+  /** Viewport label "WxH" for metadata contracts. */
+  viewport?: string;
 }
 
 export const IMPLEMENTED_BROWSER_CHECKS = new Set([
@@ -93,9 +95,10 @@ export function normalizePageView(value: unknown): BrowserPageView {
   for (const [k, v] of Object.entries(evidenceRefsRaw)) {
     if (typeof v === "string" && v) evidenceRefs[k] = v;
   }
+  const snapshot = asRecord(d.snapshot);
   const view: BrowserPageView = {
     navigation,
-    snapshot: asRecord(d.snapshot),
+    snapshot,
     consoleMessages: asArray(d.consoleMessages ?? d.console_messages).map(asRecord),
     pageErrors: asArray(d.pageErrors ?? d.page_errors).map(asRecord),
     networkEntries: asArray(d.networkEntries ?? d.network_entries).map(asRecord),
@@ -105,6 +108,18 @@ export function normalizePageView(value: unknown): BrowserPageView {
   if (cookies.length > 0) view.cookies = cookies;
   const label = asString(d.label);
   if (label) view.label = label;
+  const viewportRaw = d.viewport ?? (d.metadata && asRecord(d.metadata).viewport);
+  if (typeof viewportRaw === "string" && /^\s*\d+x\d+\s*$/i.test(viewportRaw)) {
+    view.viewport = viewportRaw.trim().toLowerCase().replace(/\s+/g, "");
+  } else {
+    const vw = snapshot.viewportWidth ?? snapshot.viewport_width ?? d.viewportWidth ?? d.viewport_width;
+    const vh = snapshot.viewportHeight ?? snapshot.viewport_height ?? d.viewportHeight ?? d.viewport_height;
+    const w = asNumber(vw, NaN);
+    const h = asNumber(vh, NaN);
+    if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+      view.viewport = `${Math.trunc(w)}x${Math.trunc(h)}`;
+    }
+  }
   return view;
 }
 
@@ -126,7 +141,11 @@ export function commonEvidence(view: BrowserPageView): string[] {
 }
 
 function baseOutcome(view: BrowserPageView): CheckOutcome {
-  return new CheckOutcome({ status: CheckStatus.FAILED, evidence: commonEvidence(view) });
+  const outcome = new CheckOutcome({ status: CheckStatus.FAILED, evidence: commonEvidence(view) });
+  if (typeof view.viewport === "string" && view.viewport) {
+    outcome.metadata.viewport = view.viewport;
+  }
+  return outcome;
 }
 
 function evalLoad(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
@@ -690,6 +709,11 @@ function evalOverflow(view: BrowserPageView, _navigation: BrowserNavigationResul
     outcome.metadata.viewport_width = viewportWidth;
     outcome.metadata.scroll_width = scrollWidth;
   }
+  if (typeof view.viewport === "string" && view.viewport) {
+    outcome.metadata.viewport = view.viewport;
+  } else if (typeof outcome.metadata.viewport !== "string" || !outcome.metadata.viewport) {
+    outcome.metadata.viewport = `${viewportWidth}x0`;
+  }
   return outcome;
 }
 
@@ -986,6 +1010,10 @@ export function mergeBrowserOutcomes(outcomes: CheckOutcome[]): CheckOutcome {
   const merged = new CheckOutcome({ status: CheckStatus.PASSED, evidence: [], findings: [] });
   merged.metadata.crawled = true;
   merged.metadata.page_count = outcomes.length;
+  const viewports = Array.from(
+    new Set(outcomes.map((o) => (typeof o.metadata?.viewport === "string" ? o.metadata.viewport : "")).filter(Boolean)),
+  );
+  if (viewports.length === 1) merged.metadata.viewport = viewports[0]!;
   merged.metadata.routes = outcomes.map((outcome) => ({
     page: asString(outcome.metadata.page),
     route: asString(outcome.metadata.route),
@@ -1109,6 +1137,10 @@ export function evaluateBrowserCheckAcrossViews(
     only.metadata.crawled = views.length > 1;
     only.metadata.page_count = 1;
     if (skipped.length > 0) only.metadata.routes_not_evaluated = skipped;
+    if (typeof only.metadata.viewport !== "string" || !only.metadata.viewport) {
+      const vp = views.map((v) => v.viewport).find((v): v is string => typeof v === "string" && v.length > 0);
+      if (vp) only.metadata.viewport = vp;
+    }
     return only;
   }
 

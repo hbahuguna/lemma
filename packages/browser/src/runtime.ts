@@ -31,6 +31,11 @@ export interface PlaywrightModuleLike {
   [key: string]: unknown;
 }
 
+export interface BrowserViewport {
+  width: number;
+  height: number;
+}
+
 export interface BrowserRuntimeOptions {
   /** Disable browser execution and degrade all browser checks as blocked. */
   noBrowser?: boolean;
@@ -38,6 +43,12 @@ export interface BrowserRuntimeOptions {
   disabled?: boolean;
   headless?: boolean;
   timeoutMs?: number;
+  /** Browser viewport as "WxH" (e.g. "1440x900") or { width, height }. */
+  viewport?: string | BrowserViewport;
+  /** Viewport width (used with viewportHeight when viewport not provided). */
+  viewportWidth?: number;
+  /** Viewport height (used with viewportWidth when viewport not provided). */
+  viewportHeight?: number;
   /** Enable bounded same-origin crawl (LEM-054). */
   crawl?: boolean;
   /** Maximum pages to capture/evaluate when crawling (seed included). */
@@ -85,6 +96,45 @@ export interface BrowserRuntimeOptions {
    * Chromium). Throw to mark unavailable.
    */
   runtimeValidator?: (playwright: PlaywrightModuleLike) => Promise<void> | void;
+}
+
+export const DEFAULT_BROWSER_VIEWPORT = "1440x900" as const;
+
+export function resolveBrowserViewport(options?: BrowserRuntimeOptions): BrowserViewport & { label: string } {
+  const fallback = { width: 1440, height: 900, label: DEFAULT_BROWSER_VIEWPORT };
+  if (!options) return fallback;
+  const v = options.viewport;
+  if (typeof v === "string") {
+    const m = /^\s*(\d+)x(\d+)\s*$/i.exec(v);
+    if (m) {
+      const width = Number(m[1]);
+      const height = Number(m[2]);
+      if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+        return { width, height, label: `${width}x${height}` };
+      }
+    }
+  } else if (v && typeof v === "object") {
+    const width = Number((v as { width?: unknown }).width);
+    const height = Number((v as { height?: unknown }).height);
+    if (Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0) {
+      return { width, height, label: `${width}x${height}` };
+    }
+  }
+  const w = Number(options.viewportWidth);
+  const h = Number(options.viewportHeight);
+  if (Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0) {
+    return { width: w, height: h, label: `${w}x${h}` };
+  }
+  return fallback;
+}
+
+function applyViewportMetadata(outcome: CheckOutcome, viewportLabel: string): CheckOutcome {
+  if (outcome && outcome.metadata && typeof outcome.metadata === "object") {
+    if (typeof outcome.metadata.viewport !== "string" || outcome.metadata.viewport.length === 0) {
+      outcome.metadata.viewport = viewportLabel;
+    }
+  }
+  return outcome;
 }
 
 export interface BrowserProbeResult {
@@ -336,6 +386,8 @@ export interface RunBrowserChecksInput {
   evidence?: BrowserEvidenceStoreLike;
   /** Optional injected Playwright-like page for scenario execution/testing. */
   scenarioPage?: BrowserScenarioPageLike;
+  /** Optional viewport label ("WxH") to record on produced check outcomes. */
+  viewport?: string;
 }
 
 /**
@@ -691,6 +743,7 @@ async function captureWithPlaywright(
     throw new BrowserUnavailableError("Playwright Chromium launcher is unavailable.");
   }
   const headless = options?.headless ?? true;
+  const viewport = resolveBrowserViewport(options);
   const storageStateInput = options?.storageState ?? options?.storage_state;
   const resolvedStorageState =
     storageStateInput !== undefined ? resolveBrowserStorageState(storageStateInput) : undefined;
@@ -708,7 +761,7 @@ async function captureWithPlaywright(
   const tracePath = flags.trace && tempDir ? join(tempDir, "capture-trace.zip") : undefined;
   const videoDir = flags.video && tempDir ? join(tempDir, "video") : undefined;
 
-  const contextOptions: Record<string, unknown> = { viewport: { width: 1280, height: 720 } };
+  const contextOptions: Record<string, unknown> = { viewport: { width: viewport.width, height: viewport.height } };
   if (resolvedStorageState) {
     contextOptions.storageState = resolvedStorageState;
   }
@@ -890,7 +943,8 @@ async function resolveBrowserStepsOutcome(input: RunBrowserChecksInput, probeAva
       newContext: (opts?: Record<string, unknown>) => Promise<{ newPage: () => Promise<BrowserScenarioPageLike>; close: () => Promise<void> }>;
       close: () => Promise<void>;
     };
-    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const scenarioViewport = resolveBrowserViewport(opts);
+    const context = await browser.newContext({ viewport: { width: scenarioViewport.width, height: scenarioViewport.height } });
     const page = await context.newPage();
     try {
       const execOpts = { label: "scenario", ...(opts.timeoutMs === undefined ? {} : { timeoutMs: opts.timeoutMs }) };
@@ -917,6 +971,11 @@ export async function runBrowserChecks(
   input: RunBrowserChecksInput,
 ): Promise<void> {
   const { checks, onOutcome, options, evidence } = input;
+  const viewportLabel = input.viewport ?? resolveBrowserViewport(options).label;
+  const emit = async (check: Check, outcome: CheckOutcome): Promise<void> => {
+    await onOutcome(check, applyViewportMetadata(outcome, viewportLabel));
+  };
+
   const hasSteps = checks.some((c) => c.id === "browser.steps");
   const nonSteps = checks.filter((c) => c.id !== "browser.steps");
 
@@ -932,16 +991,16 @@ export async function runBrowserChecks(
   if (!probe.available || !probe.playwright) {
     const reason = probe.reason ?? "Browser runtime is unavailable.";
     if (nonSteps.length > 0) {
-      await degradeBrowserChecks(nonSteps, reason, onOutcome);
+      await degradeBrowserChecks(nonSteps, reason, emit);
     }
     if (hasSteps) {
       const out = stepsOutcome ?? (await resolveBrowserStepsOutcome(input, false));
       for (const check of checks.filter((c) => c.id === "browser.steps")) {
         // Preserve injected/precomputed execution outcomes; otherwise block with actionable reason.
-        await onOutcome(check, stepsOutcome ? stepsOutcome : (out.status === CheckStatus.BLOCKED ? out : blockedBrowserOutcome(check, reason)));
+        await emit(check, stepsOutcome ? stepsOutcome : (out.status === CheckStatus.BLOCKED ? out : blockedBrowserOutcome(check, reason)));
       }
     } else if (nonSteps.length === 0) {
-      await degradeBrowserChecks(checks, reason, onOutcome);
+      await degradeBrowserChecks(checks, reason, emit);
     }
     return;
   }
@@ -963,13 +1022,13 @@ export async function runBrowserChecks(
           : error instanceof Error
             ? error.message
             : String(error);
-      await degradeBrowserChecks(checks, reason, onOutcome);
+      await degradeBrowserChecks(checks, reason, emit);
       return;
     }
   }
 
   if (!views || views.length === 0) {
-    await degradeBrowserChecks(checks, "No browser page view could be captured.", onOutcome);
+    await degradeBrowserChecks(checks, "No browser page view could be captured.", emit);
     return;
   }
 
@@ -982,23 +1041,23 @@ export async function runBrowserChecks(
   for (const check of checks) {
     try {
       if (check.id === "browser.steps") {
-        await onOutcome(
+        await emit(
           check,
           stepsOutcome ?? blockedBrowserOutcome(check, "No scenario plan or execution was provided for browser.steps."),
         );
         continue;
       }
       if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
-        await onOutcome(check, notImplementedOutcome(check));
+        await emit(check, notImplementedOutcome(check));
         continue;
       }
       const outcome = multi
         ? evaluateBrowserCheckAcrossViews(check, views)
         : evaluateBrowserCheckForCheck(check, views[0]!);
-      await onOutcome(check, outcome);
+      await emit(check, outcome);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
-      await onOutcome(check, blockedBrowserOutcome(check, `Browser check execution failed: ${reason}`));
+      await emit(check, blockedBrowserOutcome(check, `Browser check execution failed: ${reason}`));
     }
   }
 }
