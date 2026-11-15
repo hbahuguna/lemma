@@ -614,6 +614,126 @@ function defaultInitialArgs(goal: string, personasDir: string): string[] {
   return ["run", "--target", ".", "--personas-dir", personasDir, "--intent", goal];
 }
 
+function parseHarnessJsonOutput(output: string): Record<string, unknown> | null {
+  const trimmed = String(output || "").trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = JSON.parse(trimmed) as unknown;
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    const m = trimmed.match(/\{[\s\S]*\}/);
+    if (!m) return null;
+    try {
+      const parsed = JSON.parse(m[0]) as unknown;
+      return isRecord(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+}
+
+export function extractRunIds(output: string): string[] {
+  const ids: string[] = [];
+  const pattern = /"run_id"\s*:\s*"([^"]+)"/g;
+  let match: RegExpExecArray | null;
+  while ((match = pattern.exec(String(output || ""))) !== null) {
+    const id = match[1];
+    if (id && !ids.includes(id)) ids.push(id);
+  }
+  return ids;
+}
+
+export function summarizeRunOutput(output: string): string {
+  const report = parseHarnessJsonOutput(output);
+  if (!report) {
+    const text = redactTranscriptText(String(output || ""));
+    return text.length > 1200 ? `${text.slice(0, 1200)}\n...[truncated]` : text;
+  }
+  const runId = typeof report.run_id === "string" ? report.run_id : "unknown";
+  const status = typeof report.status === "string" ? report.status : "unknown";
+  const decisionObj = isRecord(report.decision) ? report.decision : null;
+  const decision =
+    (decisionObj && typeof decisionObj.decision === "string" ? decisionObj.decision : undefined) ||
+    (typeof report.decision === "string" ? report.decision : undefined) ||
+    "n/a";
+  const confidence = isRecord(report.confidence) ? report.confidence : null;
+  const score = confidence && typeof confidence.score === "number" ? confidence.score : undefined;
+  const coverage = confidence && typeof confidence.coverage === "number" ? confidence.coverage : undefined;
+
+  const lines: string[] = [`Run ${runId}: status=${status}, decision=${decision}`];
+  if (score !== undefined || coverage !== undefined) {
+    lines.push(`  confidence=${score ?? "n/a"} coverage=${coverage ?? "n/a"}`);
+  }
+
+  const checks = Array.isArray(report.checks) ? report.checks : [];
+  if (checks.length) {
+    const counts: Record<string, number> = {};
+    for (const c of checks) {
+      const s = isRecord(c) && typeof c.status === "string" ? c.status : "unknown";
+      counts[s] = (counts[s] || 0) + 1;
+    }
+    lines.push(`  checks=${checks.length} (${Object.entries(counts).map(([k, v]) => `${k}:${v}`).join(", ")})`);
+    for (const c of checks) {
+      if (!isRecord(c)) continue;
+      const id = typeof c.id === "string" ? c.id : "check";
+      const st = typeof c.status === "string" ? c.status : "unknown";
+      const meta = isRecord(c.metadata) ? c.metadata : null;
+      const routesVal = meta?.routes ?? meta?.route ?? meta?.crawled;
+      const pageCount = meta && typeof meta.page_count === "number" ? meta.page_count : undefined;
+      const routeCount = Array.isArray(meta?.routes) ? meta.routes.length : routesVal ? 1 : undefined;
+      const routes = routesVal ? ` routes=${pageCount ?? routeCount ?? 1}` : "";
+      const evidenceCount = Array.isArray(c.evidence) ? c.evidence.length : 0;
+      const ev = evidenceCount ? ` evidence=${evidenceCount}` : "";
+      const skip = typeof c.skip_reason === "string" ? c.skip_reason : "";
+      const lim = skip ? ` note=${redactTranscriptText(skip).slice(0, 120)}` : "";
+      lines.push(`  - ${id}: ${st}${routes}${ev}${lim}`);
+      if (typeof c.actual === "string" && c.actual) {
+        lines.push(`    actual: ${redactTranscriptText(c.actual).slice(0, 240)}`);
+      }
+    }
+  }
+
+  const findings = Array.isArray(report.findings) ? report.findings : [];
+  if (findings.length) {
+    lines.push(`  findings=${findings.length}`);
+    for (const f of findings.slice(0, 10)) {
+      if (!isRecord(f)) continue;
+      const sev = typeof f.severity === "string" ? f.severity : "?";
+      const title = typeof f.title === "string" ? f.title : typeof f.id === "string" ? f.id : "finding";
+      const checkId = typeof f.check_id === "string" ? f.check_id : "n/a";
+      lines.push(`  - [${sev}] ${redactTranscriptText(title)} (${checkId})`);
+    }
+  }
+
+  const evidence = isRecord(report.evidence) ? report.evidence : null;
+  if (evidence && typeof evidence.directory === "string") {
+    lines.push(`  evidence_dir=${redactTranscriptText(evidence.directory)}`);
+  }
+  if (Array.isArray(report.limitations) && report.limitations.length) {
+    lines.push(
+      `  limitations: ${report.limitations
+        .slice(0, 5)
+        .map((x) => redactTranscriptText(String(x)))
+        .join(" | ")}`,
+    );
+  }
+  return lines.join("\n");
+}
+
+export function buildExecutionSummary(state: AgentState): string {
+  const runIds = Array.isArray(state.runIds) ? state.runIds : [];
+  const runSummaries = Array.isArray(state.runSummaries) ? state.runSummaries : [];
+  const contextLog = Array.isArray(state.contextLog) ? state.contextLog : [];
+  const planMsg = state.testPlan ? `\n\n## Test plan\n${redactTranscriptText(state.testPlan)}` : "";
+  const details = runSummaries.length
+    ? `\n\n## What was executed (all runs/checks)\n${runSummaries.map((s) => redactTranscriptText(s)).join("\n\n")}`
+    : "";
+  const ctx = contextLog.length
+    ? `\n\n## Context decisions\n${contextLog.map((c) => `- ${redactTranscriptText(c)}`).join("\n")}`
+    : "";
+  return `${planMsg}${details}${ctx}\n\n## Run IDs\n${runIds.join(", ") || "(none)"}`;
+}
+
 function buildPrompt(options: AgentOptions, state: AgentState, executed: Set<string>): string {
   const goal = options.goal;
   const planSection = state.testPlan ? `\nTest plan:\n${state.testPlan}\n` : "\nTest plan: (none)\n";
@@ -659,7 +779,7 @@ async function requestContextAndMaybeWait(
   const resources = await discoverMcpResources(deps);
   const pending = state.pending;
   if (!pending) return false;
-  await sendFinal(formatContextRequest(pending, goal, resources));
+  await sendFinal(`${formatContextRequest(pending, goal, resources)}${buildExecutionSummary(state)}`);
   await maybePersist(cwd, state);
 
   if (options.interactive && deps.requestUserInput) {
@@ -678,7 +798,9 @@ async function requestContextAndMaybeWait(
         continue;
       }
       if (applied.progressed) return true;
-      if (state.pending) await sendFinal(formatContextRequest(state.pending, goal, await discoverMcpResources(deps)));
+      if (state.pending) {
+        await sendFinal(`${formatContextRequest(state.pending, goal, await discoverMcpResources(deps))}${buildExecutionSummary(state)}`);
+      }
       await maybePersist(cwd, state);
     }
     return true;
@@ -734,6 +856,10 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     updatedAt: new Date().toISOString(),
   };
 
+  if (!Array.isArray(state.runIds)) state.runIds = [];
+  if (!Array.isArray(state.runSummaries)) state.runSummaries = [];
+  if (!Array.isArray(state.contextLog)) state.contextLog = [];
+
   const executed = new Set<string>(state.executedCommands);
 
   if (state.pending) {
@@ -749,7 +875,8 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       state.executedCommands = [...executed];
       const output = await deps.runHarness(initialArgs, options.initialEnv);
       state.currentReport = output;
-      state.runSummaries.push(`Command: ${initialArgs.join(" ")}\n${output}`);
+      for (const id of extractRunIds(output)) if (!state.runIds.includes(id)) state.runIds.push(id);
+      state.runSummaries.push(`Command: ${initialArgs.join(" ")}\n${summarizeRunOutput(output)}`);
     } else {
       state.runSummaries.push(`NOTE: initial command already executed: ${initialArgs.join(" ")}`);
     }
@@ -771,6 +898,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     try {
       llmText = await deps.askLlm(prompt);
     } catch {
+      log("LLM call failed; stopping.");
       state.step += 1;
       await maybePersist(cwd, state);
       break;
@@ -784,6 +912,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     }
     if (decision.test_plan && decision.test_plan.trim()) {
       state.testPlan = decision.test_plan.trim();
+      log("Test plan updated.");
     }
 
     if (decision.type === "done") {
@@ -801,8 +930,11 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
         if (!continued) return state;
         continue;
       }
+      log("Agent decided it is done.");
       const fixes = decision.fixes ?? [];
-      await sendFinal(`${decision.summary ?? "Assessment complete."}\n\n## Suggested fixes\n${fixes.map((f) => `- ${f}`).join("\n") || "- (none)"}`);
+      await sendFinal(
+        `${decision.summary ?? "Assessment complete."}${buildExecutionSummary(state)}\n\n## Suggested fixes\n${fixes.map((f) => `- ${f}`).join("\n") || "- (none)"}`,
+      );
       await maybePersist(cwd, state);
       return state;
     }
@@ -834,15 +966,15 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     }
     if (!isAllowedCommand(cmd)) {
       log(`Rejected disallowed command: ${cmd}`);
-      state.runSummaries.push(`NOTE: rejected disallowed command: ${cmd}`);
+      state.runSummaries.push(`NOTE: rejected disallowed command: ${redactTranscriptText(cmd)}`);
       state.step += 1;
       await maybePersist(cwd, state);
       continue;
     }
     const invocation = commandToArgs(cmd, personasDir);
     if (invocation.error) {
-      log(invocation.error);
-      state.runSummaries.push(`NOTE: command error: ${cmd}: ${invocation.error}`);
+      log(redactTranscriptText(invocation.error));
+      state.runSummaries.push(`NOTE: command error: ${redactTranscriptText(cmd)}: ${redactTranscriptText(invocation.error)}`);
       state.step += 1;
       await maybePersist(cwd, state);
       continue;
@@ -850,7 +982,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     const sig = commandSignature(invocation.args, invocation.env);
     if (executed.has(sig)) {
       log(`Skipping duplicate command (already executed): ${cmd}`);
-      state.runSummaries.push(`NOTE: duplicate skipped: ${cmd}`);
+      state.runSummaries.push(`NOTE: duplicate skipped: ${redactTranscriptText(cmd)}`);
       state.step += 1;
       await maybePersist(cwd, state);
       continue;
@@ -861,13 +993,15 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     state.executedCommands = [...executed];
     const output = await deps.runHarness(invocation.args, invocation.env);
     state.currentReport = output;
-    state.runSummaries.push(`Command: ${cmd}\n${output}`);
+    for (const id of extractRunIds(output)) if (!state.runIds.includes(id)) state.runIds.push(id);
+    state.runSummaries.push(`Command: ${cmd}\n${summarizeRunOutput(output)}`);
     state.iteration += 1;
     state.step += 1;
     await maybePersist(cwd, state);
   }
 
-  await sendFinal(`Agent reached iteration cap (${maxIterations}).`);
+  log(`Agent reached iteration cap (${maxIterations}).`);
+  await sendFinal(`Agent reached iteration cap (${maxIterations}).${buildExecutionSummary(state)}`);
   await maybePersist(cwd, state);
   return state;
 }

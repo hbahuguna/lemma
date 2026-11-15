@@ -271,7 +271,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Done |
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Done |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Done |
-| LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Backlog |
+| LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Done |
 | LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Backlog |
 | LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Backlog |
 | LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | Backlog |
@@ -4106,6 +4106,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     this environment (existing agent tests remain green).
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/mcp-secret-ref.test.ts` (pass, 4 tests) and regression `packages/agent/test/mcp-secret-ref.test.ts packages/agent/test/context-flow.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 15 tests).
 - **Evidence:** `packages/agent/src/index.ts` (`normalizeMcpResourceEntries`, exported `discoverMcpResources` with injectable hook/raw-shape normalization, redaction/bounds, and failure-tolerant empty fallback; secret-reference-aware context parsing/formatting/application with token/env/secret-ref metadata only and redacted freeform/persistence-safe handling), `packages/agent/test/mcp-secret-ref.test.ts`, `docs/parity/evidence/LEM-093-mcp-secret-ref-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
+
+### LEM-094 — Port progress, run summaries, and final narrative
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-086
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/progress-narrative.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port agent progress reporting, structured run summaries, and
+  final narrative/execution summary behavior so host integrations can present
+  human-readable progress and outcomes from the strict-judge loop.
+- **Acceptance Criteria:**
+  - `@lemma/agent` emits progress messages via `deps.progress` (when provided)
+    at key loop points (e.g. initial assessment, consulting/deciding, executing a
+    unique step, duplicate/disallowed rejection, early-completion rejection,
+    completion, iteration-cap) without changing deterministic loop control.
+  - Run outputs are captured as structured summaries and IDs: the loop records
+    per-run summaries that include command context and extracted report details
+    when harness output is JSON (at least run id/status/decision and
+    confidence/coverage/check outcome signals when present, with safe fallback
+    for non-JSON output), tracks run IDs, and keeps summaries/report text
+    redacted/persistence-safe.
+  - Final narrative/execution summary is provided in a reusable, redacted form:
+    `@lemma/agent` exposes a helper to build an execution summary from state
+    (test plan, executed run summaries, context decisions, run IDs as available)
+    and `runStrictJudgeLoop` includes this narrative in final completion and
+    iteration-cap outcomes (and in pending context requests where appropriate)
+    while preserving existing done/fix reporting semantics.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/progress-narrative.test.ts` pass
+    in this environment (existing agent tests remain green).
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/progress-narrative.test.ts` (pass, 4 tests) and regression `packages/agent/test/progress-narrative.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts packages/agent/test/context-flow.test.ts packages/agent/test/mcp-secret-ref.test.ts` (pass, 19 tests).
+- **Evidence:** `packages/agent/src/index.ts` (progress callbacks at key loop points, `extractRunIds`/`summarizeRunOutput`/`buildExecutionSummary` exports, structured redacted per-run summaries and run ID tracking, and execution-summary narrative in final/cap/context-request `sendFinal` outputs), `packages/agent/test/progress-narrative.test.ts`, `docs/parity/evidence/LEM-094-progress-narrative-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
