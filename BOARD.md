@@ -221,8 +221,8 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-075 | Port the signed plugin registry | P0 | 8 | LEM-014 | Done |
-| LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | In Progress |
-| LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Backlog |
+| LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | Done |
+| LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Done |
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Backlog |
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Backlog |
 | LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Backlog |
@@ -900,6 +900,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-context.test.ts` (pass, 5 tests; `plugins-registry.test.ts` 4/4 still pass).
 - **Evidence:** `packages/core/src/plugins.ts` (`PluginContext`, `PluginCheckRunner` with `saveJson`/crash+validation handling and run-evidence integrity checks, `blockedPluginOutcome`), `packages/core/src/index.ts` exports, `packages/core/test/plugins/plugin-context.test.ts`, `docs/parity/evidence/LEM-076-plugin-context-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Evaluator failures/misbehavior yield ERROR/blocked outcomes (coverage gaps) instead of fatal run failure; registry ownership/planning integration follows in LEM-077+.
+
+### LEM-077 — Port plugin ownership validation
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-044, LEM-075
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-ownership.test.ts`.
+- **Description:** Validate that every plugin check is owned by exactly one
+  persona and that blocked plugin checks are surfaced as blocked coverage gaps,
+  not silent passes.
+- **Acceptance Criteria:**
+  - `CheckRegistry` in `@lemma/core/plugins` provides ownership validation (e.g.
+    `validateOwnership(personas)`) that resolves registered check ids to persona
+    owners using `checkOwnership`/`ownershipErrorMessage` semantics from persona
+    frontmatter (D16).
+  - For every registered builtin/non-plugin check, ownership must resolve to
+    exactly one persona; zero or multiple owners throw a `PersonaError` with the
+    deterministic ownership message (configuration error, fail validation before
+    execution).
+  - For plugin checks (including blocked `plugin`/`plugin-blocked` definitions),
+    ownership failures (zero or multiple owners) do **not** throw: the registry
+    marks/keeps the check blocked with the ownership reason and retains/sets an
+    owner hint so it is surfaced as a blocked coverage gap (never a pass, never
+    a fatal run failure). Already-blocked plugin checks remain blocked.
+  - When a registered check has exactly one owner, validation succeeds; if the
+    check is blocked and missing an owner hint, the registry records the owner
+    hint.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-ownership.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-ownership.test.ts` (pass, 4 tests).
+- **Evidence:** `packages/core/src/plugins.ts` (`CheckRegistry.validateOwnership` using `checkOwnership`/`ownershipErrorMessage`; builtin ownership errors throw `PersonaError`, plugin/`plugin-blocked` ownership failures block as coverage gaps with existing blocked reasons preserved and owner hint set for singly-owned blocked checks), `packages/core/test/plugins/plugin-ownership.test.ts`, `docs/parity/evidence/LEM-077-plugin-ownership-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Orchestrator/planning integration and conformance remain in later E7 tasks.
 
 ### LEM-074 — Build policy and calibration regression coverage
 

@@ -5,8 +5,9 @@ import * as path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { CHECK_CATALOG, type CheckDefinition, type CheckRegistryLike } from "./checks.js";
-import { PluginError } from "./errors.js";
+import { PersonaError, PluginError } from "./errors.js";
 import type { EvidenceStore } from "./evidence.js";
+import { checkOwnership, ownershipErrorMessage, type PersonaOwnershipSource } from "./personas.js";
 import {
   CheckOutcome,
   CheckStatus,
@@ -593,6 +594,36 @@ export class CheckRegistry implements CheckRegistryLike {
     this._blocked.set(checkId, reason);
     this._ownerHints.set(checkId, personaId);
     this.logFn(`WARNING: plugin check '${checkId}' blocked: ${reason}`);
+  }
+
+  /**
+   * Resolve every registered check to exactly one persona owner (D16).
+   * Built-in checks are a configuration contract: unowned/multiply-owned checks
+   * fail validation before execution. Plugin ownership failures become blocked
+   * checks (coverage gaps) instead.
+   */
+  validateOwnership(personas: Iterable<PersonaOwnershipSource>): void {
+    const ownership = checkOwnership(personas);
+    for (const checkId of this.ids()) {
+      const owners = ownership[checkId] ?? [];
+      const source = this._sources.get(checkId) ?? "";
+      const isPlugin = source.startsWith("plugin");
+      if (owners.length === 1) {
+        if (this._blocked.has(checkId) && !this._ownerHints.get(checkId)) {
+          const owner = owners[0];
+          if (owner) this._ownerHints.set(checkId, owner);
+        }
+        continue;
+      }
+      const reason = ownershipErrorMessage(checkId, owners);
+      if (!isPlugin) {
+        throw new PersonaError(reason);
+      }
+      if (this._blocked.has(checkId)) {
+        continue;
+      }
+      this.block(checkId, reason);
+    }
   }
 
   fingerprint(): string {

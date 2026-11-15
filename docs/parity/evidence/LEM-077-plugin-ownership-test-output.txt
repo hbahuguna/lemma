@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/plugins/plugin-ownership.test.ts (4 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  21:41:22
+   Duration  3.06s (transform 807ms, setup 0ms, collect 1.27s, tests 9ms, environment 1ms, prepare 382ms)
+
