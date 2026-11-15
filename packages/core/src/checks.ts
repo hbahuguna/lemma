@@ -2,6 +2,7 @@ import { HarnessError } from "./errors.js";
 import { CheckStatus } from "./models.js";
 import { now } from "./determinism.js";
 import { sha256Bytes } from "./evidence.js";
+import { ownershipErrorMessage } from "./personas.js";
 import type { Check, Risk, Target } from "./models.js";
 
 export interface CheckDefinition {
@@ -1245,13 +1246,6 @@ function isApplicable(
   if (definition.requires === "manifest") return sourceAvailable && hasManifest;
   if (definition.requires === "url") return liveBrowserAvailable;
   return true;
-}
-
-export function ownershipErrorMessage(checkId: string, owners: string[]): string {
-  if (owners.length === 0) {
-    return `No persona owns check "${checkId}". Every planned check must have exactly one owner.`;
-  }
-  return `Multiple personas own check "${checkId}": ${owners.join(", ")}. Ownership must be disjoint.`;
 }
 
 function placeholderOwner(

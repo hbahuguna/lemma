@@ -1,0 +1,11 @@
+$ vitest run --config vitest.config.ts ownership
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/ownership/ownership.test.ts (10 tests) 74ms
+
+ Test Files  1 passed (1)
+      Tests  10 passed (10)
+   Start at  13:26:46
+   Duration  2.28s (transform 558ms, setup 0ms, collect 818ms, tests 74ms, environment 0ms, prepare 252ms)
+

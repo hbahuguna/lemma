@@ -8,6 +8,8 @@ import {
   CORE_BLOCKER_FIELDS,
   CORE_FINDING_FIELDS,
   PersonaError,
+  catalogIds,
+  isGenericCategoryCheckId,
   loadPersona,
   loadPersonas,
   personaPublic,
@@ -189,7 +191,11 @@ describe("LEM-043 functional, security, and accessibility contracts", () => {
       expect(persona.version).toBe("1.0");
       expect(persona.domains).toEqual(expected.domains);
       expect(persona.tools).toEqual(expected.tools);
-      expect(persona.checks).toEqual(expected.checks);
+      // LEM-043 asserts the assay-owned subset; LEM-044 adds lemma-only
+      // static.category.* scope markers to the functional contract.
+      expect(persona.checks.filter((id) => !isGenericCategoryCheckId(id))).toEqual(
+        expected.checks,
+      );
       expect(persona.metadata.id).toBe(id);
       expect(persona.role.length).toBeGreaterThan(0);
       expect(persona.tools_section).toContain("| Tool | Use | Boundary |");
@@ -207,6 +213,12 @@ describe("LEM-043 functional, security, and accessibility contracts", () => {
         expect.arrayContaining([...CORE_BLOCKER_FIELDS]),
       );
     }
+
+    const functional = byId(personas, "functional");
+    const lemmaScopeChecks = functional.checks.filter(isGenericCategoryCheckId);
+    expect(lemmaScopeChecks).toEqual(catalogIds().filter(isGenericCategoryCheckId));
+    expect(lemmaScopeChecks).toHaveLength(52);
+    expect(functional.checks).toHaveLength(EXPECTED.functional.checks.length + 52);
   });
 
   it("validates contract-shaped findings and blockers for every specialist", async () => {

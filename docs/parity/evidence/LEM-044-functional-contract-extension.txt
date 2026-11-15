@@ -1,0 +1,72 @@
+# LEM-044 functional contract extension vs assay
+
+The three assay bodies, domains, tools, and schemas are unchanged.
+Only the functional checks frontmatter gains the 52 lemma-only static.category.* scope markers (LEM-037).
+
+## Unchanged files (no output = identical)
+security.md exit=0
+accessibility.md exit=0
+README.md exit=0
+
+## functional.md diff (additions only)
+--- ../assay/personas/functional.md	2026-11-14 14:47:11
++++ packages/personas/functional.md	2026-11-15 13:20:44
+@@ -35,6 +35,58 @@
+   - browser.content
+   - browser.links
+   - browser.steps
++  - static.category.manager
++  - static.category.help
++  - static.category.accessibility
++  - static.category.ui
++  - static.category.ux
++  - static.category.usability
++  - static.category.personas
++  - static.category.compatibility
++  - static.category.intl
++  - static.category.localization
++  - static.category.content
++  - static.category.geo
++  - static.category.security
++  - static.category.security-review
++  - static.category.privacy
++  - static.category.state
++  - static.category.reliability
++  - static.category.performance
++  - static.category.load
++  - static.category.stress
++  - static.category.networking
++  - static.category.api
++  - static.category.data
++  - static.category.failure
++  - static.category.proof
++  - static.category.confidence
++  - static.category.confidence-init
++  - static.category.confidence-plan
++  - static.category.review
++  - static.category.skeptical-review
++  - static.category.release
++  - static.category.release-review
++  - static.category.incident
++  - static.category.eval
++  - static.category.eval-design-review
++  - static.category.statistical-review
++  - static.category.agentic
++  - static.category.chatbot
++  - static.category.bias
++  - static.category.tests
++  - static.category.generate
++  - static.category.map
++  - static.category.full-report
++  - static.category.stats
++  - static.category.integrations
++  - static.category.ai-upgrade
++  - static.category.auto
++  - static.category.background
++  - static.category.forever
++  - static.category.settings
++  - static.category.human
++  - static.category.pro
+ ---
+ 
+ # Functional Release Specialist

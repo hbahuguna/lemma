@@ -164,7 +164,7 @@ a pass.
 | LEM-041 | Port the persona frontmatter parser | P0 | 3 | LEM-013 | Done |
 | LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Done |
 | LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Done |
-| LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Backlog |
+| LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Done |
 | LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Backlog |
 | LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Backlog |
 | LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Backlog |
@@ -741,6 +741,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL9 | 2026-11-14 | The default score remains `weighted-coverage-v1`; no model may set or adjust it. | The score must be explainable and reproducible across hosts. | Revisit only with a labeled corpus that justifies a new formula version. |
 | DL10 | 2026-11-14 | Every adapter ships a capability manifest and passes the shared conformance kit before it is documented as supported. | "Works on my host" is not a support claim. | Add richer conformance levels if host surfaces diverge further. |
 | DL11 | 2026-11-14 | LEM-003 architecture/package graph/adapter contract ratified; operator sign-off recorded. | `docs/architecture.md` (ratified) and `docs/adr/0001-typescript-monorepo-and-contracts.md` lock dependency direction, host-neutral `AgentHost` contract, capabilities/degradation, and optionality boundaries; OpenCode and Claude Code named as first-ship adapters with explicit package owners. | Revisit via ADR/Decision Log if host surfaces or dependency boundaries materially change. |
+| DL12 | 2026-11-15 | The functional persona frontmatter owns the 52 lemma-only `static.category.<label>` scope markers; catalog definitions keep `persona: ""`. | LEM-037 added intent-gated documented-no-op category scope checks that assay's 24-check catalog does not have. Frontmatter must remain the only ownership source (D16), and every check must have exactly one owner, so the generalist functional contract declares the scope markers while the three assay bodies/schemas stay unchanged. | Move scope markers out of the persona-owned catalog if a distinct planner-owned scope record contract replaces them. |
 
 ## Done
 
@@ -786,7 +787,73 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-044 — Port ownership derivation and disjointness enforcement
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-014, LEM-041
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test ownership`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test ownership` 10/10, persona/checks regression suites pass, `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and core/personas builds pass.
+- **Description:** Port assay's ownership derivation and disjointness helpers from
+  `harness/personas.py` into `@lemma/core/personas`, wire the planner to the
+  shared assay-compatible ownership error message, and make the full lemma check
+  catalog resolve to exactly one persona owner. Because LEM-037 added 52
+  lemma-only intent-gated `static.category.<label>` scope markers that assay does
+  not have, the functional contract's `checks` frontmatter is extended with those
+  scope markers; the three ported contracts' bodies, domains, tools, and schemas
+  stay unchanged. This deliberately supersedes LEM-043's assay check-list parity
+  for `functional.md` while keeping frontmatter as the only ownership source.
+- **Acceptance Criteria:**
+  - `checkOwnership(personas)` derives a `Record<string, string[]>` from persona
+    frontmatter only: every declared check id maps to the sorted persona ids that
+    claim it, preserving first-seen key order, accepting `Persona` or any
+    structural `{ id, checks }`, and never reading `CHECK_CATALOG.persona`.
+  - `ownershipErrorMessage(checkId, owners)` returns assay-compatible
+    deterministic text: no owner yields
+    `Check '<id>' has no declared persona owner; it must be listed by exactly one persona contract.`
+    and multiple owners yields
+    `Check '<id>' is claimed by multiple personas (<sorted ids>); it must be listed by exactly one persona contract.`
+  - `unknownPersonaCheckIds(personas, knownCheckIds)` returns deterministic
+    `[personaId, checkId]` pairs, and `validatePersonaChecks(...)` throws a typed
+    `PersonaError` naming the first persona and every unique unknown check id,
+    matching assay.
+  - `validateOwnership(personas, knownCheckIds)` rejects unknown declared ids,
+    then requires every known check id to have exactly one owner; an unowned or
+    multiply owned id throws `PersonaError` using `ownershipErrorMessage`, and a
+    valid set returns the derived ownership map. Inputs are not mutated and the
+    error order is deterministic.
+  - The functional contract frontmatter declares all 52 lemma-only
+    `static.category.<label>` scope checks, so
+    `validateOwnership(loadPersonas(...), catalogIds())` succeeds and derived
+    ownership covers exactly the 76 catalog ids with one owner each; catalog
+    definitions retain `persona: ""`, so frontmatter remains the only owner
+    source.
+  - `planChecks` uses the single shared `ownershipErrorMessage` from
+    `personas.ts` (assay wording) for built-in unowned/multiply owned checks and
+    still degrades plugin ownership failures to blocked coverage gaps; the
+    existing planner tests are updated to the new message.
+  - Tests at `packages/core/test/ownership/ownership.test.ts` cover derivation,
+    full catalog coverage, both error messages, unknown ids, duplicate
+    ownership, unowned `static.inventory` planning failure, valid planning with
+    frontmatter-derived ownership, and selected-persona planning using the full
+    ownership map; the LEM-043 contract test still verifies the assay-owned
+    functional subset and now verifies the lemma-only scope markers.
+  - The ownership helpers are exported from `@lemma/core` and
+    `@lemma/core/personas`, no runtime dependency is added, and evidence is
+    recorded under
+    `docs/parity/evidence/LEM-044-ownership-test-output.txt`.
+- **Verification:** `pnpm --filter @lemma/core test ownership`
+- **Evidence recorded:** `docs/parity/evidence/LEM-044-ownership-test-output.txt`
+  (10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt`
+  (only additive `static.category.*` frontmatter lines vs assay), updated parity
+  inventory rows, and Decision Log DL12. Regression runs:
+  `pnpm --filter @lemma/core test persona` (22/22) and
+  `pnpm --filter @lemma/core test checks` (15/15).
 
 ### LEM-043 — Port the functional, security, and accessibility contracts
 

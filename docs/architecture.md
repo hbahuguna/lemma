@@ -57,7 +57,7 @@ All adapters implement the shared `AgentHost` contract and capability manifest, 
 | `determinism` | Injectable clock, entropy, seeded id sequences |
 | `workflows` | Versioned workflow loader, phase-order validation, built-in fallback |
 | `checks` | Stable check catalog, registry, intent-linked planning |
-| `personas` | Frontmatter parsing, contract loading, schema validation, ownership derivation |
+| `personas` | Frontmatter parsing, contract loading, schema validation, ownership derivation/disjointness enforcement |
 | `static` | Source inventory, git-aware scanning, secret/unsafe/a11y rules |
 | `evidence` | Hashed artifact store, checkpoint manifest, signing, verification |
 | `scoring` | `weighted-coverage-v1` math, caps, gate policy |

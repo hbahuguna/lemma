@@ -203,9 +203,9 @@ describe("LEM-014 check catalog, registry, and intent planning", () => {
       });
       const blocked = plannedPlugin.find((c) => c.id === "plugin.x")!;
       expect(blocked.status).toBe(CheckStatus.BLOCKED);
-      expect(blocked.actual).toContain("No persona owns");
+      expect(blocked.actual).toContain("has no declared persona owner");
       expect(blocked.completed_at).toBe("2026-11-14T00:00:00Z");
-      expect(registry.blockedSet["plugin.x"]).toContain("No persona owns");
+      expect(registry.blockedSet["plugin.x"]).toContain("has no declared persona owner");
 
       // pre-blocked plugin reason preserved
       const registry2 = makeRegistry({
@@ -233,7 +233,8 @@ describe("LEM-014 check catalog, registry, and intent planning", () => {
           maxChecks: 0,
         }),
       ).toThrow(HarnessError);
-      expect(ownershipErrorMessage("x", ["a", "b"])).toContain("disjoint");
+      expect(ownershipErrorMessage("x", ["a", "b"])).toContain("exactly one persona contract");
+      expect(ownershipErrorMessage("x", ["a", "b"])).toContain("multiple personas (a, b)");
 
       // no applicable checks
       expect(() =>

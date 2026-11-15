@@ -35,6 +35,58 @@ checks:
   - browser.content
   - browser.links
   - browser.steps
+  - static.category.manager
+  - static.category.help
+  - static.category.accessibility
+  - static.category.ui
+  - static.category.ux
+  - static.category.usability
+  - static.category.personas
+  - static.category.compatibility
+  - static.category.intl
+  - static.category.localization
+  - static.category.content
+  - static.category.geo
+  - static.category.security
+  - static.category.security-review
+  - static.category.privacy
+  - static.category.state
+  - static.category.reliability
+  - static.category.performance
+  - static.category.load
+  - static.category.stress
+  - static.category.networking
+  - static.category.api
+  - static.category.data
+  - static.category.failure
+  - static.category.proof
+  - static.category.confidence
+  - static.category.confidence-init
+  - static.category.confidence-plan
+  - static.category.review
+  - static.category.skeptical-review
+  - static.category.release
+  - static.category.release-review
+  - static.category.incident
+  - static.category.eval
+  - static.category.eval-design-review
+  - static.category.statistical-review
+  - static.category.agentic
+  - static.category.chatbot
+  - static.category.bias
+  - static.category.tests
+  - static.category.generate
+  - static.category.map
+  - static.category.full-report
+  - static.category.stats
+  - static.category.integrations
+  - static.category.ai-upgrade
+  - static.category.auto
+  - static.category.background
+  - static.category.forever
+  - static.category.settings
+  - static.category.human
+  - static.category.pro
 ---
 
 # Functional Release Specialist

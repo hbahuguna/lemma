@@ -632,3 +632,106 @@ export function personaPublic(persona: Persona): PersonaPublic {
     blocker_schema_title: typeof blockerTitle === "string" ? blockerTitle : "",
   };
 }
+
+// ------------------------------------------------------------------ ownership
+
+/** Minimal persona shape needed to derive check ownership. */
+export interface PersonaOwnershipSource {
+  readonly id: string;
+  readonly checks: readonly string[];
+}
+
+export type CheckOwnership = Record<string, string[]>;
+
+/**
+ * Map every declared check id to the sorted persona ids that claim it.
+ *
+ * Ownership is derived from persona frontmatter only (D16); check definitions
+ * never contribute an owner.
+ */
+export function checkOwnership(personas: Iterable<PersonaOwnershipSource>): CheckOwnership {
+  const owners: Record<string, string[]> = {};
+  for (const persona of personas) {
+    for (const checkId of persona.checks) {
+      const list = owners[checkId];
+      if (list) {
+        list.push(persona.id);
+      } else {
+        owners[checkId] = [persona.id];
+      }
+    }
+  }
+  const result: CheckOwnership = {};
+  for (const [checkId, personaIds] of Object.entries(owners)) {
+    result[checkId] = [...personaIds].sort();
+  }
+  return result;
+}
+
+/**
+ * Deterministic ownership configuration error, matching assay.
+ */
+export function ownershipErrorMessage(checkId: string, owners: Iterable<string>): string {
+  const ownerList = [...owners].sort();
+  if (ownerList.length === 0) {
+    return `Check '${checkId}' has no declared persona owner; it must be listed by exactly one persona contract.`;
+  }
+  return `Check '${checkId}' is claimed by multiple personas (${ownerList.join(", ")}); it must be listed by exactly one persona contract.`;
+}
+
+/**
+ * Return (persona id, unknown check id) pairs in contract order.
+ */
+export function unknownPersonaCheckIds(
+  personas: Iterable<PersonaOwnershipSource>,
+  knownCheckIds: Iterable<string>,
+): Array<[string, string]> {
+  const known = new Set(knownCheckIds);
+  const missing: Array<[string, string]> = [];
+  for (const persona of personas) {
+    for (const checkId of persona.checks) {
+      if (!known.has(checkId)) missing.push([persona.id, checkId]);
+    }
+  }
+  return missing;
+}
+
+/**
+ * Reject persona contracts that reference unknown check ids.
+ */
+export function validatePersonaChecks(
+  personas: Iterable<PersonaOwnershipSource>,
+  knownCheckIds: Iterable<string>,
+): void {
+  const missing = unknownPersonaCheckIds(personas, knownCheckIds);
+  if (missing.length === 0) return;
+  const first = missing[0];
+  const personaId = first ? first[0] : "";
+  const checkIds = [...new Set(missing.map(([, checkId]) => checkId))].sort();
+  throw new PersonaError(
+    `Persona '${personaId}' references unknown check id(s): ${checkIds.join(", ")}`,
+  );
+}
+
+/**
+ * Derive and validate ownership over a known check id set.
+ *
+ * Every declared id must be known, and every known id must have exactly one
+ * owner. Returns the validated ownership map.
+ */
+export function validateOwnership(
+  personas: Iterable<PersonaOwnershipSource>,
+  knownCheckIds: Iterable<string>,
+): CheckOwnership {
+  const list = [...personas];
+  const known = [...new Set(knownCheckIds)];
+  validatePersonaChecks(list, known);
+  const ownership = checkOwnership(list);
+  for (const checkId of [...known].sort()) {
+    const owners = ownership[checkId] ?? [];
+    if (owners.length !== 1) {
+      throw new PersonaError(ownershipErrorMessage(checkId, owners));
+    }
+  }
+  return ownership;
+}
