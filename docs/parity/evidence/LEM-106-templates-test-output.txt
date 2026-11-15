@@ -1,0 +1,24 @@
+$ tsc --noEmit
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     80.85 KB
+ESM dist/index.js.map 144.14 KB
+ESM ⚡️ Build success in 106ms
+DTS Build start
+DTS ⚡️ Build success in 4689ms
+DTS dist/index.d.ts 19.68 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/templates.test.ts (3 tests) 12ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:16:23
+   Duration  2.08s (transform 692ms, setup 0ms, collect 963ms, tests 12ms, environment 0ms, prepare 344ms)
+

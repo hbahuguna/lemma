@@ -291,7 +291,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Backlog |
+| LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Done |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Backlog |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Backlog |
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Backlog |
@@ -4623,6 +4623,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/adapters/cursor/package.json`, `packages/adapters/cursor/src/index.ts`, `packages/adapters/cursor/test/cursor-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-105-cursor-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-105).
+
+### LEM-106 — Create the shared prompt, skill, and command templates
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-089, LEM-090, LEM-091
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/agent typecheck && pnpm --filter @lemma/agent build && pnpm exec vitest run packages/agent/test/templates.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Create shared, host-neutral prompt/skill/command templates and
+  template-generation APIs for lemma adapters/installer surfaces, reusing the
+  canonical command catalog, browser prompt/context protocol, and lemma CLI
+  behavior without duplicating product logic or embedding host-specific paths.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports a shared template API (module and/or functions) that
+    generates deterministic, parameterized **command templates** (markdown/content
+    suitable for host command packs) for the 59-command assay catalog and key
+    operational commands (at minimum generic `assay`/help-list flow, `status`,
+    `report`, `abort`, `verify-evidence`), with correct mode semantics (browser
+    requires URL/agent prompt guidance, demo static-without-URL/live-with-URL,
+    other catalog commands static intent-driven) and no absolute checkout paths
+    or hardcoded secrets (CLI command/personas/root/configurable).
+  - The same shared template surface provides **prompt templates/builders** that
+    reuse existing browser agent prompt and context protocol primitives
+    (`buildBrowserAgentPrompt`, `CONTEXT_PROTOCOL` or template equivalents) so
+    hosts can render consistent prompt content without forking logic.
+  - The shared template surface provides a **skill template** (host-neutral
+    markdown/instructions text) describing lemma/assay command usage, context
+    protocol, and core safety/invariant guidance (deterministic harness-owned
+    execution/evidence/scoring, coverage gaps, secrets/redaction, bounded agent
+    behavior) for reuse by host adapters/installers.
+  - `packages/agent/test/templates.test.ts` verifies template generation for
+    representative catalog and operational commands, prompt/context template
+    content/invariants, and skill template presence/key guidance; templates are
+    deterministic and host-neutral.
+  - `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/templates.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/agent typecheck && pnpm --filter @lemma/agent build && pnpm exec vitest run packages/agent/test/templates.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/agent/src/templates.ts`, `packages/agent/src/index.ts`, `packages/agent/test/templates.test.ts`, `docs/parity/evidence/LEM-106-templates-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

@@ -69,6 +69,16 @@ export type {
   LocalServiceConfig,
 } from "./jira-context.js";
 
+export {
+  renderAllCatalogCommandTemplates,
+  renderBrowserPromptTemplateNotes,
+  renderCatalogCommandTemplate,
+  renderLemmaSkillTemplate,
+  renderOperationalCommandTemplate,
+  renderPromptTemplates,
+} from "./templates.js";
+export type { CommandTemplateOptions, RenderedCommandTemplate } from "./templates.js";
+
 export interface HarnessInvocation {
   args: string[];
   env?: Record<string, string | undefined>;
