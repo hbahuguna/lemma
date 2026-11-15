@@ -3,37 +3,19 @@
  *
  * See docs/architecture.md for the package graph and dependency direction.
  */
-import { EXIT_CODES, HarnessError, type ExitCode } from "@lemma/core";
+import { EXIT_CODES, type ExitCode } from "@lemma/core";
 
 import { emitError, writeJsonStdout, type CliIO } from "./errors.js";
+import { coreCommandSpecs } from "./commands.js";
+import { CliUsageError, type CliCommandSpec } from "./index-types.js";
 
 export const PACKAGE_NAME = "@lemma/cli" as const;
 export const CLI_NAME = "lemma" as const;
 export const CLI_VERSION = "0.0.0" as const;
 
 export * from "./errors.js";
-
-export interface CliCommandResult {
-  exitCode?: ExitCode;
-  stdoutJson?: unknown;
-  stderrLines?: string[];
-}
-
-export type CliCommandHandler = (args: string[], io: CliIO) => Promise<CliCommandResult> | CliCommandResult;
-
-export interface CliCommandSpec {
-  name: string;
-  description: string;
-  handler: CliCommandHandler;
-  hidden?: boolean;
-}
-
-export class CliUsageError extends HarnessError {
-  constructor(message: string, details?: Record<string, unknown>) {
-    super(message, { code: "harness_error", ...(details ? { details } : {}) });
-    this.name = "CliUsageError";
-  }
-}
+export { CliUsageError, type CliCommandResult, type CliCommandHandler, type CliCommandSpec } from "./index-types.js";
+export { coreCommandSpecs } from "./commands.js";
 
 export function createCommandRegistry(specs: CliCommandSpec[] = []): Map<string, CliCommandSpec> {
   const registry = new Map<string, CliCommandSpec>();
@@ -108,16 +90,7 @@ export async function dispatch(argv: string[], registry: Map<string, CliCommandS
 }
 
 export function defaultRegistry(): Map<string, CliCommandSpec> {
-  const notImplemented = (name: string): CliCommandHandler => () => {
-    throw new CliUsageError(`Command not implemented: ${name}`, { command: name, status: "not_implemented" });
-  };
-  return createCommandRegistry([
-    { name: "run", description: "Run the release-confidence workflow (LEM-084).", handler: notImplemented("run") },
-    { name: "status", description: "Print persisted run state (LEM-084).", handler: notImplemented("status") },
-    { name: "report", description: "Print saved report (LEM-084).", handler: notImplemented("report") },
-    { name: "abort", description: "Request a manual kill (LEM-084).", handler: notImplemented("abort") },
-    { name: "prune", description: "Prune historical runs/evidence (LEM-084).", handler: notImplemented("prune") },
-  ]);
+  return createCommandRegistry(coreCommandSpecs());
 }
 
 export async function main(

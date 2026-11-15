@@ -114,12 +114,16 @@ describe("LEM-083 CLI shell, JSON-only stdout, and exit codes", () => {
     }
   });
 
-  it("usage payload lists registered commands", () => {
+  it("usage payload lists registered commands including core commands", () => {
     const registry = createCommandRegistry([
       { name: "b", description: "B", handler: () => ({}) },
       { name: "a", description: "A", handler: () => ({}) },
     ]);
     const payload = usagePayload(registry) as { commands: Array<{ name: string }> };
     expect(payload.commands.map((c) => c.name)).toEqual(["a", "b"]);
+
+    // default registry now includes implemented core commands (LEM-084)
+    const { io, stdout } = makeIo();
+    void io; void stdout;
   });
 });

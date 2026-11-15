@@ -237,7 +237,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-083 | Build the CLI shell, JSON-only stdout, and exit codes | P0 | 5 | LEM-007, LEM-015 | Done |
-| LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Backlog |
+| LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Done |
 | LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Backlog |
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Backlog |
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Backlog |
@@ -1181,6 +1181,52 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts` (pass, 6 tests).
 - **Evidence:** `packages/cli/src/cli.ts`, `packages/cli/src/index.ts`, `packages/cli/test/cli-shell.test.ts`, `docs/parity/evidence/LEM-083-cli-shell-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (`harness/__main__.py`, `harness/cli.py`). Shell enforces JSON-only stdout (usage/version/dispatch/errors), stderr-only diagnostics, core exit-code/error-payload mapping, extensible command registry, and explicit not-implemented placeholders for `run/status/report/abort/prune` pending LEM-084.
+
+### LEM-084 — Port `run`, `status`, `report`, `abort`, and `prune`
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-083
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/cli/test/cli-commands.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Port core machine-first CLI commands for running and managing
+  lemma runs (`run`, `status`, `report`, `abort`, and `prune`) on top of the LEM-083
+  shell and existing core primitives.
+- **Acceptance Criteria:**
+  - `lemma run` accepts core args (`--target` required, `--root`, `--intent`,
+    `--max-checks`, `--resume`, `--seed`, `--clock-mode`, `--frozen-clock`,
+    `--output`, `--quiet`, `--keep-runs`, `--fail-on`, `--min-score`) and
+    executes via core `Orchestrator`/`StateStore`/`EvidenceStore`/`buildReport`
+    using the release-confidence workflow. Emits run progress/diagnostics to
+    stderr only (unless `--quiet`) and prints exactly one JSON report object to
+    stdout; optionally writes the same report to `--output`; applies optional
+    post-run `--keep-runs` pruning. Exit `0` on pass, `1` when fail-on/min-score
+    policy thresholds are violated, `3` for halted runs, `2` for failed/error
+    runs.
+  - `lemma status` with no progress state emits a JSON `no_run` payload (exit 0).
+    With saved progress, emits a JSON summary including run/status/workflow/
+    target/intent/phase/confidence, checks-by-status, findings-by-severity,
+    blockers and blocker breakdowns, kill/halt fields, and state/report/progress
+    paths. `--all` emits JSON history listing from `StateStore.loadHistory()`
+    (runs/count/root).
+  - `lemma report` loads latest saved progress and emits the built report JSON to
+    stdout (exit 0). If no run/progress exists, returns a structured JSON error
+    (exit 2).
+  - `lemma abort` requests a kill (`StateStore.requestKill`), appends a
+    `manual_kill_requested` event, and emits a JSON confirmation payload including
+    reason/kill path/requested timestamp (exit 0).
+  - `lemma prune` supports `--keep-runs`, `--older-than-days`, and `--dry-run`,
+    invokes `StateStore.prune`, and emits a JSON result with status/root/removed/
+    retained/count (exit 0). Stdout remains JSON-only and errors follow core
+    shell exit/payload behavior.
+  - `pnpm lint`, `pnpm --filter @lemma/cli typecheck`,
+    `pnpm --filter @lemma/cli build`, and
+    `pnpm exec vitest run packages/cli/test/cli-commands.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts packages/cli/test/cli-commands.test.ts` (pass, 10 tests).
+- **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/src/index.ts`, `packages/cli/src/index-types.ts`, `packages/cli/src/cli.ts`, `packages/cli/test/cli-commands.test.ts` (shell test updated), `docs/parity/evidence/LEM-084-cli-commands-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-084 rows). Commands wired into default registry (replacing stubs), JSON-only stdout/stderr diagnostics and core exit/error mapping preserved.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
