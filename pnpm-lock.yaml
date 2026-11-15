@@ -103,6 +103,9 @@ importers:
 
   packages/cli:
     dependencies:
+      '@lemma/adapters-sdk':
+        specifier: workspace:*
+        version: link:../adapters/sdk
       '@lemma/agent':
         specifier: workspace:*
         version: link:../agent

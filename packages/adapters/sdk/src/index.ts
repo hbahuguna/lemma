@@ -720,3 +720,198 @@ export function createAdapterManifest(
     ...extra,
   };
 }
+
+
+// ---- Per-host packaging manifests (LEM-108) ----
+
+export const HOST_PACKAGING_SCHEMA_VERSION = 1 as const;
+
+export const OPERATIONAL_COMMAND_TEMPLATE_NAMES = [
+  "assay",
+  "assay-status",
+  "assay-report",
+  "assay-abort",
+  "assay-verify-evidence",
+] as const;
+
+export type OperationalCommandTemplateName =
+  (typeof OPERATIONAL_COMMAND_TEMPLATE_NAMES)[number];
+
+export const SKILL_TEMPLATE_NAME = "lemma" as const;
+
+export interface PackagingLayout {
+  /** Project-relative directory for host command templates/files. */
+  commandsDir: string;
+  /** Project-relative path for the lemma skill template file. */
+  skillPath: string;
+}
+
+export interface PackagingCommandsAsset {
+  /** Catalog command template names in deterministic order. */
+  catalogNames: string[];
+  /** Number of catalog command templates (must equal catalogNames.length). */
+  catalogCount: number;
+  /** Operational command template names installed alongside catalog commands. */
+  operationalNames: readonly string[];
+}
+
+export interface PackagingSkillAsset {
+  name: string;
+  path: string;
+}
+
+export interface HostPackagingManifest {
+  schemaVersion: typeof HOST_PACKAGING_SCHEMA_VERSION;
+  host: HostId;
+  packageName: string;
+  layout: PackagingLayout;
+  commands: PackagingCommandsAsset;
+  skill: PackagingSkillAsset;
+}
+
+export const DEFAULT_HOST_INSTALL_LAYOUTS: Record<HostId, PackagingLayout> = {
+  opencode: { commandsDir: ".opencode/commands", skillPath: ".opencode/skills/lemma/SKILL.md" },
+  "claude-code": { commandsDir: ".claude/commands", skillPath: ".claude/skills/lemma/SKILL.md" },
+  codex: { commandsDir: ".codex/commands", skillPath: ".codex/skills/lemma/SKILL.md" },
+  antigravity: { commandsDir: ".antigravity/commands", skillPath: ".antigravity/skills/lemma/SKILL.md" },
+  cursor: { commandsDir: ".cursor/commands", skillPath: ".cursor/skills/lemma/SKILL.md" },
+};
+
+export interface CreateHostPackagingManifestInput {
+  host: HostId;
+  packageName: string;
+  catalogCommandNames: readonly string[];
+  layout?: PackagingLayout;
+  operationalCommandNames?: readonly string[];
+  skillName?: string;
+}
+
+function isRelativePackagingPath(value: string): boolean {
+  if (!value) return false;
+  if (value.startsWith("/") || value.startsWith("\\\\")) return false;
+  if (/^[A-Za-z]:[\\\\/]/.test(value)) return false;
+  return true;
+}
+
+export function createHostPackagingManifest(
+  input: CreateHostPackagingManifestInput,
+): HostPackagingManifest {
+  const layout = input.layout ?? DEFAULT_HOST_INSTALL_LAYOUTS[input.host];
+  const catalogNames = [...input.catalogCommandNames];
+  const operationalNames = [...(input.operationalCommandNames ?? OPERATIONAL_COMMAND_TEMPLATE_NAMES)];
+  return {
+    schemaVersion: HOST_PACKAGING_SCHEMA_VERSION,
+    host: input.host,
+    packageName: input.packageName,
+    layout: { commandsDir: layout.commandsDir, skillPath: layout.skillPath },
+    commands: {
+      catalogNames,
+      catalogCount: catalogNames.length,
+      operationalNames,
+    },
+    skill: {
+      name: input.skillName ?? SKILL_TEMPLATE_NAME,
+      path: layout.skillPath,
+    },
+  };
+}
+
+export interface PackagingManifestValidationResult {
+  ok: boolean;
+  errors: string[];
+}
+
+export function validateHostPackagingManifest(
+  manifest: unknown,
+  expected?: { catalogCount?: number; catalogNames?: readonly string[] },
+): PackagingManifestValidationResult {
+  const errors: string[] = [];
+  if (!manifest || typeof manifest !== "object") {
+    return { ok: false, errors: ["manifest must be an object"] };
+  }
+  const m = manifest as Record<string, unknown>;
+  if (m.schemaVersion !== HOST_PACKAGING_SCHEMA_VERSION) {
+    errors.push(`schemaVersion must be ${HOST_PACKAGING_SCHEMA_VERSION}`);
+  }
+  if (!isHostId(m.host)) {
+    errors.push(`host must be one of: ${HOST_IDS.join(", ")}`);
+  }
+  if (typeof m.packageName !== "string" || !m.packageName) {
+    errors.push("packageName must be a non-empty string");
+  }
+  if (!m.layout || typeof m.layout !== "object") {
+    errors.push("layout must be an object");
+  } else {
+    const layout = m.layout as Record<string, unknown>;
+    if (typeof layout.commandsDir !== "string" || !isRelativePackagingPath(layout.commandsDir)) {
+      errors.push("layout.commandsDir must be a project-relative path");
+    }
+    if (typeof layout.skillPath !== "string" || !isRelativePackagingPath(layout.skillPath)) {
+      errors.push("layout.skillPath must be a project-relative path");
+    }
+  }
+  if (!m.commands || typeof m.commands !== "object") {
+    errors.push("commands must be an object");
+  } else {
+    const commands = m.commands as Record<string, unknown>;
+    if (!Array.isArray(commands.catalogNames) || commands.catalogNames.some((n) => typeof n !== "string" || !n)) {
+      errors.push("commands.catalogNames must be an array of non-empty strings");
+    }
+    if (typeof commands.catalogCount !== "number" || !Number.isInteger(commands.catalogCount) || commands.catalogCount < 0) {
+      errors.push("commands.catalogCount must be a non-negative integer");
+    }
+    if (Array.isArray(commands.catalogNames) && commands.catalogCount !== commands.catalogNames.length) {
+      errors.push("commands.catalogCount must equal commands.catalogNames.length");
+    }
+    if (!Array.isArray(commands.operationalNames) || commands.operationalNames.some((n) => typeof n !== "string" || !n)) {
+      errors.push("commands.operationalNames must be an array of non-empty strings");
+    }
+    if (expected?.catalogCount !== undefined && commands.catalogCount !== expected.catalogCount) {
+      errors.push(`commands.catalogCount must be ${expected.catalogCount}`);
+    }
+    if (expected?.catalogNames && Array.isArray(commands.catalogNames)) {
+      const a = commands.catalogNames as string[];
+      const b = [...expected.catalogNames];
+      if (a.length !== b.length || a.some((n, i) => n !== b[i])) {
+        errors.push("commands.catalogNames must match expected catalog names in order");
+      }
+    }
+  }
+  if (!m.skill || typeof m.skill !== "object") {
+    errors.push("skill must be an object");
+  } else {
+    const skill = m.skill as Record<string, unknown>;
+    if (typeof skill.name !== "string" || !skill.name) {
+      errors.push("skill.name must be a non-empty string");
+    }
+    if (typeof skill.path !== "string" || !isRelativePackagingPath(skill.path)) {
+      errors.push("skill.path must be a project-relative path");
+    }
+  }
+  if (m.layout && typeof m.layout === "object" && m.skill && typeof m.skill === "object") {
+    const layout = m.layout as Record<string, unknown>;
+    const skill = m.skill as Record<string, unknown>;
+    if (typeof layout.skillPath === "string" && typeof skill.path === "string" && layout.skillPath !== skill.path) {
+      errors.push("skill.path must match layout.skillPath");
+    }
+  }
+  return { ok: errors.length === 0, errors };
+}
+
+export function assertValidHostPackagingManifest(
+  manifest: unknown,
+  expected?: { catalogCount?: number; catalogNames?: readonly string[] },
+): asserts manifest is HostPackagingManifest {
+  const result = validateHostPackagingManifest(manifest, expected);
+  if (!result.ok) {
+    throw new Error(`Invalid host packaging manifest: ${result.errors.join("; ")}`);
+  }
+}
+
+export function getHostPackagingManifest(
+  host: HostId,
+  packageName: string,
+  catalogCommandNames: readonly string[],
+): HostPackagingManifest {
+  return createHostPackagingManifest({ host, packageName, catalogCommandNames });
+}

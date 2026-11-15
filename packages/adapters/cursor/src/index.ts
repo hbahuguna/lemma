@@ -19,6 +19,7 @@ import {
 import {
   createAdapterManifest,
   createCapabilities,
+  createHostPackagingManifest,
   negotiateCapabilities,
   type AdapterManifest,
   type AgentHost,
@@ -26,6 +27,7 @@ import {
   type FormAnswer,
   type FormRequest,
   type HostCapabilities,
+  type HostPackagingManifest,
   type McpResource,
   type QuestionAnswer,
   type QuestionRequest,
@@ -59,6 +61,13 @@ export const CURSOR_ADAPTER_MANIFEST: AdapterManifest = createAdapterManifest(
       "Lemma adapter for Cursor using shared AgentHost contract and host-neutral agent primitives.",
   },
 );
+
+
+export const CURSOR_PACKAGING_MANIFEST: HostPackagingManifest = createHostPackagingManifest({
+  host: "cursor",
+  packageName: PACKAGE_NAME,
+  catalogCommandNames: ASSAY_COMMAND_CATALOG.map((c) => c.name),
+});
 
 export interface CursorHostPrimitives {
   registerCommands?: (commands: CommandDescriptor[]) => Promise<void> | void;

@@ -293,7 +293,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Done |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Done |
-| LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Backlog |
+| LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Done |
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Backlog |
 | LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Backlog |
 | LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Backlog |
@@ -4705,6 +4705,60 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-108 — Produce per-host packaging manifests
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-101, LEM-102, LEM-103, LEM-104, LEM-105
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm -r --filter "./packages/adapters/!(sdk)" typecheck && pnpm -r --filter "./packages/adapters/!(sdk)" build && pnpm exec vitest run packages/adapters/sdk/test/packaging-manifest.test.ts packages/adapters/opencode/test/opencode-adapter.test.ts packages/adapters/claude-code/test/claude-code-adapter.test.ts packages/adapters/codex/test/codex-adapter.test.ts packages/adapters/antigravity/test/antigravity-adapter.test.ts packages/adapters/cursor/test/cursor-adapter.test.ts packages/cli/test/cli-install.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Define and produce deterministic, machine-readable per-host
+  packaging manifests for OpenCode, Claude Code, Codex, Antigravity, and Cursor.
+  Manifests describe host identity, adapter package, install layout, and the
+  command/skill assets derived from shared templates/catalog so installer,
+  compatibility matrix, and docs consume one source of truth without host SDK
+  dependencies or absolute checkout paths.
+- **Acceptance Criteria:**
+  - `@lemma/adapters-sdk` exports a versioned per-host packaging manifest
+    contract and helpers (e.g. `HostPackagingManifest` type/interface plus
+    create/validate/assert helpers) covering at minimum: `schemaVersion`,
+    `host` (supported host id), `packageName`, install layout with
+    project-relative `commandsDir` and `skillPath`, `commands` asset metadata
+    including catalog command names/count (59, from `@lemma/agent`
+    `ASSAY_COMMAND_CATALOG`) and operational command names
+    (`assay`, `assay-status`, `assay-report`, `assay-abort`,
+    `assay-verify-evidence`), and `skill` asset metadata (`lemma` skill name/
+    relative path). Validation rejects invalid/missing required fields.
+  - Each host adapter package (`@lemma/adapters-opencode`,
+    `@lemma/adapters-claude-code`, `@lemma/adapters-codex`,
+    `@lemma/adapters-antigravity`, `@lemma/adapters-cursor`) exports a
+    validated, deterministic packaging manifest constant for its host with
+    correct `packageName`, host-appropriate install layout, and template-derived
+    asset metadata consistent with `lemma install <host>` output (59 catalog +
+    5 operational command templates and 1 skill; no absolute checkout paths).
+  - `@lemma/cli` installer derives per-host install layout/assets from the
+    shared packaging manifest definitions (no duplicated per-host layout mapping
+    that can drift from manifests) and preserves existing behavior and machine-
+    readable JSON result semantics for `lemma install <host>` (including
+    `--dir`/`--root`, `--dry-run`, `--force`, supported hosts, counts/paths).
+  - `packages/adapters/sdk/test/packaging-manifest.test.ts` verifies manifest
+    schema/validation/helpers and deterministic expected metadata; each adapter
+    test suite asserts its exported packaging manifest (host/package/layout/
+    counts/names); `packages/cli/test/cli-install.test.ts` continues to pass.
+  - `pnpm --filter @lemma/adapters-sdk typecheck`,
+    `pnpm --filter @lemma/adapters-sdk build`,
+    `pnpm --filter @lemma/cli typecheck`,
+    `pnpm --filter @lemma/cli build`,
+    `pnpm -r --filter "./packages/adapters/!(sdk)" typecheck`,
+    `pnpm -r --filter "./packages/adapters/!(sdk)" build`, and
+    `pnpm exec vitest run packages/adapters/sdk/test/packaging-manifest.test.ts packages/adapters/opencode/test/opencode-adapter.test.ts packages/adapters/claude-code/test/claude-code-adapter.test.ts packages/adapters/codex/test/codex-adapter.test.ts packages/adapters/antigravity/test/antigravity-adapter.test.ts packages/adapters/cursor/test/cursor-adapter.test.ts packages/cli/test/cli-install.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm -r --filter "./packages/adapters/!(sdk)" typecheck && pnpm -r --filter "./packages/adapters/!(sdk)" build && pnpm exec vitest run packages/adapters/sdk/test/packaging-manifest.test.ts packages/adapters/opencode/test/opencode-adapter.test.ts packages/adapters/claude-code/test/claude-code-adapter.test.ts packages/adapters/codex/test/codex-adapter.test.ts packages/adapters/antigravity/test/antigravity-adapter.test.ts packages/adapters/cursor/test/cursor-adapter.test.ts packages/cli/test/cli-install.test.ts` (pass, 7 files, 25 tests).
+- **Evidence:** `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/packaging-manifest.test.ts`, per-host adapter packaging manifest exports/tests in `packages/adapters/{opencode,claude-code,codex,antigravity,cursor}/src/index.ts` and `.../test/*-adapter.test.ts`, CLI manifest-driven layout in `packages/cli/src/commands.ts` and `packages/cli/package.json`, `docs/parity/evidence/LEM-108-packaging-manifests-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

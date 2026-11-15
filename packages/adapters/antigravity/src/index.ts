@@ -20,6 +20,7 @@ import {
 import {
   createAdapterManifest,
   createCapabilities,
+  createHostPackagingManifest,
   negotiateCapabilities,
   type AdapterManifest,
   type AgentHost,
@@ -27,6 +28,7 @@ import {
   type FormAnswer,
   type FormRequest,
   type HostCapabilities,
+  type HostPackagingManifest,
   type McpResource,
   type QuestionAnswer,
   type QuestionRequest,
@@ -60,6 +62,13 @@ export const ANTIGRAVITY_ADAPTER_MANIFEST: AdapterManifest = createAdapterManife
       "Lemma adapter for Antigravity using shared AgentHost contract and host-neutral agent primitives.",
   },
 );
+
+
+export const ANTIGRAVITY_PACKAGING_MANIFEST: HostPackagingManifest = createHostPackagingManifest({
+  host: "antigravity",
+  packageName: PACKAGE_NAME,
+  catalogCommandNames: ASSAY_COMMAND_CATALOG.map((c) => c.name),
+});
 
 export interface AntigravityHostPrimitives {
   registerCommands?: (commands: CommandDescriptor[]) => Promise<void> | void;

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ASSAY_COMMAND_CATALOG, buildBrowserAgentPrompt } from "@lemma/agent";
-import { assertAdapterConformance } from "@lemma/adapters-sdk";
+import { assertAdapterConformance, assertValidHostPackagingManifest } from "@lemma/adapters-sdk";
 
 import {
   CODEX_ADAPTER_MANIFEST,
+  CODEX_PACKAGING_MANIFEST,
   buildCodexBrowserAgentPrompt,
   createCodexAdapterManifest,
   createCodexCommandDescriptors,
@@ -129,5 +130,19 @@ describe("LEM-103 Codex adapter", () => {
     ]);
     expect(negotiation.degradation.persistedStateResumeEnabled).toBe(true);
     expect(typeof host.listMcpResources).toBe("undefined");
+  });
+
+  it("exports a validated host packaging manifest", () => {
+    expect(CODEX_PACKAGING_MANIFEST.host).toBe("codex");
+    expect(CODEX_PACKAGING_MANIFEST.packageName).toBe("@lemma/adapters-codex");
+    expect(CODEX_PACKAGING_MANIFEST.layout).toEqual({
+      commandsDir: ".codex/commands",
+      skillPath: ".codex/skills/lemma/SKILL.md",
+    });
+    expect(CODEX_PACKAGING_MANIFEST.commands.catalogCount).toBe(ASSAY_COMMAND_CATALOG.length);
+    expect(CODEX_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
+    expect(CODEX_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
+    expect(CODEX_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".codex/skills/lemma/SKILL.md" });
+    expect(() => assertValidHostPackagingManifest(CODEX_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
   });
 });

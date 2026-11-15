@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ASSAY_COMMAND_CATALOG, buildBrowserAgentPrompt } from "@lemma/agent";
-import { assertAdapterConformance, negotiateCapabilities } from "@lemma/adapters-sdk";
+import { assertAdapterConformance, assertValidHostPackagingManifest, negotiateCapabilities } from "@lemma/adapters-sdk";
 
 import {
   OPENCODE_ADAPTER_MANIFEST,
+  OPENCODE_PACKAGING_MANIFEST,
   buildOpenCodeBrowserAgentPrompt,
   createOpenCodeAdapterManifest,
   createOpenCodeCommandDescriptors,
@@ -122,5 +123,25 @@ describe("LEM-101 OpenCode adapter", () => {
     ]);
     expect(negotiation.degradation.persistedStateResumeEnabled).toBe(true);
     expect(typeof host.listMcpResources).toBe("undefined");
+  });
+
+  it("exports a validated host packaging manifest", () => {
+    expect(OPENCODE_PACKAGING_MANIFEST.host).toBe("opencode");
+    expect(OPENCODE_PACKAGING_MANIFEST.packageName).toBe("@lemma/adapters-opencode");
+    expect(OPENCODE_PACKAGING_MANIFEST.layout).toEqual({
+      commandsDir: ".opencode/commands",
+      skillPath: ".opencode/skills/lemma/SKILL.md",
+    });
+    expect(OPENCODE_PACKAGING_MANIFEST.commands.catalogCount).toBe(ASSAY_COMMAND_CATALOG.length);
+    expect(OPENCODE_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
+    expect(OPENCODE_PACKAGING_MANIFEST.commands.operationalNames).toEqual([
+      "assay",
+      "assay-status",
+      "assay-report",
+      "assay-abort",
+      "assay-verify-evidence",
+    ]);
+    expect(OPENCODE_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".opencode/skills/lemma/SKILL.md" });
+    expect(() => assertValidHostPackagingManifest(OPENCODE_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
   });
 });

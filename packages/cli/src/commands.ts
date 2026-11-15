@@ -29,6 +29,7 @@ import {
 } from "@lemma/core";
 
 import { CliUsageError, type CliCommandHandler, type CliCommandSpec } from "./index-types.js";
+import { DEFAULT_HOST_INSTALL_LAYOUTS, HOST_IDS, isHostId, type HostId } from "@lemma/adapters-sdk";
 import {
   ASSAY_COMMAND_CATALOG,
   renderAllCatalogCommandTemplates,
@@ -649,26 +650,15 @@ export const verifyEvidenceCommand: CliCommandHandler = async (argv) => {
 };
 
 
-const SUPPORTED_INSTALL_HOSTS = ["opencode", "claude-code", "codex", "antigravity", "cursor"] as const;
-type InstallHost = (typeof SUPPORTED_INSTALL_HOSTS)[number];
+const SUPPORTED_INSTALL_HOSTS = HOST_IDS;
+type InstallHost = HostId;
 
 function isInstallHost(v: string): v is InstallHost {
-  return (SUPPORTED_INSTALL_HOSTS as readonly string[]).includes(v);
+  return isHostId(v);
 }
 
 function installLayout(host: InstallHost): { commandsDir: string; skillPath: string } {
-  switch (host) {
-    case "opencode":
-      return { commandsDir: ".opencode/commands", skillPath: ".opencode/skills/lemma/SKILL.md" };
-    case "claude-code":
-      return { commandsDir: ".claude/commands", skillPath: ".claude/skills/lemma/SKILL.md" };
-    case "codex":
-      return { commandsDir: ".codex/commands", skillPath: ".codex/skills/lemma/SKILL.md" };
-    case "antigravity":
-      return { commandsDir: ".antigravity/commands", skillPath: ".antigravity/skills/lemma/SKILL.md" };
-    case "cursor":
-      return { commandsDir: ".cursor/commands", skillPath: ".cursor/skills/lemma/SKILL.md" };
-  }
+  return DEFAULT_HOST_INSTALL_LAYOUTS[host];
 }
 
 export const installCommand: CliCommandHandler = async (argv) => {

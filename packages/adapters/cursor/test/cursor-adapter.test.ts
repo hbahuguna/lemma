@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ASSAY_COMMAND_CATALOG, buildBrowserAgentPrompt } from "@lemma/agent";
-import { assertAdapterConformance, negotiateCapabilities } from "@lemma/adapters-sdk";
+import { assertAdapterConformance, assertValidHostPackagingManifest, negotiateCapabilities } from "@lemma/adapters-sdk";
 
 import {
   CURSOR_ADAPTER_MANIFEST,
+  CURSOR_PACKAGING_MANIFEST,
   buildCursorBrowserAgentPrompt,
   createCursorAdapterManifest,
   createCursorCommandDescriptors,
@@ -127,4 +128,19 @@ describe("LEM-105 Cursor adapter", () => {
     expect(negotiation.degradation.persistedStateResumeEnabled).toBe(true);
     expect(typeof host.listMcpResources).toBe("undefined");
   });
+
+  it("exports a validated host packaging manifest", () => {
+    expect(CURSOR_PACKAGING_MANIFEST.host).toBe("cursor");
+    expect(CURSOR_PACKAGING_MANIFEST.packageName).toBe("@lemma/adapters-cursor");
+    expect(CURSOR_PACKAGING_MANIFEST.layout).toEqual({
+      commandsDir: ".cursor/commands",
+      skillPath: ".cursor/skills/lemma/SKILL.md",
+    });
+    expect(CURSOR_PACKAGING_MANIFEST.commands.catalogCount).toBe(ASSAY_COMMAND_CATALOG.length);
+    expect(CURSOR_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
+    expect(CURSOR_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
+    expect(CURSOR_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".cursor/skills/lemma/SKILL.md" });
+    expect(() => assertValidHostPackagingManifest(CURSOR_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+  });
+
 });

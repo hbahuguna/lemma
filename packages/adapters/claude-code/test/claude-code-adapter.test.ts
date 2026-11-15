@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ASSAY_COMMAND_CATALOG, buildBrowserAgentPrompt } from "@lemma/agent";
-import { assertAdapterConformance, negotiateCapabilities } from "@lemma/adapters-sdk";
+import { assertAdapterConformance, assertValidHostPackagingManifest, negotiateCapabilities } from "@lemma/adapters-sdk";
 
 import {
   CLAUDE_CODE_ADAPTER_MANIFEST,
+  CLAUDE_CODE_PACKAGING_MANIFEST,
   buildClaudeCodeBrowserAgentPrompt,
   createClaudeCodeAdapterManifest,
   createClaudeCodeCommandDescriptors,
@@ -124,5 +125,19 @@ describe("LEM-102 Claude Code adapter", () => {
     ]);
     expect(negotiation.degradation.persistedStateResumeEnabled).toBe(true);
     expect(typeof host.listMcpResources).toBe("undefined");
+  });
+
+  it("exports a validated host packaging manifest", () => {
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.host).toBe("claude-code");
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.packageName).toBe("@lemma/adapters-claude-code");
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.layout).toEqual({
+      commandsDir: ".claude/commands",
+      skillPath: ".claude/skills/lemma/SKILL.md",
+    });
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.commands.catalogCount).toBe(ASSAY_COMMAND_CATALOG.length);
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
+    expect(CLAUDE_CODE_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".claude/skills/lemma/SKILL.md" });
+    expect(() => assertValidHostPackagingManifest(CLAUDE_CODE_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
   });
 });

@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import { ASSAY_COMMAND_CATALOG, buildBrowserAgentPrompt } from "@lemma/agent";
-import { assertAdapterConformance, negotiateCapabilities } from "@lemma/adapters-sdk";
+import { assertAdapterConformance, assertValidHostPackagingManifest, negotiateCapabilities } from "@lemma/adapters-sdk";
 
 import {
   ANTIGRAVITY_ADAPTER_MANIFEST,
+  ANTIGRAVITY_PACKAGING_MANIFEST,
   buildAntigravityBrowserAgentPrompt,
   createAntigravityAdapterManifest,
   createAntigravityCommandDescriptors,
@@ -129,4 +130,19 @@ describe("LEM-104 Antigravity adapter", () => {
     expect(negotiation.degradation.persistedStateResumeEnabled).toBe(true);
     expect(typeof host.listMcpResources).toBe("undefined");
   });
+
+  it("exports a validated host packaging manifest", () => {
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.host).toBe("antigravity");
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.packageName).toBe("@lemma/adapters-antigravity");
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.layout).toEqual({
+      commandsDir: ".antigravity/commands",
+      skillPath: ".antigravity/skills/lemma/SKILL.md",
+    });
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.commands.catalogCount).toBe(ASSAY_COMMAND_CATALOG.length);
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
+    expect(ANTIGRAVITY_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".antigravity/skills/lemma/SKILL.md" });
+    expect(() => assertValidHostPackagingManifest(ANTIGRAVITY_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+  });
+
 });
