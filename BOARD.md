@@ -225,7 +225,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Done |
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Done |
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Done |
-| LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Backlog |
+| LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Done |
 | LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Backlog |
 | LEM-082 | Build the plugin conformance suite | P1 | 5 | LEM-075, LEM-076, LEM-077 | Backlog |
 
@@ -1008,6 +1008,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-trust-store.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/core/src/plugins.ts` (`resolvePluginTrustFile`, `loadTrustKeys` with safe missing/malformed handling and `{"keys":...}`/plain-object compatibility, `saveTrustKeys` canonical round-trip write with parent-dir creation, `signaturePayload`, `signPlugin`, `parsePluginSignature`, `verifyPluginSignature`), `packages/core/test/plugins/plugin-trust-store.test.ts`, `docs/parity/evidence/LEM-079-plugin-trust-store-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. CLI signing commands and sample docs remain in later tasks (LEM-080/LEM-085).
+
+### LEM-080 — Publish the sample plugin and authoring docs
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-076, LEM-078
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/sample-plugin-example.test.ts`.
+- **Description:** Publish a signed-shape sample plugin example and authoring
+  documentation adapted to lemma's TypeScript plugin API, trust store, and
+  ownership/refusal contracts.
+- **Acceptance Criteria:**
+  - Add `examples/plugins/` containing a lemma sample plugin (TypeScript/ESM
+    source) exporting an unsigned-by-default `PLUGIN` built with the
+    `@lemma/core` authoring API (`definePlugin`/definition shape), a
+    `package.json` showing the installable/package and entry-point shape, and a
+    `README.md` with authoring, trust-store/signing (`.lemma/plugins/trusted_keys.json`,
+    `resolvePluginTrustFile`/`saveTrustKeys`/`signPlugin`), ownership, and
+    refusal/blocker guidance adapted to lemma.
+  - The sample plugin uses `PluginContext`/`context.saveJson` and returns a valid
+    `CheckOutcome` (or demonstrates refusal/blocker usage in docs) consistent
+    with registry/runner contracts; its definition declares stable id, kind,
+    requires, base_weight, intent/expected, and domain.
+  - Automated verification demonstrates the sample can be loaded, signed with a
+    trusted key, registered, and executed successfully (producing evidence and
+    expected outcome) in this environment.
+  - `docs/parity/assay-feature-inventory.md` rows for the sample plugin example
+    files are updated with LEM-080 evidence; `BOARD.md` is updated with
+    verification/evidence on completion.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/sample-plugin-example.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/sample-plugin-example.test.ts` (pass, 2 tests).
+- **Evidence:** `examples/plugins/sample-check.ts` (unsigned-by-default `PLUGIN` via `definePlugin`, `context.saveJson`, manifest/evidence outcome), `examples/plugins/package.json` (installable/entry-point shape with `lemma.checks` hint), `examples/plugins/README.md` (authoring, `.lemma/plugins/trusted_keys.json` trust-store/signing, ownership, refusal/blocker guidance), `packages/core/test/plugins/sample-plugin-example.test.ts`, `docs/parity/evidence/LEM-080-sample-plugin-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (sample files + `harness/plugins.py`/`test_plugins.py` rows). `eslint.config.js` updated to ignore `examples/**` for type-aware lint. Conformance/resume remain in LEM-081–LEM-082.
 
 ### LEM-074 — Build policy and calibration regression coverage
 

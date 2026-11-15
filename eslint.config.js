@@ -11,6 +11,7 @@ export default tseslint.config(
       "**/.changeset/**",
       "**/.lemma/**",
       "**/.harness/**",
+      "examples/**",
     ],
   },
   js.configs.recommended,

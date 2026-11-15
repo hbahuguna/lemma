@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/plugins/sample-plugin-example.test.ts (2 tests) 42ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  22:03:25
+   Duration  2.98s (transform 865ms, setup 0ms, collect 1.26s, tests 42ms, environment 1ms, prepare 526ms)
+
