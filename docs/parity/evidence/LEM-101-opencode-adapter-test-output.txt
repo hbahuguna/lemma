@@ -1,0 +1,24 @@
+$ tsc --noEmit
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     7.71 KB
+ESM dist/index.js.map 15.41 KB
+ESM ⚡️ Build success in 215ms
+DTS Build start
+DTS ⚡️ Build success in 4673ms
+DTS dist/index.d.ts 2.48 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/opencode/test/opencode-adapter.test.ts (3 tests) 15ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:50:05
+   Duration  2.04s (transform 627ms, setup 0ms, collect 881ms, tests 15ms, environment 0ms, prepare 282ms)
+

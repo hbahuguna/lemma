@@ -23,6 +23,7 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
+    "@lemma/adapters-sdk": "workspace:*",
     "@lemma/agent": "workspace:*"
   },
   "engines": {
