@@ -189,7 +189,7 @@ scan wearing a browser label.
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Done |
 | LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Done |
 | LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Done |
-| LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Backlog |
+| LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Done |
 | LEM-061 | Verify browser evidence, manifest, and report linkage | P0 | 3 | LEM-016, LEM-051 | Backlog |
 | LEM-062 | Port viewport and check metadata contracts | P2 | 2 | LEM-051, LEM-055 | Backlog |
 | LEM-063 | Port browser defaults (crawl, mobile, headed, active) | P1 | 3 | LEM-054, LEM-055 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-060** — Port browser fixtures and the CI smoke/blocked legs (2026-11-15). Evidence: `examples/demo-web/` (assay-parity fixture), `packages/browser/test/browser-smoke-leg.test.ts` (skippable local Playwright+Chromium smoke: serves demo-web, non-blocked `browser.load`, screenshot/console/network evidence), `packages/browser/test/browser-blocked-leg.test.ts` (disabled/unavailable runtime blocked-degradation, no false pass), `docs/parity/evidence/LEM-060-browser-legs-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-smoke-leg.test.ts packages/browser/test/browser-blocked-leg.test.ts`, 3/3; smoke executed in this environment); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Claimed out of P0-priority order vs unblocked `LEM-061` at explicit user request. Commit/remote recorded in completion summary.
 - **LEM-059** — Port SSRF-safe target validation and allowlists (2026-11-15). Evidence: `packages/core/src/ssrf.ts`, `packages/core/src/ssrf-export.ts`, `packages/core/src/index.ts`, `packages/core/package.json` (`validateUrl`/`validateRedirectChain`/`isSafeUrl`/`loadAllowlist`, injectable resolver, default blocked hosts/ranges, hostname/CIDR allowlists and env/file/root loading, per-call rebinding checks, redirect-chain revalidation, non-leaking `SsrfError`), `packages/core/test/ssrf/ssrf.test.ts`, `docs/parity/evidence/LEM-059-ssrf-test-output.txt` (`pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`, 8/8 with pre-existing unrelated core schema-suite failures in full run); `pnpm --filter @lemma/core typecheck` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-058** — Port scenario-file execution and `browser.steps` (2026-11-15). Evidence: `packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts`, `packages/browser/src/index.ts` (scenario plan loading/compilation, Playwright-driven `executeScenarioPlan`, `browser.steps` runtime integration/evaluation with injected execution/page support and blocked degradation), `packages/browser/test/browser-scenarios.test.ts`, `docs/parity/evidence/LEM-058-browser-steps-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-scenarios.test.ts`, 5/5; browser suite 48/48); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-057** — Port HAR, trace, and video capture with redaction (2026-11-15). Evidence: `packages/browser/src/capture.ts` and `packages/browser/src/runtime.ts` (capture flags, Playwright HAR/trace/video recording/finalization, redacted HAR/trace-zip/video persistence with evidence refs and cleanup; common capture refs in `packages/browser/src/checks.ts`), `packages/browser/test/browser-capture-artifacts.test.ts`, `docs/parity/evidence/LEM-057-browser-capture-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`, 4/4; browser suite 43/43); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -806,6 +807,46 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-060 — Port browser fixtures and the CI smoke/blocked legs
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-050, LEM-051
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-smoke-leg.test.ts packages/browser/test/browser-blocked-leg.test.ts`. (Taken out of lowest-numbered/P0-priority order vs unblocked P0 `LEM-061` at explicit user request.)
+- **Completed:** 2026-11-15 — all acceptance criteria pass; smoke/blocked leg tests 3/3 passed (smoke executed with local Playwright+Chromium in this environment), plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port the clean browser fixture and the browser smoke/blocked
+  CI legs so browser-enabled and blocked-degradation behavior can be exercised
+  deterministically and wired into CI in a later task.
+- **Acceptance Criteria:**
+  - Clean browser fixture is available at `examples/demo-web/` (assay-parity
+    demo fixture for local browser smoke; no public internet dependency).
+  - Browser smoke leg is implemented as a runnable, skippable test at
+    `packages/browser/test/browser-smoke-leg.test.ts` (or equivalent) that, when
+    Playwright and a launchable Chromium are available, serves `examples/demo-web`
+    on localhost, runs lemma browser checks against it (including `browser.load`)
+    with SSRF-safe local allowlisting, and asserts a completed/non-blocked
+    `browser.load` outcome plus captured browser evidence artifacts (e.g.
+    screenshot and console/network evidence refs/log artifacts as applicable).
+    The test must skip (not fail) when Playwright/Chromium is unavailable and
+    must never reach the public internet.
+  - Browser blocked-degradation leg is implemented as a runnable test at
+    `packages/browser/test/browser-blocked-leg.test.ts` (or equivalent) that
+    executes browser checks with browser runtime unavailable/disabled and asserts
+    blocked outcomes (no false pass, actionable boundary/blocker metadata as
+    applicable) without requiring Playwright/Chromium.
+  - Parity inventory updated for LEM-060 scope: `examples/demo-web/` fixture and
+    browser smoke/capture/crawl test mapping rows note the smoke/blocked legs and
+    fixture parity evidence.
+  - `pnpm lint`, `pnpm --filter @lemma/browser typecheck`,
+    `pnpm --filter @lemma/browser build`, and
+    `pnpm exec vitest run packages/browser/test/browser-smoke-leg.test.ts packages/browser/test/browser-blocked-leg.test.ts`
+    pass in this environment (smoke leg may be skipped if Playwright/Chromium is
+    unavailable, but must not fail).
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-smoke-leg.test.ts packages/browser/test/browser-blocked-leg.test.ts`
+- **Evidence:** `examples/demo-web/` (assay-parity clean browser fixture), `packages/browser/test/browser-smoke-leg.test.ts`, `packages/browser/test/browser-blocked-leg.test.ts`, `docs/parity/evidence/LEM-060-browser-legs-test-output.txt`; parity inventory `examples/demo-web/` and browser smoke/capture/crawl test mapping rows updated (LEM-060). Commit/remote recorded in completion summary.
 
 ### LEM-059 — Port SSRF-safe target validation and allowlists
 
