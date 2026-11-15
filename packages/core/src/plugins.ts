@@ -309,6 +309,10 @@ export function signaturePayload(definition: CheckDefinition, entryPoint: string
   return Buffer.from(canonicalJson(payload), "utf8");
 }
 
+export function resolvePluginTrustFile(root: string = process.cwd()): string {
+  return path.join(path.resolve(root), DEFAULT_PLUGIN_TRUST_FILE);
+}
+
 export function loadTrustKeys(
   trustFilePath: string,
   log?: (message: string) => void,
@@ -317,7 +321,18 @@ export function loadTrustKeys(
     if (!fsSync.existsSync(trustFilePath)) return {};
     const raw = fsSync.readFileSync(trustFilePath, "utf8");
     const payload = JSON.parse(raw) as unknown;
-    const keysRaw = isRecord(payload) && isRecord(payload.keys) ? payload.keys : isRecord(payload) ? payload : {};
+    if (!isRecord(payload)) {
+      log?.(`WARNING: plugin trust store ${trustFilePath} needs a 'keys' object.`);
+      return {};
+    }
+    let keysRaw: unknown = payload;
+    if ("keys" in payload) {
+      if (!isRecord(payload.keys)) {
+        log?.(`WARNING: plugin trust store ${trustFilePath} needs a 'keys' object.`);
+        return {};
+      }
+      keysRaw = payload.keys;
+    }
     if (!isRecord(keysRaw)) {
       log?.(`WARNING: plugin trust store ${trustFilePath} needs a 'keys' object.`);
       return {};
@@ -333,6 +348,21 @@ export function loadTrustKeys(
   }
 }
 
+export function saveTrustKeys(trustFilePath: string, keys: Record<string, string>): string {
+  const resolved = path.resolve(trustFilePath);
+  const dir = path.dirname(resolved);
+  fsSync.mkdirSync(dir, { recursive: true });
+  const payload = {
+    keys: Object.fromEntries(
+      Object.entries(keys)
+        .filter(([, secret]) => typeof secret === "string" && secret.length > 0)
+        .sort(([a], [b]) => a.localeCompare(b)),
+    ),
+  };
+  fsSync.writeFileSync(resolved, JSON.stringify(payload, null, 2) + "\n", "utf8");
+  return resolved;
+}
+
 export function signPlugin(
   definition: CheckDefinition,
   entryPoint: string,
@@ -345,7 +375,7 @@ export function signPlugin(
   return `${PLUGIN_SIGNATURE_SCHEME}:${keyId}:${digest}`;
 }
 
-function parseSignature(signature: string): { keyId: string; digest: string } {
+export function parsePluginSignature(signature: string): { keyId: string; digest: string } {
   const parts = String(signature || "").split(":");
   if (parts.length !== 3 || parts[0] !== PLUGIN_SIGNATURE_SCHEME || !parts[1] || !parts[2]) {
     throw new PluginError(
@@ -353,6 +383,36 @@ function parseSignature(signature: string): { keyId: string; digest: string } {
     );
   }
   return { keyId: parts[1], digest: parts[2] };
+}
+
+function parseSignature(signature: string): { keyId: string; digest: string } {
+  return parsePluginSignature(signature);
+}
+
+export function verifyPluginSignature(
+  definition: CheckDefinition,
+  entryPoint: string,
+  signature: string,
+  trustKeys: Record<string, string>,
+): { valid: boolean; keyId: string; error?: string } {
+  try {
+    const { keyId, digest } = parsePluginSignature(signature);
+    const secret = trustKeys[keyId];
+    if (!secret) {
+      return { valid: false, keyId, error: `unknown signing key '${keyId}'` };
+    }
+    const expected = createHmac("sha256", Buffer.from(secret, "utf8"))
+      .update(signaturePayload(definition, entryPoint))
+      .digest("hex");
+    const a = Buffer.from(digest, "hex");
+    const b = Buffer.from(expected, "hex");
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+      return { valid: false, keyId, error: `signature did not verify against key '${keyId}'` };
+    }
+    return { valid: true, keyId };
+  } catch (err) {
+    return { valid: false, keyId: "", error: err instanceof Error ? err.message : String(err) };
+  }
 }
 
 /**

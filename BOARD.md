@@ -224,7 +224,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | LEM-076 | Port the plugin context and blocked-failure handling | P0 | 5 | LEM-075 | Done |
 | LEM-077 | Port plugin ownership validation | P0 | 3 | LEM-044, LEM-075 | Done |
 | LEM-078 | Define the TypeScript plugin authoring API | P1 | 5 | LEM-075, LEM-076 | Done |
-| LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Backlog |
+| LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Done |
 | LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Backlog |
 | LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Backlog |
 | LEM-082 | Build the plugin conformance suite | P1 | 5 | LEM-075, LEM-076, LEM-077 | Backlog |
@@ -972,6 +972,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-authoring-api.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/core/src/plugins.ts` (`definePlugin`, `definePluginDefinition`, `PluginDefinitionInput`/`DefinePluginInput` and exported authoring types; deterministic normalization/validation aligned with registry), `packages/core/src/index.ts` export, `packages/core/package.json` + `@lemma/core/plugins` subpath build/export, `packages/core/test/plugins/plugin-authoring-api.test.ts`, `docs/parity/evidence/LEM-078-plugin-authoring-api-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. End-to-end authored+signed+registered+executed plugin with `context.saveJson` evidence verified. Sample plugin/docs, trust-store helper split, and conformance remain in LEM-079–LEM-082.
+
+### LEM-079 — Port the HMAC trust store and signing helper
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-075
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-trust-store.test.ts`.
+- **Description:** Port the HMAC-SHA256 plugin trust store and signing helper
+  APIs used to manage trusted plugin signing keys and produce/verify detached
+  plugin signatures outside core internals.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports trust-store and signing helper APIs/constants
+    (compatible with existing registry behavior): `PLUGIN_SIGNATURE_SCHEME`,
+    `DEFAULT_PLUGIN_TRUST_FILE`, `resolvePluginTrustFile`, `loadTrustKeys`,
+    `saveTrustKeys` (or equivalent write helper), `signaturePayload`,
+    `signPlugin`, and signature parsing/verification helpers.
+  - Trust store behavior: default path resolves under `.lemma/plugins/trusted_keys.json`;
+    missing trust store loads as empty keys (not an error); malformed/unreadable
+    stores are handled safely (warning/log hook path preserved, no crash) while
+    valid stores load key id -> secret mappings from `{"keys":{...}}` (and
+    compatible plain-object form as already supported).
+  - `saveTrustKeys`/write helper persists a canonical `{"keys":...}` JSON trust
+    store, creating parent directories as needed, so keys can be round-tripped
+    via `loadTrustKeys`.
+  - Signing helpers produce and verify HMAC-SHA256 detached signatures in the
+    `hmac-sha256:<key_id>:<hex_digest>` format over the canonical plugin
+    definition+entry-point payload; invalid formats or unknown/mismatched keys
+    are rejected deterministically.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-trust-store.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-trust-store.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/core/src/plugins.ts` (`resolvePluginTrustFile`, `loadTrustKeys` with safe missing/malformed handling and `{"keys":...}`/plain-object compatibility, `saveTrustKeys` canonical round-trip write with parent-dir creation, `signaturePayload`, `signPlugin`, `parsePluginSignature`, `verifyPluginSignature`), `packages/core/test/plugins/plugin-trust-store.test.ts`, `docs/parity/evidence/LEM-079-plugin-trust-store-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. CLI signing commands and sample docs remain in later tasks (LEM-080/LEM-085).
 
 ### LEM-074 — Build policy and calibration regression coverage
 

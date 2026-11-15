@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/plugins/plugin-trust-store.test.ts (3 tests) 82ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:56:36
+   Duration  3.06s (transform 836ms, setup 0ms, collect 1.17s, tests 82ms, environment 0ms, prepare 587ms)
+
