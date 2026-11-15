@@ -186,7 +186,7 @@ scan wearing a browser label.
 | LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Done |
 | LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Done |
 | LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Done |
-| LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Backlog |
+| LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Done |
 | LEM-058 | Port scenario-file execution and `browser.steps` | P1 | 5 | LEM-051 | Backlog |
 | LEM-059 | Port SSRF-safe target validation and allowlists | P0 | 5 | LEM-010 | Backlog |
 | LEM-060 | Port browser fixtures and the CI smoke/blocked legs | P1 | 3 | LEM-050, LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-057** — Port HAR, trace, and video capture with redaction (2026-11-15). Evidence: `packages/browser/src/capture.ts` and `packages/browser/src/runtime.ts` (capture flags, Playwright HAR/trace/video recording/finalization, redacted HAR/trace-zip/video persistence with evidence refs and cleanup; common capture refs in `packages/browser/src/checks.ts`), `packages/browser/test/browser-capture-artifacts.test.ts`, `docs/parity/evidence/LEM-057-browser-capture-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`, 4/4; browser suite 43/43); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-056** — Port authenticated storage-state injection (2026-11-15). Evidence: `packages/browser/src/runtime.ts` (`resolveBrowserStorageState`, `storageState`/`storage_state` options, assay-compatible env/file/validation/expiry/empty handling, Playwright context injection without persisting resolved state, blocked degradation on resolution failure), `packages/browser/test/browser-storage-state.test.ts`, `docs/parity/evidence/LEM-056-browser-storage-state-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-storage-state.test.ts`, 6/6; browser suite 39/39); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-055** — Port the responsive/mobile pack (overflow, focus order) (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.overflow` viewport-aware horizontal overflow/offending-element evaluator and `browser.focus_order` positive-tabindex/focus-order-match evaluator with runtime integration), `packages/browser/test/browser-mobile-pack.test.ts`, `docs/parity/evidence/LEM-055-browser-mobile-pack-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-mobile-pack.test.ts`, 6/6; browser suite 33/33); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-054** — Port the bounded same-origin crawl (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (`discoverRoutes`/route normalization with bounded seed-only same-origin crawl exclusions, multi-route `evaluateBrowserCheckAcrossViews`/merge with `crawled`/`page_count`/`routes`/`routes_not_evaluated` metadata and navigation-failed-route handling, runtime crawl inputs/injected views and best-effort Playwright crawl capture), `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`, 5/5; browser suite 27/27); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -804,7 +805,63 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-057 — Port HAR, trace, and video capture with redaction
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-051
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts` 4/4 and full browser suite 43/43, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port optional browser HAR, trace, and video capture with
+  redaction from assay into `@lemma/browser` runtime capture so diagnostic
+  artifacts can be recorded without leaking secrets.
+- **Acceptance Criteria:**
+  - `BrowserRuntimeOptions` accept capture flags `captureHar`/`capture_har`,
+    `captureTrace`/`capture_trace`, and `captureVideo`/`capture_video` (disabled
+    by default). When Playwright capture runs with flags enabled, runtime
+    configures recording appropriately (HAR recording path/mode, tracing start
+    with screenshots/snapshots/sources, and video recording directory/size when
+    supported) and finalizes artifacts before context close.
+  - HAR capture is saved as redacted JSON evidence (kind `har`, evidence ref
+    `har`) when an evidence store is available. Redaction sanitizes request/entry
+    URLs, redacts sensitive headers (`authorization`, `cookie`, `set-cookie`,
+    `proxy-authorization`, `x-api-key`), cookie values, and sensitive query
+    params (`token`, `access_token`, `id_token`, `api_key`, `apikey`, `secret`,
+    `password`, `passwd`, `session`, `sessionid`, `jwt`, `auth`, `code`), and
+    applies text redaction to string values.
+  - Trace capture is saved as redacted bytes evidence (kind `trace`, evidence ref
+    `trace`, `.zip` suffix/name convention compatible with Playwright traces)
+    when available/requested. Text entries inside the trace archive are redacted
+    for credential/token/header-like secrets before persistence; binary entries
+    are preserved.
+  - Video capture is saved as bytes evidence (kind `video`, evidence ref `video`,
+    suffix from captured video path, default `.webm`) when Playwright provides a
+    video artifact; capture is best-effort and must not crash the run if an
+    artifact is unavailable. Temporary capture files/directories are cleaned up.
+  - `BrowserEvidenceStoreLike`/runtime capture support byte-saving when needed
+    (e.g. optional `saveBytes`) while remaining backward-compatible. Captured
+    artifact refs are attached to page view `evidenceRefs` so check outcomes can
+    include them via common evidence; injected `pageView`/`pageViews` bypass
+    capture as before.
+  - Tests at `packages/browser/test/browser-capture-artifacts.test.ts` cover
+    HAR/trace/video redaction helpers and runtime capture/finalization behavior
+    (via mocked Playwright/context/page/video/tracing and evidence hooks), verify
+    refs/kinds and that sensitive values are redacted/not persisted in saved
+    artifacts, and confirm captures are disabled by default/no crash on missing
+    artifacts. Existing browser tests continue to pass. Evidence recorded at
+    `docs/parity/evidence/LEM-057-browser-capture-test-output.txt`.
+  - Parity inventory updated for LEM-057 scope: `harness/browser.py` row and
+    browser capture/smoke-crawl test mapping note HAR/trace/video capture with
+    redaction and evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-capture-artifacts.test.ts`
+- **Evidence:** `packages/browser/src/capture.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/checks.ts`, `packages/browser/src/index.ts`, `packages/browser/test/browser-capture-artifacts.test.ts`, `docs/parity/evidence/LEM-057-browser-capture-test-output.txt`; parity inventory `harness/browser.py` and browser capture/smoke-crawl test mapping updated (LEM-057 HAR/trace/video capture with redaction slice). Commit/remote recorded in completion summary.
+
 ### LEM-056 — Port authenticated storage-state injection
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P1

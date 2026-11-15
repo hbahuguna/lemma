@@ -109,7 +109,18 @@ export function normalizePageView(value: unknown): BrowserPageView {
 
 export function commonEvidence(view: BrowserPageView): string[] {
   const refs = view.evidenceRefs ?? {};
-  const keys = ["screenshot", "headers", "console", "network", "snapshot", "cookies", "navigation"];
+  const keys = [
+    "screenshot",
+    "headers",
+    "console",
+    "network",
+    "snapshot",
+    "cookies",
+    "navigation",
+    "har",
+    "trace",
+    "video",
+  ];
   return keys.map((k) => refs[k]).filter((v): v is string => typeof v === "string" && v.length > 0);
 }
 

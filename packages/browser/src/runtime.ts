@@ -1,4 +1,6 @@
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import {
   CheckOutcome,
@@ -16,6 +18,7 @@ import {
   routeLabel,
   type BrowserPageView,
 } from "./checks.js";
+import { redactHarPayload, redactTraceBytes, type BrowserCaptureEvidenceStore } from "./capture.js";
 
 export interface PlaywrightModuleLike {
   chromium?: {
@@ -44,6 +47,18 @@ export interface BrowserRuntimeOptions {
   storageState?: string | Record<string, unknown>;
   /** Alias for storageState. */
   storage_state?: string | Record<string, unknown>;
+  /** Capture and persist a redacted HAR artifact (disabled by default). */
+  captureHar?: boolean;
+  /** Alias for captureHar. */
+  capture_har?: boolean;
+  /** Capture and persist a redacted Playwright trace (disabled by default). */
+  captureTrace?: boolean;
+  /** Alias for captureTrace. */
+  capture_trace?: boolean;
+  /** Capture and persist browser video when available (disabled by default). */
+  captureVideo?: boolean;
+  /** Alias for captureVideo. */
+  capture_video?: boolean;
   /**
    * Test/extension hook: provide a custom Playwright loader. Returning/throwing
    * an unavailable module simulates a missing runtime.
@@ -280,6 +295,14 @@ export interface BrowserEvidenceStoreLike {
     description?: string,
     checkId?: string,
   ): Promise<string> | string;
+  saveBytes?(
+    name: string,
+    data: Uint8Array | Buffer,
+    kind?: string,
+    description?: string,
+    checkId?: string,
+    suffix?: string,
+  ): Promise<string> | string;
 }
 
 export interface RunBrowserChecksInput {
@@ -492,6 +515,153 @@ async function captureSinglePage(
   }
 }
 
+function captureFlags(options?: BrowserRuntimeOptions) {
+  return {
+    har: options?.captureHar === true || options?.capture_har === true,
+    trace: options?.captureTrace === true || options?.capture_trace === true,
+    video: options?.captureVideo === true || options?.capture_video === true,
+  };
+}
+
+async function saveJsonEvidence(
+  evidence: BrowserCaptureEvidenceStore | undefined,
+  name: string,
+  payload: unknown,
+  kind: string,
+  description: string,
+): Promise<string | undefined> {
+  if (!evidence) return undefined;
+  try {
+    return await evidence.saveJson(name, payload, kind, description);
+  } catch {
+    return undefined;
+  }
+}
+
+async function saveBytesEvidence(
+  evidence: BrowserCaptureEvidenceStore | undefined,
+  name: string,
+  data: Uint8Array | Buffer,
+  kind: string,
+  description: string,
+  suffix?: string,
+): Promise<string | undefined> {
+  if (!evidence?.saveBytes) return undefined;
+  try {
+    return await evidence.saveBytes(name, data, kind, description, undefined, suffix);
+  } catch {
+    return undefined;
+  }
+}
+
+async function finalizeCaptureArtifacts(args: {
+  evidence?: BrowserCaptureEvidenceStore;
+  context: any;
+  page: any;
+  flags: { har: boolean; trace: boolean; video: boolean };
+  harPath?: string;
+  tracePath?: string;
+  videoDir?: string;
+}): Promise<Record<string, string>> {
+  const refs: Record<string, string> = {};
+  const { evidence, context, page, flags, harPath, tracePath, videoDir } = args;
+
+  // Trace must be stopped before closing context.
+  if (flags.trace && tracePath) {
+    try {
+      await context?.tracing?.stop?.({ path: tracePath });
+    } catch {
+      // trace capture is best-effort
+    }
+  }
+
+  // Resolve video path before context close when possible.
+  let videoPath: string | undefined;
+  if (flags.video) {
+    try {
+      const videoObj = page?.video?.();
+      if (videoObj && typeof videoObj.path === "function") {
+        videoPath = await videoObj.path();
+      }
+    } catch {
+      videoPath = undefined;
+    }
+  }
+
+  try {
+    await context?.close?.();
+  } catch {
+    // close best-effort; continue artifact finalization
+  }
+
+  if (flags.har && harPath) {
+    try {
+      const raw = readFileSync(harPath, "utf8");
+      const payload = JSON.parse(raw) as unknown;
+      const redacted = redactHarPayload(payload);
+      const ref = await saveJsonEvidence(
+        evidence,
+        "har-log",
+        redacted,
+        "har",
+        "Redacted HTTP Archive for the browser run.",
+      );
+      if (ref) refs.har = ref;
+    } catch {
+      // HAR capture is best-effort
+    } finally {
+      try { unlinkSync(harPath); } catch { /* noop */ }
+    }
+  }
+
+  if (flags.trace && tracePath) {
+    try {
+      const data = readFileSync(tracePath);
+      const redacted = await redactTraceBytes(new Uint8Array(data));
+      const ref = await saveBytesEvidence(
+        evidence,
+        "playwright-trace",
+        Buffer.from(redacted),
+        "trace",
+        "Playwright trace for the browser run.",
+        ".zip",
+      );
+      if (ref) refs.trace = ref;
+    } catch {
+      // trace capture is best-effort
+    } finally {
+      try { unlinkSync(tracePath); } catch { /* noop */ }
+    }
+  }
+
+  if (flags.video && videoPath) {
+    try {
+      const data = readFileSync(videoPath);
+      const suffix = videoPath.includes(".") ? videoPath.slice(videoPath.lastIndexOf(".")) : ".webm";
+      const ref = await saveBytesEvidence(
+        evidence,
+        "browser-video",
+        data,
+        "video",
+        "Browser video for the run.",
+        suffix || ".webm",
+      );
+      if (ref) refs.video = ref;
+    } catch {
+      // video capture is best-effort
+    } finally {
+      try { unlinkSync(videoPath); } catch { /* noop */ }
+      if (videoDir) {
+        try { rmSync(videoDir, { recursive: true, force: true }); } catch { /* noop */ }
+      }
+    }
+  } else if (videoDir) {
+    try { rmSync(videoDir, { recursive: true, force: true }); } catch { /* noop */ }
+  }
+
+  return refs;
+}
+
 async function captureWithPlaywright(
   url: string,
   playwright: PlaywrightModuleLike,
@@ -506,22 +676,48 @@ async function captureWithPlaywright(
   const storageStateInput = options?.storageState ?? options?.storage_state;
   const resolvedStorageState =
     storageStateInput !== undefined ? resolveBrowserStorageState(storageStateInput) : undefined;
+  const flags = captureFlags(options);
 
   const browser = (await chromium.launch({ headless })) as {
-    newContext: (opts?: Record<string, unknown>) => Promise<{
-      newPage: () => Promise<any>;
-      close: () => Promise<void>;
-    }>;
+    newContext: (opts?: Record<string, unknown>) => Promise<any>;
     close: () => Promise<void>;
   };
+
+  const tempDir = (flags.har || flags.trace || flags.video)
+    ? mkdtempSync(join(tmpdir(), "lemma-browser-capture-"))
+    : undefined;
+  const harPath = flags.har && tempDir ? join(tempDir, "capture.har") : undefined;
+  const tracePath = flags.trace && tempDir ? join(tempDir, "capture-trace.zip") : undefined;
+  const videoDir = flags.video && tempDir ? join(tempDir, "video") : undefined;
+
   const contextOptions: Record<string, unknown> = { viewport: { width: 1280, height: 720 } };
   if (resolvedStorageState) {
     contextOptions.storageState = resolvedStorageState;
   }
-  const context = await browser.newContext(contextOptions);
-  const page = await context.newPage();
-  const views: BrowserPageView[] = [];
+  if (harPath) {
+    contextOptions.recordHar = { path: harPath, mode: "minimal" };
+    // compatibility with older Playwright option names
+    (contextOptions as any).record_har_path = harPath;
+  }
+  if (videoDir) {
+    contextOptions.recordVideo = { dir: videoDir, size: { width: 1280, height: 720 } };
+    (contextOptions as any).record_video_dir = videoDir;
+  }
+
+  let context: any;
+  let page: any;
+  let views: BrowserPageView[] = [];
   try {
+    context = await browser.newContext(contextOptions);
+    if (flags.trace) {
+      try {
+        await context?.tracing?.start?.({ screenshots: true, snapshots: true, sources: true });
+      } catch {
+        // tracing start is best-effort
+      }
+    }
+    page = await context.newPage();
+
     const seedView = await captureSinglePage(page, url, options, evidence, "landing");
     views.push(seedView);
 
@@ -545,11 +741,28 @@ async function captureWithPlaywright(
         }
       }
     }
-    return views;
   } finally {
-    try { await context.close(); } catch { /* noop */ }
+    const artifactRefs = context
+      ? await finalizeCaptureArtifacts({
+          ...(evidence ? { evidence } : {}),
+          context,
+          page,
+          flags,
+          ...(harPath ? { harPath } : {}),
+          ...(tracePath ? { tracePath } : {}),
+          ...(videoDir ? { videoDir } : {}),
+        })
+      : {};
+    if (Object.keys(artifactRefs).length > 0) {
+      views = views.map((v) => normalizePageView({ ...v, evidenceRefs: { ...v.evidenceRefs, ...artifactRefs } }));
+    }
     try { await browser.close(); } catch { /* noop */ }
+    if (tempDir) {
+      try { rmSync(tempDir, { recursive: true, force: true }); } catch { /* noop */ }
+    }
   }
+
+  return views;
 }
 /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 

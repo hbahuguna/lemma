@@ -5,5 +5,6 @@
  * LEM-051: load/console/network/content/links evaluators and runtime integration.
  */
 
+export * from "./capture.js";
 export * from "./checks.js";
 export * from "./runtime.js";
