@@ -162,7 +162,7 @@ a pass.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-041 | Port the persona frontmatter parser | P0 | 3 | LEM-013 | Done |
-| LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Backlog |
+| LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Done |
 | LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Backlog |
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Backlog |
 | LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Backlog |
@@ -785,6 +785,57 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-039** — Build the static precision and recall corpus (2026-11-14). Evidence: `packages/core/test/static-precision-recall-corpus/corpus.json`, `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`, `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt` (`pnpm --filter @lemma/core test -- static-precision-recall`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
+- **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+
+### LEM-042 — Port output and blocker schema validation
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-041
+- **Status:** Done
+- **Claimed:** 2026-11-14 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test persona-schema`.
+- **Description:** Port assay's persona output/blocker JSON-Schema subset from
+  `harness/personas.py` (`_extract_json_schema`, `validate_payload`,
+  `validate_blocker`, `_type_matches`, and the core field/type constants) into
+  `@lemma/core/personas`, without adding a JSON-Schema runtime dependency.
+- **Acceptance Criteria:**
+  - Export assay-compatible contract constants: `CORE_FINDING_FIELDS` (the nine
+    required finding fields), `CORE_BLOCKER_FIELDS` (the six required blocker
+    fields), and `SUPPORTED_SCHEMA_TYPES` (object/array/string/number/integer/
+    boolean/null).
+  - `extractJsonSchema(section, label, source?)` extracts the first
+    case-insensitive ```` ```json ```` fenced block from a persona section,
+    parses it as JSON, and requires: a JSON object (not array/scalar),
+    `type === "object"`, a non-empty `required` array, and a non-empty
+    `properties` object. Each failure throws a typed `PersonaError`
+    (`errorCode === "persona_error"`) with a deterministic message naming the
+    source/label (missing fenced block, invalid JSON, non-object, wrong type,
+    empty/missing required, empty/missing properties).
+  - `validatePayload(payload, schema, path = "$")` ports assay's subset
+    validator: declared `type` checked first with early return; `enum`
+    membership via deep equality; object `required` keys reported as missing;
+    each present declared property validated recursively; array `items`
+    validated per index. Errors are deterministic, `$`-rooted path strings, and
+    a valid payload returns `[]`. Unknown declared types are treated as
+    permissive, matching assay.
+  - `validateBlocker(payload, blockerSchema)` validates a structured blocker
+    payload against a persona blocker schema using the same engine, so a valid
+    blocker returns `[]` and a missing required core blocker field fails.
+  - End-to-end persona validation works: `parsePersonaDocument` +
+    `extractJsonSchema` over the `output schema`/`blocker schema` sections yields
+    usable finding/blocker schemas; assay-style valid finding and blocker
+    payloads pass, while an out-of-contract `severity`/`domain` enum value, a
+    missing required field, and a wrong primitive type are rejected with the
+    correct path/field.
+  - The APIs are exported from `@lemma/core` and the `@lemma/core/personas`
+    subpath, add no runtime dependency, and are deterministic/text-only.
+  - `packages/core/test/persona-schema/persona-schema-validation.test.ts` covers
+    constants, schema extraction failure modes, every validator branch, blocker
+    validation, and the end-to-end persona flow; output is recorded under
+    `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt`.
+- **Verification:** `pnpm --filter @lemma/core test persona-schema` (targeted: `packages/core/test/persona-schema/persona-schema-validation.test.ts`) — **PASS** (8 tests). `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and `pnpm --filter @lemma/core build` (emits `dist/personas.js`/`dist/personas.d.ts`) passed (2026-11-14).
+- **Evidence:** `packages/core/src/personas.ts` (`CORE_FINDING_FIELDS`/`CORE_BLOCKER_FIELDS`/`SUPPORTED_SCHEMA_TYPES`, `matchesSchemaType`, `extractJsonSchema`, `validatePayload`, `validateBlocker`, `PersonaJsonSchema`/`PersonaJsonValue` types), exported from `@lemma/core` and the `@lemma/core/personas` subpath; `packages/core/test/persona-schema/persona-schema-validation.test.ts` (8 tests: constants, fenced schema extraction and failure modes, type/enum/required/nested/array validation, deep-equality enums, blocker validation, end-to-end parsed-persona validation). Test output: `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt`. Commit/remote recorded in completion summary.
 
 ### LEM-041 — Port the persona frontmatter parser
 
