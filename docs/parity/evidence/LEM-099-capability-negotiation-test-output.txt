@@ -1,0 +1,25 @@
+$ tsc --noEmit
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     4.37 KB
+ESM dist/index.js.map 13.52 KB
+ESM ⚡️ Build success in 98ms
+DTS Build start
+DTS ⚡️ Build success in 1217ms
+DTS dist/index.d.ts 7.00 KB
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/sdk/test/agent-host-sdk.test.ts (2 tests) 10ms
+ ✓ packages/adapters/sdk/test/capability-negotiation.test.ts (4 tests) 12ms
+
+ Test Files  2 passed (2)
+      Tests  6 passed (6)
+   Start at  01:32:46
+   Duration  1.60s (transform 105ms, setup 0ms, collect 137ms, tests 23ms, environment 1ms, prepare 1.07s)
+

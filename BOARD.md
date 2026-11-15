@@ -284,7 +284,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-098 | Implement the shared `AgentHost` adapter SDK | P0 | 5 | LEM-003, LEM-083 | Done |
-| LEM-099 | Implement capability negotiation and graceful degradation | P0 | 5 | LEM-098 | Backlog |
+| LEM-099 | Implement capability negotiation and graceful degradation | P0 | 5 | LEM-098 | Done |
 | LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Backlog |
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
@@ -4305,6 +4305,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts` (pass).
 - **Evidence:** `packages/adapters/sdk/package.json`, `packages/adapters/sdk/tsconfig.json`, `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/agent-host-sdk.test.ts`, `packages/adapters/sdk/dist/*`, `tsconfig.base.json`, `vitest.config.ts`, `docs/parity/evidence/LEM-098-adapter-sdk-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-099 — Implement capability negotiation and graceful degradation
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-098
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Add shared capability negotiation and graceful-degradation
+  primitives so adapters/hosts can declare capabilities honestly, compute
+  effective behavior without silent emulation, and record architecture-defined
+  limitations/gaps.
+- **Acceptance Criteria:**
+  - `@lemma/adapters-sdk` exports host-neutral negotiation/degradation APIs (and
+    types) to compute effective capabilities from host-declared (and optional
+    required/requested) capabilities and to produce declared, machine-readable
+    limitation records for unavailable capabilities per `docs/architecture.md`.
+  - Degradation rules are represented and testable: **Question UI** unavailable →
+    plain-chat fallback, record `question_ui_unavailable`, never block; **Native
+    form** unavailable → paste/secure env-reference fallback, never request raw
+    token in prose; **MCP** unavailable → record `mcp_unavailable`, continue with
+    paste/skip; **Session events** unavailable → disable interactive resume but
+    keep persisted-state resume; **Model invocation** unavailable → stop agent
+    loop after deterministic run and report limitation; **Progress stream**
+    unavailable → buffer progress and emit at phase boundaries.
+  - The SDK provides a deterministic progress-buffer helper for phase-boundary
+    emission (or equivalent phase-boundary buffering primitive) and keeps all
+    behavior host-neutral/dependency-light (no host SDKs, no core product logic).
+  - `docs/architecture.md` is updated to record current (provisional/unverified
+    where necessary) host capability spike status/notes for Codex/Antigravity/
+    Cursor surfaces in line with board blocker guidance (no invented verified
+    capabilities; missing/unknown remains declared).
+  - `packages/adapters/sdk/test/capability-negotiation.test.ts` covers
+    negotiation outcomes and each degradation rule/limitation path, and
+    `pnpm --filter @lemma/adapters-sdk typecheck`,
+    `pnpm --filter @lemma/adapters-sdk build`, and
+    `pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts packages/adapters/sdk/test/capability-negotiation.test.ts` (pass, 6 tests).
+- **Evidence:** `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/capability-negotiation.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-099-capability-negotiation-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

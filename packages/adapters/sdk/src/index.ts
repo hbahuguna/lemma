@@ -197,3 +197,200 @@ export function createCapabilities(
 ): HostCapabilities {
   return { ...DEFAULT_HOST_CAPABILITIES, ...overrides };
 }
+
+export type CapabilityKey = keyof HostCapabilities;
+
+export type LimitationCode =
+  | "question_ui_unavailable"
+  | "native_form_unavailable"
+  | "mcp_unavailable"
+  | "session_events_unavailable"
+  | "model_invocation_unavailable"
+  | "progress_stream_unavailable";
+
+export interface CapabilityLimitation {
+  capability: CapabilityKey;
+  code: LimitationCode;
+  message: string;
+  /** Required degradation behavior per architecture contract. */
+  behavior: string;
+  /** Never emulate missing capability as success. */
+  blocking: false;
+}
+
+export interface DegradationFlags {
+  usePlainChatForQuestions: boolean;
+  usePasteOrEnvSecretRefForForms: boolean;
+  allowMcpPasteOrSkip: boolean;
+  interactiveResumeDisabled: boolean;
+  persistedStateResumeEnabled: boolean;
+  stopAgentLoopAfterDeterministicRun: boolean;
+  bufferProgressAtPhaseBoundaries: boolean;
+}
+
+export interface CapabilityNegotiationResult {
+  declared: HostCapabilities;
+  effective: HostCapabilities;
+  limitations: CapabilityLimitation[];
+  degradation: DegradationFlags;
+}
+
+export interface NegotiateCapabilitiesOptions {
+  required?: Partial<HostCapabilities>;
+}
+
+function toCapabilityMap(value: HostCapabilities): Record<CapabilityKey, boolean> {
+  return value as Record<CapabilityKey, boolean>;
+}
+
+export function negotiateCapabilities(
+  declared: Partial<HostCapabilities> | HostCapabilities,
+  options: NegotiateCapabilitiesOptions = {},
+): CapabilityNegotiationResult {
+  const declaredFull = createCapabilities(declared);
+  const required = options.required ?? {};
+  const effective: HostCapabilities = { ...declaredFull };
+  const declaredMap = toCapabilityMap(declaredFull);
+  const effectiveMap = toCapabilityMap(effective);
+
+  for (const key of Object.keys(DEFAULT_HOST_CAPABILITIES) as CapabilityKey[]) {
+    if (required[key]) {
+      effectiveMap[key] = Boolean(declaredMap[key]);
+    } else {
+      effectiveMap[key] = Boolean(declaredMap[key]);
+    }
+  }
+
+  const limitations: CapabilityLimitation[] = [];
+
+  if (!effective.questionUi) {
+    limitations.push({
+      capability: "questionUi",
+      code: "question_ui_unavailable",
+      message: "Host question UI is unavailable.",
+      behavior: "Ask in plain chat, record limitation, and never block the run.",
+      blocking: false,
+    });
+  }
+  if (!effective.nativeForms) {
+    limitations.push({
+      capability: "nativeForms",
+      code: "native_form_unavailable",
+      message: "Host native form UI is unavailable.",
+      behavior:
+        "Fall back to paste or secure env reference; never ask for a raw token in prose.",
+      blocking: false,
+    });
+  }
+  if (!effective.mcpResources) {
+    limitations.push({
+      capability: "mcpResources",
+      code: "mcp_unavailable",
+      message: "Host MCP resource discovery is unavailable.",
+      behavior: "Record limitation and continue with paste or skip.",
+      blocking: false,
+    });
+  }
+  if (!effective.sessionEvents) {
+    limitations.push({
+      capability: "sessionEvents",
+      code: "session_events_unavailable",
+      message: "Host session event stream is unavailable.",
+      behavior: "Disable interactive resume but keep persisted-state resume.",
+      blocking: false,
+    });
+  }
+  if (!effective.modelInvoke) {
+    limitations.push({
+      capability: "modelInvoke",
+      code: "model_invocation_unavailable",
+      message: "Host model invocation from adapter/agent context is unavailable.",
+      behavior: "Stop the agent loop after the deterministic run and report the limitation.",
+      blocking: false,
+    });
+  }
+  if (!effective.progressStream) {
+    limitations.push({
+      capability: "progressStream",
+      code: "progress_stream_unavailable",
+      message: "Host progress streaming is unavailable.",
+      behavior: "Buffer progress and emit it at phase boundaries.",
+      blocking: false,
+    });
+  }
+
+  return {
+    declared: declaredFull,
+    effective,
+    limitations,
+    degradation: {
+      usePlainChatForQuestions: !effective.questionUi,
+      usePasteOrEnvSecretRefForForms: !effective.nativeForms,
+      allowMcpPasteOrSkip: !effective.mcpResources,
+      interactiveResumeDisabled: !effective.sessionEvents,
+      persistedStateResumeEnabled: true,
+      stopAgentLoopAfterDeterministicRun: !effective.modelInvoke,
+      bufferProgressAtPhaseBoundaries: !effective.progressStream,
+    },
+  };
+}
+
+export interface PhaseProgressBuffer {
+  push(message: string): void;
+  /** Flush buffered messages for a phase boundary and clear the buffer. */
+  flushPhase(): string[];
+  /** Peek buffered messages without clearing. */
+  peek(): string[];
+  size(): number;
+  clear(): void;
+}
+
+export function createPhaseProgressBuffer(): PhaseProgressBuffer {
+  let buffer: string[] = [];
+  return {
+    push(message: string): void {
+      buffer.push(message);
+    },
+    flushPhase(): string[] {
+      const out = buffer;
+      buffer = [];
+      return out;
+    },
+    peek(): string[] {
+      return [...buffer];
+    },
+    size(): number {
+      return buffer.length;
+    },
+    clear(): void {
+      buffer = [];
+    },
+  };
+}
+
+export async function emitProgress(
+  host: Pick<AgentHost, "sendProgress">,
+  capabilities: Pick<HostCapabilities, "progressStream"> | HostCapabilities,
+  message: string,
+  buffer?: PhaseProgressBuffer,
+): Promise<void> {
+  if (capabilities.progressStream) {
+    await host.sendProgress(message);
+    return;
+  }
+  if (buffer) {
+    buffer.push(message);
+    return;
+  }
+}
+
+export async function flushBufferedProgress(
+  host: Pick<AgentHost, "sendProgress">,
+  buffer: PhaseProgressBuffer,
+): Promise<string[]> {
+  const messages = buffer.flushPhase();
+  for (const message of messages) {
+    await host.sendProgress(message);
+  }
+  return messages;
+}

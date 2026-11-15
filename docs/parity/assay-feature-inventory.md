@@ -296,7 +296,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | In-process core instead of Python subprocess bridge | Remove Python runtime, absolute checkout paths, and install friction | LEM-083, LEM-101 |
 | `.lemma/` state root instead of `.harness/` | Product rename; keep an explicit migration/read shim | LEM-010, LEM-138 |
 | Shared AgentHost adapter SDK | Canonical host-neutral AgentHost/capability/descriptor contract for adapters (no host SDK or product logic duplication) | LEM-098 — `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/agent-host-sdk.test.ts`, `docs/parity/evidence/LEM-098-adapter-sdk-test-output.txt` |
-| Capability negotiation | Hosts differ; silent emulation would be dishonest | LEM-099 |
+| Capability negotiation | Hosts differ; silent emulation would be dishonest | LEM-099 — `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/capability-negotiation.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-099-capability-negotiation-test-output.txt` |
 | Installer CLI | One-command install per host | LEM-107 |
 | Core runtime deps (`zod`, YAML parser) | Typed schemas and workflow parsing without hand-rolled validation (`zod` added to `@lemma/core`; YAML parser pending LEM-012) | LEM-004, LEM-012 |
 

@@ -136,6 +136,15 @@ export interface CommandDescriptor {
 `TBD` must be resolved by the adapter task and recorded in the compatibility
 doc. A missing capability is a declared limitation, not an emulated success.
 
+**LEM-099 spike/negotiation note (2026-11-16, provisional):** OpenCode and
+Claude Code surfaces remain the primary near-term targets, but host API details
+for Codex command-pack/MCP/model/session behavior, Antigravity extension and
+tool/form/session surfaces, and Cursor command/MCP/question/form/background
+behavior are **not yet verified against current host APIs in this environment**.
+Until adapter-specific spikes/E2E validation (`LEM-103`–`LEM-105`, `LEM-111`)
+confirm them, these rows must be treated as provisional; unknown/TBD capabilities
+stay declared limitations (never silently emulated).
+
 ### Degradation rules
 
 | Missing capability | Required behavior |
