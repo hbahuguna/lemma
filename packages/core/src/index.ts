@@ -32,3 +32,5 @@ export * from "./suppressions.js";
 export * from "./calibration.js";
 
 export { verifyEvidence } from "./evidence.js";
+
+export * from "./metering.js";

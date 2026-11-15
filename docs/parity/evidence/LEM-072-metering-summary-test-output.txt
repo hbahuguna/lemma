@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/metering/metering-summary.test.ts (3 tests) 23ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:36:15
+   Duration  3.17s (transform 677ms, setup 0ms, collect 969ms, tests 23ms, environment 1ms, prepare 433ms)
+

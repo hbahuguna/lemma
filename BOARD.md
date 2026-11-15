@@ -209,7 +209,7 @@ reconcilable. Suppressions are auditable and never silent.
 | LEM-069 | Port baseline suppression with owner and expiry | P1 | 3 | LEM-013 | Done |
 | LEM-070 | Port labeled calibration fixtures and `calibrate` | P1 | 3 | LEM-018 | Done |
 | LEM-071 | Port `verify-evidence` and the hold-on-tamper behavior | P1 | 3 | LEM-017 | Done |
-| LEM-072 | Port run-scoped and sink-wide metering summaries | P1 | 2 | LEM-020 | Backlog |
+| LEM-072 | Port run-scoped and sink-wide metering summaries | P1 | 2 | LEM-020 | Done |
 | LEM-073 | Build report-schema compatibility and contract tests | P1 | 3 | LEM-020 | Backlog |
 | LEM-074 | Build policy and calibration regression coverage | P2 | 3 | LEM-019, LEM-070 | Backlog |
 
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-072** — Port run-scoped and sink-wide metering summaries (2026-11-15). Evidence: `packages/core/src/metering.ts` (`summarizeMeteringEvents`/`summarizeMeteringSink`/`readMeteringEvents` with idempotency-key dedupe, deterministic event-type ordering, and parity sink-wide `event_count`/`event_types` plus run-scoped `run_event_count`/`run_event_types`), exports/index wiring, `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt` (`pnpm exec vitest run packages/core/test/metering/metering-summary.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Report metering normalization remains compatible. Commit/remote recorded in completion summary.
 - **LEM-071** — Port `verify-evidence` and the hold-on-tamper behavior (2026-11-15). Evidence: `packages/core/src/evidence.ts` (`verifyEvidence` offline manifest/artifact verification with run-id resolution, parity tamper/affected reporting, and hold-on-tamper `confidence_cap: 0.0`/`decision: "hold"`), exports/index wiring, `packages/core/test/evidence/verify-evidence.test.ts`, `docs/parity/evidence/LEM-071-verify-evidence-test-output.txt` (`pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI command pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-070** — Port labeled calibration fixtures and `calibrate` (2026-11-15). Evidence: `calibration/fixtures/` (14 labeled ship/review/hold fixtures), `packages/core/src/calibration.ts` (`loadCalibrationFixtures`/`runCalibration`/`writeCalibrationReport`, parity-aligned decision derivation, schema `quality-harness.calibration/v1`/formula `weighted-coverage-v1`), exports/index wiring, `packages/core/test/calibration/calibration.test.ts`, `docs/parity/evidence/LEM-070-calibration-test-output.txt` (`pnpm exec vitest run packages/core/test/calibration/calibration.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI command pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-069** — Port baseline suppression with owner and expiry (2026-11-15). Evidence: `packages/core/src/suppressions.ts` (`SuppressionStore` persisted under `.lemma/suppressions.json` with schema/validation/active-expired classification, audit events to `.lemma/events.jsonl`, and `applySuppressionsToFindings`/expired-suppression finding semantics), exports/index wiring, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt` (`pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI commands pending LEM-085). Commit/remote recorded in completion summary.
@@ -818,6 +819,39 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-072 — Port run-scoped and sink-wide metering summaries
+
+- **Epic:** E6 Reporting, Policy, and Exports
+- **Priority:** P1
+- **Points:** 2
+- **Depends on:** LEM-020
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/metering/metering-summary.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; metering summary tests 3/3 passed, plus `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass.
+- **Description:** Port metering summary computation that reports both sink-wide
+  and run-scoped usage totals for a run (parity with assay QH-099), keeping the
+  metering contract/report projection compatible.
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a metering summary API (e.g. `summarizeMetering`/
+    equivalent) that computes a deterministic summary for a given run id from
+    metering events (JSONL sink/file or event records), returning at least
+    `schema_version`, `sink`, `workspace`, sink-wide `event_count`/`event_types`,
+    and run-scoped `run_event_count`/`run_event_types` (events whose `run`
+    matches the run id).
+  - Summary semantics are parity-aligned: `event_count`/`event_types` remain the
+    sink-wide totals while `run_event_count`/`run_event_types` isolate the
+    report run in a shared sink; duplicate events with the same `idempotency_key`
+    are not double-counted; event type maps are deterministically ordered.
+  - Report integration remains compatible: metering summary fields can be carried
+    in report/options state (existing normalization preserved) so run and
+    cumulative totals are both representable.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/metering/metering-summary.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/core/test/metering/metering-summary.test.ts`
+- **Evidence:** `packages/core/src/metering.ts` (`summarizeMeteringEvents`/`summarizeMeteringSink`/`readMeteringEvents` with idempotency-key dedupe and deterministic sink-wide vs run-scoped counts), exports/index wiring, `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`; parity inventory updated (LEM-072). Commit/remote recorded in completion summary.
 
 ### LEM-071 — Port `verify-evidence` and the hold-on-tamper behavior
 

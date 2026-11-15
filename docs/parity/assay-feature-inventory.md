@@ -40,7 +40,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/ssrf.py` | SSRF validation, DNS, allowlists, redirects (`packages/core/src/ssrf.ts`: `validateUrl`/`validateTargetUrl`, `validateRedirectChain`, `isSafeUrl`/`ssrfSafe`, `loadAllowlist` with injectable resolver, http/https+host checks, blocked metadata/local hostnames, default blocked/private ranges incl. link-local/metadata, CIDR/hostname allowlists with env/file/root loading, per-call resolution/rebinding checks, redirect-chain revalidation, and non-leaking typed `SsrfError`s; `@lemma/core` export + `@lemma/core/ssrf` subpath; tests `packages/core/test/ssrf/ssrf.test.ts`, output `docs/parity/evidence/LEM-059-ssrf-test-output.txt`) | `@lemma/core/ssrf` | LEM-059, LEM-125 |
 | `harness/step_planner.py` | Scenario step planning (`packages/core/src/steps.ts`: `StepAction`/`ScenarioPlan`, deterministic `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch and heuristic fallback; tests `packages/core/test/steps/steps.test.ts`, output `docs/parity/evidence/LEM-025-steps-test-output.txt`) | `@lemma/core/steps` | LEM-025 |
 | `harness/step_runner.py` | Scenario step execution/result contracts (`packages/core/src/steps.ts`: `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck` pass/fail/blocked outcomes, evidence/count metadata, deterministic failed-scenario findings; tests `packages/core/test/steps/steps.test.ts`). LEM-058 browser integration: scenario-file/JSON/text plan loading and Playwright-driven `executeScenarioPlan`/`browser.steps` execution+evaluation with injected execution/page support and blocked degradation (`packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, tests `packages/browser/test/browser-scenarios.test.ts`, output `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`) | `@lemma/core/steps`, `@lemma/browser` | LEM-025, LEM-058 |
-| `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113 |
+| `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113, LEM-072 (core run-scoped/sink-wide summary computation: `packages/core/src/metering.ts`, tests `packages/core/test/metering/metering-summary.test.ts`, output `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
 | `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 |
 | `harness/quota.py` | Monthly soft/hard allowance, locking, headers | `@lemma/cloud/quota` | LEM-115 |
 | `harness/ledger.py` | Append-only hash-chained ledger, periods, invoices | `@lemma/cloud/ledger` | LEM-116 |
@@ -239,7 +239,7 @@ with rationale.
 | `test_ssrf.py` | LEM-059, LEM-125 |
 | `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |
 | `test_failure_injection.py` | LEM-126 |
-| `test_metering.py` | LEM-113 |
+| `test_metering.py` | LEM-113, LEM-072 (run-scoped vs sink-wide summary semantics parity: `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
 | `test_auth.py` | LEM-114 |
 | `test_quota.py` | LEM-115 |
 | `test_ledger.py` | LEM-116 |
