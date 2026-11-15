@@ -1,0 +1,18 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/browser-agent-prompt.test.ts (4 tests) 7ms
+ ✓ packages/agent/test/agent-loop.test.ts (5 tests) 17ms
+ ✓ packages/agent/test/catalog.test.ts (4 tests) 12ms
+ ✓ packages/agent/test/command-args.test.ts (5 tests) 15ms
+ ✓ packages/agent/test/agent-state.test.ts (3 tests) 914ms
+   ✓ LEM-087 agent state persistence and in-session resume > persists and resumes progress without rerunning executed steps  472ms
+   ✓ LEM-087 agent state persistence and in-session resume > redacts secrets from persisted agent state  315ms
+ ✓ packages/agent/test/context-flow.test.ts (3 tests) 1641ms
+   ✓ LEM-091 context protocol and question flow > integrates with loop: need_user_context pauses/resumes via userInput and interactive wait  1621ms
+
+ Test Files  6 passed (6)
+      Tests  24 passed (24)
+   Start at  00:16:54
+   Duration  5.01s (transform 1.08s, setup 0ms, collect 8.37s, tests 2.61s, environment 2ms, prepare 3.17s)
+

@@ -4,6 +4,9 @@
  * LEM-086: strict-judge loop core (cap 7, allowlist, dedupe).
  * LEM-087: persisted agent state and in-session resume.
  * LEM-088: command argument builders.
+ * LEM-089: 59-command catalog and intent mapping.
+ * LEM-090: browser agent prompt and invariants.
+ * LEM-091: context protocol and question flow.
  */
 
 import { createHash } from "node:crypto";
@@ -11,7 +14,7 @@ import path from "node:path";
 
 import { atomicWriteJson, ensureDir, readJsonFile } from "@lemma/core";
 
-import { assayInvocation, browserInvocation, demoInvocation } from "./command-args.js";
+import { browserInvocation, demoInvocation } from "./command-args.js";
 
 export const PACKAGE_NAME = "@lemma/agent" as const;
 
@@ -48,14 +51,52 @@ export interface AgentDeps {
   askLlm: (prompt: string) => Promise<string>;
   progress?: (message: string) => void;
   sendFinal: (text: string) => Promise<void>;
+  /** Discover available MCP resources (optional, host-provided). */
+  listMcpResources?: () => Promise<string[]>;
+  /** Ask user for in-session reply to a pending context request (interactive mode). */
+  requestUserInput?: (prompt: string) => Promise<string>;
 }
 
-export interface PendingContext {
-  question?: string;
-  requested?: string[];
-  reason?: string;
-  type?: string;
-  [key: string]: unknown;
+export const CONTEXT_SOURCES = ["jira", "slack", "github", "doc", "url", "text"] as const;
+export type ContextSource = (typeof CONTEXT_SOURCES)[number];
+export const CONTEXT_METHODS = ["paste", "mcp", "token"] as const;
+export type ContextMethod = (typeof CONTEXT_METHODS)[number];
+
+export type PendingContext =
+  | {
+      kind: "need_context";
+      type?: string;
+      question?: string;
+      requested?: string[];
+      reason?: string;
+      [key: string]: unknown;
+    }
+  | {
+      kind: "need_method";
+      type: string;
+      question?: string;
+      requested?: string[];
+      reason?: string;
+      [key: string]: unknown;
+    }
+  | {
+      // compatibility with simple pending objects
+      kind?: string;
+      question?: string;
+      requested?: string[];
+      reason?: string;
+      type?: string;
+      [key: string]: unknown;
+    };
+
+export interface ParsedContextReply {
+  skip?: boolean;
+  source?: string;
+  method?: string;
+  envRef?: string;
+  id?: string;
+  server?: string;
+  text?: string;
 }
 
 export interface AgentOptions {
@@ -73,6 +114,8 @@ export interface AgentOptions {
   sessionID?: string;
   /** User reply/context text to apply when resuming a pending context request. */
   userInput?: string;
+  /** Enable interactive in-session context wait when requestUserInput is available. */
+  interactive?: boolean;
 }
 
 export interface AgentState {
@@ -87,6 +130,7 @@ export interface AgentState {
   pending?: PendingContext | null;
   contextLog?: string[];
   sessionID?: string;
+  runIds?: string[];
 }
 
 export interface PersistedAgentState extends AgentState {
@@ -168,7 +212,6 @@ export function commandToArgs(command: string, personasDir = "personas"): Harnes
   const trimmed = command.trim();
   if (!trimmed) return { args: [], error: "Empty command" };
 
-  // Ported builders for assay-style command forms.
   if (trimmed === "assay-browser" || trimmed.startsWith("assay-browser ")) {
     return browserInvocation(trimmed.slice("assay-browser".length).trim(), personasDir);
   }
@@ -176,10 +219,22 @@ export function commandToArgs(command: string, personasDir = "personas"): Harnes
     return demoInvocation(trimmed.slice("assay-demo".length).trim(), personasDir);
   }
   if (trimmed === "assay" || trimmed.startsWith("assay ")) {
-    return assayInvocation(trimmed === "assay" ? "" : trimmed.slice("assay ".length).trim(), personasDir);
+    const rest = trimmed === "assay" ? "" : trimmed.slice("assay ".length).trim();
+    const tokens = rest.split(/\s+/).filter(Boolean);
+    if (tokens.length === 0) return { args: ["run", "--target", ".", "--no-browser", "--personas-dir", personasDir] };
+    const first = tokens[0] ?? "";
+    if (first === "--version" || first === "-v") return { args: ["--version"] };
+    if (first === "help" || first === "--help" || first === "-h") return { args: ["--help"] };
+    // passthrough known subcommands as tokenized
+    if (/^(run|status|report|abort|personas|verify-evidence|auth|quota|ledger|signup|billing|calibrate|sarif|junit|sign-report|verify-report|prune)$/.test(first)) {
+      return { args: tokens };
+    }
+    const urlMatch = /https?:\/\/[^\s"'`<>]+/i.exec(rest);
+    const url = urlMatch ? urlMatch[0].replace(/[),.;:!?]+$/g, "") : null;
+    if (url) return { args: ["run", "--target", url, "--personas-dir", personasDir, "--intent", rest] };
+    return { args: ["run", "--target", ".", "--no-browser", "--personas-dir", personasDir, "--intent", rest] };
   }
 
-  // Direct CLI commands (allowlisted: run/report/status/abort)
   return { args: trimmed.split(/\s+/).filter(Boolean) };
 }
 
@@ -226,6 +281,7 @@ export async function loadAgentState(cwd: string, key: string): Promise<Persiste
       step: typeof raw.step === "number" && Number.isFinite(raw.step) ? raw.step : 0,
       pending: raw.pending && isRecord(raw.pending) ? raw.pending : null,
       contextLog: asStringArray(raw.contextLog),
+      runIds: asStringArray(raw.runIds),
       ...(typeof raw.sessionID === "string" ? { sessionID: raw.sessionID } : {}),
       ...(Array.isArray(raw.initialArgs) && raw.initialArgs.every((x) => typeof x === "string") ? { initialArgs: raw.initialArgs } : {}),
       initialDone: raw.initialDone === true,
@@ -244,7 +300,7 @@ function sanitizeForPersistence(state: PersistedAgentState): PersistedAgentState
     runSummaries: state.runSummaries.map((s) => redactTranscriptText(s)),
     contextLog: (state.contextLog ?? []).map((s) => redactTranscriptText(s)),
     pending: state.pending
-      ? (JSON.parse(redactTranscriptText(JSON.stringify(state.pending))) as PendingContext)
+      ? (JSON.parse(redactTranscriptText(JSON.stringify(state.pending))) as PendingContext | null)
       : null,
     updatedAt: new Date().toISOString(),
   };
@@ -256,6 +312,193 @@ export async function saveAgentState(cwd: string, state: PersistedAgentState): P
   await atomicWriteJson(p, sanitizeForPersistence(state));
   return p;
 }
+
+// ---- Context protocol (LEM-091) ----
+
+export function isContextReply(input: string): boolean {
+  const raw = String(input || "");
+  const lower = raw.trim().toLowerCase();
+  return (
+    /\[context:skip\]/i.test(raw) ||
+    /\[?source\s*[:=]\s*(?:jira|slack|github|doc|url|text)\]?/i.test(raw) ||
+    /\[?method\s*[:=]\s*(?:paste|mcp|token)\]?/i.test(raw) ||
+    /\[(?:env|secret_ref|secret-ref|id|server|mcp_server|mcp-server)\s*:/i.test(raw) ||
+    /\bskip\s+context\b/i.test(lower) ||
+    /^(skip|none|no|n\/a|na)$/i.test(raw.trim())
+  );
+}
+
+export function parseContextReply(input: string): ParsedContextReply {
+  const raw = String(input || "");
+  const lower = raw.trim().toLowerCase();
+  const out: ParsedContextReply = {};
+  if (/\[context:skip\]/i.test(raw) || /\bskip\s+context\b/i.test(lower) || /^(skip|none|no|n\/a|na)$/i.test(raw.trim())) out.skip = true;
+  const sourceM = raw.match(/\[?source\s*[:=]\s*(jira|slack|github|doc|url|text)\]?/i) || lower.match(/\bsource\s*[:=]\s*(jira|slack|github|doc|url|text)\b/i);
+  if (sourceM?.[1]) out.source = sourceM[1].toLowerCase();
+  const methodM = raw.match(/\[?method\s*[:=]\s*(paste|mcp|token)\]?/i) || lower.match(/\bmethod\s*[:=]\s*(paste|mcp|token)\b/i);
+  if (methodM?.[1]) out.method = methodM[1].toLowerCase();
+  const envM = raw.match(/\[?(?:env|secret_ref|secret-ref)\s*:\s*([^\]\s]+)\]?/i);
+  if (envM?.[1]) out.envRef = envM[1].trim();
+  const idM = raw.match(/\[?id\s*:\s*([^\]\s]+)\]?/i);
+  if (idM?.[1]) out.id = idM[1].trim();
+  const serverM = raw.match(/\[?(?:server|mcp_server|mcp-server)\s*:\s*([^\]\s]+)\]?/i);
+  if (serverM?.[1]) out.server = serverM[1].trim();
+  const text = raw
+    .replace(/\[(?:[^\]]*(?:context|source|method|env|secret_ref|secret-ref|id|server|mcp_server|mcp-server)\s*:[^\]]*)\]/gi, "")
+    .replace(/\bsource\s*[:=]\s*(?:jira|slack|github|doc|url|text)\b/gi, "")
+    .replace(/\bmethod\s*[:=]\s*(?:paste|mcp|token)\b/gi, "")
+    .replace(/\bskip\s+context\b/gi, "")
+    .trim();
+  if (text) out.text = text;
+  return out;
+}
+
+export function formatContextRequest(pending: PendingContext, goal: string, mcpResources: string[] = []): string {
+  const kind = pending.kind === "need_method" ? "need_method" : "need_context";
+  const requestedType = String(pending.type || "jira").toLowerCase();
+  const type = (CONTEXT_SOURCES as readonly string[]).includes(requestedType) ? requestedType : "text";
+  const question = String(pending.question || "Additional context is needed before the next step.");
+  const requested = Array.isArray(pending.requested) && pending.requested.length
+    ? pending.requested.map((x) => `- ${String(x)}`)
+    : ["- Relevant acceptance criteria, flows, expected behavior, or constraints"];
+  const reason = String(pending.reason || "Current evidence is insufficient to plan precise verification.");
+  const mcpSection = mcpResources.length
+    ? `\n## Available MCP resources (if relevant)\n${mcpResources.map((r) => `- ${redactTranscriptText(String(r))}`).join("\n")}`
+    : `\n## Available MCP resources\n- None discovered in this session.`;
+
+  if (kind === "need_method") {
+    return `## How would you like to provide ${type} context?
+
+**Goal/intent:** ${goal}
+**Source selected:** ${type}
+**Why:** ${reason}
+
+**Question:** ${question}
+
+## Suggested details
+${requested.join("\n")}
+${mcpSection}
+
+## Choose a method (reply in this chat)
+1. **Plain text paste (recommended):** reply with \`[source:${type} method:paste] <paste the context here>\`
+2. **Connect via MCP:** reply with \`[source:${type} method:mcp server:<name> id:<identifier>]\` (provide exact ID/URL/resource)
+3. **Safely submitted API token (opt-in):** reply with \`[source:${type} method:token env:<ENV_VAR_OR_SECRET_REF> id:<identifier>]\` — do **not** paste tokens/secrets into chat.
+4. **Skip this context:** reply with \`[context:skip]\``;
+  }
+
+  return `## Context requested before next step
+
+**Goal/intent:** ${goal}
+**Suggested source (priority):** ${type} (order: Jira → Slack → GitHub → Doc → URL/Text)
+**Why:** ${reason}
+
+**Question:** ${question}
+
+## Suggested details
+${requested.join("\n")}
+${mcpSection}
+
+## Your choice (reply in this chat)
+1. **Skip this context:** reply with \`[context:skip]\`
+2. **Provide context** (choose source: Jira/Slack/GitHub/Doc/URL/Text), e.g.:
+   - \`[source:jira] <brief note>\`
+   - \`[source:jira method:paste] <paste AC/story>\`
+   - \`[source:slack method:mcp server:<name> id:<thread>]\`
+
+## Method options when providing third-party context
+- **Plain text paste (recommended)**, **MCP**, or **secure env/secret reference** (never paste secrets).`;
+}
+
+export interface ApplyContextResult {
+  progressed: boolean;
+  message?: string;
+}
+
+export function applyContextResponse(state: AgentState, input: string): ApplyContextResult {
+  if (!state.pending) return { progressed: false };
+  const resp = parseContextReply(input);
+  const raw = String(input || "").trim();
+  const pending = state.pending;
+  const kind = pending.kind === "need_method" ? "need_method" : "need_context";
+  if (!Array.isArray(state.contextLog)) state.contextLog = [];
+
+  if (kind === "need_method") {
+    if (resp.skip) {
+      state.contextLog.push(`step ${state.step}: ${String(pending.type || "context")} context skipped by user`);
+      state.pending = null;
+      state.step += 1;
+      return { progressed: true };
+    }
+    let method = resp.method;
+    if (!method) {
+      const lower = raw.toLowerCase();
+      if (/^(paste|text)$/.test(lower)) method = "paste";
+      else if (/^(mcp)$/.test(lower)) method = "mcp";
+      else if (/^(token|api token)$/.test(lower)) method = "token";
+      else if (resp.text || (raw && !/^\[/.test(raw))) method = "paste";
+    }
+    if (!method) {
+      return { progressed: false, message: "Please choose a method: paste, mcp, or token (secure env ref), or reply `skip`." };
+    }
+    const type = String(pending.type || resp.source || "text");
+    if (method === "token") {
+      state.contextLog.push(`step ${state.step}: ${type} context via token/secret-ref (${resp.envRef || "env ref not provided"}${resp.id ? ", id provided" : ""})`);
+    } else if (method === "mcp") {
+      state.contextLog.push(`step ${state.step}: ${type} context via MCP (server=${resp.server || "?"}, id=${resp.id || "?"})${resp.text ? ` note=${redactTranscriptText(resp.text).slice(0, 200)}` : ""}`);
+    } else {
+      const snippet = redactTranscriptText(resp.text || raw).slice(0, 800);
+      state.contextLog.push(`step ${state.step}: ${type} context via paste${snippet ? `: ${snippet}` : ""}`);
+    }
+    state.pending = null;
+    state.step += 1;
+    return { progressed: true };
+  }
+
+  // need_context
+  if (resp.skip) {
+    state.contextLog.push(`step ${state.step}: context skipped by user`);
+    state.pending = null;
+    state.step += 1;
+    return { progressed: true };
+  }
+  const source = resp.source || String(pending.type || "text");
+  const hasFreeText = !!(resp.text && !resp.method);
+  if (!resp.method && hasFreeText) {
+    state.contextLog.push(`step ${state.step}: ${source} context via paste: ${redactTranscriptText(resp.text || "").slice(0, 800)}`);
+    state.pending = null;
+    state.step += 1;
+    return { progressed: true };
+  }
+  if (!resp.method) {
+    const next: PendingContext = { kind: "need_method", type: source };
+    if (typeof pending.question === "string") next.question = pending.question;
+    if (Array.isArray(pending.requested)) next.requested = pending.requested;
+    if (typeof pending.reason === "string") next.reason = pending.reason;
+    state.pending = next;
+    return { progressed: true };
+  }
+  // source + method provided together -> treat as method stage with source
+  const next: PendingContext = { kind: "need_method", type: source };
+  if (typeof pending.question === "string") next.question = pending.question;
+  if (Array.isArray(pending.requested)) next.requested = pending.requested;
+  if (typeof pending.reason === "string") next.reason = pending.reason;
+  state.pending = next;
+  return applyContextResponse(state, input);
+}
+
+async function discoverMcpResources(deps: AgentDeps): Promise<string[]> {
+  try {
+    if (deps.listMcpResources) {
+      const items = await deps.listMcpResources();
+      return (items || []).map((x) => redactTranscriptText(String(x))).slice(0, 30);
+    }
+  } catch {
+    // ignore discovery failures
+  }
+  return [];
+}
+
+// ---- Loop ----
 
 function defaultInitialArgs(goal: string, personasDir: string): string[] {
   return ["run", "--target", ".", "--personas-dir", personasDir, "--intent", goal];
@@ -277,6 +520,7 @@ Rules:
 - NEVER run the same test/command again. No two iterations may execute the same command/args.
 - Only choose commands from the allowlist: run, report, status, abort, assay-browser, assay-demo.
 - Prefer a UNIQUE command that adds evidence. Reject duplicate commands.
+- Request user context when needed (source/method/skip) instead of guessing. Use need_user_context to ask for context before the next unique step.
 - Do not submit real forms/transactions, create accounts, brute-force, or access other tenants' data.
 
 Allowed commands (must be unique/not previously executed): run, assay-browser, assay-demo, report, status, abort.
@@ -284,33 +528,52 @@ Allowed commands (must be unique/not previously executed): run, assay-browser, a
 Output ONLY one JSON object, no markdown:
 {"command":"<full NEW command>","reason":"<why this unique step adds evidence>"}
 or
-{"need_user_context":{"question":"<what is needed>"},"reason":"<why>"}
+{"need_user_context":{"type":"jira|slack|github|doc|url|text","question":"<what to provide or skip>","requested":["<specific items>"]},"reason":"<why>"}
 or
 {"done":true,"summary":"<assessment>","fixes":["<fix>"]}`;
-}
-
-function applyPendingInput(state: PersistedAgentState, input: string): { progressed: boolean } {
-  if (!state.pending) return { progressed: false };
-  const raw = String(input ?? "").trim();
-  if (!raw) return { progressed: false };
-  const lower = raw.toLowerCase();
-  const skip = /\[context:skip\]/i.test(raw) || /\bskip\s+context\b/i.test(lower) || /^(skip|none|no|n\/a|na)$/i.test(lower);
-  const snippet = redactTranscriptText(raw).slice(0, 800);
-  if (!Array.isArray(state.contextLog)) state.contextLog = [];
-  if (skip) {
-    state.contextLog.push(`step ${state.step}: context skipped by user`);
-  } else {
-    state.contextLog.push(`step ${state.step}: context provided: ${snippet}`);
-  }
-  state.pending = null;
-  // consuming a reply progresses the loop step so we don't re-ask forever
-  state.step += 1;
-  return { progressed: true };
 }
 
 async function maybePersist(cwd: string | undefined, state: PersistedAgentState | null): Promise<void> {
   if (!cwd || !state) return;
   await saveAgentState(cwd, state);
+}
+
+async function requestContextAndMaybeWait(
+  state: PersistedAgentState,
+  goal: string,
+  deps: AgentDeps,
+  options: AgentOptions,
+): Promise<boolean> {
+  const sendFinal = deps.sendFinal ?? (async () => {});
+  const cwd = options.cwd;
+  const resources = await discoverMcpResources(deps);
+  const pending = state.pending;
+  if (!pending) return false;
+  await sendFinal(formatContextRequest(pending, goal, resources));
+  await maybePersist(cwd, state);
+
+  if (options.interactive && deps.requestUserInput) {
+    while (state.pending) {
+      const reply = await deps.requestUserInput("awaiting context");
+      if (String(reply) === "__ASSAY_WAIT_TIMEOUT__") {
+        await sendFinal("Still waiting for your reply in this chat to continue. Reply with `skip`, paste context, or a `[source:... method:...]` tag.");
+        await maybePersist(cwd, state);
+        return false;
+      }
+      const applied = applyContextResponse(state, String(reply || ""));
+      await maybePersist(cwd, state);
+      if (applied.message) {
+        await sendFinal(applied.message);
+        await maybePersist(cwd, state);
+        continue;
+      }
+      if (applied.progressed) return true;
+      if (state.pending) await sendFinal(formatContextRequest(state.pending, goal, await discoverMcpResources(deps)));
+      await maybePersist(cwd, state);
+    }
+    return true;
+  }
+  return false;
 }
 
 export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps): Promise<AgentState> {
@@ -321,15 +584,22 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
   const sendFinal = deps.sendFinal ?? (async () => {});
   const key = agentStateKey(options);
   const cwd = options.cwd;
+  const userInput = String(options.userInput || "");
 
   let persisted: PersistedAgentState | null = null;
   if (cwd) {
     const loaded = await loadAgentState(cwd, key);
     if (loaded) {
-      persisted = loaded;
-      if (options.sessionID) persisted.sessionID = options.sessionID;
-      if (options.userInput) {
-        applyPendingInput(persisted, options.userInput);
+      const hasContextResponse = isContextReply(userInput) || !!userInput.trim();
+      // Fresh interactive invocation without an explicit reply should not resume stale pending state.
+      if (options.interactive && loaded.pending && !hasContextResponse) {
+        persisted = null;
+      } else {
+        persisted = loaded;
+        if (options.sessionID) persisted.sessionID = options.sessionID;
+        if (userInput) {
+          applyContextResponse(persisted, userInput);
+        }
       }
     }
   }
@@ -347,6 +617,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     step: 0,
     pending: null,
     contextLog: [],
+    runIds: [],
     ...(options.sessionID ? { sessionID: options.sessionID } : {}),
     initialArgs,
     initialDone: false,
@@ -355,14 +626,11 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
 
   const executed = new Set<string>(state.executedCommands);
 
-  // if we just resumed and pending cleared, continue loop; if still pending, report and pause
   if (state.pending) {
-    await sendFinal(`Context requested: ${JSON.stringify(state.pending)}`);
-    await maybePersist(cwd, state);
-    return state;
+    const continued = await requestContextAndMaybeWait(state, options.goal, deps, options);
+    if (!continued) return state;
   }
 
-  // initial run (counts toward harness runs/cap and dedupe) unless already done
   if (!state.initialDone) {
     const initialSig = commandSignature(initialArgs, options.initialEnv);
     if (!executed.has(initialSig)) {
@@ -383,9 +651,8 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
 
   while (state.step < maxIterations) {
     if (state.pending) {
-      await sendFinal(`Context requested: ${JSON.stringify(state.pending)}`);
-      await maybePersist(cwd, state);
-      return state;
+      const continued = await requestContextAndMaybeWait(state, options.goal, deps, options);
+      if (!continued) return state;
     }
 
     log(`Iteration ${state.step + 1}: consulting strict judge...`);
@@ -412,9 +679,17 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     if (decision.type === "done") {
       if (state.iteration < minHarnessRuns) {
         log(`Rejecting early completion (${state.iteration}/${minHarnessRuns} runs).`);
-        state.step += 1;
+        state.pending = {
+          kind: "need_context",
+          type: "jira",
+          question: "More evidence is required before finishing. Provide context for the next unique step or skip.",
+          requested: ["Acceptance criteria / expected behavior", "Areas to prioritize next"],
+          reason: `Completion rejected: only ${state.iteration} of ${minHarnessRuns} required harness run(s) completed.`,
+        };
         await maybePersist(cwd, state);
-        break;
+        const continued = await requestContextAndMaybeWait(state, options.goal, deps, options);
+        if (!continued) return state;
+        continue;
       }
       const fixes = decision.fixes ?? [];
       await sendFinal(`${decision.summary ?? "Assessment complete."}\n\n## Suggested fixes\n${fixes.map((f) => `- ${f}`).join("\n") || "- (none)"}`);
@@ -423,10 +698,21 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     }
 
     if (decision.type === "need_user_context") {
-      state.pending = { ...(decision.need_user_context as PendingContext) };
-      await sendFinal(`Context requested: ${JSON.stringify(state.pending)}`);
+      const ctx = decision.need_user_context ?? {};
+      const typeVal = typeof ctx.type === "string" ? ctx.type : "jira";
+      const questionVal = typeof ctx.question === "string" ? ctx.question : "What context can you provide for the next step?";
+      const requestedVal = Array.isArray(ctx.requested) ? ctx.requested.map(String) : [];
+      state.pending = {
+        kind: "need_context",
+        type: typeVal,
+        question: questionVal,
+        requested: requestedVal,
+        ...(decision.reason ? { reason: decision.reason } : {}),
+      };
       await maybePersist(cwd, state);
-      return state;
+      const continued = await requestContextAndMaybeWait(state, options.goal, deps, options);
+      if (!continued) return state;
+      continue;
     }
 
     const cmd = decision.command.trim();

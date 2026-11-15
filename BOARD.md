@@ -45,6 +45,8 @@ LEM-001 -> LEM-003 -> LEM-004 -> LEM-007 -> LEM-010
         -> LEM-141 -> LEM-143 -> LEM-144 -> LEM-147 -> LEM-142
         -> LEM-148 -> LEM-149 -> LEM-154 -> LEM-151 -> LEM-150
         -> LEM-153 -> LEM-145 -> LEM-146 -> LEM-152 -> LEM-155
+        -> LEM-156 -> LEM-157 -> LEM-158 -> LEM-159 -> LEM-160
+        -> LEM-161 -> LEM-162 -> LEM-163 -> LEM-164
         -> LEM-109 / LEM-110 -> LEM-139 (parity sign-off)
 ```
 
@@ -74,6 +76,7 @@ divergence needs an ADR and a Decision Log row.
 | G1 | Core parity | A static `lemma run` matches `assay` for the sample fixture, including resume, kill, evidence, scoring, and report | LEM-011–LEM-026 |
 | G2 | Evidence parity | Static, browser, persona, plugin, policy, export, and suppression behavior match the parity corpus | LEM-027–LEM-082 |
 | G2.5 | CARBON-parity UX | HTML export, dashboard (live view, screenshots, journey maps, Release Brief, settings), bug-hunting workflow, and extended dynamic a11y all pass acceptance tests; parity inventory rows updated | LEM-141–LEM-155 |
+| G2.75 | Pro tier parity | Commercial tier boundary ADR, specialist command surface, property proofs, test inventory, quality history, Jira/Xray and TestRail integrations, model evaluation workflow, and evidence revision/comparison all pass acceptance tests; unlicensed invocation returns typed `ProUnavailableError` with no fabricated pass | LEM-156–LEM-164 |
 | G3 | Agent parity | CLI, agent loop, command catalog, browser prompt, and Jira context match the OpenCode product behavior | LEM-083–LEM-097 |
 | G4 | Host surface | One shared adapter contract, five adapters, installer, and conformance kit; OpenCode and Claude Code pass E2E | LEM-098–LEM-112 |
 | G5 | Commercial parity | Metering, auth, quota, ledger, signup, billing, queue, and retention match assay | LEM-113–LEM-122 |
@@ -91,6 +94,7 @@ divergence needs an ADR and a Decision Log row.
 | F | Commercial parity | LEM-113–LEM-122 | Metering, auth, quota, ledger, billing, queue |
 | G | Release | LEM-123–LEM-140 | Hardened, documented, signed, published |
 | H | CARBON-parity UX | LEM-141–LEM-155 | Conversational manager, bug-hunting workflow, background checks, demo, slash commands, local dashboard, HTML export, screenshots, journey maps, Release Brief, settings UI, dynamic a11y, native MCP server, optional analytics, Pro navigation |
+| I | Pro tier | LEM-156–LEM-164 | Commercial tier boundary, specialist commands, property proofs, test inventory, quality history, Jira/Xray and TestRail integrations, model evaluation workflow, evidence revisions |
 
 ---
 
@@ -253,7 +257,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Done |
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Done |
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Done |
-| LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Backlog |
+| LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Done |
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Backlog |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Backlog |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Backlog |
@@ -389,6 +393,46 @@ navigation page.
 | --- | --- | --- | --- | --- | --- |
 | LEM-152 | Add optional anonymous usage analytics with opt-out | P2 | 3 | LEM-083 | Backlog |
 | LEM-155 | Add Pro edition navigation and informational page | P3 | 2 | LEM-143 | Backlog |
+
+### E17: Pro Tier Foundation
+
+**Outcome:** A clear commercial tier boundary: packaging, licensing model,
+entitlement gate, and refusal behavior are decided before any Pro feature
+ships. Free tier remains fully functional and never regresses because of the
+Pro tier.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-156 | Decide the commercial tier boundary, packaging, and entitlement gate | P2 | 3 | LEM-009, LEM-117 | Backlog |
+
+### E18: Pro Tier — Specialist and Verification Surface
+
+**Outcome:** Intent-first specialist commands, formal property proofs, and a
+project-level test inventory/quality history. Every Pro-tier capability
+degrades to an explicit "not available in this edition" message when
+unlicensed; never a fabricated pass, never a crash.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Backlog |
+| LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Backlog |
+| LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Backlog |
+| LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Backlog |
+
+### E19: Pro Tier — Integration and Model Evaluation Surface
+
+**Outcome:** Guarded external integrations and an AI model evaluation workflow.
+All integrations require an explicit, user-confirmed opt-in; no unlicensed
+call, no silent push to third-party services, no analytics on Pro features
+without the same opt-out posture as the core.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-161 | Build the Jira/Xray integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Backlog |
+| LEM-162 | Build the TestRail integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Backlog |
+| LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Backlog |
+| LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Backlog |
+
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -1380,6 +1424,377 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   `packages/core/test/pro-page/*`, `packages/agent/test/pro-command/*`,
   `docs/parity/evidence/LEM-155-pro-page-test-output.txt`
 
+### LEM-156 — Decide the commercial tier boundary, packaging, and entitlement gate
+
+- **Epic:** E17 Pro Tier Foundation
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-009, LEM-117
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Ratify the commercial tier boundary before any Pro feature
+  ships: which capabilities live in `@lemma/core` (free), which live in
+  `@lemma/pro` (commercial), how entitlements are checked, and how an
+  unlicensed invocation degrades. This ADR is the single source of truth for
+  every later E18/E19 task.
+- **Acceptance Criteria:**
+  - `docs/adr/0006-commercial-tier-boundary-and-packaging.md` records:
+    (a) the split between `@lemma/core` (free, open-source, no entitlement
+    check) and `@lemma/pro` (commercial, entitlement-gated);
+    (b) the packaging shape (separate package `@lemma/pro`, or a
+    `@lemma/cloud/pro` subpath — pick one and justify);
+    (c) how `@lemma/pro` depends on `@lemma/core` (public APIs only, no
+    private imports) and how the dependency direction is enforced in CI;
+    (d) how entitlement is resolved (reuse of the LEM-114/LEM-117 scoped-key
+    and entitlement contracts, no parallel auth system);
+    (e) how the free tier refuses Pro features: a typed, documented
+    `ProUnavailableError` with a stable code, an actionable message, and no
+    crash, no silent pass, and no partial execution; and
+    (f) the privacy/analytics posture for the Pro tier (same opt-out as the
+    core, no Pro-only telemetry unless explicitly disclosed).
+  - A Decision Log row (DL17) records the operator sign-off.
+  - `docs/architecture.md` is amended to include the Pro tier in the package
+    graph and dependency-direction test.
+  - A new dependency-direction test in `packages/core/test/` asserts
+    `@lemma/core` source never imports `@lemma/pro`, and asserts
+    `@lemma/pro` only imports `@lemma/core` (and its documented peers).
+  - Unlicensed Pro invocation returns `ProUnavailableError` with the
+    documented code; the message names the Pro tier and a learn-more link,
+    and does not leak implementation details.
+  - `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` pass; the
+    dependency-direction test is picked up by CI.
+- **Verification (planned):** `pnpm test --filter @lemma/core -- dependency-direction && pnpm test --filter @lemma/pro -- entitlement-gate`
+- **Evidence (planned):** `docs/adr/0006-commercial-tier-boundary-and-packaging.md`,
+  `docs/architecture.md` (Pro tier section),
+  `packages/core/test/dependency-direction.test.ts` (Pro assertions),
+  `packages/pro/src/entitlement.ts` (`ProUnavailableError`),
+  `packages/pro/test/entitlement-gate/*`,
+  `docs/parity/evidence/LEM-156-commercial-tier-adr-output.txt`
+
+### LEM-157 — Build the advanced specialist command surface
+
+- **Epic:** E18 Pro Tier — Specialist and Verification Surface
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-089, LEM-141, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add dedicated, intent-first commands for each specialist
+  domain (confidence, security, performance, privacy, and any additional
+  domains decided in this task). Each is a first-class catalog entry with its
+  own bounded scope, its own persona-led investigation flow (via LEM-141),
+  and its own evidence contract — distinct from the generic `/lemma` pass.
+  Pro-tier only; refuses cleanly when unlicensed.
+- **Acceptance Criteria:**
+  - A versioned catalog of Pro specialist commands ships under
+    `packages/pro/src/commands/specialists.ts` (or documented equivalent),
+    with at minimum: `confidence`, `security`, `performance`, `privacy`;
+    each entry has a stable id, description, bounded scope, expected
+    evidence shape, and a persona contract reference.
+  - Each specialist command runs a bounded investigation (time and check
+    caps), emits findings/blockers with evidence refs, and is invocable
+    through the agent-loop slash router (LEM-154) and via the CLI
+    (documented `lemma pro <specialist>` shape).
+  - Specialist investigations reuse the existing check catalog (LEM-014),
+    specialist personas (LEM-043), and ownership/quarantine rules
+    (LEM-044/LEM-045) where applicable; no parallel check/persona system
+    is introduced.
+  - When unlicensed, every specialist command returns the documented
+    `ProUnavailableError` from LEM-156 — no partial execution, no fabricated
+    pass, no crash.
+  - Determinism: same seed + frozen clock + same target produce the same
+    findings, ids, and evidence fingerprints (modulo documented volatile
+    fields).
+  - Tests cover catalog integrity, bounded stop on time/check caps, evidence
+    linkage, unlicensed refusal, slash-command routing, CLI routing, and
+    determinism.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- specialist-commands && pnpm test --filter @lemma/agent -- specialist-routing`
+- **Evidence (planned):** `packages/pro/src/commands/specialists.ts`,
+  `packages/pro/test/specialist-commands/*`,
+  `packages/agent/test/specialist-routing/*`,
+  `docs/parity/evidence/LEM-157-specialist-commands-test-output.txt`
+
+### LEM-158 — Build the property proof workflow (`/proof`)
+
+- **Epic:** E18 Pro Tier — Specialist and Verification Surface
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-058, LEM-089, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a `/proof` (and `lemma pro proof`) workflow that
+  formally verifies a specific code property against a documented target.
+  Distinguish `PROVED`, `COUNTEREXAMPLE`, `UNPROVED`, and `STALE`. Scope
+  and assumptions are explicit; a proof result is evidence, not a claim.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes a `runPropertyProof({ property, target, scope, assumptions, backend })`
+    entrypoint that returns a `PropertyProofResult` with a documented shape
+    and one of the four statuses: `PROVED`, `COUNTEREXAMPLE`, `UNPROVED`,
+    `STALE`.
+  - The formal backend is pluggable and the initial supported backend is
+    documented (Lean is the assumed reference, but the task allows another
+    backend if it can produce a typed result and a checkable artifact);
+    the backend is optional, and absence of a backend produces `UNPROVED`
+    with an explicit "backend unavailable" note, not a silent failure.
+  - Every proof result is recorded as evidence under
+    `.lemma/evidence/<run_id>/proof/<proof_id>/` (the proof artifact, the
+    scope/assumptions record, and the backend transcript with secrets
+    redacted). The evidence is linked from the report.
+  - `STALE` is used when the target or scope has changed since the proof was
+    recorded; the mechanism for detecting staleness is documented (e.g.
+    target content hash recorded at proof time, recomputed at read time).
+  - `COUNTEREXAMPLE` results include the counterexample artifact and are
+    surfaced as a blocker in the report, not a finding — the intent is
+    "the property does not hold", not "a quality threshold failed".
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156); a licensed
+    invocation without a configured backend returns `UNPROVED` with a
+    documented "no backend configured" note.
+  - Tests cover the four statuses, evidence recording, staleness detection,
+    blocker surfacing for `COUNTEREXAMPLE`, unlicensed refusal, and
+    backend-missing degradation.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- proof && pnpm test --filter @lemma/agent -- proof-routing`
+- **Evidence (planned):** `packages/pro/src/proof.ts`,
+  `packages/pro/src/proof/backends/*`,
+  `packages/pro/test/proof/*`,
+  `packages/agent/test/proof-routing/*`,
+  `docs/parity/evidence/LEM-158-proof-test-output.txt`
+
+### LEM-159 — Build the project-level test inventory
+
+- **Epic:** E18 Pro Tier — Specialist and Verification Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-014, LEM-016, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Build a project-level test inventory that aggregates
+  checks and tests across runs into a queryable, persistent view. This is a
+  cross-run artifact, not a per-run report — useful for planning, coverage
+  analysis, and pre-run scoping.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `inventory.build({ projectRoot, runs })` returning a
+    versioned `TestInventory` validated against
+    `schemas/pro/test_inventory.v1.json`.
+  - The inventory aggregates, per check/test: stable id, source (built-in,
+    plugin, Pro specialist), last-seen run id, last-seen status, evidence
+    fingerprint, owner persona, and a bounded recent-history array. No
+    unbounded growth; history is capped at a documented N.
+  - The inventory is persisted under `.lemma/pro/inventory.json` via
+    `@lemma/core/state` atomic writes; corrupt reads raise typed
+    `StateError`.
+  - Read-only CLI surface (`lemma pro inventory show`, `lemma pro inventory
+    list --check <id>`) returns the inventory in JSON to stdout; no remote
+    calls; no writes outside `.lemma/pro/`.
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156); no
+    inventory reads or writes occur.
+  - Tests cover inventory build, schema validation, bounded history, atomic
+    write, corrupt-read error, CLI JSON output, and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- inventory && pnpm test --filter @lemma/cli -- pro-inventory`
+- **Evidence (planned):** `packages/pro/src/inventory.ts`,
+  `schemas/pro/test_inventory.v1.schema.json`,
+  `packages/pro/test/inventory/*`,
+  `packages/cli/test/pro-inventory/*`,
+  `docs/parity/evidence/LEM-159-inventory-test-output.txt`
+
+### LEM-160 — Build cross-run quality history and trend analysis
+
+- **Epic:** E18 Pro Tier — Specialist and Verification Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-011, LEM-020, LEM-159
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Build a project-level cross-run quality history and
+  trend analysis on top of the Pro inventory (LEM-159). Enables regression
+  detection and quality trend views over time. This is distinct from the
+  run-to-run trend diff (LEM-068) — that compares two runs; this compares
+  any window of runs.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `history.build({ projectRoot, inventory, window })`
+    returning a versioned `QualityHistory` validated against
+    `schemas/pro/quality_history.v1.json`.
+  - History surfaces, per documented window: score trend, decision trend,
+    coverage trend, findings-by-severity trend, blocker trend, and the set
+    of checks whose status changed (new / resolved / persistent) — matching
+    LEM-068's classification vocabulary so the two views are consistent.
+  - History is persisted under `.lemma/pro/quality-history.json` via
+    `@lemma/core/state` atomic writes with the same bounded-growth policy as
+    LEM-159. Corrupt reads raise typed `StateError`.
+  - Read-only CLI surface (`lemma pro history show --window <n>`) returns
+    the history in JSON to stdout; no remote calls; no writes outside
+    `.lemma/pro/`.
+  - Dashboard (LEM-143) integration is explicitly out of scope for this task
+    (documented) so the Pro tier does not entangle with the free dashboard;
+    a follow-up task can add a Pro dashboard route later if the boundary ADR
+    (LEM-156) allows it.
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - Tests cover history build, schema validation, window boundaries, trend
+    classification consistency with LEM-068, bounded growth, CLI JSON
+    output, and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- quality-history && pnpm test --filter @lemma/cli -- pro-history`
+- **Evidence (planned):** `packages/pro/src/quality-history.ts`,
+  `schemas/pro/quality_history.v1.schema.json`,
+  `packages/pro/test/quality-history/*`,
+  `packages/cli/test/pro-history/*`,
+  `docs/parity/evidence/LEM-160-quality-history-test-output.txt`
+
+### LEM-161 — Build the Jira/Xray integration flow
+
+- **Epic:** E19 Pro Tier — Integration and Model Evaluation Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-083, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a guarded integration flow that pushes findings and
+  results into Jira/Xray. Requires explicit, user-confirmed opt-in per
+  project; no silent push, no credential storage beyond the documented
+  trust store, no analytics on the pushed payload.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `pushToJiraXray({ report, project, config })`
+    returning a typed `JiraPushResult` with the created/updated issue keys
+    and a manifest entry under `.lemma/evidence/<run_id>/jira/`.
+  - Opt-in is explicit: `config.jiraXray.enabled === true` in the project
+    settings AND a per-run `--push-jira` flag OR agent-loop confirmation.
+    A licensed call without opt-in returns a typed `NotOptedInError`, not a
+    silent no-op.
+  - Credentials come from the documented trust store (reuse of LEM-079's
+    HMAC trust store pattern, or a documented secret reference via LEM-093
+    if available); plaintext credentials are never written to state or
+    evidence. All outbound payloads pass through `@lemma/core/redaction`
+    before send.
+  - Every push writes a manifest entry with the request/response transcript
+    (secrets redacted), so a user can audit exactly what left the machine.
+  - Failure handling: network failures and 4xx/5xx responses surface as
+    typed errors in the report and do not fail the run; a partial push
+    (some findings pushed, others failed) records the partial state
+    explicitly.
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - Tests cover opt-in enforcement, redaction of payloads, manifest
+    recording, partial-push handling, network/4xx/5xx failure surfacing,
+    and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- jira-xray`
+- **Evidence (planned):** `packages/pro/src/integrations/jira-xray.ts`,
+  `packages/pro/test/jira-xray/*`,
+  `docs/parity/evidence/LEM-161-jira-xray-test-output.txt`
+
+### LEM-162 — Build the TestRail integration flow
+
+- **Epic:** E19 Pro Tier — Integration and Model Evaluation Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-083, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a guarded integration flow that pushes findings and
+  results into TestRail. Same opt-in, credential, redaction, and audit
+  posture as LEM-161.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `pushToTestRail({ report, project, config })`
+    returning a typed `TestRailPushResult` with the created/updated case and
+    result ids and a manifest entry under
+    `.lemma/evidence/<run_id>/testrail/`.
+  - Opt-in is explicit (settings + per-run flag or agent confirmation); a
+    licensed call without opt-in returns `NotOptedInError`.
+  - Credentials follow the same trust-store/secret-reference pattern as
+    LEM-161; payloads pass through `@lemma/core/redaction` before send; no
+    plaintext credentials in state or evidence.
+  - Manifest entry per push with the request/response transcript (secrets
+    redacted) for auditability.
+  - Failure handling matches LEM-161 (typed errors, no run failure, partial
+    push recorded explicitly).
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - Tests cover opt-in, redaction, manifest recording, partial-push
+    handling, failure surfacing, and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- testrail`
+- **Evidence (planned):** `packages/pro/src/integrations/testrail.ts`,
+  `packages/pro/test/testrail/*`,
+  `docs/parity/evidence/LEM-162-testrail-test-output.txt`
+
+### LEM-163 — Build the AI model evaluation workflow
+
+- **Epic:** E19 Pro Tier — Integration and Model Evaluation Surface
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-020, LEM-089, LEM-141, LEM-156
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Turn expected business behaviors into reviewed evaluation
+  cases, run them against a model endpoint, and compare pass-to-fail
+  regressions. Enables "did the model get worse for our business rules?"
+  as a repeatable, evidence-backed check rather than a vibe.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `runModelEval({ cases, modelConfig, seed?, clock? })`
+    returning a `ModelEvalResult` validated against
+    `schemas/pro/model_eval_result.v1.json`.
+  - Evaluation cases are loaded from a documented, versioned fixture
+    (`evals/cases/*.json`) with the shape `{ id, description, input,
+    expected_business_behavior, reviewed }`; cases with `reviewed: false`
+    are skipped with an explicit note, not silently included.
+  - The workflow distinguishes outcomes: `PASS`, `FAIL`, `REGRESSION`
+    (was `PASS` in a recorded baseline, now `FAIL`), `IMPROVEMENT`,
+    `UNCHANGED`, `UNEVALUATED` (case skipped or endpoint unavailable).
+  - Evidence per case records: the case id, the raw model response, the
+    judge rationale (or judge output), the outcome, and a stable fingerprint
+    of the case+response pair. Evidence goes under
+    `.lemma/evidence/<run_id>/eval/<case_id>/`; redaction applies before
+    persistence.
+  - Determinism: same seed + frozen clock + same cases + a stub endpoint
+    produce byte-identical evidence (documented volatile fields excepted).
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156); a
+    licensed invocation without a configured endpoint returns
+    `UNEVALUATED` for every case with a documented "no endpoint configured"
+    note.
+  - Tests cover case loading/review gating, all six outcomes, evidence
+    recording, determinism with stub endpoint, redaction, unlicensed
+    refusal, and endpoint-missing degradation.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- model-eval && pnpm test --filter @lemma/agent -- model-eval-routing`
+- **Evidence (planned):** `packages/pro/src/model-eval.ts`,
+  `schemas/pro/model_eval_result.v1.json`,
+  `evals/cases/sample/*.json`,
+  `packages/pro/test/model-eval/*`,
+  `packages/agent/test/model-eval-routing/*`,
+  `docs/parity/evidence/LEM-163-model-eval-test-output.txt`
+
+### LEM-164 — Build evidence revision and comparison infrastructure
+
+- **Epic:** E19 Pro Tier — Integration and Model Evaluation Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-016, LEM-163
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Allow the same evaluation suite to be compared across model
+  versions and runs. Save separate evidence revisions for human-reviewed
+  cases so expectations can be revised without losing the history of why
+  they were revised.
+- **Acceptance Criteria:**
+  - `@lemma/pro` exposes `evidence.saveRevision({ caseId, revision, note, reviewed })`
+    and `evidence.compareRevisions({ caseId, from, to })` returning typed
+    results and writing manifests under
+    `.lemma/evidence/<run_id>/eval/<case_id>/revisions/`.
+  - Revisions are immutable once written; the first revision is the
+    reviewed baseline. `saveRevision` requires `reviewed: true` and a
+    non-empty note; unreviewed revisions are rejected with a typed error.
+  - `compareRevisions` returns a documented diff (per-outcome counts, per-case
+    transitions, evidence fingerprint changes, and a stable diff id) that
+    validates against `schemas/pro/revision_diff.v1.json`.
+  - The comparison reuses the LEM-163 outcome vocabulary; transitions map to
+    `REGRESSION`, `IMPROVEMENT`, `UNCHANGED`, `UNEVALUATED` with no invented
+    classifications.
+  - Read-only CLI surface (`lemma pro eval revisions --case <id>`,
+    `lemma pro eval compare --case <id> --from <rev> --to <rev>`) returns
+    JSON to stdout; no remote calls; no writes outside `.lemma/evidence/`.
+  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - Tests cover revision immutability, review gating, diff schema,
+    transition mapping, CLI JSON output, and unlicensed refusal.
+- **Verification (planned):** `pnpm test --filter @lemma/pro -- revision-compare && pnpm test --filter @lemma/cli -- pro-revisions`
+- **Evidence (planned):** `packages/pro/src/revisions.ts`,
+  `schemas/pro/revision_diff.v1.schema.json`,
+  `packages/pro/test/revision-compare/*`,
+  `packages/cli/test/pro-revisions/*`,
+  `docs/parity/evidence/LEM-164-revision-compare-test-output.txt`
+
 ---
 
 ## Blockers
@@ -1392,6 +1807,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | No labeled historical release corpus is available. | Calibration can reproduce assay fixtures but cannot claim empirical validity. | Port assay's 14 fixtures now; curate real labeled releases before making a calibration claim. |
 | assay is still the oracle and will keep changing. | Parity can drift during migration. | Pin the assay commit in `LEM-002`/`LEM-005`; re-baseline deliberately and record the new commit. |
 | No local web server/token-auth pattern exists yet for the dashboard. | LEM-143–LEM-147 cannot ship until the serving pattern is chosen and reviewed. | Spike a localhost-only, token-protected static server during LEM-143; record the decision in `docs/adr/`. |
+| The Pro tier requires an entitlement/licensing decision and a signed npm package with provenance; neither exists yet. | LEM-156–LEM-164 cannot ship until the commercial tier boundary ADR (LEM-156) is signed off and LEM-134 (signed npm publishing with provenance) lands. | Ratify ADR 0006 before claiming LEM-157; block the Pro tier release on LEM-134 in the same gate as the rest of the release. |
 
 ## Decision Log
 
@@ -1413,6 +1829,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL14 | 2026-11-15 | Check outcome application and structured blocker/refusal records live in `@lemma/core/outcomes` (and the `@lemma/core/outcomes` subpath), reusing `findings` for non-blocked finding validation. | Blocker recording is a deterministic contract (one per check, no findings, redaction, schema validation) shared by future CLI/agent/plugin execution paths; a dedicated module keeps refusal semantics testable and host-neutral. | Merge into `findings` if outcome/finding/refusal responsibilities converge. |
 | DL15 | 2026-11-15 | The CARBON-parity UX work is a new gate (G2.5) inside the delivery phases, not a post-1.0 addendum. | "Lemma as good as CARBON" requires the conversational manager, dashboard, HTML export, screenshots, journey maps, bug-hunting workflow, and dynamic a11y to ship alongside the deterministic core — otherwise lemma matches assay, not CARBON. | Re-scope into a separate product line only if UX scope pressure threatens the deterministic-core release date. |
 | DL16 | 2026-11-15 | The dashboard runs locally on `127.0.0.1` with token auth and no remote dependency. | The privacy-first, local-first posture must extend to visual reporting; a remote host would contradict DL8 and the assay privacy model. | Move to a hosted dashboard only if a customer explicitly requires it and privacy review signs off. |
+| DL17 | 2026-11-16 | The commercial tier ships as a separate `@lemma/pro` package (or `@lemma/cloud/pro` subpath, per ADR 0006) with an entitlement gate and a typed `ProUnavailableError`. The free `@lemma/core` never imports `@lemma/pro`; the dependency direction is enforced in CI. | Keeps the open-source core fully functional without entitlement infrastructure, makes the commercial boundary auditable, and matches the existing LEM-113–LEM-122 cloud-package posture. | Reconsider a single-package split only if the Pro tier surface shrinks to a handful of feature flags that no longer justify a separate package. |
+| DL18 | 2026-11-16 | Every Pro-tier capability refuses cleanly when unlicensed (`ProUnavailableError`), never partially executes, and never fabricates a pass. Pro-tier evidence, when produced, uses the same evidence store, redaction engine, and trust-store patterns as the core. | The "no false release signal" invariant must hold across tiers; a half-enabled Pro feature would break that invariant in a way the free tier never could. | Weaken only if a real, reviewed case demonstrates a safe partial mode that cannot produce a false pass. |
 
 ## Done
 
@@ -2123,6 +2541,45 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/browser-agent-prompt.test.ts packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 21 tests).
 - **Evidence:** `packages/agent/src/browser-agent-prompt.ts`, `packages/agent/src/index.ts` (exports prompt primitives/types), `packages/agent/test/browser-agent-prompt.test.ts`, `docs/parity/evidence/LEM-090-browser-agent-prompt-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Ports `shellQuote`, `CONTEXT_PROTOCOL` (native question-tool UX, Jira form/`assay_jira_context`, Skip/Paste/MCP/Secure env-secret ref, no placeholder waits/raw-secret handling, blocker/gap fallback), and `buildBrowserAgentPrompt` embedding target/command/env, browser invariants (deterministic harness-owned execution/evidence/scoring, fixed phases, JSON run report, hashed evidence, no repeats, secrets/testing-environment/scenario/scope rules), context protocol, and iteration flow.
+
+
+### LEM-091 — Port the context protocol and question flow
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-086
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/context-flow.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port host-neutral runtime context protocol and question flow
+  for the strict-judge loop (context requests, method negotiation, tagged/freeform
+  replies, redaction, and interactive/non-interactive resume behavior).
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports context-flow primitives: parsing of context replies
+    (skip and tagged replies like `[source:*]`, `[method:paste|mcp|token]`,
+    `[env:...]`/`[secret_ref:...]`, `[id:...]`, `[server:...]` plus
+    redacted freeform text), pending-context kinds for source selection and
+    method selection (`need_context`/`need_method` or equivalent), request
+    formatting, and response application that advances/clears pending state and
+    records redacted context decisions without persisting secrets.
+  - `runStrictJudgeLoop` integrates context protocol: `need_user_context`
+    decisions produce structured pending requests and pause; replies (via
+    `userInput` on resume and/or interactive `requestUserInput` hook) progress
+    `need_context` → `need_method` → resolved/skip as appropriate, with MCP
+    resource discovery hook support when available; loop can continue after
+    context/skip without re-executing prior commands and preserves cap/allowlist/
+    dedupe/min-run invariants.
+  - Non-interactive flow remains resumable via persisted state and provided
+    `userInput`; interactive flow (when enabled and hook provided) can wait for
+    in-session replies to resolve pending context without requiring a new
+    harness command execution for the reply itself.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/context-flow.test.ts` pass in this
+    environment (with existing agent tests remaining green).
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/context-flow.test.ts packages/agent/test/agent-state.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/browser-agent-prompt.test.ts packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts` (pass, 24 tests).
+- **Evidence:** `packages/agent/src/index.ts` (context protocol primitives: `isContextReply`, `parseContextReply`, `formatContextRequest`, `applyContextResponse`, structured `need_context`/`need_method` pending and transitions, MCP resource discovery hook usage, interactive `requestUserInput` wait, resumable non-interactive flow, and `runStrictJudgeLoop` integration for `need_user_context` decisions while preserving cap/allowlist/dedupe/min-run invariants and redacted/no-secret persistence), `packages/agent/test/context-flow.test.ts`, `docs/parity/evidence/LEM-091-context-flow-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
