@@ -208,7 +208,7 @@ reconcilable. Suppressions are auditable and never silent.
 | LEM-068 | Port run-to-run trend diff | P1 | 3 | LEM-011, LEM-020 | Done |
 | LEM-069 | Port baseline suppression with owner and expiry | P1 | 3 | LEM-013 | Done |
 | LEM-070 | Port labeled calibration fixtures and `calibrate` | P1 | 3 | LEM-018 | Done |
-| LEM-071 | Port `verify-evidence` and the hold-on-tamper behavior | P1 | 3 | LEM-017 | Backlog |
+| LEM-071 | Port `verify-evidence` and the hold-on-tamper behavior | P1 | 3 | LEM-017 | Done |
 | LEM-072 | Port run-scoped and sink-wide metering summaries | P1 | 2 | LEM-020 | Backlog |
 | LEM-073 | Build report-schema compatibility and contract tests | P1 | 3 | LEM-020 | Backlog |
 | LEM-074 | Build policy and calibration regression coverage | P2 | 3 | LEM-019, LEM-070 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-071** — Port `verify-evidence` and the hold-on-tamper behavior (2026-11-15). Evidence: `packages/core/src/evidence.ts` (`verifyEvidence` offline manifest/artifact verification with run-id resolution, parity tamper/affected reporting, and hold-on-tamper `confidence_cap: 0.0`/`decision: "hold"`), exports/index wiring, `packages/core/test/evidence/verify-evidence.test.ts`, `docs/parity/evidence/LEM-071-verify-evidence-test-output.txt` (`pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI command pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-070** — Port labeled calibration fixtures and `calibrate` (2026-11-15). Evidence: `calibration/fixtures/` (14 labeled ship/review/hold fixtures), `packages/core/src/calibration.ts` (`loadCalibrationFixtures`/`runCalibration`/`writeCalibrationReport`, parity-aligned decision derivation, schema `quality-harness.calibration/v1`/formula `weighted-coverage-v1`), exports/index wiring, `packages/core/test/calibration/calibration.test.ts`, `docs/parity/evidence/LEM-070-calibration-test-output.txt` (`pnpm exec vitest run packages/core/test/calibration/calibration.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI command pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-069** — Port baseline suppression with owner and expiry (2026-11-15). Evidence: `packages/core/src/suppressions.ts` (`SuppressionStore` persisted under `.lemma/suppressions.json` with schema/validation/active-expired classification, audit events to `.lemma/events.jsonl`, and `applySuppressionsToFindings`/expired-suppression finding semantics), exports/index wiring, `packages/core/test/suppression/suppression.test.ts`, `docs/parity/evidence/LEM-069-suppression-test-output.txt` (`pnpm exec vitest run packages/core/test/suppression/suppression.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI commands pending LEM-085). Commit/remote recorded in completion summary.
 - **LEM-068** — Port run-to-run trend diff (2026-11-15). Evidence: `packages/core/src/trends.ts` (`computeTrendDiff` with baseline/previous-run selection for same target, sorted new/resolved/persistent fingerprint diffs, rounded `score_delta`, explicit `coverage_delta` 0.0), exports/index wiring, `packages/core/test/trends/trend.test.ts`, `docs/parity/evidence/LEM-068-trend-diff-test-output.txt` (`pnpm exec vitest run packages/core/test/trends/trend.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated. Commit/remote recorded in completion summary.
@@ -817,6 +818,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-071 — Port `verify-evidence` and the hold-on-tamper behavior
+
+- **Epic:** E6 Reporting, Policy, and Exports
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-017
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; verify-evidence tests 4/4 passed, plus `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass.
+- **Description:** Port offline evidence manifest/artifact verification and the
+  hold-on-tamper behavior (core APIs/semantics used by `verify-evidence`; CLI
+  command remains LEM-085), parity-aligned with assay.
+- **Acceptance Criteria:**
+  - `@lemma/core` provides a verify-evidence API (e.g. `verifyEvidence` or
+    equivalent) that verifies a run's evidence manifest signature and artifacts
+    offline (by explicit `runId` or by resolving the target run when omitted, per
+    parity behavior), returning a machine-readable result including at least
+    `command` (`verify-evidence`), `run_id`, verification fields
+    (`checked`/`missing`/`mismatches`/`signature_valid`/`signature_error`/
+    `tampered`/`affected`/`alert`), and a clear error/not-found result when no
+    run/evidence can be resolved.
+  - Hold-on-tamper behavior is enforced: when verification reports tampering, the
+    result sets `confidence_cap: 0.0` and `decision: "hold"` (and indicates
+    failure) so tampered evidence cannot support release confidence; clean
+    verification reports non-tampered/ok without fabricated hold/cap fields.
+  - Verification covers parity cases: valid signed manifest+artifacts pass,
+    artifact byte/hash tamper, missing artifact, and manifest/signature tamper
+    are detected with affected path/check_id/reason details as applicable.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`
+- **Evidence:** `packages/core/src/evidence.ts` (`verifyEvidence` with run-id resolution and hold-on-tamper `confidence_cap`/`decision`), `packages/core/src/index.ts`, `packages/core/test/evidence/verify-evidence.test.ts`, `docs/parity/evidence/LEM-071-verify-evidence-test-output.txt`; parity inventory updated (LEM-071). Commit/remote recorded in completion summary.
 
 ### LEM-070 — Port labeled calibration fixtures and `calibrate`
 

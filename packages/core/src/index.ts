@@ -30,3 +30,5 @@ export * from "./ssrf.js";
 export * from "./suppressions.js";
 
 export * from "./calibration.js";
+
+export { verifyEvidence } from "./evidence.js";

@@ -67,7 +67,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma junit` | JUnit export | LEM-066 (core export API ported; CLI command pending LEM-085) |
 | `lemma sign-report` | Detached HMAC report signature | LEM-067 (core API ported; CLI command pending LEM-085) |
 | `lemma verify-report` | Verify report signature | LEM-067 (core API ported; CLI command pending LEM-085) |
-| `lemma verify-evidence` | Offline manifest/artifact verification | LEM-071 |
+| `lemma verify-evidence` | Offline manifest/artifact verification | LEM-071 (`packages/core/src/evidence.ts` `verifyEvidence` with run resolution and hold-on-tamper `confidence_cap`/`decision`, exports/index wiring, tests `packages/core/test/evidence/verify-evidence.test.ts`, output `docs/parity/evidence/LEM-071-verify-evidence-test-output.txt`; CLI command pending LEM-085) |
 | `lemma suppress add` | Baseline suppression with owner/expiry | LEM-069 (`packages/core/src/suppressions.ts` `SuppressionStore` store/audit/apply APIs, tests `packages/core/test/suppression/suppression.test.ts`, output `docs/parity/evidence/LEM-069-suppression-test-output.txt`; CLI command pending LEM-085) |
 | `lemma suppress list` | List suppressions | LEM-069 (core `SuppressionStore.load`/listing semantics; CLI pending LEM-085) |
 | `lemma suppress remove` | Remove suppression | LEM-069 (core `SuppressionStore.remove` with audit; CLI pending LEM-085) |

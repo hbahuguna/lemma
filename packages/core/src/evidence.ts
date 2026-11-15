@@ -534,3 +534,86 @@ export class EvidenceStore {
     };
   }
 }
+
+
+export interface VerifyEvidenceResult extends EvidenceVerification {
+  command: "verify-evidence";
+  run_id: string;
+  confidence_cap?: number;
+  decision?: "hold";
+  status?: "ok" | "error";
+  error?: { type: string; message: string };
+}
+
+async function resolveVerifyRunId(root: string, runId?: string): Promise<string | null> {
+  if (runId && runId.trim()) return runId.trim();
+
+  // Prefer current progress/state run if present.
+  try {
+    const progressPath = path.join(root, ".lemma", "progress.json");
+    const raw = await fs.readFile(progressPath, "utf8");
+    const data = JSON.parse(raw) as unknown;
+    if (data && typeof data === "object" && typeof (data as { run_id?: unknown }).run_id === "string") {
+      const id = ((data as { run_id: string }).run_id || "").trim();
+      if (id) return id;
+    }
+  } catch {
+    // ignore and fall back
+  }
+
+  // Fall back to newest evidence directory.
+  try {
+    const evidenceRoot = path.join(root, ".lemma", "evidence");
+    const entries = await fs.readdir(evidenceRoot, { withFileTypes: true });
+    const dirs = entries
+      .filter((e) => e.isDirectory())
+      .map((e) => e.name)
+      .sort();
+    return dirs.length > 0 ? (dirs[dirs.length - 1] ?? null) : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function verifyEvidence(
+  root: string,
+  runId?: string,
+  options?: { signingKey?: string | Buffer },
+): Promise<VerifyEvidenceResult> {
+  const requestedRunId = typeof runId === "string" ? runId : "";
+  const resolved = await resolveVerifyRunId(root, runId);
+  if (!resolved) {
+    const message = "No run id or evidence directory found.";
+    return {
+      schema_version: "1.0",
+      command: "verify-evidence",
+      run_id: requestedRunId,
+      status: "error",
+      checked: 0,
+      missing: [] as string[],
+      mismatches: [] as Array<Record<string, unknown>>,
+      signature_valid: false,
+      signature_error: message,
+      tampered: false,
+      affected: [] as Array<Record<string, unknown>>,
+      alert: { level: "error", message },
+      error: { type: "StateError", message },
+    };
+  }
+
+  const store = new EvidenceStore(root, resolved, options);
+  await store.init();
+  const result = await store.verify();
+  const out: VerifyEvidenceResult = {
+    ...result,
+    command: "verify-evidence",
+    run_id: resolved,
+  };
+  if (out.tampered) {
+    out.confidence_cap = 0.0;
+    out.decision = "hold";
+  } else {
+    out.status = "ok";
+  }
+  return out;
+}
