@@ -227,7 +227,7 @@ that cannot be verified is a blocked gap, never a pass and never a run failure.
 | LEM-079 | Port the HMAC trust store and signing helper | P0 | 3 | LEM-075 | Done |
 | LEM-080 | Publish the sample plugin and authoring docs | P1 | 3 | LEM-076, LEM-078 | Done |
 | LEM-081 | Port resume protection against a changed plugin registry | P2 | 3 | LEM-021, LEM-075 | Done |
-| LEM-082 | Build the plugin conformance suite | P1 | 5 | LEM-075, LEM-076, LEM-077 | Backlog |
+| LEM-082 | Build the plugin conformance suite | P1 | 5 | LEM-075, LEM-076, LEM-077 | Done |
 
 ### E8: CLI and Agent Core
 
@@ -1107,6 +1107,45 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm exec vitest run packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`
 - **Evidence:** `policies/advisory-v1.json`, `calibration/fixtures/`, `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt`; parity inventory updated (LEM-074). Commit/remote recorded in completion summary.
+
+### LEM-082 — Build the plugin conformance suite
+
+- **Epic:** E7 Plugins and Extensibility
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-075, LEM-076, LEM-077
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/plugins/plugin-conformance.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Build a conformance suite that verifies the end-to-end
+  plugin contract (signed registry/loading, authoring API, execution context and
+  runner, ownership validation, and blocked-failure handling) against lemma's
+  deterministic plugin invariants.
+- **Acceptance Criteria:**
+  - Add `packages/core/test/plugins/plugin-conformance.test.ts` as the plugin
+    conformance suite covering, at minimum: (1) signed plugin authoring/load
+    success (trusted key + valid signature + registry registration + evaluator
+    execution producing valid `CheckOutcome` with `context.saveJson` evidence);
+    (2) unsigned/unknown-key/invalid-signature/tampered-definition plugins become
+    blocked `plugin-blocked` coverage gaps (not passes, not fatal) with
+    actionable reasons; (3) import/discovery/load failures become blocked
+    coverage gaps without failing the run/build.
+  - Suite verifies definition/registry contract conformance: stable id/validation
+    rules, deterministic registry/fingerprint behavior for equivalent inputs,
+    and correct source/evaluator/blocked/count semantics for builtin vs plugin
+    vs blocked entries.
+  - Suite verifies execution/ownership conformance: `PluginCheckRunner` context
+    and outcome validation (crash → ERROR, invalid returns/status/drafts/unsafe
+    or missing evidence and finding-evidence violations → ERROR), blocked plugin
+    outcome helper semantics, and `CheckRegistry.validateOwnership` (builtin
+    zero/multi-owner throws `PersonaError`; plugin ownership failures block as
+    coverage gaps with hints preserved/set appropriately).
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/plugins/plugin-conformance.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-conformance.test.ts` (pass, 6 tests).
+- **Evidence:** `packages/core/test/plugins/plugin-conformance.test.ts`, `docs/parity/evidence/LEM-082-plugin-conformance-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (`harness/plugins.py`, `test_plugins.py`). Conformance covers signed authoring/load/execution with `context.saveJson` evidence, blocked unsigned/unknown-key/invalid-signature/tampered/import-discovery/load failures as coverage gaps (non-fatal), definition/registry/fingerprint/count/source contracts, runner context/validation/crash/evidence/finding-evidence enforcement and blocked-outcome helper, and ownership validation (builtin throws, plugin blocked/hints).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

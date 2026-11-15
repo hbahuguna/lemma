@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/plugins/plugin-conformance.test.ts (6 tests) 75ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  22:25:45
+   Duration  3.36s (transform 902ms, setup 0ms, collect 1.29s, tests 75ms, environment 1ms, prepare 834ms)
+
