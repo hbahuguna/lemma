@@ -153,6 +153,16 @@ when provided, treats limited background jobs and worktrees as unavailable by
 default unless explicitly provided/verified, and keeps all unverified
 capabilities declared honestly through manifest/negotiation (no silent emulation).
 
+**LEM-103 Codex adapter note (2026-11-16, provisional/honest):** The
+`@lemma/adapters-codex` surface declares capability-honest defaults for the
+current unverified Codex host surface (tools/session events/background jobs/
+worktrees/native forms unavailable by default; MCP/commands/question/progress/
+model invocation supported via injected primitives when provided) and exports a
+provisional serializable command-pack helper shape derived from shared command
+descriptors. This does not claim a verified Codex command-pack/host API format;
+unknown/limited capabilities remain declared limitations until host-specific
+validation (`LEM-103` follow-on packaging/E2E tasks).
+
 ### Degradation rules
 
 | Missing capability | Required behavior |
@@ -227,6 +237,6 @@ The adapter never parses evidence itself. It renders the report contract.
 | JSON Schema generation from zod | LEM-004 |
 | Playwright distribution (peer dep vs bundled) | LEM-050 |
 | Claude Code form/MCP surface | LEM-102 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
-| Codex command-pack format | LEM-103 |
+| Codex command-pack format | LEM-103 (provisional helper/shape recorded 2026-11-16; host format verification remains follow-on) |
 | Antigravity extension surface | LEM-104 |
 | Cursor MCP/command surface | LEM-105 |

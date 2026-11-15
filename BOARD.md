@@ -288,7 +288,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Done |
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
+| LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | In Progress |
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Backlog |
@@ -4479,6 +4479,54 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-claude-code typecheck && pnpm --filter @lemma/adapters-claude-code build && pnpm exec vitest run packages/adapters/claude-code/test/claude-code-adapter.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/adapters/claude-code/package.json`, `packages/adapters/claude-code/src/index.ts`, `packages/adapters/claude-code/test/claude-code-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-102-claude-code-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-102).
+
+### LEM-103 — Build the Codex adapter
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-086, LEM-088, LEM-098, LEM-099, LEM-100
+- **Status:** In Progress
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-codex typecheck && pnpm --filter @lemma/adapters-codex build && pnpm exec vitest run packages/adapters/codex/test/codex-adapter.test.ts`.
+- **Description:** Build the Codex host adapter on the shared adapter SDK and
+  host-neutral agent primitives, providing an installable, capability-honest
+  Codex integration surface (manifest, host wiring, command mapping/helpers)
+  without embedding check/scoring/phase logic or requiring host SDKs at
+  build/test time.
+- **Acceptance Criteria:**
+  - `packages/adapters/codex` (`@lemma/adapters-codex`) exports a
+    machine-readable Codex adapter manifest (`id: "codex"`) with declared
+    capabilities and adapter metadata, plus a testable Codex host adapter API
+    (factory/wrapper) implementing the shared `AgentHost` contract via injected
+    host primitives/callbacks (no hard dependency on Codex host SDKs in package
+    runtime/build dependencies).
+  - The adapter bridges core host interactions to the shared contract:
+    command registration, progress/final messaging, question handling, session
+    context, optional MCP resource discovery and optional form/secret resolution
+    hooks when provided, with capability negotiation/degradation semantics (no
+    silent emulation; missing capabilities produce declared limitations/flags).
+    Default capabilities are capability-honest/provisional for Codex (e.g.
+    tools/session events/background/worktrees/native forms unavailable or
+    limited-as-unavailable by default unless explicitly provided/verified).
+  - The adapter provides Codex-facing command mapping/helpers built on
+    `@lemma/agent` primitives (catalog/intent/builders and prompt/context/Jira
+    helpers as applicable) and a simple serializable command-pack shape/helper
+    derived from shared command descriptors for provisional Codex command-pack
+    integration (without claiming verified host command-pack format).
+  - `packages/adapters/codex/test/codex-adapter.test.ts` verifies: manifest
+    validity/identity, `create`/host API behavior, command mapping/command-pack
+    helpers, and conformance-kit pass for a representative Codex host
+    configuration (and honest degradation where optional/limited capabilities are
+    absent).
+  - `docs/architecture.md` records a provisional/honest Codex adapter
+    capability/command-pack note for this surface (unverified/limited treated as
+    unavailable by default unless explicitly provided), and
+    `pnpm --filter @lemma/adapters-codex typecheck`,
+    `pnpm --filter @lemma/adapters-codex build`, and
+    `pnpm exec vitest run packages/adapters/codex/test/codex-adapter.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-codex typecheck && pnpm --filter @lemma/adapters-codex build && pnpm exec vitest run packages/adapters/codex/test/codex-adapter.test.ts`
+- **Evidence to record:** `packages/adapters/codex/src/*`, `packages/adapters/codex/test/codex-adapter.test.ts`, `packages/adapters/codex/package.json`, `docs/architecture.md`, test output/evidence note, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
