@@ -236,7 +236,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-083 | Build the CLI shell, JSON-only stdout, and exit codes | P0 | 5 | LEM-007, LEM-015 | Backlog |
+| LEM-083 | Build the CLI shell, JSON-only stdout, and exit codes | P0 | 5 | LEM-007, LEM-015 | Done |
 | LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Backlog |
 | LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Backlog |
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Backlog |
@@ -1146,6 +1146,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/core typecheck` (pass), `pnpm --filter @lemma/core build` (pass), `pnpm exec vitest run packages/core/test/plugins/plugin-conformance.test.ts` (pass, 6 tests).
 - **Evidence:** `packages/core/test/plugins/plugin-conformance.test.ts`, `docs/parity/evidence/LEM-082-plugin-conformance-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (`harness/plugins.py`, `test_plugins.py`). Conformance covers signed authoring/load/execution with `context.saveJson` evidence, blocked unsigned/unknown-key/invalid-signature/tampered/import-discovery/load failures as coverage gaps (non-fatal), definition/registry/fingerprint/count/source contracts, runner context/validation/crash/evidence/finding-evidence enforcement and blocked-outcome helper, and ownership validation (builtin throws, plugin blocked/hints).
+
+### LEM-083 — Build the CLI shell, JSON-only stdout, and exit codes
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-007, LEM-015
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/cli/test/cli-shell.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Implement the machine-first `@lemma/cli` shell with strict
+  JSON-only stdout, stderr-only diagnostics, and deterministic exit-code mapping
+  as the foundation for later command ports.
+- **Acceptance Criteria:**
+  - `@lemma/cli` exposes a working `lemma` binary entrypoint (`packages/cli/src/cli.ts`)
+    and shell API (`main`/`dispatch`/command registry) that routes argv to
+    registered command handlers and is extensible for LEM-084+ command ports.
+  - Stdout is JSON-only for all shell invocations (no human prose): no-args/help
+    (`--help`/`-h`/`help`) and version (`--version`/`-v`/`version`) emit usage/
+    version JSON with exit `0`; known-command results emit JSON payloads; all
+    failures emit structured error JSON payloads via core `toErrorPayload`.
+    Diagnostics/progress are written to stderr only.
+  - Exit codes follow core `EXIT_CODES`/`exitCodeForError`: `0` success/pass,
+    `1` policy-threshold failures, `2` harness/usage errors (including unknown
+    command and not-implemented shell commands), `3` kill-switch halt and `130`
+    operator interrupt when represented by core error types.
+  - Default registry includes LEM-084 command placeholders (`run`, `status`,
+    `report`, `abort`, `prune`) that fail explicitly as not-implemented usage
+    errors (structured JSON, exit `2`) until ported.
+  - `pnpm lint`, `pnpm --filter @lemma/cli typecheck`,
+    `pnpm --filter @lemma/cli build`, and
+    `pnpm exec vitest run packages/cli/test/cli-shell.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts` (pass, 6 tests).
+- **Evidence:** `packages/cli/src/cli.ts`, `packages/cli/src/index.ts`, `packages/cli/test/cli-shell.test.ts`, `docs/parity/evidence/LEM-083-cli-shell-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (`harness/__main__.py`, `harness/cli.py`). Shell enforces JSON-only stdout (usage/version/dispatch/errors), stderr-only diagnostics, core exit-code/error-payload mapping, extensible command registry, and explicit not-implemented placeholders for `run/status/report/abort/prune` pending LEM-084.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

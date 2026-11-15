@@ -1,9 +1,9 @@
 #!/usr/bin/env node
-/**
- * `lemma` CLI entrypoint (contract stub).
- *
- * Machine-first behavior (JSON-only stdout, diagnostics to stderr, typed exit codes)
- * is implemented by CLI runtime tasks (LEM-083+). This entrypoint establishes the
- * published binary contract for @lemma/cli.
- */
-export {};
+import { main } from "./index.js";
+
+void main(process.argv.slice(2), {
+  stdout: (text) => process.stdout.write(text),
+  stderr: (text) => process.stderr.write(text),
+}).then((code) => {
+  process.exitCode = code;
+});
