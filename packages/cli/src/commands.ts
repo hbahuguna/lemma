@@ -7,13 +7,24 @@ import {
   EvidenceStore,
   Orchestrator,
   RELEASE_CONFIDENCE,
+  REPORT_SCHEMA,
   RunStatus,
   StateError,
   StateStore,
+  SuppressionStore,
+  buildJunit,
   buildReport,
+  buildSarif,
+  lintPersonas,
+  loadPersonas,
   normalizeTarget,
   now as coreNow,
+  scaffoldPersona,
   severityRank,
+  signReport,
+  verifyEvidence,
+  verifyReportSignature,
+  writeCalibrationReport,
   type RunStateDomain,
 } from "@lemma/core";
 
@@ -35,6 +46,11 @@ function toInt(value: string | undefined, flag: string): number {
   const n = Number(value);
   if (!Number.isInteger(n)) throw new CliUsageError(`Invalid integer for ${flag}: ${value}`, { flag, value });
   return n;
+}
+
+function csv(value: string | undefined): string[] {
+  if (!value) return [];
+  return value.split(",").map((s) => s.trim()).filter(Boolean);
 }
 
 function parseArgs(argv: string[]): { flags: Record<string, string | boolean | string[]>; positionals: string[] } {
@@ -59,6 +75,7 @@ function parseArgs(argv: string[]): { flags: Record<string, string | boolean | s
       }
       const k = a.slice(2);
       const next = argv[i + 1];
+      // boolean-ish known flags handled by callers via getBool; default: consume next if value-like
       if (next !== undefined && !next.startsWith("-")) {
         flags[k] = next;
         i += 1;
@@ -96,6 +113,17 @@ function getString(flags: Record<string, string | boolean | string[]>, ...names:
   return Array.isArray(v) ? v[v.length - 1] : v;
 }
 
+function getStringArray(flags: Record<string, string | boolean | string[]>, ...names: string[]): string[] {
+  const out: string[] = [];
+  for (const n of names) {
+    const v = flags[n];
+    if (v === undefined || v === true || v === false) continue;
+    if (Array.isArray(v)) out.push(...v);
+    else out.push(v);
+  }
+  return out;
+}
+
 function getBool(flags: Record<string, string | boolean | string[]>, ...names: string[]): boolean {
   const v = getFlag(flags, ...names);
   if (v === true) return true;
@@ -104,8 +132,6 @@ function getBool(flags: Record<string, string | boolean | string[]>, ...names: s
   return Boolean(v);
 }
 
-
-
 function normalizeCliTarget(raw: string): Record<string, unknown> {
   const value = raw.trim();
   const isUrl = /^https?:\/\//i.test(value);
@@ -113,10 +139,8 @@ function normalizeCliTarget(raw: string): Record<string, unknown> {
     return { raw: value, kind: "url", resolved: value, source: null };
   }
   const resolved = path.resolve(value);
-  // best-effort kind; orchestrator/core may refine, but keep populated
   let kind = "directory";
   try {
-    // sync check is fine for CLI path
     const st = statSync(resolved);
     if (st.isFile()) kind = "file";
     else if (st.isDirectory()) kind = "directory";
@@ -125,6 +149,7 @@ function normalizeCliTarget(raw: string): Record<string, unknown> {
   }
   return { raw: value, kind, resolved, source: null };
 }
+
 async function loadReportForState(root: string, state: RunStateDomain): Promise<Record<string, unknown>> {
   const evidence = new EvidenceStore(root, state.run_id);
   await evidence.init();
@@ -138,6 +163,35 @@ async function loadReportForState(root: string, state: RunStateDomain): Promise<
   const summary: Record<string, unknown> = manifest && isRecord(manifest.summary) ? manifest.summary : (evSummary as unknown as Record<string, unknown>);
   const generatedAt = manifest && typeof manifest.generated_at === "string" ? manifest.generated_at : coreNow();
   return buildReport(state, RELEASE_CONFIDENCE, summary, generatedAt);
+}
+
+async function loadLatestReport(root: string): Promise<Record<string, unknown>> {
+  const store = new StateStore(root);
+  if (!(await store.exists())) {
+    throw new StateError("No .lemma/progress.json exists yet; run `lemma run` first.", { details: { root: store.root } });
+  }
+  const state = (await store.loadProgress<unknown>()) as RunStateDomain;
+  return loadReportForState(root, state);
+}
+
+async function readKeyMaterial(value: string): Promise<string> {
+  const p = path.resolve(process.cwd(), value);
+  try {
+    const st = await fs.stat(p);
+    if (st.isFile()) return (await fs.readFile(p, "utf8")).trim();
+  } catch {
+    // treat as literal
+  }
+  const abs = path.isAbsolute(value) ? value : undefined;
+  if (abs) {
+    try {
+      const st = await fs.stat(abs);
+      if (st.isFile()) return (await fs.readFile(abs, "utf8")).trim();
+    } catch {
+      // literal
+    }
+  }
+  return value;
 }
 
 export const runCommand: CliCommandHandler = async (argv, io) => {
@@ -201,7 +255,7 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
       }
     }
   }
-  const confidence: Record<string, unknown> = isRecord(report.confidence) ? report.confidence : {};
+  const confidence = isRecord(report.confidence) ? report.confidence : {};
   const score = typeof confidence.score === "number" ? confidence.score : 0;
   if (minScore !== undefined && score < minScore) policyFailed = true;
 
@@ -222,7 +276,7 @@ export const statusCommand: CliCommandHandler = async (argv) => {
     const runs = history.runs ?? [];
     return {
       stdoutJson: {
-        schema_version: "quality-harness.report/v1",
+        schema_version: REPORT_SCHEMA,
         status: "ok",
         count: runs.length,
         runs,
@@ -233,7 +287,7 @@ export const statusCommand: CliCommandHandler = async (argv) => {
   if (!(await store.exists())) {
     return {
       stdoutJson: {
-        schema_version: "quality-harness.report/v1",
+        schema_version: REPORT_SCHEMA,
         status: "no_run",
         message: "No .lemma/progress.json exists yet.",
         blockers: [],
@@ -273,7 +327,7 @@ export const statusCommand: CliCommandHandler = async (argv) => {
   const reportPath = path.join(store.evidenceRoot, runId, "manifest.json");
   return {
     stdoutJson: {
-      schema_version: "quality-harness.report/v1",
+      schema_version: REPORT_SCHEMA,
       status: asString(state.status),
       run_id: runId,
       workflow_id: asString(state.workflow_id),
@@ -301,14 +355,7 @@ export const statusCommand: CliCommandHandler = async (argv) => {
 export const reportCommand: CliCommandHandler = async (argv) => {
   const { flags } = parseArgs(argv);
   const root = path.resolve(getString(flags, "root") ?? ".");
-  const store = new StateStore(root);
-  if (!(await store.exists())) {
-    throw new StateError("No .lemma/progress.json exists yet; run `lemma run` first.", {
-      details: { root: store.root },
-    });
-  }
-  const state = (await store.loadProgress<unknown>()) as RunStateDomain;
-  const report = await loadReportForState(root, state);
+  const report = await loadLatestReport(root);
   return { stdoutJson: report };
 };
 
@@ -321,7 +368,7 @@ export const abortCommand: CliCommandHandler = async (argv) => {
   await store.appendEvent({ event: "manual_kill_requested", reason });
   return {
     stdoutJson: {
-      schema_version: "quality-harness.report/v1",
+      schema_version: REPORT_SCHEMA,
       status: "kill_requested",
       reason,
       kill_path: store.killPath,
@@ -345,7 +392,7 @@ export const pruneCommand: CliCommandHandler = async (argv) => {
   const result = await store.prune(pruneOpts);
   return {
     stdoutJson: {
-      schema_version: "quality-harness.report/v1",
+      schema_version: REPORT_SCHEMA,
       status: dryRun ? "dry_run" : "pruned",
       root: store.root,
       removed: result.removed,
@@ -355,6 +402,246 @@ export const pruneCommand: CliCommandHandler = async (argv) => {
   };
 };
 
+function resolvePersonasDir(root: string, personasDirArg: string | undefined): string {
+  const raw = personasDirArg ?? "personas";
+  if (path.isAbsolute(raw)) return raw;
+  const cwdCandidate = path.resolve(process.cwd(), raw);
+  const rootCandidate = path.resolve(root, raw);
+  try {
+    if (statSync(cwdCandidate).isDirectory()) return cwdCandidate;
+  } catch {
+    // fall through
+  }
+  return rootCandidate;
+}
+
+export const personasCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const personasDir = resolvePersonasDir(root, getString(flags, "personas-dir"));
+  const action = positionals[0] ?? "list";
+  const personaId = positionals[1];
+  // support --action style is not in assay, but keep positional simple
+  if (action !== "list" && action !== "lint" && action !== "scaffold") {
+    // if user passed id as first positional to scaffold in some forms? keep strict-ish
+  }
+
+  if (action !== "scaffold" && personaId) {
+    throw new CliUsageError("A persona id is only valid with 'personas scaffold <id>'.", { action, personaId });
+  }
+
+  if (action === "list") {
+    const selected = csv(getString(flags, "select"));    const personas = await loadPersonas(personasDir, selected.length ? { selected, requireMinimum: 0 } : { requireMinimum: 0 });
+    return {
+      stdoutJson: {
+        schema_version: "quality-harness.personas/v1",
+        directory: personasDir,
+        count: personas.length,
+        personas: personas.map((persona) => ({
+          id: persona.id,
+          name: persona.name,
+          version: persona.version,
+          domains: persona.domains,
+          tools: persona.tools,
+          checks: persona.checks,
+          path: persona.path,
+          output_schema: persona.output_schema,
+          blocker_schema: persona.blocker_schema,
+          refusal_handling: persona.refusal,
+        })),
+      },
+    };
+  }
+
+  if (action === "lint") {
+    const { buildRegistry } = await import("@lemma/core");
+    const registry = await buildRegistry({ root });
+    const result = await lintPersonas(personasDir, registry.ids()) as unknown as Record<string, unknown>;
+    result.root = root;
+    const ok = result.status === "valid";
+    return { stdoutJson: result, exitCode: ok ? EXIT_CODES.pass : EXIT_CODES.policyThresholdFailed };
+  }
+
+  if (action === "scaffold") {
+    if (!personaId) throw new CliUsageError("personas scaffold requires a persona id.", { action });
+    const domains = getStringArray(flags, "domain");
+    const checks = getStringArray(flags, "check");
+    const name = getString(flags, "name");
+    const result = await scaffoldPersona(personaId, personasDir, {
+      ...(name !== undefined ? { name } : {}),
+      ...(domains.length ? { domains } : {}),
+      ...(checks.length ? { checks } : {}),
+      force: getBool(flags, "force"),
+    }) as unknown as Record<string, unknown>;
+    const status = asString(result.status);
+    const exitCode = status === "created" || status === "overwritten" ? EXIT_CODES.pass : EXIT_CODES.harnessError;
+    return { stdoutJson: result, exitCode };
+  }
+
+  throw new CliUsageError(`Unknown personas action: ${action}`, { action });
+};
+
+export const sarifCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const report = await loadLatestReport(root);
+  const sarif = buildSarif(report);
+  const output = getString(flags, "output");
+  if (output) {
+    const outPath = path.isAbsolute(output) ? output : path.resolve(process.cwd(), output);
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
+    await fs.writeFile(outPath, JSON.stringify(sarif, null, 2), "utf8");
+    return { stdoutJson: { schema_version: REPORT_SCHEMA, status: "written", path: outPath, format: "sarif" } };
+  }
+  return { stdoutJson: sarif };
+};
+
+export const junitCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const report = await loadLatestReport(root);
+  const xml = buildJunit(report);
+  const output = getString(flags, "output");
+  if (output) {
+    const outPath = path.isAbsolute(output) ? output : path.resolve(process.cwd(), output);
+    await fs.mkdir(path.dirname(outPath), { recursive: true });
+    await fs.writeFile(outPath, xml, "utf8");
+    return { stdoutJson: { schema_version: REPORT_SCHEMA, status: "written", path: outPath, format: "junit" } };
+  }
+  // JSON-only stdout invariant: wrap XML
+  return { stdoutJson: { schema_version: REPORT_SCHEMA, status: "ok", format: "junit", xml } };
+};
+
+export const signReportCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const keyArg = getString(flags, "key");
+  if (!keyArg) throw new CliUsageError("Missing required --key", { flag: "key" });
+  const report = await loadLatestReport(root);
+  const key = await readKeyMaterial(keyArg);
+  const signature = signReport(report, key);
+  const outputArg = getString(flags, "output");
+  const outPath = outputArg
+    ? (path.isAbsolute(outputArg) ? outputArg : path.resolve(process.cwd(), outputArg))
+    : path.join(root, "report.sig");
+  await fs.mkdir(path.dirname(outPath), { recursive: true });
+  await fs.writeFile(outPath, `${signature}\n`, "utf8");
+  return { stdoutJson: { schema_version: REPORT_SCHEMA, status: "signed", signature, path: outPath } };
+};
+
+export const verifyReportCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const keyArg = getString(flags, "key");
+  const sigArg = getString(flags, "signature");
+  if (!keyArg) throw new CliUsageError("Missing required --key", { flag: "key" });
+  if (!sigArg) throw new CliUsageError("Missing required --signature", { flag: "signature" });
+  const report = await loadLatestReport(root);
+  const key = await readKeyMaterial(keyArg);
+  let signature = sigArg;
+  const sigPath = path.resolve(process.cwd(), sigArg);
+  try {
+    const st = await fs.stat(sigPath);
+    if (st.isFile()) signature = (await fs.readFile(sigPath, "utf8")).trim();
+  } catch {
+    // treat as literal signature
+  }
+  const valid = verifyReportSignature(report, signature, key);
+  return {
+    exitCode: valid ? EXIT_CODES.pass : EXIT_CODES.policyThresholdFailed,
+    stdoutJson: { schema_version: REPORT_SCHEMA, status: valid ? "valid" : "invalid", verified: valid },
+  };
+};
+
+export const suppressCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const action = positionals[0];
+  if (!action || !["add", "list", "remove"].includes(action)) {
+    throw new CliUsageError("suppress requires action: add, list, or remove", { action });
+  }
+  const store = new SuppressionStore(root);
+  if (action === "list") {
+    const suppressions = await store.load();
+    return { stdoutJson: { schema_version: "quality-harness.suppressions/v1", status: "ok", count: suppressions.length, suppressions } };
+  }
+  if (action === "add") {
+    const fingerprint = getString(flags, "fingerprint") ?? positionals[1];
+    const owner = getString(flags, "owner");
+    const reason = getString(flags, "reason");
+    const ticket = getString(flags, "ticket") ?? "";
+    const expires = getString(flags, "expires") ?? getString(flags, "expires-at") ?? getString(flags, "expires_at");
+    if (!fingerprint) throw new CliUsageError("suppress add requires --fingerprint", { flag: "fingerprint" });
+    if (!owner) throw new CliUsageError("suppress add requires --owner", { flag: "owner" });
+    if (!reason) throw new CliUsageError("suppress add requires --reason", { flag: "reason" });
+    if (!expires) throw new CliUsageError("suppress add requires --expires", { flag: "expires" });
+    const record = await store.add(fingerprint, owner, reason, ticket, expires);
+    return { stdoutJson: { schema_version: "quality-harness.suppressions/v1", status: "added", suppression: record } };
+  }
+  // remove
+  const fingerprint = getString(flags, "fingerprint") ?? positionals[1];
+  if (!fingerprint) throw new CliUsageError("suppress remove requires --fingerprint", { flag: "fingerprint" });
+  const record = await store.remove(fingerprint);
+  return { stdoutJson: { schema_version: "quality-harness.suppressions/v1", status: "removed", suppression: record } };
+};
+
+export const calibrateCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const fixturesArg = getString(flags, "fixtures-dir") ?? "calibration/fixtures";
+  const outputArg = getString(flags, "output") ?? "calibration-report.json";
+  const fixturesDir = path.isAbsolute(fixturesArg) ? fixturesArg : ((): string => {
+    const cwdCandidate = path.resolve(process.cwd(), fixturesArg);
+    const rootCandidate = path.resolve(root, fixturesArg);
+    try { if (statSync(cwdCandidate).isDirectory()) return cwdCandidate; } catch { /* */ }
+    return rootCandidate;
+  })();
+  const output = path.isAbsolute(outputArg) ? outputArg : path.resolve(process.cwd(), outputArg);
+  const report = await writeCalibrationReport(fixturesDir, output);
+  return { stdoutJson: report };
+};
+
+export const verifyEvidenceCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  let runId = getString(flags, "run-id") ?? getString(flags, "run_id");
+  if (!runId) {
+    const store = new StateStore(root);
+    if (await store.exists()) {
+      try {
+        const state = await store.loadProgress<Record<string, unknown>>();
+        if (typeof state.run_id === "string" && state.run_id) runId = state.run_id;
+      } catch {
+        // fall through
+      }
+    }
+    if (!runId) {
+      // fallback to newest evidence directory
+      const evidenceRoot = path.join(root, ".lemma", "evidence");
+      try {
+        const entries = await fs.readdir(evidenceRoot, { withFileTypes: true });
+        const dirs = entries.filter((e) => e.isDirectory()).map((e) => e.name).sort();
+        runId = dirs[dirs.length - 1];
+      } catch {
+        runId = undefined;
+      }
+    }
+  }
+  if (!runId) {
+    throw new StateError("No run id or evidence directory found.", { details: { root } });
+  }
+  const result = await verifyEvidence(root, runId) as unknown as Record<string, unknown>;
+  // ensure command field present
+  result.command = "verify-evidence";
+  result.run_id = runId;
+  if (result.tampered) {
+    result.confidence_cap = 0.0;
+    result.decision = "hold";
+    return { exitCode: EXIT_CODES.policyThresholdFailed, stdoutJson: result };
+  }
+  return { exitCode: EXIT_CODES.pass, stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -362,5 +649,14 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },
+    { name: "personas", description: "List, lint, or scaffold persona contracts.", handler: personasCommand },
+    { name: "sarif", description: "Export the latest report as SARIF.", handler: sarifCommand },
+    { name: "junit", description: "Export the latest report as JUnit XML.", handler: junitCommand },
+    { name: "sign-report", description: "Sign the latest report.", handler: signReportCommand },
+    { name: "verify-report", description: "Verify a report signature.", handler: verifyReportCommand },
+    { name: "suppress", description: "Manage finding suppressions.", handler: suppressCommand },
+    { name: "suppressions", description: "Alias for suppress.", handler: suppressCommand },
+    { name: "calibrate", description: "Run calibration fixtures and emit a report.", handler: calibrateCommand },
+    { name: "verify-evidence", description: "Verify evidence manifest and artifacts for a run.", handler: verifyEvidenceCommand },
   ];
 }

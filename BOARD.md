@@ -238,7 +238,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | --- | --- | --- | --- | --- | --- |
 | LEM-083 | Build the CLI shell, JSON-only stdout, and exit codes | P0 | 5 | LEM-007, LEM-015 | Done |
 | LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Done |
-| LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Backlog |
+| LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Done |
 | LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Backlog |
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Backlog |
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Backlog |
@@ -1227,6 +1227,51 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts packages/cli/test/cli-commands.test.ts` (pass, 10 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/src/index.ts`, `packages/cli/src/index-types.ts`, `packages/cli/src/cli.ts`, `packages/cli/test/cli-commands.test.ts` (shell test updated), `docs/parity/evidence/LEM-084-cli-commands-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-084 rows). Commands wired into default registry (replacing stubs), JSON-only stdout/stderr diagnostics and core exit/error mapping preserved.
+
+### LEM-085 — Port persona, export, signing, suppression, calibration, and verify commands
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/cli/test/cli-commands-extended.test.ts`. Taken out of order vs unblocked higher-priority P0 `LEM-086` (deps `LEM-083`,`LEM-084` done) at explicit user request.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Port CLI command wiring for existing core persona/export/
+  signing/suppression/calibration/evidence-verification capabilities.
+- **Acceptance Criteria:**
+  - `lemma personas` supports `list` (default), `lint`, and `scaffold <id>`
+    actions using core persona APIs (`loadPersonas`/`lintPersonas`/`scaffoldPersona`
+    or equivalent): JSON-only stdout with stable command payloads; `lint` exits 0
+    when valid else 1; `scaffold` exits 0 on created/overwritten else 2; accepts
+    `--root`/`--personas-dir` and relevant action flags (`--select`, `--name`,
+    `--domain`, `--check`, `--force`).
+  - Export/signing/report-verification commands wire to core APIs and latest
+    saved report state: `sarif` and `junit` emit JSON stdout payloads (SARIF doc
+    or written/path status; JUnit wrapped as JSON with `xml` content when not
+    written) and support `--root`/`--output`; `sign-report` (`--root`/`--key`
+    [/path or literal], optional `--output`) writes signature and emits JSON
+    status/signature/path; `verify-report` (`--root`/`--key`, `--signature`
+    value or path) emits JSON verified status and exits 0 valid / 1 invalid.
+  - `lemma suppress`/`suppressions` support `add`, `list`, `remove` actions via
+    core `SuppressionStore` (`.lemma/suppressions.json`, audit semantics): JSON
+    stdout with schema/status/results; `add` requires fingerprint/owner/reason/
+    expiry; `remove` exits non-zero on missing suppression as structured error.
+  - `lemma calibrate` runs calibration from a fixtures directory and writes JSON
+    report output via core calibration APIs (`--root`, `--fixtures-dir`,
+    `--output` with sensible defaults/relative resolution), emitting the report
+    JSON to stdout.
+  - `lemma verify-evidence` resolves run id (explicit or latest progress/evidence
+    fallback), runs core `verifyEvidence`, emits JSON result including tamper
+    handling fields (`confidence_cap`/`decision` on tamper as applicable), and
+    exits 0 when not tampered else 1 (or 2 on missing run/evidence resolution
+    error).
+  - `pnpm lint`, `pnpm --filter @lemma/cli typecheck`,
+    `pnpm --filter @lemma/cli build`, and
+    `pnpm exec vitest run packages/cli/test/cli-commands-extended.test.ts` pass
+    in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts packages/cli/test/cli-commands.test.ts packages/cli/test/cli-commands-extended.test.ts` (pass, 15 tests).
+- **Evidence:** `packages/cli/src/commands.ts` (LEM-085 command handlers wired into registry), `packages/cli/test/cli-commands-extended.test.ts`, `docs/parity/evidence/LEM-085-cli-extended-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-085 rows). Commands: `personas` list/lint/scaffold (core APIs, lint exit 0/1, scaffold exit 0/2), `sarif`/`junit` (latest report, file or JSON stdout including wrapped JUnit XML), `sign-report`/`verify-report` (key/signature file-or-literal, verify exit 0/1), `suppress`/`suppressions` add/list/remove (`SuppressionStore`), `calibrate` (`writeCalibrationReport`), `verify-evidence` (run-id resolution + core `verifyEvidence`, tamper hold/exit). JSON-only stdout and core exit/error mapping preserved.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

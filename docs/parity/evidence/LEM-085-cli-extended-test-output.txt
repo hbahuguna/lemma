@@ -1,0 +1,15 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/cli-shell.test.ts (6 tests) 67ms
+ ✓ packages/cli/test/cli-commands.test.ts (4 tests) 1895ms
+   ✓ LEM-084 core CLI commands > run emits JSON report to stdout, can write --output, and status/report/abort/prune operate on state  1865ms
+ ✓ packages/cli/test/cli-commands-extended.test.ts (5 tests) 3081ms
+   ✓ LEM-085 extended CLI commands > sarif, junit, sign-report, and verify-report operate on latest report  2114ms
+   ✓ LEM-085 extended CLI commands > verify-evidence resolves latest run and emits result  743ms
+
+ Test Files  3 passed (3)
+      Tests  15 passed (15)
+   Start at  23:09:26
+   Duration  9.33s (transform 2.29s, setup 0ms, collect 8.47s, tests 5.04s, environment 4ms, prepare 4.18s)
+
