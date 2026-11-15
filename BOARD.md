@@ -290,7 +290,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | In Progress |
+| LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-106 | Create the shared prompt, skill, and command templates | P1 | 5 | LEM-089, LEM-090, LEM-091 | Backlog |
 | LEM-107 | Build the `lemma install <host>` installer | P1 | 5 | LEM-100, LEM-101 | Backlog |
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Backlog |
@@ -4583,8 +4583,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-086, LEM-088, LEM-098, LEM-099, LEM-100
-- **Status:** In Progress
+- **Status:** Done
 - **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
 - **Description:** Build the Cursor host adapter on the shared adapter SDK and
   host-neutral agent primitives, providing an installable, capability-honest
   Cursor integration surface (manifest, host wiring, command mapping/helpers)
@@ -4620,8 +4621,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `pnpm --filter @lemma/adapters-cursor build`, and
     `pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`
     pass in this environment.
-- **Verification:** `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts`
-- **Evidence to record:** `packages/adapters/cursor/src/*`, `packages/adapters/cursor/test/cursor-adapter.test.ts`, `packages/adapters/cursor/package.json`, `docs/architecture.md`, test output/evidence note, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+- **Verification:** `pnpm --filter @lemma/adapters-cursor typecheck && pnpm --filter @lemma/adapters-cursor build && pnpm exec vitest run packages/adapters/cursor/test/cursor-adapter.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/adapters/cursor/package.json`, `packages/adapters/cursor/src/index.ts`, `packages/adapters/cursor/test/cursor-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-105-cursor-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-105).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
