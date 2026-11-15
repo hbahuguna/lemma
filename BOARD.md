@@ -183,7 +183,7 @@ scan wearing a browser label.
 | LEM-051 | Port load, console, network, content, and link checks | P0 | 8 | LEM-050 | Done |
 | LEM-052 | Port the browser security check | P1 | 3 | LEM-050 | Done |
 | LEM-053 | Port the browser accessibility check | P1 | 3 | LEM-050 | Done |
-| LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Backlog |
+| LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Done |
 | LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Backlog |
 | LEM-056 | Port authenticated storage-state injection | P1 | 3 | LEM-050 | Backlog |
 | LEM-057 | Port HAR, trace, and video capture with redaction | P2 | 5 | LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-054** — Port the bounded same-origin crawl (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (`discoverRoutes`/route normalization with bounded seed-only same-origin crawl exclusions, multi-route `evaluateBrowserCheckAcrossViews`/merge with `crawled`/`page_count`/`routes`/`routes_not_evaluated` metadata and navigation-failed-route handling, runtime crawl inputs/injected views and best-effort Playwright crawl capture), `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`, 5/5; browser suite 27/27); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-053** — Port the browser accessibility check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.accessibility` evaluator: missing alt, unlabeled form controls with excluded types, unnamed controls, duplicate ids, positive tabindex, missing lang, `manual_review_required` metadata, runtime integration), `packages/browser/test/browser-accessibility.test.ts`, `docs/parity/evidence/LEM-053-browser-accessibility-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-accessibility.test.ts`, 5/5; browser suite 22/22); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-052** — Port the browser security check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.security` evaluator: HTTPS/transport, baseline headers with HSTS/CSP-or-report-only/frame-ancestors/Referrer-Policy, mixed content/insecure forms, weak session-like cookies, runtime integration), `packages/browser/test/browser-security.test.ts`, `docs/parity/evidence/LEM-052-browser-security-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-security.test.ts`, 6/6; browser suite 17/17); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-051** — Port load, console, network, content, and link checks (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (assay-parity evaluators for `browser.load`/`browser.console`/`browser.network`/`browser.content`/`browser.links`, navigation-failure blocking, implemented-vs-unsupported runtime integration with injected/captured views), `packages/browser/test/browser-checks.test.ts`, `docs/parity/evidence/LEM-051-browser-checks-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-checks.test.ts`, 8/8; runtime regression 3/3); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
@@ -801,7 +802,64 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-054 — Port the bounded same-origin crawl
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-051
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-crawl.test.ts` 5/5 and full browser suite 27/27, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port assay's bounded same-origin crawl from `harness/browser.py`
+  into `@lemma/browser`: discover safe follow-up routes from the seed page,
+  navigate/capture a bounded set of same-origin pages, and evaluate browser
+  checks across crawled routes with merged per-route outcomes/metadata.
+- **Acceptance Criteria:**
+  - Route discovery (`discoverRoutes` or equivalent, exported/testable) matches
+    assay behavior: given seed URL and seed snapshot links, return at most
+    `max(0, maxPages - 1)` additional routes discovered only from the seed page.
+    Routes are normalized to `scheme://host/path?query` (no fragment), bounded to
+    the seed's http(s) origin, and exclude fragment-only/empty links, `download`
+    links, non-http(s)/mailto/tel/javascript/data/blob schemes, external hosts,
+    destructive/API paths (`/logout`, `/signout`, `/sign-out`, `/delete`,
+    `/remove`, `/unsubscribe`, `/api/`), and common binary/asset suffixes
+    (`.pdf`, `.zip`, archives, images/media/fonts/styles/scripts/data/text, and
+    other non-HTML assets per assay). Duplicates and the normalized seed are not
+    returned.
+  - Multi-route evaluation: when multiple page views are provided/captured for a
+    crawl, each implemented browser check is evaluated per view and merged into a
+    single outcome with assay-compatible semantics/metadata (`crawled`,
+    `page_count`, `routes` status list, merged findings/evidence/status/actual
+    summary across routes, and `routes_not_evaluated` when a non-load check
+    cannot be evaluated due to navigation-failed routes). `browser.load` remains
+    evaluable on navigation-failed views; non-load checks on navigation-failed
+    routes are skipped from evaluation for that route and reported as not
+    evaluated rather than crashing.
+  - `runBrowserChecks` supports crawl inputs/options: `crawl` and `maxPages`
+    (and/or `max_pages`) plus injected `pageViews`/`views` for deterministic
+    tests. When runtime is available and crawl is enabled without injected
+    views, it attempts a best-effort bounded same-origin crawl from the captured
+    seed view (discover routes then navigate/capture additional pages) before
+    multi-route evaluation. Disabled/unavailable degradation and unsupported-check
+    blocking behavior remain unchanged.
+  - Tests at `packages/browser/test/browser-crawl.test.ts` cover route discovery
+    bounds/filtering/normalization (same-origin only, exclusions, dedupe,
+    max-pages) and multi-route merged evaluation/metadata (including a crawled
+    404/navigation-failed route producing a load finding while other checks skip
+    unevaluable routes and report `routes_not_evaluated`). Existing browser tests
+    continue to pass. Evidence recorded at
+    `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt`.
+  - Parity inventory updated for LEM-054 scope: D42, `harness/browser.py`, and
+    browser smoke/capture/crawl test mapping rows note bounded same-origin crawl
+    and evidence.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-crawl.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-crawl.test.ts`
+- **Evidence:** `packages/browser/src/checks.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/index.ts` (exports via checks), `packages/browser/test/browser-crawl.test.ts`, `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt`; parity inventory rows D42, `harness/browser.py`, and browser crawl test mapping updated (LEM-054 bounded same-origin crawl slice). Commit/remote recorded in completion summary.
+
 ### LEM-053 — Port the browser accessibility check
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P1

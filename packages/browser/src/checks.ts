@@ -5,6 +5,7 @@ import {
   Strength,
   sanitizeUrl,
   type Check,
+  type FindingDraft,
 } from "@lemma/core";
 
 export interface BrowserNavigationResult {
@@ -748,3 +749,288 @@ export function evaluateBrowserCheckForCheck(
   }
   return outcome;
 }
+
+// ---------------------------------------------------------------------------
+// Bounded same-origin crawl (LEM-054)
+
+const CRAWL_SKIP_TOKENS = [
+  "/logout",
+  "/signout",
+  "/sign-out",
+  "/delete",
+  "/remove",
+  "/unsubscribe",
+  "/api/",
+] as const;
+
+const CRAWL_SKIP_SUFFIXES = [
+  ".pdf",
+  ".zip",
+  ".tar",
+  ".gz",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".svg",
+  ".webp",
+  ".ico",
+  ".css",
+  ".js",
+  ".mjs",
+  ".json",
+  ".xml",
+  ".txt",
+  ".csv",
+  ".mp4",
+  ".webm",
+  ".mp3",
+  ".wav",
+  ".woff",
+  ".woff2",
+  ".ttf",
+  ".otf",
+  ".pid",
+  ".log",
+  ".env",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".ini",
+  ".conf",
+  ".bak",
+  ".lock",
+  ".map",
+  ".webmanifest",
+] as const;
+
+export function normalizeRoute(url: string): string {
+  try {
+    const parsed = new URL(url);
+    parsed.hash = "";
+    if (!parsed.pathname) parsed.pathname = "/";
+    return `${parsed.protocol}//${parsed.host}${parsed.pathname}${parsed.search}`;
+  } catch {
+    return url;
+  }
+}
+
+export function routeLabel(url: string, index: number): string {
+  let pathname = "/";
+  try {
+    pathname = new URL(url).pathname || "/";
+  } catch {
+    pathname = "/";
+  }
+  const slug = pathname.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "root";
+  return `route-${index}-${slug.slice(0, 40)}`;
+}
+
+/**
+ * Return bounded, same-origin GET routes discovered from the seed page.
+ *
+ * Only links rendered on the seed page are followed. Forms, non-HTTP schemes,
+ * external hosts, binary assets, API endpoints, and destructive actions are
+ * excluded. Mirrors assay `BrowserController.discover_routes`.
+ */
+export function discoverRoutes(
+  seedUrl: string,
+  snapshot: Record<string, unknown>,
+  maxPages: number,
+): string[] {
+  const limit = Math.max(0, Math.trunc(Number(maxPages)) - 1);
+  if (limit <= 0) return [];
+  const links = asArray(snapshot.links);
+  if (links.length === 0) return [];
+
+  let seed: URL;
+  try {
+    seed = new URL(seedUrl);
+  } catch {
+    return [];
+  }
+  if (seed.protocol !== "http:" && seed.protocol !== "https:") return [];
+  const seedHost = seed.host.toLowerCase();
+
+  const seen = new Set<string>([normalizeRoute(seed.toString())]);
+  const routes: string[] = [];
+
+  for (const rawItem of links) {
+    if (routes.length >= limit) break;
+    const item = asRecord(rawItem);
+    if (item.download === true || (typeof item.download === "string" && item.download.length > 0)) continue;
+    const href = asString(item.href).trim();
+    if (!href || href.startsWith("#")) continue;
+    const lowerHref = href.toLowerCase();
+    if (
+      lowerHref.startsWith("mailto:") ||
+      lowerHref.startsWith("tel:") ||
+      lowerHref.startsWith("javascript:") ||
+      lowerHref.startsWith("data:") ||
+      lowerHref.startsWith("blob:")
+    ) {
+      continue;
+    }
+    let absolute: URL;
+    try {
+      absolute = new URL(href, seed.toString());
+    } catch {
+      continue;
+    }
+    if (absolute.protocol !== "http:" && absolute.protocol !== "https:") continue;
+    if (absolute.host.toLowerCase() !== seedHost) continue;
+    const path = absolute.pathname || "/";
+    const lowerPath = path.toLowerCase();
+    if (CRAWL_SKIP_TOKENS.some((token) => lowerPath.includes(token))) continue;
+    if (CRAWL_SKIP_SUFFIXES.some((suffix) => lowerPath.endsWith(suffix))) continue;
+    const normalized = normalizeRoute(absolute.toString());
+    if (seen.has(normalized)) continue;
+    seen.add(normalized);
+    routes.push(normalized);
+  }
+  return routes;
+}
+
+function cloneFinding(finding: FindingDraft): FindingDraft {
+  return {
+    ...finding,
+    evidence: Array.isArray(finding.evidence) ? [...finding.evidence] : [],
+    tags: Array.isArray(finding.tags) ? [...finding.tags] : [],
+  };
+}
+
+export function mergeBrowserOutcomes(outcomes: CheckOutcome[]): CheckOutcome {
+  const merged = new CheckOutcome({ status: CheckStatus.PASSED, evidence: [], findings: [] });
+  merged.metadata.crawled = true;
+  merged.metadata.page_count = outcomes.length;
+  merged.metadata.routes = outcomes.map((outcome) => ({
+    page: asString(outcome.metadata.page),
+    route: asString(outcome.metadata.route),
+    status: outcome.status,
+  }));
+
+  const seen = new Map<string, FindingDraft>();
+  let truncated = false;
+  const pushEvidence = (paths: string[]) => {
+    for (const path of paths) {
+      if (path && !merged.evidence.includes(path)) {
+        merged.evidence.push(path);
+      }
+    }
+  };
+
+  for (const outcome of outcomes) {
+    for (const finding of outcome.findings) {
+      const key = JSON.stringify([
+        finding.title,
+        finding.severity,
+        finding.domain,
+        finding.strength,
+        finding.consequence,
+        finding.remediation,
+      ]);
+      const existing = seen.get(key);
+      if (!existing) {
+        if (merged.findings.length >= 10) {
+          truncated = true;
+          continue;
+        }
+        const copy = cloneFinding(finding);
+        seen.set(key, copy);
+        merged.findings.push(copy);
+      } else {
+        if (finding.location && !existing.location.includes(finding.location)) {
+          const combined = `${existing.location}${existing.location ? ", " : ""}${finding.location}`;
+          existing.location = combined.slice(0, 800);
+        }
+        for (const ev of finding.evidence) {
+          if (ev && !existing.evidence.includes(ev)) existing.evidence.push(ev);
+        }
+      }
+    }
+    pushEvidence(outcome.evidence);
+  }
+
+  const statuses = outcomes.map((o) => o.status);
+  if (statuses.includes(CheckStatus.ERROR)) merged.status = CheckStatus.ERROR;
+  else if (statuses.includes(CheckStatus.FAILED)) merged.status = CheckStatus.FAILED;
+  else if (statuses.includes(CheckStatus.BLOCKED)) merged.status = CheckStatus.BLOCKED;
+  else if (statuses.length > 0 && statuses.every((s) => s === CheckStatus.SKIPPED)) merged.status = CheckStatus.SKIPPED;
+  else merged.status = CheckStatus.PASSED;
+
+  const summary = outcomes.map((outcome) => {
+    const page = asString(outcome.metadata?.page) || "page";
+    return `${page}=${outcome.status} (${outcome.actual})`;
+  });
+  merged.actual = `${outcomes.length} route(s): ${summary.join(" | ")}`;
+  if (merged.actual.length > 2000) merged.actual = `${merged.actual.slice(0, 1997)}...`;
+  if (truncated) merged.metadata.findings_truncated = true;
+  return merged;
+}
+
+export function evaluateBrowserCheckAcrossViews(
+  check: Check,
+  viewInputs: ReadonlyArray<BrowserPageView | Record<string, unknown>>,
+): CheckOutcome {
+  const views = viewInputs.map(normalizePageView);
+  if (views.length === 0) {
+    return new CheckOutcome({
+      status: CheckStatus.BLOCKED,
+      actual: "No browser page was captured for this check.",
+      evidence: [],
+      metadata: { limitation: "No browser page was captured." },
+      blocker: {
+        attempted_action: check.title || check.id,
+        boundary: "No browser page was captured.",
+        unblock_evidence: ["Restore navigation and rerun the check."],
+        covered_elsewhere: false,
+        covered_by: [],
+      },
+    });
+  }
+
+  const outcomes: CheckOutcome[] = [];
+  const skipped: string[] = [];
+
+  for (const view of views) {
+    const nav = view.navigation;
+    const route = sanitizeUrl(nav.finalUrl || nav.url);
+    if (nav.error && check.id !== "browser.load") {
+      skipped.push(sanitizeUrl(nav.url));
+      continue;
+    }
+    const outcome = evaluateBrowserCheckForCheck(check, view);
+    if (!outcome.metadata.route) outcome.metadata.route = route;
+    if (!outcome.metadata.page) outcome.metadata.page = view.label ?? "landing";
+    outcomes.push(outcome);
+  }
+
+  if (outcomes.length === 0) {
+    return new CheckOutcome({
+      status: CheckStatus.BLOCKED,
+      actual: `No route could be evaluated: ${skipped.slice(0, 5).join("; ") || "navigation failed"}`,
+      evidence: [],
+      metadata: { limitation: "No route could be evaluated.", routes_not_evaluated: skipped },
+      blocker: {
+        attempted_action: check.title || check.id,
+        boundary: "No route could be evaluated after navigation failures.",
+        unblock_evidence: ["Restore the target routes and rerun the check."],
+        covered_elsewhere: false,
+        covered_by: [],
+      },
+    });
+  }
+
+  if (outcomes.length === 1) {
+    const only = outcomes[0]!;
+    only.metadata.crawled = views.length > 1;
+    only.metadata.page_count = 1;
+    if (skipped.length > 0) only.metadata.routes_not_evaluated = skipped;
+    return only;
+  }
+
+  const merged = mergeBrowserOutcomes(outcomes);
+  if (skipped.length > 0) merged.metadata.routes_not_evaluated = skipped;
+  return merged;
+}
+

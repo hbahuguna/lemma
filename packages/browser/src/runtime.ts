@@ -7,8 +7,11 @@ import {
 
 import {
   IMPLEMENTED_BROWSER_CHECKS,
+  discoverRoutes,
+  evaluateBrowserCheckAcrossViews,
   evaluateBrowserCheckForCheck,
   normalizePageView,
+  routeLabel,
   type BrowserPageView,
 } from "./checks.js";
 
@@ -26,6 +29,12 @@ export interface BrowserRuntimeOptions {
   disabled?: boolean;
   headless?: boolean;
   timeoutMs?: number;
+  /** Enable bounded same-origin crawl (LEM-054). */
+  crawl?: boolean;
+  /** Maximum pages to capture/evaluate when crawling (seed included). */
+  maxPages?: number;
+  /** Alias for maxPages. */
+  max_pages?: number;
   /**
    * Test/extension hook: provide a custom Playwright loader. Returning/throwing
    * an unavailable module simulates a missing runtime.
@@ -192,6 +201,10 @@ export interface RunBrowserChecksInput {
   options?: BrowserRuntimeOptions;
   /** Injected captured observations for deterministic evaluation/testing. */
   pageView?: BrowserPageView | Record<string, unknown>;
+  /** Injected captured observations for crawl/multi-route evaluation/testing. */
+  pageViews?: ReadonlyArray<BrowserPageView | Record<string, unknown>>;
+  /** Alias for pageViews. */
+  views?: ReadonlyArray<BrowserPageView | Record<string, unknown>>;
   /** Optional evidence store for Playwright capture paths. */
   evidence?: BrowserEvidenceStoreLike;
 }
@@ -209,30 +222,22 @@ export async function degradeBrowserChecks(
   }
 }
 
-
-
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument -- Playwright is an optional untyped runtime dependency; interop uses dynamic APIs */
-async function captureWithPlaywright(
+
+function getMaxPages(options?: BrowserRuntimeOptions): number {
+  const raw = options?.maxPages ?? options?.max_pages ?? 1;
+  const n = Math.trunc(Number(raw));
+  return Number.isFinite(n) && n > 0 ? n : 1;
+}
+
+async function captureSinglePage(
+  page: any,
   url: string,
-  playwright: PlaywrightModuleLike,
   options: BrowserRuntimeOptions | undefined,
-  evidence?: BrowserEvidenceStoreLike,
+  evidence: BrowserEvidenceStoreLike | undefined,
+  label: string,
 ): Promise<BrowserPageView> {
-  const chromium = playwright.chromium;
-  if (!chromium || typeof chromium.launch !== "function") {
-    throw new BrowserUnavailableError("Playwright Chromium launcher is unavailable.");
-  }
-  const headless = options?.headless ?? true;
   const timeoutMs = options?.timeoutMs ?? 30000;
-  const browser = await chromium.launch({ headless }) as {
-    newContext: (opts?: Record<string, unknown>) => Promise<{
-      newPage: () => Promise<any>;
-      close: () => Promise<void>;
-    }>;
-    close: () => Promise<void>;
-  };
-  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
-  const page = await context.newPage();
   const consoleMessages: Array<Record<string, unknown>> = [];
   const pageErrors: Array<Record<string, unknown>> = [];
   const networkEntries: Array<Record<string, unknown>> = [];
@@ -242,17 +247,17 @@ async function captureWithPlaywright(
   };
   const evidenceRefs: Record<string, string> = {};
 
-  page.on?.("console", (msg: any) => {
+  const onConsole = (msg: any) => {
     try {
       consoleMessages.push({ type: msg.type?.() ?? "log", text: String(msg.text?.() ?? "") });
     } catch {
       // ignore console capture errors
     }
-  });
-  page.on?.("pageerror", (err: any) => {
+  };
+  const onPageError = (err: any) => {
     pageErrors.push({ text: String(err?.message ?? err ?? "page error") });
-  });
-  page.on?.("requestfailed", (req: any) => {
+  };
+  const onRequestFailed = (req: any) => {
     try {
       networkEntries.push({
         url: String(req.url?.() ?? ""),
@@ -263,8 +268,8 @@ async function captureWithPlaywright(
     } catch {
       // ignore
     }
-  });
-  page.on?.("response", (res: any) => {
+  };
+  const onResponse = (res: any) => {
     try {
       networkEntries.push({
         url: String(res.url?.() ?? ""),
@@ -274,7 +279,12 @@ async function captureWithPlaywright(
     } catch {
       // ignore
     }
-  });
+  };
+
+  page.on?.("console", onConsole);
+  page.on?.("pageerror", onPageError);
+  page.on?.("requestfailed", onRequestFailed);
+  page.on?.("response", onResponse);
 
   try {
     let response: any = null;
@@ -307,14 +317,15 @@ async function captureWithPlaywright(
         snapshot = await page.evaluate(() => {
           const doc = (globalThis as any).document;
           const bodyText = doc?.body?.innerText ?? doc?.body?.textContent ?? "";
-          const h1s = Array.from(doc?.querySelectorAll?.("h1") ?? []).map((n: any) =>
-            String(n?.innerText ?? n?.textContent ?? "").trim(),
-          ).filter((t: string) => t.length > 0);
+          const h1s = Array.from(doc?.querySelectorAll?.("h1") ?? [])
+            .map((n: any) => String(n?.innerText ?? n?.textContent ?? "").trim())
+            .filter((t: string) => t.length > 0);
           const links = Array.from(doc?.querySelectorAll?.("a") ?? []).map((a: any, i: number) => ({
             selector: `a:nth-of-type(${i + 1})`,
             href: String(a?.getAttribute?.("href") ?? ""),
             target: String(a?.getAttribute?.("target") ?? ""),
             rel: String(a?.getAttribute?.("rel") ?? ""),
+            download: a?.hasAttribute?.("download") ? true : false,
           }));
           return {
             title: String(doc?.title ?? ""),
@@ -328,31 +339,33 @@ async function captureWithPlaywright(
       snapshot = {};
     }
 
+    const prefix = label === "landing" ? "" : `${label}-`;
+    const shotName = label === "landing" ? "landing-page" : `${label}-page`;
     if (evidence) {
       try {
         evidenceRefs.navigation = await evidence.saveJson(
-          "navigation",
+          `${prefix}navigation`,
           navigation,
           "navigation",
-          "Browser navigation result",
+          label === "landing" ? "Browser navigation result" : `Navigation result for ${label}`,
         );
         evidenceRefs.snapshot = await evidence.saveJson(
-          "dom-snapshot",
+          `${prefix}dom-snapshot`,
           snapshot,
           "dom_snapshot",
-          "Captured DOM snapshot",
+          label === "landing" ? "Captured DOM snapshot" : `Sanitized DOM snapshot for ${label}`,
         );
         evidenceRefs.console = await evidence.saveJson(
-          "console-log",
+          `${prefix}console-log`,
           [...consoleMessages, ...pageErrors.map((e) => ({ type: "pageerror", ...e }))],
           "console_log",
-          "Browser console and page errors",
+          label === "landing" ? "Browser console and page errors" : `Console log for ${label}`,
         );
         evidenceRefs.network = await evidence.saveJson(
-          "network-log",
+          `${prefix}network-log`,
           networkEntries,
           "network_log",
-          "Browser network entries",
+          label === "landing" ? "Browser network entries" : `Network log for ${label}`,
         );
       } catch {
         // evidence capture must not fail the check run
@@ -362,9 +375,9 @@ async function captureWithPlaywright(
           const shot = await page.screenshot({ fullPage: true });
           if (shot) {
             evidenceRefs.screenshot = await evidence.saveScreenshot(
-              "landing-page",
+              shotName,
               shot as Uint8Array | Buffer,
-              "Landing page screenshot",
+              label === "landing" ? "Landing page screenshot" : `Screenshot for ${label}`,
             );
           }
         }
@@ -380,71 +393,98 @@ async function captureWithPlaywright(
       pageErrors,
       networkEntries,
       evidenceRefs,
-      label: "landing",
+      label,
     });
   } finally {
-    try {
-      await context.close();
-    } catch {
-      // ignore
+    // remove listeners when page API supports it to avoid cross-page bleed in crawl
+    try { page.off?.("console", onConsole); } catch { /* noop */ }
+    try { page.off?.("pageerror", onPageError); } catch { /* noop */ }
+    try { page.off?.("requestfailed", onRequestFailed); } catch { /* noop */ }
+    try { page.off?.("response", onResponse); } catch { /* noop */ }
+  }
+}
+
+async function captureWithPlaywright(
+  url: string,
+  playwright: PlaywrightModuleLike,
+  options: BrowserRuntimeOptions | undefined,
+  evidence?: BrowserEvidenceStoreLike,
+): Promise<BrowserPageView[]> {
+  const chromium = playwright.chromium;
+  if (!chromium || typeof chromium.launch !== "function") {
+    throw new BrowserUnavailableError("Playwright Chromium launcher is unavailable.");
+  }
+  const headless = options?.headless ?? true;
+  const browser = (await chromium.launch({ headless })) as {
+    newContext: (opts?: Record<string, unknown>) => Promise<{
+      newPage: () => Promise<any>;
+      close: () => Promise<void>;
+    }>;
+    close: () => Promise<void>;
+  };
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const page = await context.newPage();
+  const views: BrowserPageView[] = [];
+  try {
+    const seedView = await captureSinglePage(page, url, options, evidence, "landing");
+    views.push(seedView);
+
+    const crawl = options?.crawl === true;
+    const maxPages = getMaxPages(options);
+    if (crawl && maxPages > 1) {
+      const discovered = discoverRoutes(
+        seedView.navigation.finalUrl || seedView.navigation.url || url,
+        seedView.snapshot ?? {},
+        maxPages,
+      );
+      for (let i = 0; i < discovered.length; i++) {
+        const routeUrl = discovered[i]!;
+        const label = routeLabel(routeUrl, i + 1);
+        try {
+          const view = await captureSinglePage(page, routeUrl, options, evidence, label);
+          views.push(view);
+        } catch {
+          // route capture failures are represented as navigation-failed views by captureSinglePage;
+          // defensive: never let one route crash the crawl.
+        }
+      }
     }
-    try {
-      await browser.close();
-    } catch {
-      // ignore
-    }
+    return views;
+  } finally {
+    try { await context.close(); } catch { /* noop */ }
+    try { await browser.close(); } catch { /* noop */ }
   }
 }
 /* eslint-enable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-argument */
 
-function outcomeForUnsupported(check: Check): CheckOutcome {
-  return notImplementedOutcome(check);
-}
-
-async function emitCheckOutcome(
-  check: Check,
-  view: BrowserPageView,
-  onOutcome: BrowserOutcomeCallback,
-): Promise<void> {
-  if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
-    await onOutcome(check, outcomeForUnsupported(check));
-    return;
-  }
-  await onOutcome(check, evaluateBrowserCheckForCheck(check, view));
-}
-
 /**
- * Run browser checks with optional Playwright runtime.
- *
- * - disabled/no-browser or unavailable runtime: degrade every check as blocked
- *   (LEM-050 contract).
- * - runtime available: evaluate implemented checks (load/console/network/content/
- *   links) from injected or captured observations; degrade unimplemented browser
- *   checks as blocked "not implemented in this slice".
+ * Run browser checks with optional runtime. If runtime is unavailable/disabled
+ * or the check is outside this runtime slice, blocked outcomes are emitted.
+ * When crawl is enabled and injected multi-view observations are provided (or
+ * Playwright capture succeeds), implemented checks are evaluated across routes
+ * and merged (LEM-054).
  */
-export async function runBrowserChecks(input: RunBrowserChecksInput): Promise<void> {
-  const { url, checks, onOutcome, options, pageView, evidence } = input;
-  const disabled = browserDisabledReason(options);
-  if (disabled) {
-    await degradeBrowserChecks(checks, disabled, onOutcome);
-    return;
-  }
+export async function runBrowserChecks(
+  input: RunBrowserChecksInput,
+): Promise<void> {
+  const { checks, onOutcome, options, evidence } = input;
   const probe = await probeBrowserRuntime(options);
-  if (!probe.available) {
-    await degradeBrowserChecks(
-      checks,
-      probe.reason ?? "Playwright/Chromium runtime is unavailable.",
-      onOutcome,
-    );
+  if (!probe.available || !probe.playwright) {
+    const reason = probe.reason ?? "Browser runtime is unavailable.";
+    await degradeBrowserChecks(checks, reason, onOutcome);
     return;
   }
 
-  let view: BrowserPageView;
-  if (pageView) {
-    view = normalizePageView(pageView);
+  let views: BrowserPageView[] | null = null;
+  if (Array.isArray(input.pageViews) && input.pageViews.length > 0) {
+    views = input.pageViews.map(normalizePageView);
+  } else if (Array.isArray(input.views) && input.views.length > 0) {
+    views = input.views.map(normalizePageView);
+  } else if (input.pageView) {
+    views = [normalizePageView(input.pageView)];
   } else {
     try {
-      view = await captureWithPlaywright(url, probe.playwright as PlaywrightModuleLike, options, evidence);
+      views = await captureWithPlaywright(input.url, probe.playwright, options, evidence);
     } catch (error) {
       const reason =
         error instanceof BrowserUnavailableError
@@ -452,13 +492,31 @@ export async function runBrowserChecks(input: RunBrowserChecksInput): Promise<vo
           : error instanceof Error
             ? error.message
             : String(error);
-      // If capture/start itself failed after probe, treat as blocked runtime/capture failure.
-      await degradeBrowserChecks(checks, `Browser checks were not executed: ${reason}`, onOutcome);
+      await degradeBrowserChecks(checks, reason, onOutcome);
       return;
     }
   }
 
+  if (!views || views.length === 0) {
+    await degradeBrowserChecks(checks, "No browser page view could be captured.", onOutcome);
+    return;
+  }
+
+  const multi = views.length > 1 || (options?.crawl === true && getMaxPages(options) > 1);
+
   for (const check of checks) {
-    await emitCheckOutcome(check, view, onOutcome);
+    try {
+      if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
+        await onOutcome(check, notImplementedOutcome(check));
+        continue;
+      }
+      const outcome = multi
+        ? evaluateBrowserCheckAcrossViews(check, views)
+        : evaluateBrowserCheckForCheck(check, views[0]!);
+      await onOutcome(check, outcome);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      await onOutcome(check, blockedBrowserOutcome(check, `Browser check execution failed: ${reason}`));
+    }
   }
 }
