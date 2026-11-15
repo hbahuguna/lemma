@@ -234,7 +234,7 @@ with rationale.
 | `test_static_precision.py`, `test_scope_and_tracking.py` | LEM-031, LEM-032, LEM-035, LEM-036, LEM-039 (secrets/unsafe precision rules, scope/ignore behavior, CI/root and tracked-file parity covered by targeted core tests; deterministic labeled precision/recall corpus added at `packages/core/test/static-precision-recall-corpus/corpus.json` with `packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts`, output `docs/parity/evidence/LEM-039-static-precision-recall-test-output.txt`) |
 | `test_exports.py` | LEM-065 (SARIF `packages/core/test/exports/sarif.test.ts`), LEM-066 (JUnit `packages/core/test/exports/junit.test.ts`) |
 | `test_suppression.py` | LEM-069 |
-| `test_trend.py` | LEM-068 |
+| `test_trend.py` | LEM-068 (`packages/core/src/trends.ts` `computeTrendDiff`, exports wiring, tests `packages/core/test/trends/trend.test.ts`, output `docs/parity/evidence/LEM-068-trend-diff-test-output.txt`) |
 | `test_calibration.py` | LEM-070 |
 | `test_ssrf.py` | LEM-059, LEM-125 |
 | `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |

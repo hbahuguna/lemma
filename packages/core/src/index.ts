@@ -19,6 +19,7 @@ export type { EvidenceEntry as EvidenceArtifactEntry, EvidenceManifest as Eviden
 export * from "./scoring.js";
 export * from "./report.js";
 export * from "./exports.js";
+export * from "./trends.js";
 export * from "./risk.js";
 export * from "./steps.js";
 export * from "./static.js";
