@@ -270,7 +270,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Done |
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Done |
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Done |
-| LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Backlog |
+| LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Done |
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Backlog |
 | LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Backlog |
 | LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Backlog |
@@ -4065,6 +4065,47 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/jira-context.test.ts` (pass, 4 tests).
 - **Evidence:** `packages/agent/src/jira-context.ts` (Jira form fields/prefill and token-ref handling, target parsing/normalization, ADF flattening, secret redaction/sanitization, issue summarization/formatting, injectable form collection and fetch with token-free error mapping, and host-integration helpers `getJiraFormApi`/`createHttpFormApi`/`readLocalServiceConfig`/`registerJiraContextTool` without host SDK imports), `packages/agent/src/index.ts` (exports), `packages/agent/test/jira-context.test.ts`, `docs/parity/evidence/LEM-092-jira-context-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
+
+### LEM-093 — Port MCP resource discovery and secret references
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-091
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/mcp-secret-ref.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port host-neutral MCP resource discovery utilities and
+  secret-reference handling for the context/question flow so adapters can
+  surface discoverable MCP resources and users can provide secret references
+  without exposing raw secrets.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports MCP resource discovery/normalization utilities:
+    `normalizeMcpResourceEntries` (or equivalent) accepts heterogeneous MCP
+    listing results (e.g. `{ resources, resourceTemplates/templates }` and common
+    nested/data shapes) and returns redacted, bounded display strings for
+    resources/templates (including server/name/uri or template identifiers when
+    available); exported `discoverMcpResources` (or equivalent) resolves from an
+    injectable `listMcpResources` hook/callable, applies normalization and
+    redaction/limits, and tolerates discovery failures by returning an empty
+    list.
+  - Secret-reference handling is explicit and token-safe in the context protocol:
+    parsing recognizes secret-reference/method tags (`method:token`,
+    `[env:*]`, `[secret_ref:*]`, `[secret-ref:*]`, related aliases) and yields
+    reference metadata only (e.g. `envRef`, `id`, `server`) without capturing or
+    persisting raw secret values; formatting/prompts and context application
+    record token/secret-ref usage by reference metadata only and redact
+    freeform/context log/pending text before persistence/logging as applicable.
+  - `runStrictJudgeLoop` / context request formatting uses the discovery
+    utilities so MCP resources (when available via hook) are included in
+    context prompts, and secret-reference replies remain resumable while never
+    echoing/storing raw secrets.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/mcp-secret-ref.test.ts` pass in
+    this environment (existing agent tests remain green).
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/mcp-secret-ref.test.ts` (pass, 4 tests) and regression `packages/agent/test/mcp-secret-ref.test.ts packages/agent/test/context-flow.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 15 tests).
+- **Evidence:** `packages/agent/src/index.ts` (`normalizeMcpResourceEntries`, exported `discoverMcpResources` with injectable hook/raw-shape normalization, redaction/bounds, and failure-tolerant empty fallback; secret-reference-aware context parsing/formatting/application with token/env/secret-ref metadata only and redacted freeform/persistence-safe handling), `packages/agent/test/mcp-secret-ref.test.ts`, `docs/parity/evidence/LEM-093-mcp-secret-ref-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

@@ -80,8 +80,8 @@ export interface AgentDeps {
   askLlm: (prompt: string) => Promise<string>;
   progress?: (message: string) => void;
   sendFinal: (text: string) => Promise<void>;
-  /** Discover available MCP resources (optional, host-provided). */
-  listMcpResources?: () => Promise<string[]>;
+  /** Discover available MCP resources (optional, host-provided). May return display strings or a raw MCP listing object. */
+  listMcpResources?: () => Promise<unknown>;
   /** Ask user for in-session reply to a pending context request (interactive mode). */
   requestUserInput?: (prompt: string) => Promise<string>;
 }
@@ -350,7 +350,7 @@ export function isContextReply(input: string): boolean {
   return (
     /\[context:skip\]/i.test(raw) ||
     /\[?source\s*[:=]\s*(?:jira|slack|github|doc|url|text)\]?/i.test(raw) ||
-    /\[?method\s*[:=]\s*(?:paste|mcp|token)\]?/i.test(raw) ||
+    /\[?method\s*[:=]\s*(?:paste|mcp|token|secret-ref|secret_ref)\]?/i.test(raw) ||
     /\[(?:env|secret_ref|secret-ref|id|server|mcp_server|mcp-server)\s*:/i.test(raw) ||
     /\bskip\s+context\b/i.test(lower) ||
     /^(skip|none|no|n\/a|na)$/i.test(raw.trim())
@@ -362,10 +362,17 @@ export function parseContextReply(input: string): ParsedContextReply {
   const lower = raw.trim().toLowerCase();
   const out: ParsedContextReply = {};
   if (/\[context:skip\]/i.test(raw) || /\bskip\s+context\b/i.test(lower) || /^(skip|none|no|n\/a|na)$/i.test(raw.trim())) out.skip = true;
-  const sourceM = raw.match(/\[?source\s*[:=]\s*(jira|slack|github|doc|url|text)\]?/i) || lower.match(/\bsource\s*[:=]\s*(jira|slack|github|doc|url|text)\b/i);
+  const sourceM =
+    raw.match(/\[?source\s*[:=]\s*(jira|slack|github|doc|url|text)\]?/i) ||
+    lower.match(/\bsource\s*[:=]\s*(jira|slack|github|doc|url|text)\b/i);
   if (sourceM?.[1]) out.source = sourceM[1].toLowerCase();
-  const methodM = raw.match(/\[?method\s*[:=]\s*(paste|mcp|token)\]?/i) || lower.match(/\bmethod\s*[:=]\s*(paste|mcp|token)\b/i);
-  if (methodM?.[1]) out.method = methodM[1].toLowerCase();
+  const methodM =
+    raw.match(/\[?method\s*[:=]\s*(paste|mcp|token|secret-ref|secret_ref)\]?/i) ||
+    lower.match(/\bmethod\s*[:=]\s*(paste|mcp|token|secret-ref|secret_ref)\b/i);
+  if (methodM?.[1]) {
+    const m = methodM[1].toLowerCase();
+    out.method = m === "secret-ref" || m === "secret_ref" ? "token" : m;
+  }
   const envM = raw.match(/\[?(?:env|secret_ref|secret-ref)\s*:\s*([^\]\s]+)\]?/i);
   if (envM?.[1]) out.envRef = envM[1].trim();
   const idM = raw.match(/\[?id\s*:\s*([^\]\s]+)\]?/i);
@@ -375,10 +382,10 @@ export function parseContextReply(input: string): ParsedContextReply {
   const text = raw
     .replace(/\[(?:[^\]]*(?:context|source|method|env|secret_ref|secret-ref|id|server|mcp_server|mcp-server)\s*:[^\]]*)\]/gi, "")
     .replace(/\bsource\s*[:=]\s*(?:jira|slack|github|doc|url|text)\b/gi, "")
-    .replace(/\bmethod\s*[:=]\s*(?:paste|mcp|token)\b/gi, "")
+    .replace(/\bmethod\s*[:=]\s*(?:paste|mcp|token|secret-ref|secret_ref)\b/gi, "")
     .replace(/\bskip\s+context\b/gi, "")
     .trim();
-  if (text) out.text = text;
+  if (text) out.text = redactTranscriptText(text);
   return out;
 }
 
@@ -515,12 +522,86 @@ export function applyContextResponse(state: AgentState, input: string): ApplyCon
   return applyContextResponse(state, input);
 }
 
-async function discoverMcpResources(deps: AgentDeps): Promise<string[]> {
-  try {
-    if (deps.listMcpResources) {
-      const items = await deps.listMcpResources();
-      return (items || []).map((x) => redactTranscriptText(String(x))).slice(0, 30);
+function toMcpLabel(entry: unknown, prefix: "resource" | "template"): string | null {
+  if (typeof entry === "string") {
+    const s = redactTranscriptText(entry).trim();
+    return s || null;
+  }
+  if (!isRecord(entry)) return null;
+  const server = typeof entry.server === "string" && entry.server ? entry.server : "?";
+  const name =
+    (typeof entry.name === "string" && entry.name) ||
+    (typeof entry.uri === "string" && entry.uri) ||
+    (typeof entry.uriTemplate === "string" && entry.uriTemplate) ||
+    "?";
+  return `${prefix}: ${redactTranscriptText(server)}/${redactTranscriptText(name)}`;
+}
+
+/**
+ * Normalize heterogeneous MCP resource listing results into bounded, redacted display strings.
+ * Accepts display-string arrays or raw listing shapes (resources/resourceTemplates/templates),
+ * including common nested `data` wrappers.
+ */
+export function normalizeMcpResourceEntries(value: unknown, limit = 30): string[] {
+  if (value == null) return [];
+  if (Array.isArray(value)) {
+    const out: string[] = [];
+    for (const item of value) {
+      if (typeof item === "string") {
+        const s = redactTranscriptText(item).trim();
+        if (s) out.push(s);
+      } else {
+        const label = toMcpLabel(item, "resource");
+        if (label) out.push(label);
+      }
+      if (out.length >= limit) return out;
     }
+    return out;
+  }
+  if (!isRecord(value)) return [];
+
+  const obj = value;
+  const data = isRecord(obj.data) ? obj.data : undefined;
+  const resourcesRaw = Array.isArray(obj.resources)
+    ? obj.resources
+    : data && Array.isArray(data.resources)
+      ? data.resources
+      : [];
+  const templatesRaw = Array.isArray(obj.resourceTemplates)
+    ? obj.resourceTemplates
+    : Array.isArray(obj.templates)
+      ? obj.templates
+      : data && Array.isArray(data.resourceTemplates)
+        ? data.resourceTemplates
+        : data && Array.isArray(data.templates)
+          ? data.templates
+          : [];
+
+  const out: string[] = [];
+  for (const item of resourcesRaw) {
+    const label = toMcpLabel(item, "resource");
+    if (label) out.push(label);
+    if (out.length >= limit) return out;
+  }
+  for (const item of templatesRaw) {
+    const label = toMcpLabel(item, "template");
+    if (label) out.push(label);
+    if (out.length >= limit) return out;
+  }
+
+  // Fallback: some hosts may return a single wrapped list
+  if (out.length === 0 && Array.isArray(obj.data)) return normalizeMcpResourceEntries(obj.data, limit);
+  return out;
+}
+
+export async function discoverMcpResources(
+  deps: Pick<AgentDeps, "listMcpResources"> | (() => Promise<unknown>) | undefined,
+): Promise<string[]> {
+  try {
+    const fn = typeof deps === "function" ? deps : deps?.listMcpResources;
+    if (!fn) return [];
+    const items = await fn();
+    return normalizeMcpResourceEntries(items, 30);
   } catch {
     // ignore discovery failures
   }
