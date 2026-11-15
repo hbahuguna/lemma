@@ -133,11 +133,11 @@ intent-gated category or as an explicit documented no-op with rationale.
 | `.opencode/plugins/assay/command-args.ts` | URL extraction, browser/demo/generic invocation builders | LEM-088, LEM-089 (LEM-088 ported builders in `packages/agent/src/command-args.ts` and exported via `packages/agent/src/index.ts`: `extractUrl`/`isUrl`/`SUBCOMMANDS`, `browserInvocation`/`demoInvocation`/`assayInvocation` with URL-required live browser runs, comprehensive browser defaults/explicit overrides and safe flag passthrough, static demo fallback, subcommand/help/version passthrough; `commandToArgs` delegates assay-style forms for loop integration; tests `packages/agent/test/command-args.test.ts` + agent-loop/state regressions, output `docs/parity/evidence/LEM-088-command-args-test-output.txt`; LEM-089 adds catalog/intent mapping in `packages/agent/src/catalog.ts`/index using these builders, tests `packages/agent/test/catalog.test.ts`, output `docs/parity/evidence/LEM-089-catalog-test-output.txt`) |
 | `.opencode/plugins/assay/runner.ts` | Harness subprocess bridge | Replaced by in-process core invocation; LEM-083 |
 | `.opencode/plugins/assay/jira-context.ts` | Native Jira form, issue fetch, ADF flattening, redaction | LEM-092 |
-| `.opencode/plugins/assay/browser-agent-prompt.ts` | Browser agent prompt and context protocol | LEM-090, LEM-091 |
+| `.opencode/plugins/assay/browser-agent-prompt.ts` | Browser agent prompt and context protocol | LEM-090, LEM-091 (LEM-090 ported host-neutral prompt primitives in `packages/agent/src/browser-agent-prompt.ts` and exported via `packages/agent/src/index.ts`: `shellQuote`, `CONTEXT_PROTOCOL`, `buildBrowserAgentPrompt` with target/command/env embedding, browser assessment invariants, native question-tool context contract incl. Jira form/`assay_jira_context` and no-raw-secret/placeholder-wait rules, and iteration flow; tests `packages/agent/test/browser-agent-prompt.test.ts`, output `docs/parity/evidence/LEM-090-browser-agent-prompt-test-output.txt`; question-flow/protocol runtime behavior remains LEM-091) |
 | `.opencode/plugins/assay/package.json` | Plugin package manifest | LEM-108 |
 | `.opencode/plugins/assay/tsconfig.json` | TypeScript config (repo-wide strict TS/tsconfig foundation in place; plugin-specific config pending adapter work) | LEM-001 | LEM-001 |
 | `.opencode/commands/_assay_backup/*.md` | 61 command prompt files | LEM-106, LEM-108 |
-| `.opencode/commands/assay-browser.md` | Browser command prompt | LEM-090, LEM-106 |
+| `.opencode/commands/assay-browser.md` | Browser command prompt | LEM-090, LEM-106 (browser agent prompt/invariants primitives ported in `@lemma/agent` for adapter/template reuse; shared prompt/skill/command templates remain LEM-106) |
 
 ## 4. Personas and checks
 

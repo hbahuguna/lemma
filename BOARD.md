@@ -42,6 +42,9 @@ LEM-001 -> LEM-003 -> LEM-004 -> LEM-007 -> LEM-010
         -> LEM-011 -> LEM-014 -> LEM-015 -> LEM-020 -> LEM-026
         -> LEM-083 -> LEM-086 -> LEM-098 -> LEM-100
         -> LEM-101 (OpenCode) and LEM-102 (Claude Code)
+        -> LEM-141 -> LEM-143 -> LEM-144 -> LEM-147 -> LEM-142
+        -> LEM-148 -> LEM-149 -> LEM-154 -> LEM-151 -> LEM-150
+        -> LEM-153 -> LEM-145 -> LEM-146 -> LEM-152 -> LEM-155
         -> LEM-109 / LEM-110 -> LEM-139 (parity sign-off)
 ```
 
@@ -54,6 +57,10 @@ Why this order:
 4. OpenCode and Claude Code are first because they are the two install targets
    named as the immediate shipping goal; Codex, Antigravity, and Cursor follow
    through the same conformance kit.
+5. CARBON-parity UX (G2.5) sits between the deterministic core and host adapters
+   because conversational, visual, and bug-hunting behaviour must exist before
+   adapter conformance is meaningful. Lemma is only “as good as CARBON” once
+   these tasks are done, not before.
 
 **Parity rule:** until `LEM-139`, `assay` is the oracle. A lemma run against the
 same fixture and options must produce the same normalized report. Any intentional
@@ -66,6 +73,7 @@ divergence needs an ADR and a Decision Log row.
 | G0 | Foundation | Monorepo, schemas, determinism, errors, redaction, atomic state, and golden parity harness exist | LEM-001–LEM-010 |
 | G1 | Core parity | A static `lemma run` matches `assay` for the sample fixture, including resume, kill, evidence, scoring, and report | LEM-011–LEM-026 |
 | G2 | Evidence parity | Static, browser, persona, plugin, policy, export, and suppression behavior match the parity corpus | LEM-027–LEM-082 |
+| G2.5 | CARBON-parity UX | HTML export, dashboard (live view, screenshots, journey maps, Release Brief, settings), bug-hunting workflow, and extended dynamic a11y all pass acceptance tests; parity inventory rows updated | LEM-141–LEM-155 |
 | G3 | Agent parity | CLI, agent loop, command catalog, browser prompt, and Jira context match the OpenCode product behavior | LEM-083–LEM-097 |
 | G4 | Host surface | One shared adapter contract, five adapters, installer, and conformance kit; OpenCode and Claude Code pass E2E | LEM-098–LEM-112 |
 | G5 | Commercial parity | Metering, auth, quota, ledger, signup, billing, queue, and retention match assay | LEM-113–LEM-122 |
@@ -82,6 +90,7 @@ divergence needs an ADR and a Decision Log row.
 | E | Host adapters | LEM-098–LEM-112 | OpenCode, Claude Code, Codex, Antigravity, Cursor |
 | F | Commercial parity | LEM-113–LEM-122 | Metering, auth, quota, ledger, billing, queue |
 | G | Release | LEM-123–LEM-140 | Hardened, documented, signed, published |
+| H | CARBON-parity UX | LEM-141–LEM-155 | Conversational manager, bug-hunting workflow, background checks, demo, slash commands, local dashboard, HTML export, screenshots, journey maps, Release Brief, settings UI, dynamic a11y, native MCP server, optional analytics, Pro navigation |
 
 ---
 
@@ -243,7 +252,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Done |
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Done |
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Done |
-| LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Backlog |
+| LEM-090 | Port the browser agent prompt and invariants | P1 | 3 | LEM-088 | Done |
 | LEM-091 | Port the context protocol and question flow | P1 | 5 | LEM-086 | Backlog |
 | LEM-092 | Port the native Jira form tool, ADF flattening, and redaction | P1 | 5 | LEM-008, LEM-091 | Backlog |
 | LEM-093 | Port MCP resource discovery and secret references | P2 | 3 | LEM-091 | Backlog |
@@ -328,6 +337,58 @@ every supported host with visible supply-chain evidence.
 | LEM-139 | Run the full parity audit and sign off | P0 | 8 | LEM-112, LEM-115, LEM-121, LEM-126, LEM-131, LEM-133, LEM-134, LEM-135, LEM-136, LEM-137, LEM-138 | Backlog |
 | LEM-140 | Point assay at lemma and publish the deprecation notice | P2 | 2 | LEM-139 | Backlog |
 
+### E13: Conversational Agent Surface
+
+**Outcome:** One host-neutral, conversational testing experience. A manager persona
+plans, explains, and narrates the run in natural language; a dedicated bug-hunting
+workflow explores stateful journeys; background checks run quietly; a demo command
+makes the tool tryable; slash commands work natively in-chat.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Backlog |
+| LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Backlog |
+| LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Backlog |
+| LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Backlog |
+| LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Backlog |
+
+### E14: Visual Evidence and Reporting Surface
+
+**Outcome:** Findings are visible, shareable, and human-readable. A local dashboard
+serves a live investigation view, screenshots linked to checks, a journey map, a
+Release Brief, and a protected settings page. HTML export is self-contained and
+portable. Dynamic accessibility checks cover keyboard and live contrast.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Backlog |
+| LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Backlog |
+| LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Backlog |
+| LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Backlog |
+| LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Backlog |
+| LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Backlog |
+| LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Backlog |
+
+### E15: MCP Tool Server
+
+**Outcome:** The testing engine is a first-class MCP tool server, not only an
+adapter-level bridge. Any MCP-compatible coding agent can start, update, report,
+and query a lemma run through native tools.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-151 | Build the native MCP server exposing testing tools | P1 | 8 | LEM-083, LEM-086, LEM-098 | Backlog |
+
+### E16: Commercial and UX Extras
+
+**Outcome:** Optional, user-controlled extras that do not block the core release:
+anonymous usage analytics with a clear opt-out and an in-product Pro edition
+navigation page.
+
+| ID | Task | Pri | Pts | Depends on | Status |
+| --- | --- | --- | --- | --- | --- |
+| LEM-152 | Add optional anonymous usage analytics with opt-out | P2 | 3 | LEM-083 | Backlog |
+| LEM-155 | Add Pro edition navigation and informational page | P3 | 2 | LEM-143 | Backlog |
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -714,6 +775,611 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/core test -- checks` — **PASS** (4 tests; core suite 60/60 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/checks.ts` (24-check `CHECK_CATALOG` with assay-compatible metadata, `catalogIds`, intent/category helpers, applicability incl. category markers/browser-availability rules/scenario/mobile filters, `planChecks` with ownership/selection/registry hooks, blocked-plugin handling, deterministic blocked timestamps, typed errors, and `applyRiskWeights` using per-domain max multipliers with assay-style rounding), exported from `@lemma/core`; `packages/core/test/checks/checks.test.ts` (catalog, intent/applicability, planning/selection/ownership/registry/errors, risk weighting). Test output: `docs/parity/evidence/LEM-014-checks-test-output.txt`. Commit/remote recorded in completion summary.
 
+### LEM-141 — Build the conversational test manager persona
+
+- **Epic:** E13 Conversational Agent Surface
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-086, LEM-091, LEM-094
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Build a "manager" persona that leads the testing session
+  conversationally — plans the run, asks clarifying questions, narrates
+  progress, and explains findings. This persona is the user-facing lead QA
+  voice; specialist personas remain check owners, but the manager persona owns
+  the interaction with the operator. Mirrors CARBON's "Jay" lead.
+- **Acceptance Criteria:**
+  - `packages/personas/manager.md` exists as a valid persona frontmatter
+    contract, parses via `parsePersonaFrontmatter`, passes `lintPersonas`, and
+    owns no checks (ownership fields empty or reserved) so the disjointness
+    invariant (LEM-044) is unchanged.
+  - Manager persona defines conversational responsibilities: session planning,
+    question flow (via LEM-091 context protocol), progress narration (via
+    LEM-094), and final explanation, with a stable output schema for `plan`,
+    `question`, `progress`, and `summary` message types (committed under
+    `schemas/agent/manager-message.v1.json`).
+  - `packages/agent` exposes a manager-orchestration entrypoint (e.g.
+    `ManagerSession`) that wires the manager persona into the bounded agent
+    loop (LEM-086) and routes plan/question/progress/summary events to a
+    host-neutral message sink.
+  - Manager responses are redacted via `@lemma/core/redaction` before being
+    persisted or emitted to the host; failure messages never print original
+    secret values.
+  - Manager session state persists under `.lemma/agent/manager.json` via
+    `@lemma/core/state` and is resumable (LEM-087) with byte-identical replay
+    given the same seed/clock.
+  - Manager output is deterministic: same seed + frozen clock + same assessment
+    produce byte-identical narration text (only documented volatile fields like
+    `generated_at` differ).
+  - Tests cover persona parsing/lint, message routing, redaction, determinism,
+    and resumability.
+- **Verification (planned):** `pnpm --filter @lemma/agent test -- manager`
+- **Evidence (planned):** `packages/personas/manager.md`,
+  `packages/agent/src/manager-session.ts`,
+  `schemas/agent/manager-message.v1.json`, `packages/agent/test/manager/*`,
+  `docs/parity/evidence/LEM-141-manager-test-output.txt`
+
+### LEM-142 — Build portable self-contained HTML report export
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-020
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Build a self-contained HTML report (single file, inline
+  CSS/JS, embedded evidence thumbnails or documented escaped relative links)
+  that renders findings, evidence references, scores, decisions, blockers, and
+  contract health — viewable in any modern browser without the lemma runtime or
+  a running server.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `buildHtmlReport(report, evidenceStore?)` returning a
+    single HTML string that validates as UTF-8 and is under a documented size
+    ceiling for typical runs.
+  - Report renders: findings (severity, id, check, evidence links), blockers,
+    invalid findings, contract health, confidence/decision, coverage, policy
+    result, trend diff (if present), and evidence summary — with the same data
+    as the JSON report.
+  - Evidence references are resolved from `EvidenceStore` to safe inline data
+    URIs (or documented escaped relative hrefs when too large); no absolute
+    paths leak; no secrets leak (redaction applied before embedding).
+  - HTML is deterministic given the same report + evidence; only documented
+    volatile fields vary.
+  - The HTML report is written via `@lemma/core/state` atomic write to a
+    user-specified path (or `<root>/lemma-report.html`); no accidental writes
+    elsewhere.
+  - Tests cover rendering of every section, deterministic output, redaction,
+    evidence embedding/escaping, size ceiling behavior, and refusal to include
+    absolute paths.
+- **Verification (planned):** `pnpm --filter @lemma/core test -- html-report`
+- **Evidence (planned):** `packages/core/src/html-report.ts`,
+  `packages/core/test/html-report/*`,
+  `packages/core/test/html-report/fixtures/sample-report.html`,
+  `docs/parity/evidence/LEM-142-html-report-test-output.txt`
+
+### LEM-143 — Build the local visual evidence dashboard (shell + live investigation view)
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-016, LEM-020, LEM-061
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Build a host-neutral, localhost-only dashboard that serves a
+  live investigation view of the current run: current phase, current check,
+  in-flight evidence, and a rolling feed of completed checks with links into
+  evidence. Serves only on `127.0.0.1` with a per-run token issued at start; no
+  remote serving, no auth bypass.
+- **Acceptance Criteria:**
+  - `@lemma/core/dashboard` (or `@lemma/core` subpath) exports
+    `startDashboard({ stateStore, evidenceStore, report, host: '127.0.0.1', port?: number })`
+    returning a handle `{ url, token, close() }`.
+  - Server binds only to `127.0.0.1`; attempts to bind to `0.0.0.0` fail with a
+    typed `HarnessError`. Every route (including `/healthz`) requires the token
+    in a header or query param and rejects missing/mismatched tokens with
+    `401` and a JSON body only.
+  - Serves a live investigation view: current phase, current check
+    id/title/owner, in-flight evidence refs, rolling completed check feed, and
+    (when present) the report summary. No write endpoints in this task
+    (settings handled by LEM-146).
+  - Reads state exclusively through `StateStore`/`EvidenceStore`; no direct
+    filesystem reads outside those; no writes.
+  - Dashboard is disabled when `LEMMA_DASHBOARD=off` or `--no-dashboard` is
+    passed; explicitly documented in evidence.
+  - Tests: bind-only-127.0.0.1, token required on every route, missing/mismatched
+    token → 401 JSON, live view reflects current progress, safe no-op on missing
+    state.
+- **Verification (planned):** `pnpm --filter @lemma/core test -- dashboard`
+- **Evidence (planned):** `packages/core/src/dashboard.ts`,
+  `packages/core/test/dashboard/dashboard.test.ts`,
+  `docs/adr/0003-local-dashboard-serving-and-token-auth.md`,
+  `docs/parity/evidence/LEM-143-dashboard-test-output.txt`
+
+### LEM-144 — Capture and display screenshots for browser check evidence
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-051, LEM-143
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Ensure every browser check that can capture a screenshot does
+  so, saves it to the evidence store under the check's evidence directory, and
+  surfaces the screenshot in the dashboard and HTML report linked to the exact
+  check and finding.
+- **Acceptance Criteria:**
+  - `packages/browser` captures a full-page screenshot per browser check
+    execution (subject to runtime capability) and persists it to
+    `.lemma/evidence/<run_id>/<check_id>/screenshot-<n>.png` through the
+    `EvidenceStore` API; the returned ref attaches to `CheckOutcome.evidence`
+    and, where applicable, to findings.
+  - Browser-unavailable or blocked runs never fabricate a screenshot — outcome
+    remains `blocked` (per LEM-050) with no screenshot evidence and an explicit
+    blocker.
+  - Dashboard (LEM-143) renders the screenshot thumbnail in the check row and,
+    on click, the full-size screenshot in a panel. Missing evidence files render
+    a clear "evidence unavailable" placeholder, not a broken image.
+  - HTML report (LEM-142) embeds or links screenshots per the same contract;
+    LEM-061 evidence-linkage guarantees hold (every screenshot ref resolves to
+    an existing file).
+  - Redaction: any screenshot containing known secret values (per
+    `@lemma/core/redaction` corpus) is not captured, or the run is marked so the
+    dashboard/report shows a redaction note; policy documented in evidence.
+  - Tests cover capture path, blocked-run behavior, dashboard rendering refs,
+    HTML report refs, and missing-evidence fallback.
+- **Verification (planned):**
+  `pnpm --filter @lemma/browser test -- screenshot && pnpm --filter @lemma/core test -- screenshot-linkage`
+- **Evidence (planned):** `packages/browser/src/checks.ts` (screenshot capture),
+  `packages/core/src/dashboard.ts` (rendering),
+  `packages/core/src/html-report.ts` (embedding),
+  `docs/parity/evidence/LEM-144-screenshot-evidence-test-output.txt`
+
+### LEM-145 — Add Release Brief stakeholder summary
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-020, LEM-143
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Generate a concise stakeholder-facing Release Brief from a
+  completed report: decision, confidence, top findings, blocked coverage, and
+  explicit next steps. Served as a dashboard panel and exportable as a portable
+  artifact (Markdown and/or self-contained HTML), deterministic given the same
+  report.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `buildReleaseBrief(report)` returning a structured
+    object plus rendered Markdown/HTML; both validate against committed schema
+    `lemma.release_brief/v1`.
+  - Release Brief surfaces `decision`, `confidence`, `coverage`,
+    `ship/review/hold` context, top-N findings (N configurable, default 5) with
+    check and severity, all blockers/refusals as explicit coverage gaps, and
+    next-step lines derived deterministically (no LLM-only wording).
+  - Served as a dedicated dashboard route (`/brief`) with the same token policy
+    as LEM-143, and exportable via a documented `@lemma/core` helper
+    (`lemma report --brief` CLI wiring follows once LEM-085 surface is present).
+  - Redaction applied before brief generation and before persistence.
+  - Tests cover schema validation, deterministic output, top-N behavior, blocker
+    inclusion, dashboard rendering, and redaction.
+- **Verification (planned):** `pnpm --filter @lemma/core test -- release-brief`
+- **Evidence (planned):** `packages/core/src/release-brief.ts`,
+  `schemas/release_brief/release_brief.v1.schema.json`,
+  `packages/core/test/release-brief/*`,
+  `docs/parity/evidence/LEM-145-release-brief-test-output.txt`
+
+### LEM-146 — Add interactive settings UI to the dashboard
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-143
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a protected settings page to the dashboard to view and
+  adjust budget (`maxChecks`, time budget), project focus (folder/URL), and
+  analytics preference. Writes go through the same state primitives and the same
+  typed settings contract as `lemma settings` (CLI), keeping a single source of
+  truth.
+- **Acceptance Criteria:**
+  - `@lemma/core` defines a versioned settings schema (`lemma.settings/v1`) with
+    at minimum: `budget.minutes`, `budget.maxChecks`, `focus.project`,
+    `focus.url`, `analytics.enabled`, and `analytics.endpoint` (or documented
+    equivalent).
+  - Dashboard route `GET/POST /settings` is protected by the same token as
+    LEM-143; every write is validated against the schema and rejected with a
+    `400` typed JSON error on invalid input.
+  - Reads/writes go through `@lemma/core/state` primitives (atomic write, typed
+    read) to `.lemma/settings.json`; no ad-hoc file writes; corrupt reads raise
+    typed `StateError`.
+  - Every settings change is appended as a JSONL audit event via `StateStore`
+    (LEM-011) with previous and new values (secrets redacted). The dashboard
+    settings UI never bypasses redaction or audit.
+  - CLI `lemma settings` and the dashboard share the same schema and state file;
+    tests assert round-trip consistency.
+  - Tests: schema validation, dashboard POST/invalid → 400 typed JSON, atomic
+    write, audit event emission, CLI/dashboard parity of the state file.
+- **Verification (planned):** `pnpm --filter @lemma/core test -- settings`
+- **Evidence (planned):** `packages/core/src/settings.ts`,
+  `packages/core/src/dashboard.ts` (settings route),
+  `schemas/settings/settings.v1.schema.json`, `packages/core/test/settings/*`,
+  `docs/parity/evidence/LEM-146-settings-test-output.txt`
+
+### LEM-147 — Build journey map visualization
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-058, LEM-143
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Visualize, in the dashboard, the paths the AI took during
+  testing: routes visited, checks applied per route, outcomes per check, and the
+  resulting evidence. This is CARBON's "Journey Atlas" equivalent, expressed
+  from the deterministic run record (no inference).
+- **Acceptance Criteria:**
+  - `@lemma/core` exports `buildJourneyMap(report, { scenarioPlan?, browserEvidence? })`
+    returning a structured graph (nodes = routes/views; edges = observed
+    navigation/transitions; labels = checks run) validated against
+    `lemma.journey_map/v1`.
+  - Dashboard (LEM-143) renders the map as an accessible graph (SVG or canvas)
+    with a textual fallback: a table of routes → checks → outcomes. Route is
+    token-protected like the rest of the dashboard.
+  - The journey map is derived only from run artifacts (scenario plans per
+    LEM-058 and browser evidence refs); no LLM inference or invented
+    transitions. Determinism: same seed + same run → same graph structure and
+    ordering.
+  - Screenshots (LEM-144) link from each graph node/edge where evidence exists;
+    missing evidence shows the same "unavailable" placeholder as LEM-144.
+  - Tests cover graph construction determinism, schema validation, dashboard
+    rendering (including textual fallback), and consistency with evidence refs.
+- **Verification (planned):**
+  `pnpm --filter @lemma/core test -- journey-map && pnpm --filter @lemma/browser test -- journey-map-links`
+- **Evidence (planned):** `packages/core/src/journey-map.ts`,
+  `packages/core/src/dashboard.ts` (journey map route),
+  `schemas/journey_map/journey_map.v1.schema.json`,
+  `packages/core/test/journey-map/*`,
+  `docs/parity/evidence/LEM-147-journey-map-test-output.txt`
+
+### LEM-148 — Build the dedicated bug-hunting workflow
+
+- **Epic:** E13 Conversational Agent Surface
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-044, LEM-058, LEM-089
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add a first-class bug-hunting workflow (`lemma hunt` /
+  `lemma issues` catalog entry) that drives multi-step user journeys, simulates
+  specialist personas per step, and records sequence-dependent defects with
+  evidence — distinct from the standard five-phase assessment and from generic
+  browser checks.
+- **Acceptance Criteria:**
+  - `@lemma/core` exposes
+    `runBugHunt({ target, scenarioPlan?, personas, maxSteps, seed, clock }, { browserRuntime?, pluginRunner? })`
+    that orchestrates bounded, stateful exploration of a user journey, produces
+    `Finding`/`Blocker` drafts, and returns a `BugHuntResult` with a
+    documented shape in `@lemma/core` types.
+  - Bounded by `maxSteps` (default ≤ 20, configurable) and a wall-clock budget;
+    exceeding either stops cleanly with a `halted` status, not a crash, and
+    yields typed errors consistent with LEM-007.
+  - Personas invoked during hunting are the existing specialist contracts
+    (LEM-043); ownership rules (LEM-044) still hold — a check owned by one
+    persona cannot be evaluated by another, and invalid findings are quarantined
+    per LEM-045.
+  - Every emitted finding carries evidence refs from the run evidence directory;
+    runs with browser unavailable produce `blocked` coverage gaps per LEM-050
+    (never a pass), and blocked steps are recorded as explicit coverage
+    limitations.
+  - Exposed as a catalog command (`lemma hunt`) mapped through LEM-089 intent
+    mapping; agent loop (LEM-086) can drive it; the command's presence and
+    behavior asserted in command-catalog parity (LEM-095) once it lands.
+  - Determinism: same seed + frozen clock + same target/scenario → same
+    findings/ids/evidence fingerprints (modulo documented volatile fields).
+  - Tests cover bounded stop on `maxSteps`/time, blocked-run behavior,
+    persona/ownership invariants, evidence linkage, determinism, and
+    command-catalog wiring.
+- **Verification (planned):**
+  `pnpm --filter @lemma/core test -- bug-hunt && pnpm --filter @lemma/agent test -- bug-hunt`
+- **Evidence (planned):** `packages/core/src/bug-hunt.ts`,
+  `packages/core/src/commands.ts` (catalog entry),
+  `packages/core/test/bug-hunt/*`, `packages/agent/test/bug-hunt/*`,
+  `docs/parity/evidence/LEM-148-bug-hunt-test-output.txt`
+
+### LEM-149 — Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints)
+
+- **Epic:** E14 Visual Evidence and Reporting Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-053, LEM-055
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Extend the browser accessibility check beyond structural
+  markup: verify keyboard traversal order for interactive elements, evaluate
+  live contrast ratios against WCAG AA thresholds in the rendered DOM, and
+  produce screen-reader compatibility hints (ARIA role/name/state sanity). All
+  results are evidence-backed; blocked-runtime runs remain `blocked`.
+- **Acceptance Criteria:**
+  - Keyboard traversal: `browser.accessibility` includes a bounded tab-traversal
+    evaluation (max N focusable elements, default 50) that records the observed
+    focus order, flags unreachable or trap-prone regions, and cites the DOM
+    sequence as structured metadata and a screenshot evidence ref (via LEM-144).
+  - Live contrast: samples foreground/background color pairs of visible text
+    nodes and reports violations against WCAG AA thresholds (normal and large
+    text); findings include the computed ratio, WCAG level (AA/AAA), and
+    evidence refs (screenshot + structured JSON via `context.saveJson`-style
+    evidence).
+  - Screen-reader hints: reports missing or contradictory accessible names
+    (role/name/state), duplicate landmarks, and interactive elements without an
+    accessible name; the check does not fabricate screen-reader output — it
+    reports contract violations and a `manual_review_required` list, consistent
+    with LEM-053.
+  - Blocked-runtime behavior: with Playwright unavailable, extended checks
+    degrade to `blocked` (per LEM-050) with explicit coverage notes; never a
+    pass.
+  - Determinism: same target and viewport produce the same set of findings
+    (modulo documented volatile fields); evidence artifact names are stable.
+  - Tests cover keyboard traversal scenarios (happy path, trap, unreachable),
+    contrast scenarios (pass, fail-AA, fail-large-text), screen-reader hint
+    coverage, blocked-runtime behavior, and determinism.
+- **Verification (planned):**
+  `pnpm --filter @lemma/browser test -- accessibility-dynamic`
+- **Evidence (planned):** `packages/browser/src/checks.ts` (extended a11y
+  evaluators), `packages/browser/test/accessibility-dynamic/*`,
+  `docs/parity/evidence/LEM-149-dynamic-a11y-test-output.txt`
+
+### LEM-150 — Build the background quick-check supervisor
+
+- **Epic:** E13 Conversational Agent Surface
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-084, LEM-086
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add an optional background supervisor that runs bounded,
+  lightweight quick checks while the developer works, with pause/review/disable
+  controls. Disabled by default; global off switch (`LEMMA_BACKGROUND=off`);
+  every background run writes only to `.lemma/background/` so foreground state
+  is never perturbed.
+- **Acceptance Criteria:**
+  - `@lemma/core` exports
+    `startBackgroundSupervisor({ stateStore, settings, maxConcurrent?, budget })`
+    returning `{ pause(), resume(), status(), stop() }`; supervisor is a no-op
+    and exits cleanly when `settings.background.enabled === false` (default) or
+    env `LEMMA_BACKGROUND=off`.
+  - Supervisor schedules at most `maxConcurrent` (default 1) lightweight checks
+    (documented allowlist — static checks and non-browser quick checks only;
+    browser checks excluded by default with explicit opt-in) at a bounded
+    interval; every check is bounded by a wall-clock budget and cannot starve
+    the foreground.
+  - All background state, evidence, and logs write only under
+    `.lemma/background/`; supervisor never writes into `.lemma/state/`,
+    `.lemma/events.jsonl`, `.lemma/history.json`, or the foreground run's
+    evidence directory — verified by a test that runs a foreground assessment
+    concurrently and asserts byte-identical foreground artifacts.
+  - Pause/resume/status/stop are reflected in a JSONL event stream under
+    `.lemma/background/events.jsonl` (via `StateStore` event path scoped to
+    background) and queryable from the CLI.
+  - Background checks are bounded, deterministic-when-seeded, and never produce
+    findings that leak into the foreground report. Background findings appear
+    only in a background-specific summary that the CLI surfaces under
+    `lemma status --background` (documented).
+  - Kill file (LEM-011) is honored: a global kill stops background work within
+    one interval; a background-specific kill file stops only background work.
+  - Tests: default-off behavior, env-off behavior, concurrency limit,
+    foreground-isolation byte-identical check, event stream, kill file
+    semantics, and a bounded-time test asserting no starvation.
+- **Verification (planned):**
+  `pnpm --filter @lemma/core test -- background-supervisor && pnpm --filter @lemma/cli test -- background`
+- **Evidence (planned):** `packages/core/src/background-supervisor.ts`,
+  `packages/cli/src/background.ts`,
+  `packages/core/test/background-supervisor/*`,
+  `packages/cli/test/background/*`,
+  `docs/parity/evidence/LEM-150-background-supervisor-test-output.txt`
+
+### LEM-151 — Build the native MCP server exposing testing tools
+
+- **Epic:** E15 MCP Tool Server
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-083, LEM-086, LEM-098
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Ship a first-class MCP (Model Context Protocol) server that
+  exposes lemma's testing tools to any MCP-compatible coding agent. Distinct
+  from adapter-level bridges; adapters may still use the SDK (LEM-098), but the
+  MCP server is a standalone transport any MCP client can speak to.
+- **Acceptance Criteria:**
+  - A standalone MCP server entrypoint ships in `@lemma/core/mcp` (or a
+    dedicated `@lemma/mcp` package if the architecture ADR is amended) exposing
+    at minimum `lemma_start`, `lemma_update`, `lemma_report`, `lemma_settings`,
+    `lemma_demo`, `lemma_knowledge`, with JSON-Schema-described inputs/outputs
+    committed under `schemas/mcp/`.
+  - Server speaks the current MCP transport (stdio and/or streamable HTTP) and
+    conforms to the MCP spec version pinned in the ADR; conformance validated by
+    a repo-owned MCP client fixture that exercises every tool.
+  - Every tool call routes through `@lemma/core` public APIs only (no direct
+    imports of adapter packages); errors are `HarnessError`-shaped and never
+    leak stack traces; stdout is JSON-RPC only.
+  - Tool calls are redaction-safe: arguments and results pass through
+    `@lemma/core/redaction` before being logged; any tool that writes to disk
+    uses `@lemma/core/state` atomic writes and never escapes `.lemma/`.
+  - Deterministic when seeded: `lemma_start` accepts `seed` and `clock` and
+    produces byte-identical run artifacts for repeated seeded calls (subject to
+    the same volatile-field contract as the CLI).
+  - Adapter packages that previously used an "MCP bridge" (Cursor adapter per
+    README) migrate to the native server or document why not; a smoke test
+    asserts the Cursor adapter can talk to the native server.
+  - Tests: MCP client fixture per tool, JSON-RPC framing, redaction of
+    args/results, no-import-of-adapters dependency-direction assertion,
+    determinism, and adapter compatibility.
+- **Verification (planned):**
+  `pnpm --filter @lemma/core test -- mcp && pnpm --filter @lemma/adapters-cursor test -- mcp-smoke`
+- **Evidence (planned):** `packages/core/src/mcp/*`,
+  `packages/core/src/mcp/index.ts`, `schemas/mcp/**`,
+  `packages/core/test/mcp/*`,
+  `packages/adapters/cursor/test/mcp-smoke/*`,
+  `docs/adr/0004-native-mcp-server-and-transport.md`,
+  `docs/parity/evidence/LEM-151-mcp-test-output.txt`
+
+### LEM-152 — Add optional anonymous usage analytics with opt-out
+
+- **Epic:** E16 Commercial and UX Extras
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-083
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Add optional, anonymous usage analytics with a clear opt-out
+  and no code/prompt/personal data. Enabled-by-default behavior is a policy
+  decision recorded in the ADR; the board does not assume it. Analytics must
+  never block, slow, or fail a run.
+- **Acceptance Criteria:**
+  - An ADR (`docs/adr/0005-analytics-default-and-endpoint.md`) records whether
+    analytics defaults on or off, the endpoint, the exact event payload schema,
+    and the privacy review.
+  - `@lemma/core` exports `analytics.recordEvent(name, props?)` that: (a) is a
+    no-op when disabled via settings `analytics.enabled=false` or env
+    `LEMMA_ANALYTICS=off`; (b) validates the event name against an allowlist and
+    rejects unknown names with a typed error; (c) strips properties not on a
+    documented allowlist (no prompts, no code, no paths outside repo root, no
+    ids beyond a per-install random UUID stored in `.lemma/analytics-install-id`).
+  - Events are buffered and flushed asynchronously with a hard timeout; a
+    network failure never fails the run and never appears in stdout; diagnostics
+    go to stderr.
+  - Dashboard settings UI (LEM-146) exposes an `analytics.enabled` toggle wired
+    to the same state; toggling is recorded as a JSONL audit event via
+    `StateStore`.
+  - Tests cover: default per ADR, disabled-by-env, disabled-by-settings,
+    unknown-event rejection, allowlist stripping (assert no forbidden fields
+    reach the transport), async timeout does not affect the run, audit event on
+    toggle.
+- **Verification (planned):** `pnpm --filter @lemma/core test -- analytics`
+- **Evidence (planned):** `packages/core/src/analytics.ts`,
+  `packages/core/test/analytics/*`,
+  `docs/adr/0005-analytics-default-and-endpoint.md`,
+  `docs/parity/evidence/LEM-152-analytics-test-output.txt`
+
+### LEM-153 — Build the user-facing demo project generator (`lemma demo`)
+
+- **Epic:** E13 Conversational Agent Surface
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-038, LEM-083
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** A user-facing `lemma demo` command that generates a
+  disposable, intentionally flawed sample project so new users can try lemma
+  end-to-end without using their own code. The generated project must be clearly
+  marked test-only, safely scoped, and never deployable.
+- **Acceptance Criteria:**
+  - `lemma demo` (CLI, mapped via LEM-083/LEM-089) generates a demo project into
+    a user-specified directory (default `./lemma-demo`), refusing to overwrite a
+    non-empty directory unless `--force` is passed with a confirmation prompt or
+    explicit `--yes`.
+  - Generated project includes: a `README.md` with the "this is a test-only
+    demo, do not deploy" warning at the top; a `.lemma-demo` marker file so
+    tooling can detect it; a `NOT-FOR-DEPLOYMENT` file; and a small web app with
+    documented intentional flaws (missing alt text, an exposed secret-shaped
+    string that lemma's secret scan should flag, one broken link) that exercise
+    the default catalog.
+  - Command is idempotent given the same target and seed; on re-run into an
+    existing demo-marker directory, it either refuses or regenerates
+    deterministically (per a documented policy).
+  - Running `lemma run` against the generated demo (with browser unavailable)
+    produces a blocked-but-informative report that exercises static checks; with
+    browser available, browser checks run and produce evidence. A test asserts
+    the demo is usable end-to-end.
+  - Demo generator never writes outside its target directory and never mutates
+    existing user files.
+  - Tests: generation, marker files, refusal on non-empty without `--force`,
+    idempotence, end-to-end `lemma run` against the generated demo, and no
+    writes outside target.
+- **Verification (planned):**
+  `pnpm --filter @lemma/cli test -- demo && pnpm --filter @lemma/core test -- demo-fixture`
+- **Evidence (planned):** `packages/cli/src/demo.ts`,
+  `packages/cli/test/demo/*`, `packages/core/test/demo-fixture/*`,
+  `docs/parity/evidence/LEM-153-demo-test-output.txt`
+
+### LEM-154 — Verify and complete the in-chat slash-command interface
+
+- **Epic:** E13 Conversational Agent Surface
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-089, LEM-091, LEM-106
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** Ensure the agent loop natively understands and responds to
+  slash commands inside the AI chat (`/lemma`, `/lemma-test`, `/lemma-issues`,
+  `/lemma-accessibility`, `/lemma-map`, `/lemma-help`, `/lemma-settings`,
+  `/jay`, `/full`, `/lemma-background`, `/lemma-pro`), mapping each to a catalog
+  entry (LEM-089), a manager-persona flow (LEM-141, LEM-091), and — where
+  applicable — a dashboard route (LEM-143–LEM-147). Adapters (LEM-101/102) rely
+  on this host-neutral contract.
+- **Acceptance Criteria:**
+  - `@lemma/agent` defines a host-neutral `SlashCommandRouter` that, given a raw
+    chat message, recognizes slash commands from a documented, versioned
+    command catalog (`schemas/agent/slash-commands.v1.json`) and returns a typed
+    routing decision (command id, arguments, target: `manager` | `catalog` |
+    `dashboard` | `unknown`).
+  - Catalog includes at minimum `/lemma`, `/lemma-test`, `/lemma-issues`,
+    `/lemma-accessibility`, `/lemma-map`, `/lemma-help`, `/lemma-settings`,
+    `/jay`, `/full`, `/lemma-background`, `/lemma-pro`; each maps to a specific
+    intent (LEM-089 entry, LEM-141 manager flow, and/or LEM-143+ dashboard
+    route) with documented arguments and error cases.
+  - Unknown slash commands produce a typed "unknown command" response with a
+    helpful hint list from `lemma-help` — never silent failures, never
+    fabricated execution.
+  - Slash-command invocations flow through the manager persona (LEM-141) and its
+    narration; commands that open the dashboard (e.g. `/lemma-map`) return the
+    token-protected URL via the manager, never the token itself in the visible
+    transcript (token surfaced only to the host's UI channel where supported).
+  - Router is redaction-safe: argument echoing and error messages pass through
+    `@lemma/core/redaction`.
+  - Tests: router coverage of every documented command, argument parsing,
+    unknown-command behavior, manager-flow integration, dashboard-route
+    integration (mock), redaction, and agent-loop (LEM-086) honoring router
+    decisions.
+- **Verification (planned):**
+  `pnpm --filter @lemma/agent test -- slash-commands && pnpm --filter @lemma/core test -- slash-command-catalog`
+- **Evidence (planned):** `packages/agent/src/slash-commands.ts`,
+  `schemas/agent/slash-commands.v1.json`,
+  `packages/agent/test/slash-commands/*`,
+  `docs/parity/evidence/LEM-154-slash-commands-test-output.txt`
+
+### LEM-155 — Add Pro edition navigation and informational page
+
+- **Epic:** E16 Commercial and UX Extras
+- **Priority:** P3
+- **Points:** 2
+- **Depends on:** LEM-143
+- **Status:** Backlog
+- **Claimed:** —
+- **Description:** A short in-product affordance that opens an informational
+  page describing the Pro edition (feature list, pricing summary, learn-more
+  link). No checkout, no telemetry, no account requirement. Purely a navigation
+  page.
+- **Acceptance Criteria:**
+  - Dashboard (LEM-143) exposes a token-protected `/pro` route that renders a
+    static, self-contained informational page (inline CSS, no external scripts)
+    describing Pro edition features, a pricing summary, and a learn-more link;
+    no external calls, no cookies beyond the auth token.
+  - `/lemma-pro` slash command (mapped via LEM-154) routes to this dashboard page
+    when the dashboard is running; when the dashboard is off, it returns a
+    static text summary with the same learn-more link, so it is useful in
+    CLI/agent-only contexts.
+  - The page explicitly states it is informational and does not start a
+    checkout, does not collect data, and does not require an account —
+    consistent with the privacy-first posture.
+  - Tests: `/pro` route requires token, renders expected section markers, has no
+    external `<script>`/`<link>`/`<img>` tags, and `/lemma-pro` returns the
+    right summary in both dashboard-on and dashboard-off modes.
+- **Verification (planned):**
+  `pnpm --filter @lemma/core test -- pro-page && pnpm --filter @lemma/agent test -- pro-command`
+- **Evidence (planned):** `packages/core/src/dashboard.ts` (pro route),
+  `packages/agent/src/slash-commands.ts` (pro command),
+  `packages/core/test/pro-page/*`, `packages/agent/test/pro-command/*`,
+  `docs/parity/evidence/LEM-155-pro-page-test-output.txt`
+
 ---
 
 ## Blockers
@@ -725,6 +1391,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | No Chromium is guaranteed in the local environment. | Browser parity runs may be `blocked` locally. | Add the browser CI leg in `LEM-133`; until then record blocked coverage, never a pass. |
 | No labeled historical release corpus is available. | Calibration can reproduce assay fixtures but cannot claim empirical validity. | Port assay's 14 fixtures now; curate real labeled releases before making a calibration claim. |
 | assay is still the oracle and will keep changing. | Parity can drift during migration. | Pin the assay commit in `LEM-002`/`LEM-005`; re-baseline deliberately and record the new commit. |
+| No local web server/token-auth pattern exists yet for the dashboard. | LEM-143–LEM-147 cannot ship until the serving pattern is chosen and reviewed. | Spike a localhost-only, token-protected static server during LEM-143; record the decision in `docs/adr/`. |
 
 ## Decision Log
 
@@ -744,6 +1411,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL12 | 2026-11-15 | The functional persona frontmatter owns the 52 lemma-only `static.category.<label>` scope markers; catalog definitions keep `persona: ""`. | LEM-037 added intent-gated documented-no-op category scope checks that assay's 24-check catalog does not have. Frontmatter must remain the only ownership source (D16), and every check must have exactly one owner, so the generalist functional contract declares the scope markers while the three assay bodies/schemas stay unchanged. | Move scope markers out of the persona-owned catalog if a distinct planner-owned scope record contract replaces them. |
 | DL13 | 2026-11-15 | Finding payload extraction, schema validation, quarantine, and contract-health accounting live in `@lemma/core/findings`, not in the orchestrator. | The orchestrator is a phase/state machine with host-neutral handlers; keeping the quarantine rules in a pure module lets the future CLI/agent execution path reuse them and keeps the deterministic behavior testable without a plugin loader. The package graph is unchanged. | Fold the module into `models` or `orchestrator` only if the execution loop becomes the sole caller. |
 | DL14 | 2026-11-15 | Check outcome application and structured blocker/refusal records live in `@lemma/core/outcomes` (and the `@lemma/core/outcomes` subpath), reusing `findings` for non-blocked finding validation. | Blocker recording is a deterministic contract (one per check, no findings, redaction, schema validation) shared by future CLI/agent/plugin execution paths; a dedicated module keeps refusal semantics testable and host-neutral. | Merge into `findings` if outcome/finding/refusal responsibilities converge. |
+| DL15 | 2026-11-15 | The CARBON-parity UX work is a new gate (G2.5) inside the delivery phases, not a post-1.0 addendum. | "Lemma as good as CARBON" requires the conversational manager, dashboard, HTML export, screenshots, journey maps, bug-hunting workflow, and dynamic a11y to ship alongside the deterministic core — otherwise lemma matches assay, not CARBON. | Re-scope into a separate product line only if UX scope pressure threatens the deterministic-core release date. |
+| DL16 | 2026-11-15 | The dashboard runs locally on `127.0.0.1` with token auth and no remote dependency. | The privacy-first, local-first posture must extend to visual reporting; a remote host would contradict DL8 and the assay privacy model. | Move to a hosted dashboard only if a customer explicitly requires it and privacy review signs off. |
 
 ## Done
 
@@ -1417,6 +2086,43 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 17 tests).
 - **Evidence:** `packages/agent/src/catalog.ts`, `packages/agent/src/index.ts` (exports catalog/intent/mapping helpers and types), `packages/agent/test/catalog.test.ts`, `docs/parity/evidence/LEM-089-catalog-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Exports `ASSAY_COMMAND_CATALOG` (59 entries, assay order), `getAssayCommand`, `assayIntent` (`Assay <label> assessment`), `getCatalogCommandKind`, and `buildCatalogInvocation` mapping browser→builder-backed URL-required live semantics, demo→static inventory/live-by-URL, others→deterministic static `run --target . --no-browser` with intent.
+
+### LEM-090 — Port the browser agent prompt and invariants
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-088
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/browser-agent-prompt.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port the host-neutral browser agent prompt and invariants
+  (context-gathering UX contract and browser assessment instructions) for use
+  by adapters/agent flows without importing host SDKs.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports browser prompt primitives ported from assay
+    semantics: `shellQuote`, `CONTEXT_PROTOCOL`, and `buildBrowserAgentPrompt`
+    (with typed input for URL/args/project directory/repo root/python and
+    SSRF allowlist or equivalent fields).
+  - `CONTEXT_PROTOCOL` preserves the native question-tool context gathering
+    contract and invariants (sequential source/method/collect/identifier/
+    confirm/record flow, Skip/Paste/MCP/Secure env-secret ref options, Jira
+    native form path via `assay_jira_context` with in-memory token handling and
+    no raw-secret prompting/persistence/echo, no placeholder shell waits/stdin
+    blocking/prose-only context requests, and explicit blocker/gap handling when
+    question tool is unavailable).
+  - `buildBrowserAgentPrompt` embeds target/command/environment context and the
+    browser assessment invariants (deterministic harness-owned execution/
+    evidence/scoring and fixed phase order, JSON run report as source of truth,
+    hashed `.harness/` evidence, no repeated commands, secrets/credential
+    handling, testing-environment/scenario behavior, scope limits) and includes
+    `CONTEXT_PROTOCOL` and the iteration flow.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/browser-agent-prompt.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/browser-agent-prompt.test.ts packages/agent/test/catalog.test.ts packages/agent/test/command-args.test.ts packages/agent/test/agent-loop.test.ts packages/agent/test/agent-state.test.ts` (pass, 21 tests).
+- **Evidence:** `packages/agent/src/browser-agent-prompt.ts`, `packages/agent/src/index.ts` (exports prompt primitives/types), `packages/agent/test/browser-agent-prompt.test.ts`, `docs/parity/evidence/LEM-090-browser-agent-prompt-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Ports `shellQuote`, `CONTEXT_PROTOCOL` (native question-tool UX, Jira form/`assay_jira_context`, Skip/Paste/MCP/Secure env-secret ref, no placeholder waits/raw-secret handling, blocker/gap fallback), and `buildBrowserAgentPrompt` embedding target/command/env, browser invariants (deterministic harness-owned execution/evidence/scoring, fixed phases, JSON run report, hashed evidence, no repeats, secrets/testing-environment/scenario/scope rules), context protocol, and iteration flow.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

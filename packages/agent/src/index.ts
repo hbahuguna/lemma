@@ -34,6 +34,9 @@ export {
 } from "./catalog.js";
 export type { AssayCommand, CatalogCommandKind, CatalogInvocationResult } from "./catalog.js";
 
+export { CONTEXT_PROTOCOL, buildBrowserAgentPrompt, shellQuote } from "./browser-agent-prompt.js";
+export type { BrowserAgentPromptInput } from "./browser-agent-prompt.js";
+
 export interface HarnessInvocation {
   args: string[];
   env?: Record<string, string | undefined>;
