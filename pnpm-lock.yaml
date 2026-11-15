@@ -69,6 +69,8 @@ importers:
         specifier: workspace:*
         version: link:../../agent
 
+  packages/adapters/sdk: {}
+
   packages/agent:
     dependencies:
       '@lemma/core':

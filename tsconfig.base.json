@@ -35,7 +35,8 @@
       "@lemma/adapters-claude-code": ["packages/adapters/claude-code/src/index.ts"],
       "@lemma/adapters-codex": ["packages/adapters/codex/src/index.ts"],
       "@lemma/adapters-antigravity": ["packages/adapters/antigravity/src/index.ts"],
-      "@lemma/adapters-cursor": ["packages/adapters/cursor/src/index.ts"]
+      "@lemma/adapters-cursor": ["packages/adapters/cursor/src/index.ts"],
+      "@lemma/adapters-sdk": ["packages/adapters/sdk/src/index.ts"]
     }
   }
 }

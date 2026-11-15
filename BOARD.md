@@ -274,7 +274,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-094 | Port progress, run summaries, and final narrative | P1 | 3 | LEM-086 | Done |
 | LEM-095 | Build command-builder and catalog parity tests | P1 | 5 | LEM-086, LEM-088, LEM-089 | Done |
 | LEM-096 | Build agent-loop and prompt-contract tests | P1 | 3 | LEM-090, LEM-091 | Done |
-| LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | In Progress |
+| LEM-097 | Publish CLI and agent behavior docs | P2 | 3 | LEM-083, LEM-086 | Done |
 
 ### E9: Adapter SDK and Host Integrations
 
@@ -283,7 +283,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-098 | Implement the shared `AgentHost` adapter SDK | P0 | 5 | LEM-003, LEM-083 | Backlog |
+| LEM-098 | Implement the shared `AgentHost` adapter SDK | P0 | 5 | LEM-003, LEM-083 | Done |
 | LEM-099 | Implement capability negotiation and graceful degradation | P0 | 5 | LEM-098 | Backlog |
 | LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Backlog |
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Backlog |
@@ -4263,6 +4263,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - `test -f docs/cli-and-agent.md && rg -n "^## CLI behavior$|^## Command surface$|^## Agent loop$|^## Context protocol and question flow$|^## Command catalog and builders$|^## Progress and final narrative$" docs/cli-and-agent.md` passes in this environment.
 - **Verification:** `test -f docs/cli-and-agent.md && rg -n "^## CLI behavior$|^## Command surface$|^## Agent loop$|^## Context protocol and question flow$|^## Command catalog and builders$|^## Progress and final narrative$" docs/cli-and-agent.md` (pass).
 - **Evidence:** `docs/cli-and-agent.md`, `docs/parity/evidence/LEM-097-cli-agent-docs-test-output.txt`, updated `BOARD.md`.
+
+### LEM-098 — Implement the shared `AgentHost` adapter SDK
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-003, LEM-083
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Provide a shared, host-neutral adapter SDK that defines the
+  canonical `AgentHost` contract, capability manifest, and host/command/tool/
+  context/request types so host adapters can be implemented without duplicating
+  product logic or importing host SDKs into core/agent.
+- **Acceptance Criteria:**
+  - `packages/adapters/sdk` exists as workspace package `@lemma/adapters-sdk`
+    (ESM, Node >= 20, build/typecheck scripts consistent with repo conventions)
+    and exports the shared adapter contract from `src/index.ts` (and `dist`):
+    host ids `opencode|claude-code|codex|antigravity|cursor`, `HostCapabilities`,
+    `CommandDescriptor` (including intent/allowed subcommands/mode and argument
+    spec as needed), `ToolDescriptor`, `QuestionRequest`/`QuestionAnswer`,
+    `FormRequest`/`FormAnswer` (or equivalent nullable-capability types),
+    `McpResource`, `SessionContext`, `SecretRef`, and `AgentHost` with
+    `id`/`capabilities`, `registerCommands`, `registerTools`, `sendProgress`,
+    `sendFinal`, `askQuestion`, optional `collectForm`/`listMcpResources`/
+    `resolveSecret`, and `getSession` as specified in `docs/architecture.md`.
+  - The SDK is host-neutral and dependency-light (no host SDK imports, no core
+    product logic/scoring/phase behavior); it may provide minimal runtime
+    helpers/constants (e.g. default capability shape, host id list/type guards)
+    needed by adapters/conformance work without adding forbidden dependencies.
+  - `packages/adapters/sdk/test/agent-host-sdk.test.ts` provides contract-level
+    coverage: exported types/interfaces are usable by a minimal in-test fake host
+    implementation, required capability/descriptor fields are represented, and
+    optional capabilities are correctly modeled.
+  - Workspace/tooling is wired so the package can be built and tested in-repo
+    (tsconfig/vitest alias/path updates as required by local conventions), and
+    `pnpm --filter @lemma/adapters-sdk typecheck`,
+    `pnpm --filter @lemma/adapters-sdk build`, and
+    `pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-sdk typecheck && pnpm --filter @lemma/adapters-sdk build && pnpm exec vitest run packages/adapters/sdk/test/agent-host-sdk.test.ts` (pass).
+- **Evidence:** `packages/adapters/sdk/package.json`, `packages/adapters/sdk/tsconfig.json`, `packages/adapters/sdk/src/index.ts`, `packages/adapters/sdk/test/agent-host-sdk.test.ts`, `packages/adapters/sdk/dist/*`, `tsconfig.base.json`, `vitest.config.ts`, `docs/parity/evidence/LEM-098-adapter-sdk-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

@@ -33,6 +33,10 @@ export default defineConfig({
         find: "@lemma/adapters-cursor",
         replacement: fromRoot("./packages/adapters/cursor/src/index.ts"),
       },
+      {
+        find: "@lemma/adapters-sdk",
+        replacement: fromRoot("./packages/adapters/sdk/src/index.ts"),
+      },
     ],
   },
   test: {
