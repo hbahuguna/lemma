@@ -181,7 +181,7 @@ scan wearing a browser label.
 | --- | --- | --- | --- | --- | --- |
 | LEM-050 | Add the optional Playwright runtime and blocked degradation | P0 | 5 | LEM-013 | Done |
 | LEM-051 | Port load, console, network, content, and link checks | P0 | 8 | LEM-050 | Done |
-| LEM-052 | Port the browser security check | P1 | 3 | LEM-050 | Backlog |
+| LEM-052 | Port the browser security check | P1 | 3 | LEM-050 | Done |
 | LEM-053 | Port the browser accessibility check | P1 | 3 | LEM-050 | Backlog |
 | LEM-054 | Port the bounded same-origin crawl | P1 | 8 | LEM-051 | Backlog |
 | LEM-055 | Port the responsive/mobile pack (overflow, focus order) | P1 | 5 | LEM-051 | Backlog |
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-052** — Port the browser security check (2026-11-15). Evidence: `packages/browser/src/checks.ts` (`browser.security` evaluator: HTTPS/transport, baseline headers with HSTS/CSP-or-report-only/frame-ancestors/Referrer-Policy, mixed content/insecure forms, weak session-like cookies, runtime integration), `packages/browser/test/browser-security.test.ts`, `docs/parity/evidence/LEM-052-browser-security-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-security.test.ts`, 6/6; browser suite 17/17); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-051** — Port load, console, network, content, and link checks (2026-11-15). Evidence: `packages/browser/src/checks.ts` and `packages/browser/src/runtime.ts` (assay-parity evaluators for `browser.load`/`browser.console`/`browser.network`/`browser.content`/`browser.links`, navigation-failure blocking, implemented-vs-unsupported runtime integration with injected/captured views), `packages/browser/test/browser-checks.test.ts`, `docs/parity/evidence/LEM-051-browser-checks-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-checks.test.ts`, 8/8; runtime regression 3/3); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-050** — Add the optional Playwright runtime and blocked degradation (2026-11-15). Evidence: `packages/browser/src/runtime.ts` and `packages/browser/src/index.ts` (optional Playwright probe/load, `BrowserUnavailableError`, `runBrowserChecks`/`degradeBrowserChecks`/`blockedBrowserOutcome` emitting one blocked outcome+blocker per browser check with no findings when runtime unavailable/disabled), `packages/browser/test/browser-runtime.test.ts`, `docs/parity/evidence/LEM-050-browser-runtime-test-output.txt` (`pnpm exec vitest run packages/browser/test/browser-runtime.test.ts`, 3/3); `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass. Commit/remote recorded in completion summary.
 - **LEM-049** — Port tool capability enforcement and persona conformance tests (2026-11-15). Evidence: `packages/core/src/personas.ts` (`TOOL_CAPABILITY_PATTERN`, `validatePersonaToolCapabilities`, load-time enforcement), `packages/core/test/persona-conformance/persona-conformance.test.ts`, `docs/parity/evidence/LEM-049-persona-conformance-test-output.txt` (`pnpm --filter @lemma/core test persona-conformance`, 5/5); shipped specialists conform to schema/tool/ownership/catalog invariants under lemma's full 76-check catalog. Commit/remote recorded in completion summary.
@@ -799,7 +800,55 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
 
+### LEM-052 — Port the browser security check
+
+- **Epic:** E5 Browser and Operate Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-050
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/browser/test/browser-security.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm exec vitest run packages/browser/test/browser-security.test.ts` 6/6 and full browser suite 17/17, plus `pnpm --filter @lemma/browser typecheck/build` and `pnpm lint` pass.
+- **Description:** Port the `browser.security` check from assay into
+  `@lemma/browser`. The evaluator must assess live-response security posture from
+  captured navigation headers/cookies and snapshot resources, producing
+  assay-parity findings and summaries, and be executable through the browser
+  runtime when available.
+- **Acceptance Criteria:**
+  - `@lemma/browser` implements an assay-parity evaluator for `browser.security`
+    over captured observations (navigation final URL/status context, response
+    headers, snapshot scripts/links/forms, and cookies/evidence refs) covering:
+    - plain HTTP target finding when final URL is not HTTPS;
+    - missing baseline security headers finding (HSTS required on HTTPS;
+      Content-Security-Policy or report-only accepted; X-Content-Type-Options;
+      frame protection via `X-Frame-Options` or `frame-ancestors` in CSP;
+      Referrer-Policy) with correct title/list and severity/domain/strength/tags;
+    - mixed/insecure content finding on HTTPS pages when snapshot scripts,
+      links, or form actions use `http://`;
+    - insecure form submission finding for `http://` form actions;
+    - weak session-like cookie finding when cookie names suggest session/auth/
+      token/jwt and lack Secure or HttpOnly flags (location lists affected
+      cookie names);
+    - `actual` summary formatted as `HTTPS={bool}; missing headers: {list|none}; mixed content: {count}; weak cookies: {count}` and passed status only when no findings.
+  - Evaluator is exported/testable without launching Playwright and respects
+    navigation-failure blocking for non-load checks consistent with runner
+    behavior. `IMPLEMENTED_BROWSER_CHECKS`/runtime integration include
+    `browser.security` so it is no longer degraded as "not implemented in this
+    slice" when runtime/observations are available.
+  - Tests at `packages/browser/test/browser-security.test.ts` cover pass and key
+    finding cases (HTTP target, missing headers, mixed content/insecure forms,
+    weak cookies) and runtime integration from injected observations. Existing
+    browser tests continue to pass.
+  - Parity inventory `harness/browser.py` row updated for the LEM-052 browser
+    security evaluator slice with evidence
+    `docs/parity/evidence/LEM-052-browser-security-test-output.txt`.
+  - `pnpm --filter @lemma/browser typecheck`, `pnpm --filter @lemma/browser build`,
+    `pnpm lint`, and `pnpm exec vitest run packages/browser/test/browser-security.test.ts` pass.
+- **Verification:** `pnpm exec vitest run packages/browser/test/browser-security.test.ts`
+- **Evidence:** `packages/browser/src/checks.ts`, `packages/browser/test/browser-security.test.ts`, `docs/parity/evidence/LEM-052-browser-security-test-output.txt`; parity inventory `harness/browser.py` updated (LEM-052 browser.security slice). Commit/remote recorded in completion summary.
+
 ### LEM-051 — Port load, console, network, content, and link checks
+
 
 - **Epic:** E5 Browser and Operate Layer
 - **Priority:** P0

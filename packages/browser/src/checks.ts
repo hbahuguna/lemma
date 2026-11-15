@@ -32,6 +32,7 @@ export const IMPLEMENTED_BROWSER_CHECKS = new Set([
   "browser.network",
   "browser.content",
   "browser.links",
+  "browser.security",
 ]);
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -310,6 +311,145 @@ function evalContent(view: BrowserPageView, navigation: BrowserNavigationResult)
   return outcome;
 }
 
+function mixedContentUrls(snapshot: Record<string, unknown>, isHttps: boolean): string[] {
+  if (!isHttps) return [];
+  const urls: string[] = [];
+  for (const script of asArray(snapshot.scripts)) {
+    const value = typeof script === "string" ? script : asString(asRecord(script).src ?? asRecord(script).url ?? script);
+    if (value.toLowerCase().startsWith("http://")) urls.push(value);
+  }
+  for (const link of asArray(snapshot.links).map(asRecord)) {
+    const href = asString(link.href);
+    if (href.toLowerCase().startsWith("http://")) urls.push(href);
+  }
+  for (const form of asArray(snapshot.forms).map(asRecord)) {
+    const action = asString(form.action);
+    if (action.toLowerCase().startsWith("http://")) urls.push(action);
+  }
+  return urls.slice(0, 20);
+}
+
+function evalSecurity(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
+  const outcome = baseOutcome(view);
+  const finalUrl = navigation.finalUrl || navigation.url;
+  const isHttps = finalUrl.toLowerCase().startsWith("https://");
+  const headers = navigation.headers ?? {};
+  const snapshot = view.snapshot ?? {};
+  const cookies = view.cookies ?? [];
+
+  const missing: string[] = [];
+  if (isHttps && !("strict-transport-security" in headers)) {
+    missing.push("Strict-Transport-Security");
+  }
+  if (!("content-security-policy" in headers) && !("content-security-policy-report-only" in headers)) {
+    missing.push("Content-Security-Policy");
+  }
+  if (!("x-content-type-options" in headers)) {
+    missing.push("X-Content-Type-Options");
+  }
+  if (
+    !("x-frame-options" in headers) &&
+    !asString(headers["content-security-policy"]).includes("frame-ancestors")
+  ) {
+    missing.push("frame protection (X-Frame-Options or CSP frame-ancestors)");
+  }
+  if (!("referrer-policy" in headers)) {
+    missing.push("Referrer-Policy");
+  }
+
+  if (!isHttps) {
+    outcome.addFinding(
+      "The live target is served over plain HTTP",
+      Severity.HIGH,
+      "security",
+      "Credentials, session cookies, and page content can be read or altered in transit.",
+      sanitizeUrl(finalUrl),
+      "Inspect the final URL scheme in the browser.",
+      Strength.OBSERVED,
+      "Serve the product over HTTPS and redirect HTTP traffic.",
+      "Confirm HTTP redirects to HTTPS and HSTS is present.",
+      ["transport", "tls"],
+    );
+  }
+
+  if (missing.length > 0) {
+    outcome.addFinding(
+      `Baseline security headers are missing: ${missing.join(", ")}`,
+      Severity.MEDIUM,
+      "security",
+      "The browser has fewer defenses against injection, MIME confusion, framing, and referrer leakage.",
+      sanitizeUrl(finalUrl),
+      "Inspect the response headers for the landing document.",
+      Strength.OBSERVED,
+      "Add the missing headers at the edge and tune CSP for the application's real resources.",
+      "Re-request the page and confirm every baseline header is present.",
+      ["headers", "hardening"],
+    );
+  }
+
+  const mixed = mixedContentUrls(snapshot, isHttps);
+  if (mixed.length > 0) {
+    outcome.addFinding(
+      "The page loads insecure resources or links on an HTTPS page",
+      Severity.HIGH,
+      "security",
+      "Mixed content can be modified in transit or blocked by the browser.",
+      sanitizeUrl(finalUrl),
+      "Inspect script/link/form URLs that start with http:// on the page.",
+      Strength.OBSERVED,
+      "Serve every resource over HTTPS and update hard-coded URLs.",
+      "Re-run the check and confirm no http:// resources remain.",
+      ["mixed-content", "transport"],
+    );
+  }
+
+  const insecureForms = asArray(snapshot.forms)
+    .map(asRecord)
+    .filter((form) => asString(form.action).toLowerCase().startsWith("http://"));
+  if (insecureForms.length > 0) {
+    outcome.addFinding(
+      "A form submits over plain HTTP",
+      Severity.HIGH,
+      "security",
+      "Form data, including credentials or payment details, can be intercepted.",
+      sanitizeUrl(finalUrl),
+      "Inspect form action attributes for http:// targets.",
+      Strength.OBSERVED,
+      "Submit forms to HTTPS endpoints only.",
+      "Confirm the action is HTTPS and the browser does not warn.",
+      ["forms", "transport"],
+    );
+  }
+
+  const weakCookies = cookies.filter((cookie) => {
+    const name = asString(cookie.name).toLowerCase();
+    const sessionLike = ["session", "sid", "auth", "token", "jwt"].some((token) => name.includes(token));
+    if (!sessionLike) return false;
+    const secure = cookie.secure === true;
+    const httpOnly = cookie.http_only === true || cookie.httpOnly === true;
+    return !secure || !httpOnly;
+  });
+  if (weakCookies.length > 0) {
+    const names = Array.from(new Set(weakCookies.map((c) => asString(c.name)).filter(Boolean))).sort();
+    outcome.addFinding(
+      "Session-like cookies lack Secure or HttpOnly flags",
+      Severity.MEDIUM,
+      "security",
+      "Script or network access can steal a session that should be protected.",
+      names.join(", "),
+      "Inspect Set-Cookie/response cookie flags for session-like names.",
+      Strength.OBSERVED,
+      "Set Secure, HttpOnly, and an appropriate SameSite value.",
+      "Re-load the page and confirm the flags on every session cookie.",
+      ["cookies", "session"],
+    );
+  }
+
+  outcome.actual = `HTTPS=${isHttps}; missing headers: ${missing.length > 0 ? missing.join(", ") : "none"}; mixed content: ${mixed.length}; weak cookies: ${weakCookies.length}`;
+  if (outcome.findings.length === 0) outcome.status = CheckStatus.PASSED;
+  return outcome;
+}
+
 function evalLinks(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
   const outcome = baseOutcome(view);
   const snap = view.snapshot ?? {};
@@ -453,6 +593,9 @@ export function evaluateBrowserCheck(
         break;
       case "browser.links":
         outcome = evalLinks(view, navigation);
+        break;
+      case "browser.security":
+        outcome = evalSecurity(view, navigation);
         break;
       default:
         return new CheckOutcome({

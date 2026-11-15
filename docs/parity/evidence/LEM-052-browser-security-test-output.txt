@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-security.test.ts (6 tests) 17ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  15:04:42
+   Duration  2.74s (transform 645ms, setup 0ms, collect 932ms, tests 17ms, environment 1ms, prepare 488ms)
+
