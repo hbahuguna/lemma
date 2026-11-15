@@ -296,7 +296,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-108 | Produce per-host packaging manifests | P1 | 5 | LEM-101, LEM-102, LEM-103, LEM-104, LEM-105 | Done |
 | LEM-109 | Add the OpenCode end-to-end parity suite | P0 | 5 | LEM-101, LEM-106, LEM-107 | Done |
 | LEM-110 | Add the Claude Code end-to-end suite | P0 | 5 | LEM-102, LEM-106, LEM-107 | Done |
-| LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Backlog |
+| LEM-111 | Add Codex, Antigravity, and Cursor smoke suites | P1 | 5 | LEM-103, LEM-104, LEM-105, LEM-106 | Done |
 | LEM-112 | Publish the adapter compatibility matrix and docs | P1 | 3 | LEM-108, LEM-109, LEM-110, LEM-111 | Backlog |
 
 ### E10: Commercial Parity
@@ -4705,6 +4705,50 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-111 — Add Codex, Antigravity, and Cursor smoke suites
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-103, LEM-104, LEM-105, LEM-106
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cli build && pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" typecheck && pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" build && pnpm exec vitest run packages/adapters/codex/test/codex-smoke.test.ts packages/adapters/antigravity/test/antigravity-smoke.test.ts packages/adapters/cursor/test/cursor-smoke.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Add automated smoke suites for the Codex, Antigravity, and
+  Cursor host integrations (without live host runtimes) covering installer-
+  generated host assets and adapter manifest/host conformance and command
+  mapping, with capability-honest behavior for provisional host surfaces.
+- **Acceptance Criteria:**
+  - `packages/adapters/codex/test/codex-smoke.test.ts`,
+    `packages/adapters/antigravity/test/antigravity-smoke.test.ts`, and
+    `packages/adapters/cursor/test/cursor-smoke.test.ts` provide automated smoke
+    suites runnable in this environment with no live host runtime dependency
+    (CLI `main`/temp workspaces and injected/fake host primitives).
+  - **Install smoke (each host):** running `lemma install <host>` into a temp
+    directory produces deterministic JSON success with assets matching the host
+    packaging manifest/layout (`.codex/...`, `.antigravity/...`, `.cursor/...`):
+    59 catalog command files + 5 operational command files (`assay`,
+    `assay-status`, `assay-report`, `assay-abort`, `assay-verify-evidence`) +
+    1 `lemma` skill at manifest paths, with representative generated content and
+    no absolute checkout paths.
+  - **Adapter smoke (each host):** suites exercise exported adapter manifests/
+    packaging manifests, host factories, command descriptors/registration, and
+    representative catalog invocation/browser-prompt mapping via `@lemma/agent`
+    primitives, and assert `assertAdapterConformance` passes with capability-
+    honest declared/degradation behavior for provisional defaults (Codex command
+    pack shape also verified).
+  - Root `package.json` `test:e2e` script includes the Codex, Antigravity, and
+    Cursor smoke suites alongside existing host adapter suites.
+  - `pnpm --filter @lemma/cli build`,
+    `pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" typecheck`,
+    `pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" build`,
+    and
+    `pnpm exec vitest run packages/adapters/codex/test/codex-smoke.test.ts packages/adapters/antigravity/test/antigravity-smoke.test.ts packages/adapters/cursor/test/cursor-smoke.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cli build && pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" typecheck && pnpm -r --filter "./packages/adapters/{codex,antigravity,cursor}" build && pnpm exec vitest run packages/adapters/codex/test/codex-smoke.test.ts packages/adapters/antigravity/test/antigravity-smoke.test.ts packages/adapters/cursor/test/cursor-smoke.test.ts` (pass, 3 files, 6 tests).
+- **Evidence:** `packages/adapters/codex/test/codex-smoke.test.ts`, `packages/adapters/antigravity/test/antigravity-smoke.test.ts`, `packages/adapters/cursor/test/cursor-smoke.test.ts`, `package.json` (`test:e2e` updated), `docs/parity/evidence/LEM-111-host-smoke-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-110 — Add the Claude Code end-to-end suite
 

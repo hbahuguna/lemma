@@ -25,7 +25,7 @@
     "typecheck": "pnpm -r --if-present typecheck",
     "changeset": "changeset",
     "version-packages": "changeset version",
-    "test:e2e": "vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts packages/adapters/claude-code/test/claude-code-e2e.test.ts"
+    "test:e2e": "vitest run packages/adapters/opencode/test/opencode-e2e-parity.test.ts packages/adapters/claude-code/test/claude-code-e2e.test.ts packages/adapters/codex/test/codex-smoke.test.ts packages/adapters/antigravity/test/antigravity-smoke.test.ts packages/adapters/cursor/test/cursor-smoke.test.ts"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",

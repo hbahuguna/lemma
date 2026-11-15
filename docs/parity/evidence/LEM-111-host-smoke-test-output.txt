@@ -1,0 +1,80 @@
+$ tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/cli.ts, src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/cli.js                293.00 B
+ESM dist/index.js              606.00 B
+ESM dist/chunk-6N37HVJ3.js     30.88 KB
+ESM dist/index.js.map          71.00 B
+ESM dist/cli.js.map            533.00 B
+ESM dist/chunk-6N37HVJ3.js.map 59.04 KB
+ESM ⚡️ Build success in 137ms
+DTS Build start
+DTS ⚡️ Build success in 9491ms
+DTS dist/cli.d.ts   20.00 B
+DTS dist/index.d.ts 2.40 KB
+Scope: 3 of 13 workspace projects
+packages/adapters/antigravity typecheck$ tsc --noEmit
+packages/adapters/cursor typecheck$ tsc --noEmit
+packages/adapters/codex typecheck$ tsc --noEmit
+packages/adapters/codex typecheck: Done
+packages/adapters/antigravity typecheck: Done
+packages/adapters/cursor typecheck: Done
+Scope: 3 of 13 workspace projects
+packages/adapters/antigravity build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/codex build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/cursor build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/cursor build: CLI Building entry: src/index.ts
+packages/adapters/codex build: CLI Building entry: src/index.ts
+packages/adapters/antigravity build: CLI Building entry: src/index.ts
+packages/adapters/cursor build: CLI Using tsconfig: tsconfig.json
+packages/adapters/cursor build: CLI tsup v8.5.1
+packages/adapters/codex build: CLI Using tsconfig: tsconfig.json
+packages/adapters/codex build: CLI tsup v8.5.1
+packages/adapters/antigravity build: CLI Using tsconfig: tsconfig.json
+packages/adapters/antigravity build: CLI tsup v8.5.1
+packages/adapters/cursor build: CLI Target: node20
+packages/adapters/codex build: CLI Target: node20
+packages/adapters/antigravity build: CLI Target: node20
+packages/adapters/cursor build: CLI Cleaning output folder
+packages/adapters/cursor build: ESM Build start
+packages/adapters/codex build: CLI Cleaning output folder
+packages/adapters/codex build: ESM Build start
+packages/adapters/antigravity build: CLI Cleaning output folder
+packages/adapters/antigravity build: ESM Build start
+packages/adapters/codex build: ESM dist/index.js     8.15 KB
+packages/adapters/codex build: ESM dist/index.js.map 16.53 KB
+packages/adapters/codex build: ESM ⚡️ Build success in 140ms
+packages/adapters/cursor build: ESM dist/index.js     7.73 KB
+packages/adapters/cursor build: ESM dist/index.js.map 15.33 KB
+packages/adapters/cursor build: ESM ⚡️ Build success in 153ms
+packages/adapters/antigravity build: ESM dist/index.js     7.88 KB
+packages/adapters/antigravity build: ESM dist/index.js.map 15.48 KB
+packages/adapters/antigravity build: ESM ⚡️ Build success in 116ms
+packages/adapters/codex build: DTS Build start
+packages/adapters/antigravity build: DTS Build start
+packages/adapters/cursor build: DTS Build start
+packages/adapters/antigravity build: DTS ⚡️ Build success in 18412ms
+packages/adapters/antigravity build: DTS dist/index.d.ts 2.67 KB
+packages/adapters/codex build: DTS ⚡️ Build success in 18435ms
+packages/adapters/codex build: DTS dist/index.d.ts 3.03 KB
+packages/adapters/cursor build: DTS ⚡️ Build success in 18440ms
+packages/adapters/cursor build: DTS dist/index.d.ts 2.54 KB
+packages/adapters/antigravity build: Done
+packages/adapters/codex build: Done
+packages/adapters/cursor build: Done
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/cursor/test/cursor-smoke.test.ts (2 tests) 159ms
+ ✓ packages/adapters/codex/test/codex-smoke.test.ts (2 tests) 162ms
+ ✓ packages/adapters/antigravity/test/antigravity-smoke.test.ts (2 tests) 172ms
+
+ Test Files  3 passed (3)
+      Tests  6 passed (6)
+   Start at  02:56:52
+   Duration  4.20s (transform 1.70s, setup 0ms, collect 6.20s, tests 493ms, environment 2ms, prepare 1.82s)
+
