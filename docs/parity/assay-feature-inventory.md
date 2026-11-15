@@ -129,7 +129,7 @@ intent-gated category or as an explicit documented no-op with rationale.
 | Assay plugin asset | Capability | Lemma task |
 | --- | --- | --- |
 | `.opencode/plugins/assay/index.ts` | Plugin setup, command/tool registration, event subscription, resume | LEM-101 |
-| `.opencode/plugins/assay/agent.ts` | Strict-judge agent loop, state persistence, context parsing | LEM-086, LEM-087, LEM-091 |
+| `.opencode/plugins/assay/agent.ts` | Strict-judge agent loop, state persistence, context parsing | LEM-086, LEM-087, LEM-091 (LEM-086 core loop slice in `packages/agent/src/index.ts`: `runStrictJudgeLoop` with cap 7 total steps incl. initial, allowlist `run/report/status/abort/assay-browser/assay-demo`, executed-command signature dedupe, strict JSON decision parsing and min-harness-run early-done guard; tests `packages/agent/test/agent-loop.test.ts`, output `docs/parity/evidence/LEM-086-agent-loop-test-output.txt`; state persistence and interactive context protocol follow in LEM-087/LEM-091) |
 | `.opencode/plugins/assay/command-args.ts` | URL extraction, browser/demo/generic invocation builders | LEM-088, LEM-089 |
 | `.opencode/plugins/assay/runner.ts` | Harness subprocess bridge | Replaced by in-process core invocation; LEM-083 |
 | `.opencode/plugins/assay/jira-context.ts` | Native Jira form, issue fetch, ADF flattening, redaction | LEM-092 |
@@ -262,7 +262,7 @@ unless an ADR says otherwise. The highest-risk ones:
 
 | Decision | Commitment | Lemma owner |
 | --- | --- | --- |
-| D1 | Orchestrator is deterministic code, not an autonomous loop | LEM-015, LEM-086 |
+| D1 | Orchestrator is deterministic code, not an autonomous loop | LEM-015, LEM-086 (bounded strict-judge agent loop added in `@lemma/agent` with cap/allowlist/dedupe; core orchestrator remains deterministic) |
 | D2 | Missing browser blocks checks, never fails the run (LEM-050: unavailable/disabled Playwright runtime degrades planned browser checks to blocked outcomes with actionable blockers and no findings via `@lemma/browser` runtime; evidence `docs/parity/evidence/LEM-050-browser-runtime-test-output.txt`) | LEM-050 |
 | D3 | Score is `weighted-coverage-v1`, not a model probability | LEM-018 |
 | D4 | CLI/JSON-first, no UI in OSS core | LEM-083 |

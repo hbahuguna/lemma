@@ -239,7 +239,7 @@ every host. The command catalog, context protocol, and Jira flow are preserved.
 | LEM-083 | Build the CLI shell, JSON-only stdout, and exit codes | P0 | 5 | LEM-007, LEM-015 | Done |
 | LEM-084 | Port `run`, `status`, `report`, `abort`, and `prune` | P0 | 5 | LEM-083 | Done |
 | LEM-085 | Port persona, export, signing, suppression, calibration, and verify commands | P1 | 5 | LEM-065, LEM-066, LEM-067, LEM-069, LEM-070, LEM-071, LEM-083 | Done |
-| LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Backlog |
+| LEM-086 | Port the strict-judge agent loop (cap 7, allowlist, dedupe) | P0 | 8 | LEM-083, LEM-084 | Done |
 | LEM-087 | Port agent state persistence and in-session resume | P0 | 5 | LEM-010, LEM-086 | Backlog |
 | LEM-088 | Port command argument builders | P0 | 3 | LEM-083 | Backlog |
 | LEM-089 | Port the 59-command catalog and intent mapping | P1 | 5 | LEM-088 | Backlog |
@@ -1272,6 +1272,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     in this environment.
 - **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/cli typecheck` (pass), `pnpm --filter @lemma/cli build` (pass), `pnpm exec vitest run packages/cli/test/cli-shell.test.ts packages/cli/test/cli-commands.test.ts packages/cli/test/cli-commands-extended.test.ts` (pass, 15 tests).
 - **Evidence:** `packages/cli/src/commands.ts` (LEM-085 command handlers wired into registry), `packages/cli/test/cli-commands-extended.test.ts`, `docs/parity/evidence/LEM-085-cli-extended-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` (LEM-085 rows). Commands: `personas` list/lint/scaffold (core APIs, lint exit 0/1, scaffold exit 0/2), `sarif`/`junit` (latest report, file or JSON stdout including wrapped JUnit XML), `sign-report`/`verify-report` (key/signature file-or-literal, verify exit 0/1), `suppress`/`suppressions` add/list/remove (`SuppressionStore`), `calibrate` (`writeCalibrationReport`), `verify-evidence` (run-id resolution + core `verifyEvidence`, tamper hold/exit). JSON-only stdout and core exit/error mapping preserved.
+
+### LEM-086 — Port the strict-judge agent loop (cap 7, allowlist, dedupe)
+
+- **Epic:** E8 CLI and Agent Core
+- **Priority:** P0
+- **Points:** 8
+- **Depends on:** LEM-083, LEM-084
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/agent/test/agent-loop.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass.
+- **Description:** Port the host-neutral strict-judge agent loop core to
+  `@lemma/agent` with bounded iterations (cap 7), command allowlist
+  enforcement, and executed-command dedupe.
+- **Acceptance Criteria:**
+  - `@lemma/agent` exports strict-judge loop primitives including decision
+    parsing, allowlist checking, command-to-args/signature helpers, and
+    `runStrictJudgeLoop` (or equivalent) with injectable deps
+    (`runHarness`, `askLlm`, optional `progress`/`sendFinal`).
+  - Loop enforces a hard iteration cap of 7 total harness-execution iterations
+    (including the initial run) and rejects requests above the cap.
+  - Only allowlisted commands may execute (`run`, `report`, `status`, `abort`,
+    `assay-browser`, `assay-demo`); disallowed commands are rejected and not
+    executed.
+  - Executed command signatures are deduped so the same command/args (and
+    relevant env signature) is never executed twice; duplicate decisions are
+    skipped/recorded without rerun.
+  - Decision handling supports command/need-user-context/done/invalid parsing in
+    a strict JSON form; early `done` is rejected when minimum harness runs are
+    not satisfied (core behavior), and loop stops/emits final outcome on
+    completion, invalid/unparseable decisions, context requests, or cap.
+  - `pnpm lint`, `pnpm --filter @lemma/agent typecheck`,
+    `pnpm --filter @lemma/agent build`, and
+    `pnpm exec vitest run packages/agent/test/agent-loop.test.ts` pass in this
+    environment.
+- **Verification:** `pnpm lint` (pass), `pnpm --filter @lemma/agent typecheck` (pass), `pnpm --filter @lemma/agent build` (pass), `pnpm exec vitest run packages/agent/test/agent-loop.test.ts` (pass, 5 tests).
+- **Evidence:** `packages/agent/src/index.ts`, `packages/agent/test/agent-loop.test.ts`, `docs/parity/evidence/LEM-086-agent-loop-test-output.txt`, updated `docs/parity/assay-feature-inventory.md`. Implements `runStrictJudgeLoop` with cap 7 (total steps including initial), allowlist (`run/report/status/abort/assay-browser/assay-demo`), signature-based dedupe (no reruns), strict JSON decision parsing (command/context/done/invalid), min-harness-run guard on early done, and injectable deps; interactive persistence/context protocol remain LEM-087/LEM-091.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 
