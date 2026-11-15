@@ -145,6 +145,14 @@ Until adapter-specific spikes/E2E validation (`LEM-103`–`LEM-105`, `LEM-111`)
 confirm them, these rows must be treated as provisional; unknown/TBD capabilities
 stay declared limitations (never silently emulated).
 
+**LEM-102 Claude Code adapter note (2026-11-16, provisional/honest):** The
+`@lemma/adapters-claude-code` surface treats native forms as unavailable by
+default (TBD/unverified host form API in this environment; paste/secure
+env-reference fallback), models MCP resource discovery via injected primitives
+when provided, treats limited background jobs and worktrees as unavailable by
+default unless explicitly provided/verified, and keeps all unverified
+capabilities declared honestly through manifest/negotiation (no silent emulation).
+
 ### Degradation rules
 
 | Missing capability | Required behavior |
@@ -218,7 +226,7 @@ The adapter never parses evidence itself. It renders the report contract.
 | YAML parser choice for workflows | LEM-012 |
 | JSON Schema generation from zod | LEM-004 |
 | Playwright distribution (peer dep vs bundled) | LEM-050 |
-| Claude Code form/MCP surface | LEM-102 |
+| Claude Code form/MCP surface | LEM-102 (provisional adapter defaults recorded 2026-11-16; host API verification remains follow-on) |
 | Codex command-pack format | LEM-103 |
 | Antigravity extension surface | LEM-104 |
 | Cursor MCP/command surface | LEM-105 |

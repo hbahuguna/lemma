@@ -287,7 +287,7 @@ adapter contract. Each host is installable, capability-honest, and E2E-tested.
 | LEM-099 | Implement capability negotiation and graceful degradation | P0 | 5 | LEM-098 | Done |
 | LEM-100 | Build the adapter conformance kit and fake host | P0 | 5 | LEM-098, LEM-099 | Done |
 | LEM-101 | Build the OpenCode adapter | P0 | 8 | LEM-086, LEM-088, LEM-092, LEM-098, LEM-099, LEM-100 | Done |
-| LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
+| LEM-102 | Build the Claude Code adapter | P0 | 8 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Done |
 | LEM-103 | Build the Codex adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-104 | Build the Antigravity adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
 | LEM-105 | Build the Cursor adapter | P1 | 5 | LEM-086, LEM-088, LEM-098, LEM-099, LEM-100 | Backlog |
@@ -4431,6 +4431,54 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/adapters-opencode typecheck && pnpm --filter @lemma/adapters-opencode build && pnpm exec vitest run packages/adapters/opencode/test/opencode-adapter.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/adapters/opencode/package.json`, `packages/adapters/opencode/src/index.ts`, `packages/adapters/opencode/test/opencode-adapter.test.ts`, `docs/parity/evidence/LEM-101-opencode-adapter-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-102 — Build the Claude Code adapter
+
+- **Epic:** E9 Adapter SDK and Host Integrations
+- **Priority:** P0
+- **Points:** 8
+- **Depends on:** LEM-086, LEM-088, LEM-098, LEM-099, LEM-100
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/adapters-claude-code typecheck && pnpm --filter @lemma/adapters-claude-code build && pnpm exec vitest run packages/adapters/claude-code/test/claude-code-adapter.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Build the Claude Code host adapter on the shared adapter SDK
+  and host-neutral agent primitives, providing an installable, capability-honest
+  Claude Code integration surface (manifest, host wiring, command/tool/context
+  mapping) without embedding check/scoring/phase logic or requiring host SDKs at
+  build/test time.
+- **Acceptance Criteria:**
+  - `packages/adapters/claude-code` (`@lemma/adapters-claude-code`) exports a
+    machine-readable Claude Code adapter manifest (`id: "claude-code"`) with
+    declared capabilities and adapter metadata, plus a testable Claude Code host
+    adapter API (factory/wrapper) implementing the shared `AgentHost` contract
+    via injected host primitives/callbacks (no hard dependency on Claude Code
+    host SDKs in package runtime/build dependencies).
+  - The adapter bridges core host interactions to the shared contract:
+    command/tool registration, progress/final messaging, question handling,
+    session context, optional MCP resource discovery and optional form/secret
+    resolution hooks when provided, with capability negotiation/degradation
+    semantics (no silent emulation; missing capabilities produce declared
+    limitations/flags through the SDK). Default capabilities are capability-honest
+    for Claude Code (e.g. native forms and worktrees unavailable unless
+    explicitly provided/verified; limited background jobs represented honestly).
+  - The adapter provides Claude Code-facing command mapping/helpers built on
+    `@lemma/agent` primitives (catalog/intent/builders and prompt/context/Jira
+    helpers as applicable) so assay command surfaces can be registered/invoked
+    consistently without duplicating product logic in the adapter.
+  - `packages/adapters/claude-code/test/claude-code-adapter.test.ts` verifies:
+    manifest validity/identity, `create`/host API behavior, command mapping
+    helpers, and conformance-kit pass for a representative Claude Code host
+    configuration (and honest degradation where optional capabilities are absent).
+  - `docs/architecture.md` records a provisional/honest Claude Code
+    form/MCP/background/worktree capability note for this adapter surface (TBDs
+    resolved as "unverified/unavailable unless explicitly provided" where not
+    confirmed), and
+    `pnpm --filter @lemma/adapters-claude-code typecheck`,
+    `pnpm --filter @lemma/adapters-claude-code build`, and
+    `pnpm exec vitest run packages/adapters/claude-code/test/claude-code-adapter.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/adapters-claude-code typecheck && pnpm --filter @lemma/adapters-claude-code build && pnpm exec vitest run packages/adapters/claude-code/test/claude-code-adapter.test.ts` (pass, 3 tests).
+- **Evidence:** `packages/adapters/claude-code/package.json`, `packages/adapters/claude-code/src/index.ts`, `packages/adapters/claude-code/test/claude-code-adapter.test.ts`, `docs/architecture.md`, `docs/parity/evidence/LEM-102-claude-code-adapter-test-output.txt`, updated `BOARD.md` (no owned parity-inventory row identified for LEM-102).
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

@@ -47,6 +47,9 @@ importers:
 
   packages/adapters/claude-code:
     dependencies:
+      '@lemma/adapters-sdk':
+        specifier: workspace:*
+        version: link:../sdk
       '@lemma/agent':
         specifier: workspace:*
         version: link:../../agent
