@@ -211,7 +211,7 @@ reconcilable. Suppressions are auditable and never silent.
 | LEM-071 | Port `verify-evidence` and the hold-on-tamper behavior | P1 | 3 | LEM-017 | Done |
 | LEM-072 | Port run-scoped and sink-wide metering summaries | P1 | 2 | LEM-020 | Done |
 | LEM-073 | Build report-schema compatibility and contract tests | P1 | 3 | LEM-020 | Done |
-| LEM-074 | Build policy and calibration regression coverage | P2 | 3 | LEM-019, LEM-070 | Backlog |
+| LEM-074 | Build policy and calibration regression coverage | P2 | 3 | LEM-019, LEM-070 | Done |
 
 ### E7: Plugins and Extensibility
 
@@ -789,6 +789,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-074** — Build policy and calibration regression coverage (2026-11-15). Evidence: `policies/advisory-v1.json` canonical policy alignment, `calibration/fixtures/` stability regression (schema/formula/ship-review-hold coverage, summary consistency, preserved intentional disagreement `source-only` with no unintended mismatches), and policy-calibration interaction/gate override + invalid-policy rejection coverage in `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt` (`pnpm exec vitest run packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (LEM-074). Commit/remote recorded in completion summary.
 - **LEM-073** — Build report-schema compatibility and contract tests (2026-11-15). Evidence: `packages/core/test/report/report-contract.test.ts` (published `schemas/report/report.v1.schema.json`/`schemas/report/index.json` alignment, schema-version enum contract, built report validation across normal/halted/failed/ship paths, additive compatibility, required-field removal/retype rejection, and parity-critical decision/confidence/coverage/metering-incl-run-scoped/trend/policy/contract-failures/limitations shapes), `docs/parity/evidence/LEM-073-report-contract-test-output.txt` (`pnpm exec vitest run packages/core/test/report/report-contract.test.ts`, 2/2). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (LEM-073). Commit/remote recorded in completion summary.
 - **LEM-072** — Port run-scoped and sink-wide metering summaries (2026-11-15). Evidence: `packages/core/src/metering.ts` (`summarizeMeteringEvents`/`summarizeMeteringSink`/`readMeteringEvents` with idempotency-key dedupe, deterministic event-type ordering, and parity sink-wide `event_count`/`event_types` plus run-scoped `run_event_count`/`run_event_types`), exports/index wiring, `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt` (`pnpm exec vitest run packages/core/test/metering/metering-summary.test.ts`, 3/3). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Report metering normalization remains compatible. Commit/remote recorded in completion summary.
 - **LEM-071** — Port `verify-evidence` and the hold-on-tamper behavior (2026-11-15). Evidence: `packages/core/src/evidence.ts` (`verifyEvidence` offline manifest/artifact verification with run-id resolution, parity tamper/affected reporting, and hold-on-tamper `confidence_cap: 0.0`/`decision: "hold"`), exports/index wiring, `packages/core/test/evidence/verify-evidence.test.ts`, `docs/parity/evidence/LEM-071-verify-evidence-test-output.txt` (`pnpm exec vitest run packages/core/test/evidence/verify-evidence.test.ts`, 4/4). `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass. Parity inventory updated (CLI command pending LEM-085). Commit/remote recorded in completion summary.
@@ -820,6 +821,39 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-074 — Build policy and calibration regression coverage
+
+- **Epic:** E6 Reporting, Policy, and Exports
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-019, LEM-070
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm exec vitest run packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; policy/calibration regression tests 3/3 passed, plus `pnpm --filter @lemma/core typecheck/build` and `pnpm lint` pass.
+- **Description:** Add regression coverage guarding policy and calibration
+  behavior together (canonical policy file, fixture calibration stability, and
+  policy-driven scoring/gate interactions) to prevent drift from LEM-019/LEM-070
+  parity baselines.
+- **Acceptance Criteria:**
+  - Regression tests verify the canonical `policies/advisory-v1.json` file loads
+    as a valid `quality-harness.policy/v1` policy with expected id/version/gate
+    and scoring defaults compatible with calibration's `weighted-coverage-v1`
+    baseline.
+  - Regression tests run calibration against `calibration/fixtures/` and assert
+    stable parity-critical outcomes under the default policy (fixture count and
+    ship/review/hold coverage, schema/formula, summary consistency, and preserved
+    intentional disagreements / no unintended decision regressions).
+  - Regression tests cover policy-calibration interaction cases (e.g. custom
+    policy overrides changing gate/decision behavior in representative fixture or
+    scoring scenarios, while invalid policies remain rejected) without weakening
+    default calibration expectations.
+  - `pnpm lint`, `pnpm --filter @lemma/core typecheck`,
+    `pnpm --filter @lemma/core build`, and
+    `pnpm exec vitest run packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm exec vitest run packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`
+- **Evidence:** `policies/advisory-v1.json`, `calibration/fixtures/`, `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt`; parity inventory updated (LEM-074). Commit/remote recorded in completion summary.
 
 ### LEM-073 — Build report-schema compatibility and contract tests
 

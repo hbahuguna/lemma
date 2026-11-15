@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts (3 tests) 52ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:52:39
+   Duration  2.02s (transform 635ms, setup 0ms, collect 896ms, tests 52ms, environment 1ms, prepare 292ms)
+
