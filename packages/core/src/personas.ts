@@ -8,7 +8,8 @@
  * access beyond the explicit `readPersonaDocument` file read).
  */
 
-import { readFile } from "node:fs/promises";
+import { readFile, readdir, stat } from "node:fs/promises";
+import path from "node:path";
 
 import { PersonaError } from "./errors.js";
 
@@ -391,4 +392,243 @@ export function validatePayload(
  */
 export function validateBlocker(payload: unknown, blockerSchema: PersonaJsonSchema): string[] {
   return validatePayload(payload, blockerSchema);
+}
+
+// -------------------------------------------------------------- persona load
+
+/** Persona sections every contract must declare, in assay order. */
+export const PERSONA_REQUIRED_SECTIONS = [
+  "role",
+  "available tools",
+  "output schema",
+  "blocker schema",
+  "refusal handling",
+] as const;
+
+/** Frontmatter keys every persona contract must declare non-empty. */
+export const PERSONA_REQUIRED_FRONTMATTER_KEYS = [
+  "id",
+  "name",
+  "domains",
+  "tools",
+  "checks",
+] as const;
+
+export interface Persona {
+  id: string;
+  name: string;
+  version: string;
+  domains: string[];
+  tools: string[];
+  checks: string[];
+  path: string;
+  role: string;
+  tools_section: string;
+  output_schema: PersonaJsonSchema;
+  blocker_schema: PersonaJsonSchema;
+  refusal: string;
+  body: string;
+  metadata: PersonaFrontmatter;
+}
+
+export interface PersonaPublic {
+  id: string;
+  name: string;
+  version: string;
+  domains: string[];
+  tools: string[];
+  checks: string[];
+  path: string;
+  schema_title: string;
+  blocker_schema_title: string;
+}
+
+export interface LoadPersonasOptions {
+  selected?: Iterable<string>;
+  requireMinimum?: number;
+}
+
+function titleCaseSection(name: string): string {
+  return name.replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
+function frontmatterList(
+  metadata: PersonaFrontmatter,
+  key: string,
+  source: string,
+): string[] {
+  const value = metadata[key];
+  if (!Array.isArray(value)) {
+    throw new PersonaError(`${source}: ${key} must be a list`);
+  }
+  return value.map((item) => String(item));
+}
+
+/**
+ * Build a validated `Persona` from an already-parsed persona document.
+ *
+ * Mirrors assay `load_persona` after frontmatter/body parsing.
+ */
+export function personaFromDocument(document: PersonaDocument, source = "persona"): Persona {
+  const metadata = document.metadata;
+  for (const key of PERSONA_REQUIRED_FRONTMATTER_KEYS) {
+    const value = metadata[key];
+    const empty =
+      value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
+    if (empty) {
+      throw new PersonaError(`${source}: missing frontmatter key '${key}'`);
+    }
+  }
+
+  const domains = frontmatterList(metadata, "domains", source);
+  const tools = frontmatterList(metadata, "tools", source);
+  const checks = frontmatterList(metadata, "checks", source);
+
+  const sections = document.sections;
+  const missing = PERSONA_REQUIRED_SECTIONS.filter((name) => sections[name] === undefined);
+  if (missing.length > 0) {
+    const label = missing.map((name) => `## ${titleCaseSection(name)}`).join(", ");
+    throw new PersonaError(`${source}: missing required section(s): ${label}`);
+  }
+
+  const outputSchema = extractJsonSchema(sections["output schema"] ?? "", "output schema", source);
+  const blockerSchema = extractJsonSchema(
+    sections["blocker schema"] ?? "",
+    "blocker schema",
+    source,
+  );
+  const role = sections["role"] ?? "";
+  const toolsSection = sections["available tools"] ?? "";
+  const refusal = sections["refusal handling"] ?? "";
+  if (!role) {
+    throw new PersonaError(`${source}: role section is empty`);
+  }
+  if (!refusal) {
+    throw new PersonaError(`${source}: refusal handling section is empty`);
+  }
+
+  return {
+    id: String(metadata.id),
+    name: String(metadata.name),
+    version: String(metadata.version ?? "1.0"),
+    domains,
+    tools,
+    checks,
+    path: source,
+    role,
+    tools_section: toolsSection,
+    output_schema: outputSchema,
+    blocker_schema: blockerSchema,
+    refusal,
+    body: document.body,
+    metadata,
+  };
+}
+
+/**
+ * Read, parse, and validate one persona contract.
+ */
+export async function loadPersona(filePath: string): Promise<Persona> {
+  const document = await readPersonaDocument(filePath);
+  return personaFromDocument(document, filePath);
+}
+
+/**
+ * Load every non-README persona contract in a directory.
+ *
+ * Mirrors assay `load_personas`: sorted files, duplicate-id rejection,
+ * optional selection, and a minimum persona count.
+ */
+export async function loadPersonas(
+  directory: string,
+  options: LoadPersonasOptions = {},
+): Promise<Persona[]> {
+  const requireMinimum = options.requireMinimum ?? 3;
+  const info = await stat(directory).catch(() => null);
+  if (!info || !info.isDirectory()) {
+    throw new PersonaError(`Personas directory not found: ${directory}`);
+  }
+
+  const files = (await readdir(directory))
+    .filter(
+      (name) =>
+        name.toLowerCase().endsWith(".md") && !name.toLowerCase().startsWith("readme"),
+    )
+    .sort();
+
+  const personas: Persona[] = [];
+  const seen = new Set<string>();
+  for (const name of files) {
+    const persona = await loadPersona(path.join(directory, name));
+    if (seen.has(persona.id)) {
+      throw new PersonaError(`Duplicate persona id '${persona.id}' in ${directory}`);
+    }
+    seen.add(persona.id);
+    personas.push(persona);
+  }
+  if (personas.length === 0) {
+    throw new PersonaError(`No persona files found in ${directory}`);
+  }
+
+  const selected = options.selected
+    ? [...options.selected].map((item) => item.trim()).filter((item) => item.length > 0)
+    : [];
+  if (selected.length > 0) {
+    const missing = selected.filter((id) => !seen.has(id));
+    if (missing.length > 0) {
+      throw new PersonaError(
+        `Unknown persona id(s): ${missing.join(", ")}. Available: ${[...seen].sort().join(", ")}`,
+      );
+    }
+    const wanted = new Set(selected);
+    return personas.filter((persona) => wanted.has(persona.id));
+  }
+
+  if (requireMinimum && personas.length < requireMinimum) {
+    throw new PersonaError(
+      `Expected at least ${requireMinimum} personas, found ${personas.length}. Add specialist files to personas/.`,
+    );
+  }
+  return personas;
+}
+
+/**
+ * Return the requested persona subset, preserving contract order.
+ */
+export function selectPersonas(
+  personas: Iterable<Persona>,
+  selected?: Iterable<string>,
+): Persona[] {
+  const list = [...personas];
+  if (!selected) return list;
+  const wanted = [...selected].map((item) => item.trim()).filter((item) => item.length > 0);
+  if (wanted.length === 0) return list;
+  const available = new Set(list.map((persona) => persona.id));
+  const missing = wanted.filter((id) => !available.has(id));
+  if (missing.length > 0) {
+    throw new PersonaError(
+      `Unknown persona id(s): ${missing.join(", ")}. Available: ${[...available].sort().join(", ")}`,
+    );
+  }
+  const wantedSet = new Set(wanted);
+  return list.filter((persona) => wantedSet.has(persona.id));
+}
+
+/**
+ * Assay-compatible public projection of a persona contract.
+ */
+export function personaPublic(persona: Persona): PersonaPublic {
+  const schemaTitle = persona.output_schema.title;
+  const blockerTitle = persona.blocker_schema.title;
+  return {
+    id: persona.id,
+    name: persona.name,
+    version: persona.version,
+    domains: [...persona.domains],
+    tools: [...persona.tools],
+    checks: [...persona.checks],
+    path: persona.path,
+    schema_title: typeof schemaTitle === "string" ? schemaTitle : "",
+    blocker_schema_title: typeof blockerTitle === "string" ? blockerTitle : "",
+  };
 }

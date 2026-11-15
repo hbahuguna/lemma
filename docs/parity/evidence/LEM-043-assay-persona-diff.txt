@@ -1,0 +1,19 @@
+# LEM-043 assay persona contract parity
+
+Source: ../assay/personas
+Target: packages/personas
+
+## Per-file diff (expect no output)
+
+diff -q ../assay/personas/functional.md packages/personas/functional.md
+exit=0
+
+diff -q ../assay/personas/security.md packages/personas/security.md
+exit=0
+
+diff -q ../assay/personas/accessibility.md packages/personas/accessibility.md
+exit=0
+
+diff -q ../assay/personas/README.md packages/personas/README.md
+exit=0
+

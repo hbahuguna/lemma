@@ -163,7 +163,7 @@ a pass.
 | --- | --- | --- | --- | --- | --- |
 | LEM-041 | Port the persona frontmatter parser | P0 | 3 | LEM-013 | Done |
 | LEM-042 | Port output and blocker schema validation | P0 | 5 | LEM-041 | Done |
-| LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Backlog |
+| LEM-043 | Port the functional, security, and accessibility contracts | P0 | 3 | LEM-041, LEM-042 | Done |
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Backlog |
 | LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Backlog |
 | LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Backlog |
@@ -786,6 +786,67 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-043 — Port the functional, security, and accessibility contracts
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-041, LEM-042
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test persona-contracts`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test persona-contracts` 7/7, `pnpm --filter @lemma/core typecheck`, `pnpm lint`, and builds for `@lemma/core`/`@lemma/personas` pass; `npm pack --dry-run` ships the four Markdown contracts.
+- **Description:** Port assay's three built-in specialist contracts
+  (`personas/functional.md`, `personas/security.md`,
+  `personas/accessibility.md`) and the `personas/README.md` authoring rules into
+  `packages/personas/`, and add the deterministic loader that turns those
+  Markdown files into validated `Persona` objects using the LEM-041 parser and
+  LEM-042 schema validator.
+- **Acceptance Criteria:**
+  - `packages/personas/functional.md`, `security.md`, `accessibility.md`, and
+    `README.md` are ported from assay with identical content (verified by a
+    `diff -rq` against the assay checkout), preserving each contract's id, name,
+    version, domains, tools, declared checks, role, tool table, output schema,
+    blocker schema, and refusal section.
+  - `loadPersona(path)` reads a UTF-8 persona, parses frontmatter/sections, and
+    enforces: required non-empty frontmatter keys `id`, `name`, `domains`,
+    `tools`, `checks`; `domains`/`tools`/`checks` are lists; all required
+    sections exist (`role`, `available tools`, `output schema`, `blocker schema`,
+    `refusal handling`); the output and blocker schemas pass
+    `extractJsonSchema`; and the role and refusal sections are non-empty. Each
+    failure throws a typed `PersonaError` (`errorCode === "persona_error"`) with
+    a deterministic assay-compatible message.
+  - `loadPersonas(directory, { selected?, requireMinimum? })` (default minimum
+    3) lists sorted `*.md` files, skips `README*.md` case-insensitively, rejects
+    duplicate ids, empty directories, unknown selected ids, and too few
+    personas, preserving contract order; `selectPersonas` returns a requested
+    subset and `personaPublic` exposes the assay-compatible public projection
+    (id/name/version/domains/tools/checks/path/schema titles).
+  - The `Persona` type exposes `id`, `name`, `version`, `domains`, `tools`,
+    `checks`, `path`, `role`, `tools_section`, `output_schema`,
+    `blocker_schema`, `refusal`, `body`, and `metadata`; loading
+    `packages/personas` yields exactly the three specialists
+    (`accessibility`, `functional`, `security`) with the assay domain/tool/check
+    ownership lists.
+  - End-to-end contract validation works for all three contracts: a valid
+    persona-shaped finding (domain from the persona) validates against its
+    output schema, an out-of-contract severity is rejected, and a valid
+    structured blocker validates against its blocker schema.
+  - The loader and public types are exported from `@lemma/core` and the
+    `@lemma/core/personas` subpath, the contracts ship in the `@lemma/personas`
+    package `files`, no runtime dependency is added, and loading is
+    deterministic/text-only.
+  - `packages/core/test/persona-contracts/persona-contracts.test.ts` covers the
+    three ported contracts, schema/blocker end-to-end validation, loader
+    success/error paths, selection, and the public projection; output is
+    recorded under
+    `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt`.
+- **Verification:** `pnpm --filter @lemma/core test persona-contracts`
+- **Evidence recorded:** `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt`
+  (7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four ported
+  files identical to assay), and updated parity inventory rows for
+  `personas/*.md` and `harness/personas.py`.
 
 ### LEM-042 — Port output and blocker schema validation
 
