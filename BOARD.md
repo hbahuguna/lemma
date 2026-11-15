@@ -167,7 +167,7 @@ a pass.
 | LEM-044 | Port ownership derivation and disjointness enforcement | P0 | 3 | LEM-014, LEM-041 | Done |
 | LEM-045 | Port invalid-finding quarantine and degraded streaks | P0 | 5 | LEM-013, LEM-042 | Done |
 | LEM-046 | Port structured blocker and refusal records | P0 | 5 | LEM-042 | Done |
-| LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Backlog |
+| LEM-047 | Port `personas lint` | P1 | 3 | LEM-041, LEM-044 | Done |
 | LEM-048 | Port `personas scaffold` | P2 | 3 | LEM-047 | Backlog |
 | LEM-049 | Port tool capability enforcement and persona conformance tests | P1 | 3 | LEM-043, LEM-044 | Backlog |
 
@@ -789,10 +789,61 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **LEM-040** — Verify static finding-to-evidence linkage and report totals (2026-11-14). Evidence: `packages/core/test/static-linkage-totals/static-linkage-totals.test.ts`, `docs/parity/evidence/LEM-040-static-linkage-totals-test-output.txt` (`pnpm --filter @lemma/core test -- static-linkage-totals`, 1/1). Commit/remote recorded in completion summary.
 - **LEM-041** — Port the persona frontmatter parser (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/personas/personas.test.ts`, `docs/parity/evidence/LEM-041-personas-test-output.txt` (`pnpm --filter @lemma/core test personas`, 7/7). Commit/remote recorded in completion summary.
 - **LEM-042** — Port output and blocker schema validation (2026-11-14). Evidence: `packages/core/src/personas.ts`, `packages/core/test/persona-schema/persona-schema-validation.test.ts`, `docs/parity/evidence/LEM-042-persona-schema-validation-test-output.txt` (`pnpm --filter @lemma/core test persona-schema`, 8/8). Commit/remote recorded in completion summary.
+- **LEM-047** — Port `personas lint` (2026-11-15). Evidence: `packages/core/src/personas.ts` (`lintPersonas`, assay-compatible lint report/types/codes for load/schema/ownership/registry/placeholder diagnostics), `packages/core/test/persona-lint/persona-lint.test.ts`, `docs/parity/evidence/LEM-047-persona-lint-test-output.txt` (`pnpm --filter @lemma/core test persona-lint`, 4/4). Commit/remote recorded in completion summary.
 - **LEM-046** — Port structured blocker and refusal records (2026-11-15). Evidence: `packages/core/src/outcomes.ts` (`blockerPayload`, `unblockHints`, `recordBlockedCheck`, `recordCheckOutcome`), `@lemma/core/outcomes` export/build wiring, `packages/core/test/blockers/blockers.test.ts`, `docs/parity/evidence/LEM-046-blockers-test-output.txt` (`pnpm --filter @lemma/core test blockers`, 6/6); blocked outcomes now produce one redacted blocker with no findings, forced-blocked refusals, dedupe, hints, and report/coverage integration verified. Commit/remote recorded in completion summary.
 - **LEM-045** — Port invalid-finding quarantine and degraded streaks (2026-11-15). Evidence: `packages/core/src/findings.ts` (`draftPayload`, `findingFromPayload`, `quarantineFinding`, `recordValidContract`, `rebuildContractHealth`, `recordCheckFindings`), `packages/core/src/orchestrator.ts` (resume rebuild uses the shared helper), `packages/core/test/invalid-findings/invalid-findings.test.ts`, `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt` (`pnpm --filter @lemma/core test invalid-findings`, 7/7); report/model invalid-finding fields and redaction verified end to end. Commit/remote recorded in completion summary.
 - **LEM-044** — Port ownership derivation and disjointness enforcement (2026-11-15). Evidence: `packages/core/src/personas.ts` (ownership helpers), `packages/core/src/checks.ts` (shared planner message), `packages/personas/functional.md` (52 lemma-only scope checks), `packages/core/test/ownership/ownership.test.ts`, `docs/parity/evidence/LEM-044-ownership-test-output.txt` (`pnpm --filter @lemma/core test ownership`, 10/10), `docs/parity/evidence/LEM-044-functional-contract-extension.txt` (only additive frontmatter diff vs assay). Commit/remote recorded in completion summary.
 - **LEM-043** — Port the functional, security, and accessibility contracts (2026-11-15). Evidence: `packages/personas/{functional,security,accessibility,README}.md`, `packages/core/src/personas.ts`, `packages/core/test/persona-contracts/persona-contracts.test.ts`, `docs/parity/evidence/LEM-043-persona-contracts-test-output.txt` (`pnpm --filter @lemma/core test persona-contracts`, 7/7), `docs/parity/evidence/LEM-043-assay-persona-diff.txt` (all four files byte-identical to assay). Commit/remote recorded in completion summary.
+
+### LEM-047 — Port `personas lint`
+
+- **Epic:** E4 Specialist Persona Layer
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-041, LEM-044
+- **Status:** Done
+- **Claimed:** 2026-11-15 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test persona-lint`.
+- **Completed:** 2026-11-15 — all acceptance criteria pass; `pnpm --filter @lemma/core test persona-lint` 4/4, `pnpm lint`, `pnpm --filter @lemma/core typecheck`, and the core build pass.
+- **Description:** Port assay's aggregate persona contract linting as a core API.
+  Lint scans a persona directory without stopping at the first failure and reports
+  load/frontmatter/schema/ownership/registry issues in the
+  `quality-harness.personas.lint/v1` shape so the CLI can expose deterministic
+  diagnostics later.
+- **Acceptance Criteria:**
+  - `lintPersonas(directory, knownCheckIds?)` is exported from
+    `@lemma/core/personas` (and the root entry point) and returns a report with
+    `schema_version: "quality-harness.personas.lint/v1"`, `directory`,
+    `status`, `known_check_count`, `personas`, `errors`, `warnings`, and
+    `summary { files, valid_personas, errors, warnings }`.
+  - Missing directory and empty/no-persona directories produce
+    `directory_missing` / `no_persona_files` errors with assay-compatible
+    messages; scanning is deterministic over sorted non-README `*.md` files.
+  - Load failures become lint errors (not thrown) with file/message and mapped
+    codes: `missing_section`, `frontmatter`, `schema`, `empty_section`, or
+    `invalid_persona`. Duplicate persona ids produce `duplicate_persona_id`
+    errors (including the previously declared file) and are excluded from valid
+    loaded personas.
+  - Loaded personas receive schema lint diagnostics attached with file/persona/
+    schema/field: `schema_required_field_missing`,
+    `schema_property_not_defined`, `schema_property_invalid`,
+    `schema_type_unsupported`, `schema_enum_invalid`, `schema_items_invalid`.
+  - Ownership/registry diagnostics over loaded personas use assay-compatible
+    behavior: `duplicate_ownership` errors with owners/message; known check ids
+    accepted; scaffold placeholder checks `plugin.<persona_id>.*` unknown to the
+    registry produce `plugin_check_placeholder` warnings; other unknown checks
+    produce `unknown_check` errors with owners/message.
+  - Tests at `packages/core/test/persona-lint/persona-lint.test.ts` cover a
+    clean shipped persona set linting valid with known built-in checks, and the
+    required failure/warning categories (missing section/frontmatter-schema
+    mapping as applicable, duplicate id, duplicate ownership, unknown check,
+    schema required-field/property issues, and placeholder warning) matching
+    assay lint semantics. Evidence is recorded under
+    `docs/parity/evidence/LEM-047-persona-lint-test-output.txt`.
+  - No runtime dependency is added, parity inventory rows for
+    `harness/personas.py`/`lemma personas lint`/`test_persona_tools.py` (lint
+    portion) are updated, and the acceptance test plus typecheck/lint/build pass.
+- **Verification:** `pnpm --filter @lemma/core test persona-lint`
+- **Evidence to record:** persona-lint test output and updated parity inventory.
 
 ### LEM-046 — Port structured blocker and refusal records
 

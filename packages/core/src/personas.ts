@@ -633,7 +633,7 @@ export function personaPublic(persona: Persona): PersonaPublic {
   };
 }
 
-// ------------------------------------------------------------------ ownership
+// ------------------------------------------------------------------ ownership, lint, scaffold
 
 /** Minimal persona shape needed to derive check ownership. */
 export interface PersonaOwnershipSource {
@@ -734,4 +734,275 @@ export function validateOwnership(
     }
   }
   return ownership;
+}
+
+// ----------------------------------------------------------------------- lint
+
+export type PersonaLintStatus = "valid" | "invalid";
+
+export interface PersonaLintSummary {
+  files: number;
+  valid_personas: number;
+  errors: number;
+  warnings: number;
+}
+
+export interface PersonaLintLoadedPersona {
+  id: string;
+  file: string;
+  domains: string[];
+  checks: string[];
+}
+
+export interface PersonaLintIssue {
+  code: string;
+  message: string;
+  file?: string;
+  persona?: string;
+  check_id?: string;
+  field?: string;
+  schema?: string;
+  owners?: string[];
+}
+
+export interface PersonaLintReport {
+  schema_version: "quality-harness.personas.lint/v1";
+  directory: string;
+  status: PersonaLintStatus;
+  known_check_count: number;
+  personas: PersonaLintLoadedPersona[];
+  errors: PersonaLintIssue[];
+  warnings: PersonaLintIssue[];
+  summary: PersonaLintSummary;
+}
+
+function relativePersonaFile(filePath: string, directory: string): string {
+  const relative = path.relative(directory, filePath);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative)) {
+    return filePath;
+  }
+  return relative.split(path.sep).join("/");
+}
+
+function lintErrorCode(message: string): string {
+  const text = message.toLowerCase();
+  if (text.includes("missing required section")) return "missing_section";
+  if (text.includes("frontmatter")) return "frontmatter";
+  if (text.includes("output schema") || text.includes("blocker schema")) return "schema";
+  if (text.includes("section is empty")) return "empty_section";
+  return "invalid_persona";
+}
+
+function schemaIssues(persona: Persona): PersonaLintIssue[] {
+  const issues: PersonaLintIssue[] = [];
+  const contracts: Array<[string, PersonaJsonSchema, readonly string[]]> = [
+    ["output", persona.output_schema, CORE_FINDING_FIELDS],
+    ["blocker", persona.blocker_schema, CORE_BLOCKER_FIELDS],
+  ];
+  for (const [label, schema, coreFields] of contracts) {
+    const required = Array.isArray(schema.required) ? schema.required : [];
+    const properties = isPlainObject(schema.properties) ? schema.properties : {};
+    const title = label.charAt(0).toUpperCase() + label.slice(1);
+    for (const fieldName of coreFields) {
+      if (!required.includes(fieldName)) {
+        issues.push({
+          code: "schema_required_field_missing",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema must require field '${fieldName}'.`,
+        });
+      }
+    }
+    for (const fieldName of required) {
+      if (!Object.prototype.hasOwnProperty.call(properties, fieldName)) {
+        issues.push({
+          code: "schema_property_not_defined",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema requires '${fieldName}' but does not define it.`,
+        });
+      }
+    }
+    for (const [fieldName, child] of Object.entries(properties)) {
+      if (!isPlainObject(child)) {
+        issues.push({
+          code: "schema_property_invalid",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema property '${fieldName}' must be an object.`,
+        });
+        continue;
+      }
+      const expectedType = child.type;
+      if (typeof expectedType === "string" && !(SUPPORTED_SCHEMA_TYPES as readonly string[]).includes(expectedType)) {
+        issues.push({
+          code: "schema_type_unsupported",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema property '${fieldName}' uses unsupported type '${expectedType}'.`,
+        });
+      }
+      if ("enum" in child && !Array.isArray(child.enum)) {
+        issues.push({
+          code: "schema_enum_invalid",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema property '${fieldName}' enum must be an array.`,
+        });
+      }
+      if ("items" in child && !isPlainObject(child.items)) {
+        issues.push({
+          code: "schema_items_invalid",
+          schema: label,
+          field: fieldName,
+          persona: persona.id,
+          message: `${title} schema property '${fieldName}' items must be an object.`,
+        });
+      }
+    }
+  }
+  return issues;
+}
+
+function isScaffoldPlaceholder(persona: Persona, checkId: string): boolean {
+  return checkId.startsWith(`plugin.${persona.id}.`);
+}
+
+/**
+ * Lint every persona contract without stopping at the first failure.
+ */
+export async function lintPersonas(
+  directory: string,
+  knownCheckIds?: Iterable<string>,
+): Promise<PersonaLintReport> {
+  const known = new Set(knownCheckIds ?? []);
+  const errors: PersonaLintIssue[] = [];
+  const warnings: PersonaLintIssue[] = [];
+  const personas: Persona[] = [];
+  const personaFiles: Record<string, string> = {};
+  let filesScanned = 0;
+
+  const info = await stat(directory).catch(() => null);
+  if (!info || !info.isDirectory()) {
+    errors.push({
+      code: "directory_missing",
+      message: `Personas directory not found: ${directory}`,
+    });
+  } else {
+    const files = (await readdir(directory))
+      .filter(
+        (name) =>
+          name.toLowerCase().endsWith(".md") && !name.toLowerCase().startsWith("readme"),
+      )
+      .sort()
+      .map((name) => path.join(directory, name));
+
+    if (files.length === 0) {
+      errors.push({
+        code: "no_persona_files",
+        message: `No persona files found in ${directory}`,
+      });
+    }
+
+    for (const filePath of files) {
+      const fileName = relativePersonaFile(filePath, directory);
+      filesScanned += 1;
+      let persona: Persona;
+      try {
+        persona = await loadPersona(filePath);
+      } catch (error) {
+        if (error instanceof PersonaError) {
+          errors.push({
+            code: lintErrorCode(error.message),
+            file: fileName,
+            message: error.message,
+          });
+          continue;
+        }
+        throw error;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(personaFiles, persona.id)) {
+        errors.push({
+          code: "duplicate_persona_id",
+          file: fileName,
+          persona: persona.id,
+          message: `Duplicate persona id '${persona.id}' (also declared in ${personaFiles[persona.id]}).`,
+        });
+        continue;
+      }
+
+      personaFiles[persona.id] = fileName;
+      personas.push(persona);
+      for (const issue of schemaIssues(persona)) {
+        issuesWithFile(issue, fileName);
+        errors.push(issue);
+      }
+    }
+
+    const ownership = checkOwnership(personas);
+    const personaMap = new Map(personas.map((persona) => [persona.id, persona]));
+    for (const [checkId, owners] of Object.entries(ownership).sort(([a], [b]) => a.localeCompare(b))) {
+      if (owners.length > 1) {
+        errors.push({
+          code: "duplicate_ownership",
+          check_id: checkId,
+          owners: [...owners],
+          message: ownershipErrorMessage(checkId, owners),
+        });
+        continue;
+      }
+      if (known.has(checkId)) continue;
+      const ownerId = owners[0];
+      const persona = ownerId ? personaMap.get(ownerId) : undefined;
+      if (persona && isScaffoldPlaceholder(persona, checkId)) {
+        warnings.push({
+          code: "plugin_check_placeholder",
+          file: personaFiles[persona.id] ?? "",
+          persona: persona.id,
+          check_id: checkId,
+          message: `Scaffold check '${checkId}' has no installed plugin yet; install a signed plugin or replace the check id before running.`,
+        });
+      } else {
+        errors.push({
+          code: "unknown_check",
+          check_id: checkId,
+          owners: [...owners],
+          message: `Check '${checkId}' is not in the check registry; it must be a built-in check or an installed plugin check.`,
+        });
+      }
+    }
+  }
+
+  const loaded: PersonaLintLoadedPersona[] = personas.map((persona) => ({
+    id: persona.id,
+    file: personaFiles[persona.id] ?? "",
+    domains: [...persona.domains],
+    checks: [...persona.checks],
+  }));
+
+  return {
+    schema_version: "quality-harness.personas.lint/v1",
+    directory,
+    status: errors.length > 0 ? "invalid" : "valid",
+    known_check_count: known.size,
+    personas: loaded,
+    errors,
+    warnings,
+    summary: {
+      files: filesScanned,
+      valid_personas: personas.length,
+      errors: errors.length,
+      warnings: warnings.length,
+    },
+  };
+}
+
+function issuesWithFile(issue: PersonaLintIssue, fileName: string): void {
+  issue.file = fileName;
 }
