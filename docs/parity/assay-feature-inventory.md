@@ -193,8 +193,8 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `examples/plugins/README.md` | Plugin authoring docs | LEM-080 (`examples/plugins/README.md`: authoring, `.lemma/plugins/trusted_keys.json` trust-store/signing helpers, ownership, and refusal/blocker guidance adapted to lemma) |
 | `calibration/fixtures/` | Labeled confidence fixtures | LEM-070 (ported labeled fixtures under `calibration/fixtures/`) |
 | `policies/advisory-v1.json` | Default gate policy (ported to `policies/advisory-v1.json`, schema `quality-harness.policy/v1`; validated/loaded by core policy APIs; evidence `docs/parity/evidence/LEM-019-policy-test-output.txt`) | LEM-019 |
-| `Dockerfile` | Core container | LEM-135 |
-| `Dockerfile.browser` | Browser container | LEM-135 |
+| `Dockerfile` | Core container (Node 22, pnpm build, `lemma` CLI entrypoint) | LEM-135 |
+| `Dockerfile.browser` | Browser container (Playwright Chromium runtime/deps + `lemma` CLI) | LEM-135 |
 | `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance-ready publish config/workflows — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`, `.github/workflows/release.yml`) | LEM-009, LEM-134 |
 | Cloud package boundaries and optional extras | `@lemma/cloud` optional/isolated package with granular service subpath exports and enforced dependency boundaries | LEM-122 (`packages/cloud/package.json` sideEffects/explicit root+`./metering|auth|quota|ledger|signup|billing|queue|retention|entitlements` exports and multi-entry build; boundary enforcement/tests in `packages/cloud/test/package-boundaries.test.ts`, `packages/core/test/dependency-direction.test.ts`, `packages/core/test/workspace.test.ts`; evidence `docs/parity/evidence/LEM-122-cloud-boundaries-test-output.txt`, `docs/parity/evidence/LEM-122-core-boundary-tests-output.txt`) |
 | `requirements.txt` | Dependency declaration (replaced by pnpm workspace manifests and committed `pnpm-lock.yaml`) | LEM-001 | LEM-001 |

@@ -1,0 +1,7 @@
+{"ok":true,"cli":"lemma","version":"0.0.0","usage":"lemma <command> [options]","commands":[{"name":"abort","description":"Request a manual kill of the current run."},{"name":"calibrate","description":"Run calibration fixtures and emit a report."},{"name":"install","description":"Install lemma host integration assets for a target host."},{"name":"junit","description":"Export the latest report as JUnit XML."},{"name":"personas","description":"List, lint, or scaffold persona contracts."},{"name":"prune","description":"Prune historical runs and evidence."},{"name":"report","description":"Print the latest saved report."},{"name":"run","description":"Run the release-confidence workflow."},{"name":"sarif","description":"Export the latest report as SARIF."},{"name":"sign-report","description":"Sign the latest report."},{"name":"status","description":"Print persisted run state or history."},{"name":"suppress","description":"Manage finding suppressions."},{"name":"suppressions","description":"Alias for suppress."},{"name":"verify-evidence","description":"Verify evidence manifest and artifacts for a run."},{"name":"verify-report","description":"Verify a report signature."}]}
+---
+chromium-1254
+chromium_headless_shell-1254
+ffmpeg-1013
+firefox-1572
+webkit-2388

@@ -345,7 +345,7 @@ every supported host with visible supply-chain evidence.
 | LEM-132 | Build the CI matrix (Node 20/22, macOS/Linux/Windows) | P0 | 3 | LEM-001, LEM-026 | Done |
 | LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Done |
 | LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Done |
-| LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Backlog |
+| LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Done |
 | LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Backlog |
 | LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Backlog |
 | LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Backlog |
@@ -4734,6 +4734,33 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-135 — Build core and browser container images
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-134
+- **Status:** Done
+- **Claimed:** 2026-11-16 — built core and browser container images with local docker verification.
+- **Description:** Build container images for core CLI usage and browser-enabled
+  execution so lemma can run in containerized environments.
+- **Acceptance Criteria:**
+  - `Dockerfile` (core image) and `.dockerignore` exist and `docker build -f Dockerfile ...`
+    succeeds from a clean checkout context, producing an image that can run the
+    `lemma` CLI (e.g. `--help`/command entrypoint) with workspace dependencies
+    installed/built via pnpm + frozen lockfile on a Node 22 base.
+  - `Dockerfile.browser` (browser image) exists and `docker build -f Dockerfile.browser ...`
+    succeeds, producing an image that can run the `lemma` CLI and includes
+    Playwright Chromium runtime/system dependencies required for browser-enabled
+    checks (proven by successful image build and CLI execution; Playwright
+    browsers present at `/ms-playwright` in runtime image).
+  - Local verification evidence is recorded: successful build/run commands
+    and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. Image
+    publishing/registry push is out of scope.
+- **Verification:** `docker build -f Dockerfile -t lemma-core:lem135 .` and `docker run --rm lemma-core:lem135 --help`; `docker build -f Dockerfile.browser -t lemma-browser:lem135 .` and `docker run --rm lemma-browser:lem135 --help` (plus Playwright browser path check).
+- **Evidence:** `Dockerfile`, `Dockerfile.browser`, `.dockerignore`, `docs/parity/evidence/LEM-135-core-image-build.txt`, `docs/parity/evidence/LEM-135-core-image-run.txt`, `docs/parity/evidence/LEM-135-browser-image-build.txt`, `docs/parity/evidence/LEM-135-browser-image-run.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 
 ### LEM-134 — Publish signed npm packages with provenance

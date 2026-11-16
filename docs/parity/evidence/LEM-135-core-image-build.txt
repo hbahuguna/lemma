@@ -1,0 +1,615 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 715B 0.0s done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 2.3s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/node:22-bookworm-slim
+#4 DONE 1.9s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 234B done
+#5 DONE 0.0s
+
+#6 [base 1/3] FROM docker.io/library/node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee
+#6 resolve docker.io/library/node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee 0.0s done
+#6 ...
+
+#7 [internal] load build context
+#7 transferring context: 25.78kB 0.1s done
+#7 DONE 0.1s
+
+#6 [base 1/3] FROM docker.io/library/node:22-bookworm-slim@sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee
+#6 sha256:e9f565d32859f0cbfb52125eafe8be39390f24dac302dc3cdf566e8ba3ab21ee 5.22kB / 5.22kB done
+#6 sha256:47725aca53d3295ec2d3be8f62726599b3033cc262edc2c7e429909b3ac599fc 1.93kB / 1.93kB done
+#6 sha256:b774d993885c47eca14db241ba8cc7e5789235142f76e4a2a6a65ec350a1bac0 6.77kB / 6.77kB done
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 0B / 28.25MB 0.2s
+#6 sha256:076cba098ace87d6950e8fa4cc530bfe59834eba28f30061e8526d6f00bf52c8 0B / 3.31kB 0.2s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 0B / 49.90MB 0.2s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 2.10MB / 28.25MB 0.9s
+#6 sha256:076cba098ace87d6950e8fa4cc530bfe59834eba28f30061e8526d6f00bf52c8 3.31kB / 3.31kB 0.9s
+#6 sha256:076cba098ace87d6950e8fa4cc530bfe59834eba28f30061e8526d6f00bf52c8 3.31kB / 3.31kB 0.9s done
+#6 sha256:aa4e8910862263c3bad50c754fb555bbbb7661c41e35ba703ae082ec6749c175 0B / 1.71MB 1.1s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 4.19MB / 28.25MB 1.6s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 6.29MB / 28.25MB 2.5s
+#6 sha256:aa4e8910862263c3bad50c754fb555bbbb7661c41e35ba703ae082ec6749c175 1.05MB / 1.71MB 3.0s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 8.39MB / 28.25MB 3.6s
+#6 sha256:aa4e8910862263c3bad50c754fb555bbbb7661c41e35ba703ae082ec6749c175 1.71MB / 1.71MB 3.5s done
+#6 sha256:cce880541c96dc730321857781d113e3c75c0cb383f9510300922762006d734e 0B / 448B 3.6s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 3.15MB / 49.90MB 4.3s
+#6 sha256:cce880541c96dc730321857781d113e3c75c0cb383f9510300922762006d734e 448B / 448B 4.7s done
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 10.49MB / 28.25MB 5.0s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 12.58MB / 28.25MB 6.3s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 6.29MB / 49.90MB 6.5s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 14.68MB / 28.25MB 7.2s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 16.78MB / 28.25MB 8.3s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 9.44MB / 49.90MB 9.3s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 18.87MB / 28.25MB 10.2s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 12.58MB / 49.90MB 11.0s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 20.97MB / 28.25MB 11.7s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 23.07MB / 28.25MB 13.1s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 25.17MB / 28.25MB 14.3s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 27.26MB / 28.25MB 15.2s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 15.73MB / 49.90MB 15.2s
+#6 sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 28.25MB / 28.25MB 15.8s done
+#6 extracting sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 18.87MB / 49.90MB 18.2s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 21.45MB / 49.90MB 20.3s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 24.12MB / 49.90MB 21.1s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 27.26MB / 49.90MB 22.1s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 30.41MB / 49.90MB 22.8s
+#6 extracting sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 6.5s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 33.55MB / 49.90MB 23.6s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 36.70MB / 49.90MB 24.7s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 39.59MB / 49.90MB 25.6s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 42.46MB / 49.90MB 26.4s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 46.14MB / 49.90MB 26.9s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 48.92MB / 49.90MB 27.8s
+#6 extracting sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 11.7s
+#6 sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 49.90MB / 49.90MB 28.1s done
+#6 extracting sha256:dd051e1b8c92ff101fa3071ab97ea4924885942f15644e01c3dc095764e863e3 13.1s done
+#6 extracting sha256:076cba098ace87d6950e8fa4cc530bfe59834eba28f30061e8526d6f00bf52c8
+#6 extracting sha256:076cba098ace87d6950e8fa4cc530bfe59834eba28f30061e8526d6f00bf52c8 done
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 5.0s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 10.6s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 15.6s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 21.1s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 26.6s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 35.9s
+#6 extracting sha256:0c4023204e5b4bcd551170279c40ff58285cc8ea87ddf9ff25cb3713e6ecda79 40.6s done
+#6 extracting sha256:aa4e8910862263c3bad50c754fb555bbbb7661c41e35ba703ae082ec6749c175
+#6 extracting sha256:aa4e8910862263c3bad50c754fb555bbbb7661c41e35ba703ae082ec6749c175 0.7s done
+#6 extracting sha256:cce880541c96dc730321857781d113e3c75c0cb383f9510300922762006d734e
+#6 extracting sha256:cce880541c96dc730321857781d113e3c75c0cb383f9510300922762006d734e done
+#6 DONE 72.2s
+
+#8 [base 2/3] RUN corepack enable
+#8 ...
+
+#9 [runtime 2/7] WORKDIR /app
+#9 DONE 1.2s
+
+#8 [base 2/3] RUN corepack enable
+#8 DONE 4.2s
+
+#10 [base 3/3] WORKDIR /app
+#10 DONE 0.1s
+
+#11 [build 1/3] COPY . .
+#11 DONE 0.6s
+
+#12 [build 2/3] RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile
+#12 0.771 ! Corepack is about to download https://registry.npmjs.org/pnpm/-/pnpm-11.15.1.tgz
+#12 30.21 Scope: all 13 workspace projects
+#12 30.81 [WARN] There are cyclic workspace dependencies: /app/packages/browser, /app/packages/core
+#12 31.78 ? Verifying lockfile against supply-chain policies (354 entries)...
+#12 31.83 Lockfile is up to date, resolution step is skipped
+#12 35.72 Progress: resolved 1, reused 0, downloaded 0, added 0
+#12 36.57 Packages: +278
+#12 36.57 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+#12 39.76 Progress: resolved 278, reused 0, downloaded 0, added 0
+#12 47.39 [WARN] Request took 15446ms: https://registry.npmjs.org/@changesets%2Fshould-skip-package
+#12 47.41 [WARN] Request took 15299ms: https://registry.npmjs.org/@esbuild%2Fopenharmony-arm64
+#12 49.48 Progress: resolved 278, reused 0, downloaded 1, added 0
+#12 51.82 Progress: resolved 278, reused 0, downloaded 9, added 0
+#12 56.66 Progress: resolved 278, reused 0, downloaded 21, added 0
+#12 58.41 Progress: resolved 278, reused 0, downloaded 32, added 0
+#12 58.44 [WARN] Request took 26374ms: https://registry.npmjs.org/@esbuild%2Fnetbsd-arm64
+#12 58.86 [WARN] Request took 26773ms: https://registry.npmjs.org/@esbuild%2Fopenbsd-arm64
+#12 58.90 [WARN] Request took 26981ms: https://registry.npmjs.org/@changesets%2Flogger
+#12 59.66 Progress: resolved 278, reused 0, downloaded 54, added 0
+#12 60.01 [WARN] Request took 28118ms: https://registry.npmjs.org/@changesets%2Ferrors
+#12 60.74 Progress: resolved 278, reused 0, downloaded 65, added 0
+#12 60.78 [WARN] Request took 28816ms: https://registry.npmjs.org/@esbuild%2Faix-ppc64
+#12 61.97 Progress: resolved 278, reused 0, downloaded 72, added 2
+#12 62.01 [WARN] Request took 30108ms: https://registry.npmjs.org/@changesets%2Fget-version-range-type
+#12 63.24 Progress: resolved 278, reused 0, downloaded 78, added 4
+#12 64.67 Progress: resolved 278, reused 0, downloaded 92, added 4
+#12 64.94 [WARN] Request took 33076ms: https://registry.npmjs.org/@changesets%2Fchangelog-git
+#12 66.18 [WARN] Request took 34085ms: https://registry.npmjs.org/@changesets%2Fwrite
+#12 67.73 Progress: resolved 278, reused 0, downloaded 115, added 6
+#12 67.76 [WARN] Request took 35826ms: https://registry.npmjs.org/@changesets%2Fpre
+#12 71.08 Progress: resolved 278, reused 0, downloaded 123, added 8
+#12 72.99 Progress: resolved 278, reused 0, downloaded 134, added 8
+#12 73.06 [WARN] Request took 41166ms: https://registry.npmjs.org/@changesets%2Fget-dependents-graph
+#12 73.80 [WARN] Request took 41821ms: https://registry.npmjs.org/@changesets%2Ftypes
+#12 74.18 [WARN] Request took 15347ms: https://registry.npmjs.org/@esbuild%2Fwin32-ia32
+#12 76.59 Progress: resolved 278, reused 0, downloaded 156, added 8
+#12 76.73 [WARN] Request took 44800ms: https://registry.npmjs.org/@changesets%2Fparse
+#12 79.61 Progress: resolved 278, reused 0, downloaded 164, added 12
+#12 79.72 [WARN] Request took 19759ms: https://registry.npmjs.org/@eslint-community%2Feslint-utils
+#12 79.77 [WARN] Request took 11949ms: https://registry.npmjs.org/@humanfs%2Fcore
+#12 83.24 Progress: resolved 278, reused 0, downloaded 175, added 12
+#12 83.33 [WARN] Request took 51376ms: https://registry.npmjs.org/@changesets%2Fread
+#12 83.50 [WARN] Request took 15674ms: https://registry.npmjs.org/@eslint%2Fplugin-kit
+#12 85.03 Progress: resolved 278, reused 0, downloaded 186, added 12
+#12 85.06 [WARN] Request took 11111ms: https://registry.npmjs.org/@humanwhocodes%2Fmodule-importer
+#12 90.28 Progress: resolved 278, reused 0, downloaded 196, added 12
+#12 90.74 [WARN] Request took 33889ms: https://registry.npmjs.org/@esbuild%2Fwin32-arm64
+#12 90.88 [WARN] Request took 23071ms: https://registry.npmjs.org/@eslint%2Fjs
+#12 90.96 [WARN] Request took 14200ms: https://registry.npmjs.org/@jridgewell%2Fsourcemap-codec
+#12 92.05 Progress: resolved 278, reused 0, downloaded 202, added 16
+#12 92.13 [WARN] GET https://registry.npmjs.org/@babel%2Fruntime error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.15 [WARN] GET https://registry.npmjs.org/@changesets%2Fapply-release-plan error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.15 [WARN] GET https://registry.npmjs.org/@changesets%2Fassemble-release-plan error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.15 [WARN] GET https://registry.npmjs.org/@changesets%2Fcli error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.17 [WARN] GET https://registry.npmjs.org/@changesets%2Fconfig error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.17 [WARN] GET https://registry.npmjs.org/@changesets%2Fget-release-plan error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.17 [WARN] GET https://registry.npmjs.org/@changesets%2Fgit error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.17 [WARN] GET https://registry.npmjs.org/@esbuild%2Fandroid-arm64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.20 [WARN] GET https://registry.npmjs.org/@esbuild%2Fandroid-arm error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.21 [WARN] GET https://registry.npmjs.org/@esbuild%2Fdarwin-arm64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.21 [WARN] GET https://registry.npmjs.org/@esbuild%2Fandroid-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.33 [WARN] Request took 15727ms: https://registry.npmjs.org/@humanwhocodes%2Fretry
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Fdarwin-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Ffreebsd-arm64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Ffreebsd-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-arm64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-arm error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.71 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-ia32 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.72 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-loong64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.72 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-mips64el error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.72 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-ppc64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.73 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-riscv64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.73 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-s390x error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.74 [WARN] GET https://registry.npmjs.org/@esbuild%2Flinux-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.74 [WARN] GET https://registry.npmjs.org/@esbuild%2Fnetbsd-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.76 [WARN] GET https://registry.npmjs.org/@esbuild%2Fopenbsd-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.76 [WARN] GET https://registry.npmjs.org/@esbuild%2Fsunos-x64 error (23). Will retry in 10 seconds. 2 retries left.
+#12 92.80 [WARN] Request took 27078ms: https://registry.npmjs.org/@eslint%2Feslintrc
+#12 92.83 [WARN] Request took 16083ms: https://registry.npmjs.org/@jridgewell%2Fgen-mapping
+#12 92.84 [WARN] Request took 16233ms: https://registry.npmjs.org/@inquirer%2Fexternal-editor
+#12 92.85 [WARN] Request took 13068ms: https://registry.npmjs.org/@manypkg%2Ffind-root
+#12 93.63 Progress: resolved 278, reused 0, downloaded 223, added 16
+#12 93.68 [WARN] Request took 16928ms: https://registry.npmjs.org/@jridgewell%2Fresolve-uri
+#12 93.70 [WARN] Request took 10225ms: https://registry.npmjs.org/@nodelib%2Ffs.scandir
+#12 99.27 Progress: resolved 278, reused 0, downloaded 229, added 16
+#12 99.96 [WARN] Request took 39973ms: https://registry.npmjs.org/@esbuild%2Fwin32-x64
+#12 103.2 [WARN] Tarball download average speed 3 KiB/s (size 30 KiB) is below 50 KiB/s: https://registry.npmjs.org/es-module-lexer/-/es-module-lexer-1.7.0.tgz (GET)
+#12 103.3 Progress: resolved 278, reused 0, downloaded 235, added 20
+#12 103.4 [WARN] Request took 19844ms: https://registry.npmjs.org/@nodelib%2Ffs.stat
+#12 103.4 [WARN] Request took 18320ms: https://registry.npmjs.org/@nodelib%2Ffs.walk
+#12 103.4 [WARN] Request took 11055ms: https://registry.npmjs.org/@rollup%2Frollup-android-x64
+#12 104.2 [WARN] Request took 24518ms: https://registry.npmjs.org/@jridgewell%2Ftrace-mapping
+#12 104.6 Progress: resolved 278, reused 0, downloaded 255, added 20
+#12 105.9 Progress: resolved 278, reused 0, downloaded 273, added 28
+#12 106.0 [WARN] Request took 12343ms: https://registry.npmjs.org/@rollup%2Frollup-linux-loong64-gnu
+#12 106.1 [WARN] Request took 13305ms: https://registry.npmjs.org/@rollup%2Frollup-freebsd-x64
+#12 106.2 [WARN] Request took 13919ms: https://registry.npmjs.org/@rollup%2Frollup-freebsd-arm64
+#12 106.3 [WARN] Request took 15416ms: https://registry.npmjs.org/@rollup%2Frollup-android-arm64
+#12 106.5 [WARN] Request took 14216ms: https://registry.npmjs.org/@rollup%2Frollup-darwin-arm64
+#12 107.5 Progress: resolved 278, reused 0, downloaded 274, added 43
+#12 108.9 Progress: resolved 278, reused 0, downloaded 274, added 46
+#12 110.3 Progress: resolved 278, reused 0, downloaded 275, added 50
+#12 110.5 [WARN] Request took 16771ms: https://registry.npmjs.org/@rollup%2Frollup-linux-arm-musleabihf
+#12 112.4 Progress: resolved 278, reused 0, downloaded 275, added 54
+#12 112.7 [WARN] Request took 27644ms: https://registry.npmjs.org/@rollup%2Frollup-android-arm-eabi
+#12 113.7 Progress: resolved 278, reused 0, downloaded 276, added 58
+#12 114.0 [WARN] Request took 10697ms: https://registry.npmjs.org/@esbuild%2Ffreebsd-x64
+#12 114.0 [WARN] Request took 10716ms: https://registry.npmjs.org/@esbuild%2Flinux-arm
+#12 114.1 [WARN] Request took 20380ms: https://registry.npmjs.org/@rollup%2Frollup-linux-arm64-musl
+#12 114.1 [WARN] Request took 10746ms: https://registry.npmjs.org/@esbuild%2Flinux-x64
+#12 114.1 [WARN] Request took 10766ms: https://registry.npmjs.org/@esbuild%2Fopenbsd-x64
+#12 114.2 [WARN] Request took 10807ms: https://registry.npmjs.org/@esbuild%2Fsunos-x64
+#12 114.2 [WARN] Request took 10875ms: https://registry.npmjs.org/@esbuild%2Flinux-ia32
+#12 114.2 [WARN] Request took 10899ms: https://registry.npmjs.org/@esbuild%2Fnetbsd-x64
+#12 114.8 Progress: resolved 278, reused 0, downloaded 276, added 66
+#12 115.0 [WARN] Request took 22635ms: https://registry.npmjs.org/@rollup%2Frollup-darwin-x64
+#12 115.4 [WARN] Request took 21749ms: https://registry.npmjs.org/@rollup%2Frollup-linux-arm64-gnu
+#12 115.6 [WARN] Request took 21961ms: https://registry.npmjs.org/@rollup%2Frollup-linux-arm-gnueabihf
+#12 115.9 Progress: resolved 278, reused 0, downloaded 276, added 77
+#12 116.1 [WARN] Request took 12789ms: https://registry.npmjs.org/@changesets%2Fcli
+#12 116.2 [WARN] Request took 12871ms: https://registry.npmjs.org/@babel%2Fruntime
+#12 116.4 [WARN] Request took 12105ms: https://registry.npmjs.org/@rollup%2Frollup-linux-riscv64-musl
+#12 116.5 [WARN] Request took 10266ms: https://registry.npmjs.org/@rollup%2Frollup-openharmony-arm64
+#12 116.9 [WARN] Request took 10577ms: https://registry.npmjs.org/@rollup%2Frollup-win32-arm64-msvc
+#12 119.1 Progress: resolved 278, reused 0, downloaded 276, added 91
+#12 119.4 [WARN] Request took 12704ms: https://registry.npmjs.org/@rollup%2Frollup-win32-x64-msvc
+#12 119.4 [WARN] Request took 12823ms: https://registry.npmjs.org/@rollup%2Frollup-win32-ia32-msvc
+#12 119.4 [WARN] Request took 11801ms: https://registry.npmjs.org/@vitest%2Frunner
+#12 121.1 Progress: resolved 278, reused 0, downloaded 277, added 94
+#12 125.7 Progress: resolved 278, reused 0, downloaded 277, added 98
+#12 125.9 [WARN] Request took 11255ms: https://registry.npmjs.org/chai
+#12 126.9 [WARN] Request took 18816ms: https://registry.npmjs.org/@vitest%2Fsnapshot
+#12 127.2 [WARN] Request took 19644ms: https://registry.npmjs.org/@vitest%2Fexpect
+#12 127.6 [WARN] Request took 17311ms: https://registry.npmjs.org/acorn
+#12 127.8 [WARN] Request took 11270ms: https://registry.npmjs.org/esprima
+#12 127.8 [WARN] Request took 11081ms: https://registry.npmjs.org/estree-walker
+#12 127.9 [WARN] Request took 11123ms: https://registry.npmjs.org/estraverse
+#12 127.9 [WARN] Request took 10797ms: https://registry.npmjs.org/extendable-error
+#12 128.1 Progress: resolved 278, reused 0, downloaded 278, added 105
+#12 128.1 [WARN] Request took 18875ms: https://registry.npmjs.org/@vitest%2Fspy
+#12 128.2 [WARN] Request took 11773ms: https://registry.npmjs.org/eslint-scope
+#12 128.3 [WARN] Request took 12091ms: https://registry.npmjs.org/debug
+#12 129.4 Progress: resolved 278, reused 0, downloaded 278, added 109
+#12 129.5 [WARN] Request took 13145ms: https://registry.npmjs.org/enquirer
+#12 129.6 [WARN] Request took 10449ms: https://registry.npmjs.org/fastq
+#12 130.0 [WARN] Request took 20604ms: https://registry.npmjs.org/@vitest%2Futils
+#12 130.0 [WARN] Request took 12903ms: https://registry.npmjs.org/fast-deep-equal
+#12 130.1 [WARN] Request took 10590ms: https://registry.npmjs.org/file-entry-cache
+#12 132.6 Progress: resolved 278, reused 0, downloaded 278, added 121
+#12 132.7 [WARN] Request took 16991ms: https://registry.npmjs.org/commander
+#12 132.7 [WARN] Request took 15887ms: https://registry.npmjs.org/expect-type
+#12 132.7 [WARN] Request took 13214ms: https://registry.npmjs.org/fdir
+#12 132.7 [WARN] Request took 10026ms: https://registry.npmjs.org/flat-cache
+#12 132.7 [WARN] Request took 16398ms: https://registry.npmjs.org/es-module-lexer
+#12 132.8 [WARN] Request took 13966ms: https://registry.npmjs.org/fast-glob
+#12 132.8 [WARN] Request took 18186ms: https://registry.npmjs.org/cac
+#12 132.9 [WARN] Request took 17017ms: https://registry.npmjs.org/consola
+#12 132.9 [WARN] Request took 18282ms: https://registry.npmjs.org/chokidar
+#12 133.0 [WARN] Request took 16543ms: https://registry.npmjs.org/eslint-config-prettier
+#12 133.4 [WARN] Request took 16997ms: https://registry.npmjs.org/espree
+#12 133.7 Progress: resolved 278, reused 0, downloaded 278, added 140
+#12 134.7 Progress: resolved 278, reused 0, downloaded 278, added 163
+#12 135.4 [WARN] Request took 25096ms: https://registry.npmjs.org/ajv
+#12 135.7 Progress: resolved 278, reused 0, downloaded 278, added 205
+#12 137.3 Progress: resolved 278, reused 0, downloaded 278, added 221
+#12 138.4 [WARN] Request took 30941ms: https://registry.npmjs.org/@typescript-eslint%2Ftsconfig-utils
+#12 139.7 Progress: resolved 278, reused 0, downloaded 278, added 225
+#12 140.9 Progress: resolved 278, reused 0, downloaded 278, added 229
+#12 141.9 [WARN] Request took 34565ms: https://registry.npmjs.org/@typescript-eslint%2Fproject-service
+#12 142.5 Progress: resolved 278, reused 0, downloaded 278, added 230
+#12 143.7 [WARN] Request took 27270ms: https://registry.npmjs.org/esbuild
+#12 143.8 Progress: resolved 278, reused 0, downloaded 278, added 246
+#12 144.2 [WARN] Request took 27791ms: https://registry.npmjs.org/eslint
+#12 144.8 [WARN] Request took 10585ms: https://registry.npmjs.org/sucrase
+#12 144.8 Progress: resolved 278, reused 0, downloaded 278, added 271
+#12 146.0 Progress: resolved 278, reused 0, downloaded 278, added 272
+#12 148.0 Progress: resolved 278, reused 0, downloaded 278, added 273
+#12 149.9 Progress: resolved 278, reused 0, downloaded 278, added 274
+#12 152.0 Progress: resolved 278, reused 0, downloaded 278, added 275
+#12 153.8 [WARN] Request took 18756ms: https://registry.npmjs.org/typescript-eslint
+#12 155.1 Progress: resolved 278, reused 0, downloaded 278, added 278, done
+#12 155.7 [WARN] Request took 20652ms: https://registry.npmjs.org/vitest
+#12 158.6 [WARN] Request took 23221ms: https://registry.npmjs.org/zod
+#12 158.9 [WARN] Request took 51636ms: https://registry.npmjs.org/@types%2Fnode
+#12 159.4 [WARN] Request took 24347ms: https://registry.npmjs.org/vite
+#12 161.2 [WARN] Request took 27220ms: https://registry.npmjs.org/rollup
+#12 166.3 [WARN] Request took 58793ms: https://registry.npmjs.org/@typescript-eslint%2Futils
+#12 166.7 [WARN] Request took 59200ms: https://registry.npmjs.org/@typescript-eslint%2Ftype-utils
+#12 167.4 [WARN] Request took 59928ms: https://registry.npmjs.org/@typescript-eslint%2Ftypes
+#12 168.3 [WARN] GET https://registry.npmjs.org/@typescript-eslint%2Feslint-plugin error (23). Will retry in 10 seconds. 2 retries left.
+#12 168.3 [WARN] GET https://registry.npmjs.org/@typescript-eslint%2Fparser error (23). Will retry in 10 seconds. 2 retries left.
+#12 168.3 [WARN] GET https://registry.npmjs.org/@typescript-eslint%2Fscope-manager error (23). Will retry in 10 seconds. 2 retries left.
+#12 168.3 [WARN] GET https://registry.npmjs.org/@typescript-eslint%2Ftypescript-estree error (23). Will retry in 10 seconds. 2 retries left.
+#12 168.3 [WARN] GET https://registry.npmjs.org/@typescript-eslint%2Fvisitor-keys error (23). Will retry in 10 seconds. 2 retries left.
+#12 171.4 [WARN] Request took 36388ms: https://registry.npmjs.org/typescript
+#12 173.7 [WARN] Request took 40252ms: https://registry.npmjs.org/playwright
+#12 175.1 [WARN] Request took 41691ms: https://registry.npmjs.org/playwright-core
+#12 189.5 [WARN] Request took 10576ms: https://registry.npmjs.org/@typescript-eslint%2Ftypescript-estree
+#12 191.8 ✓ Lockfile passes supply-chain policies (354 entries in 2m 40s)
+#12 191.9 .../esbuild@0.28.2/node_modules/esbuild postinstall$ node install.js
+#12 192.0 .../esbuild@0.27.7/node_modules/esbuild postinstall$ node install.js
+#12 196.1 .../esbuild@0.28.2/node_modules/esbuild postinstall: Done
+#12 196.2 .../esbuild@0.27.7/node_modules/esbuild postinstall: Done
+#12 197.6 
+#12 197.6 devDependencies:
+#12 197.6 + @changesets/cli 2.31.1
+#12 197.6 + @eslint/js 9.39.5
+#12 197.6 + @types/node 22.20.5
+#12 197.6 + eslint 9.39.5
+#12 197.6 + eslint-config-prettier 10.1.8
+#12 197.6 + prettier 3.10.1
+#12 197.6 + tsup 8.5.1
+#12 197.6 + typescript 5.9.3
+#12 197.6 + typescript-eslint 8.72.2
+#12 197.6 + vitest 3.2.7
+#12 197.6 
+#12 198.1 Done in 3m 0.8s using pnpm v11.15.1
+#12 DONE 199.8s
+
+#13 [build 3/3] RUN pnpm build
+#13 6.763 $ pnpm -r --if-present build
+#13 9.704 Scope: 12 of 13 workspace projects
+#13 9.713 packages/adapters/sdk build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 11.62 packages/adapters/sdk build: CLI Building entry: src/index.ts
+#13 11.62 packages/adapters/sdk build: CLI Using tsconfig: tsconfig.json
+#13 11.62 packages/adapters/sdk build: CLI tsup v8.5.1
+#13 11.65 packages/adapters/sdk build: CLI Target: node20
+#13 11.65 packages/adapters/sdk build: CLI Cleaning output folder
+#13 11.66 packages/adapters/sdk build: ESM Build start
+#13 11.78 packages/adapters/sdk build: ESM dist/index.js     18.49 KB
+#13 11.79 packages/adapters/sdk build: ESM dist/index.js.map 41.46 KB
+#13 11.80 packages/adapters/sdk build: ESM ⚡️ Build success in 130ms
+#13 13.70 packages/adapters/sdk build: DTS Build start
+#13 18.75 packages/adapters/sdk build: DTS ⚡️ Build success in 5042ms
+#13 18.75 packages/adapters/sdk build: DTS dist/index.d.ts 12.66 KB
+#13 18.83 packages/adapters/sdk build: Done
+#13 18.83 packages/browser build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 18.84 packages/core build$ tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts --format esm --dts --clean --sourcemap --target node20
+#13 19.90 packages/browser build: CLI Building entry: src/index.ts
+#13 19.90 packages/browser build: CLI Using tsconfig: tsconfig.json
+#13 19.91 packages/browser build: CLI tsup v8.5.1
+#13 19.92 packages/browser build: CLI Target: node20
+#13 19.92 packages/core build: CLI Building entry: src/browser.ts, src/cloud.ts, src/exports.ts, src/index.ts, src/outcomes.ts, src/personas.ts, src/plugins.ts, src/ssrf-export.ts
+#13 19.92 packages/browser build: CLI Cleaning output folder
+#13 19.92 packages/core build: CLI Using tsconfig: tsconfig.json
+#13 19.92 packages/core build: CLI tsup v8.5.1
+#13 19.93 packages/browser build: ESM Build start
+#13 19.94 packages/core build: CLI Target: node20
+#13 19.94 packages/core build: CLI Cleaning output folder
+#13 19.95 packages/core build: ESM Build start
+#13 20.15 packages/browser build: ESM dist/index.js     89.33 KB
+#13 20.15 packages/browser build: ESM dist/index.js.map 169.42 KB
+#13 20.15 packages/browser build: ESM ⚡️ Build success in 224ms
+#13 21.11 packages/core build: ESM dist/browser.js            177.00 B
+#13 21.12 packages/core build: ESM dist/chunk-Z6TGCINJ.js     7.85 KB
+#13 21.12 packages/core build: ESM dist/outcomes.js           443.00 B
+#13 21.12 packages/core build: ESM dist/chunk-LT74Q6RG.js     5.65 KB
+#13 21.12 packages/core build: ESM dist/plugins.js            1.09 KB
+#13 21.12 packages/core build: ESM dist/personas.js           1.62 KB
+#13 21.12 packages/core build: ESM dist/chunk-NHDRUPZH.js     14.84 KB
+#13 21.12 packages/core build: ESM dist/chunk-OXNU7YIE.js     70.05 KB
+#13 21.12 packages/core build: ESM dist/ssrf-export.js        358.00 B
+#13 21.12 packages/core build: ESM dist/chunk-SVM3JTYS.js     31.81 KB
+#13 21.13 packages/core build: ESM dist/chunk-KOLZ5OUH.js     5.63 KB
+#13 21.13 packages/core build: ESM dist/cloud.js              163.00 B
+#13 21.13 packages/core build: ESM dist/exports.js            412.00 B
+#13 21.13 packages/core build: ESM dist/chunk-X7VICLTE.js     9.16 KB
+#13 21.13 packages/core build: ESM dist/chunk-DARWEVMR.js     37.85 KB
+#13 21.13 packages/core build: ESM dist/index.js              253.32 KB
+#13 21.13 packages/core build: ESM dist/browser.js.map        590.00 B
+#13 21.13 packages/core build: ESM dist/outcomes.js.map       71.00 B
+#13 21.13 packages/core build: ESM dist/chunk-Z6TGCINJ.js.map 14.51 KB
+#13 21.13 packages/core build: ESM dist/plugins.js.map        71.00 B
+#13 21.13 packages/core build: ESM dist/ssrf-export.js.map    71.00 B
+#13 21.13 packages/core build: ESM dist/chunk-SVM3JTYS.js.map 68.60 KB
+#13 21.13 packages/core build: ESM dist/chunk-NHDRUPZH.js.map 32.90 KB
+#13 21.13 packages/core build: ESM dist/chunk-OXNU7YIE.js.map 116.89 KB
+#13 21.13 packages/core build: ESM dist/chunk-LT74Q6RG.js.map 9.69 KB
+#13 21.13 packages/core build: ESM dist/exports.js.map        71.00 B
+#13 21.13 packages/core build: ESM dist/chunk-X7VICLTE.js.map 18.29 KB
+#13 21.13 packages/core build: ESM dist/chunk-DARWEVMR.js.map 77.62 KB
+#13 21.13 packages/core build: ESM dist/cloud.js.map          578.00 B
+#13 21.13 packages/core build: ESM dist/personas.js.map       71.00 B
+#13 21.14 packages/core build: ESM dist/chunk-KOLZ5OUH.js.map 11.45 KB
+#13 21.14 packages/core build: ESM dist/index.js.map          454.24 KB
+#13 21.14 packages/core build: ESM ⚡️ Build success in 1170ms
+#13 22.89 packages/core build: DTS Build start
+#13 23.20 packages/browser build: DTS Build start
+#13 66.24 packages/browser build: DTS ⚡️ Build success in 42893ms
+#13 66.24 packages/browser build: DTS dist/index.d.ts 13.86 KB
+#13 66.82 packages/browser build: Done
+#13 68.11 packages/core build: DTS ⚡️ Build success in 45223ms
+#13 68.11 packages/core build: DTS dist/browser.d.ts              502.00 B
+#13 68.11 packages/core build: DTS dist/cloud.d.ts                486.00 B
+#13 68.11 packages/core build: DTS dist/exports.d.ts              815.00 B
+#13 68.12 packages/core build: DTS dist/personas.d.ts             10.80 KB
+#13 68.12 packages/core build: DTS dist/index.d.ts                157.72 KB
+#13 68.12 packages/core build: DTS dist/outcomes.d.ts             356.00 B
+#13 68.12 packages/core build: DTS dist/plugins.d.ts              771.00 B
+#13 68.12 packages/core build: DTS dist/ssrf-export.d.ts          196.00 B
+#13 68.12 packages/core build: DTS dist/models-CVrfVATZ.d.ts      8.01 KB
+#13 68.12 packages/core build: DTS dist/outcomes-CAndjHLG.d.ts    7.31 KB
+#13 68.12 packages/core build: DTS dist/plugins-BZozQx-0.d.ts     14.35 KB
+#13 68.12 packages/core build: DTS dist/ssrf-export-C1EFbGqM.d.ts 4.70 KB
+#13 68.24 packages/core build: Done
+#13 68.25 packages/agent build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 68.25 packages/cloud build$ tsup src/index.ts src/metering.ts src/auth.ts src/quota.ts src/ledger.ts src/signup.ts src/billing.ts src/queue.ts src/retention.ts src/entitlements.ts --format esm --dts --clean --sourcemap --target node20
+#13 68.25 packages/personas build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 69.40 packages/agent build: CLI Building entry: src/index.ts
+#13 69.41 packages/agent build: CLI Using tsconfig: tsconfig.json
+#13 69.41 packages/agent build: CLI tsup v8.5.1
+#13 69.42 packages/agent build: CLI Target: node20
+#13 69.42 packages/personas build: CLI Building entry: src/index.ts
+#13 69.43 packages/agent build: CLI Cleaning output folder
+#13 69.43 packages/cloud build: CLI Building entry: src/auth.ts, src/billing.ts, src/entitlements.ts, src/index.ts, src/ledger.ts, src/metering.ts, src/queue.ts, src/quota.ts, src/retention.ts, src/signup.ts
+#13 69.43 packages/personas build: CLI Using tsconfig: tsconfig.json
+#13 69.43 packages/personas build: CLI tsup v8.5.1
+#13 69.43 packages/cloud build: CLI Using tsconfig: tsconfig.json
+#13 69.43 packages/cloud build: CLI tsup v8.5.1
+#13 69.43 packages/agent build: ESM Build start
+#13 69.45 packages/personas build: CLI Target: node20
+#13 69.45 packages/cloud build: CLI Target: node20
+#13 69.45 packages/personas build: CLI Cleaning output folder
+#13 69.46 packages/personas build: ESM Build start
+#13 69.46 packages/cloud build: CLI Cleaning output folder
+#13 69.47 packages/cloud build: ESM Build start
+#13 69.56 packages/personas build: ESM dist/index.js     114.00 B
+#13 69.56 packages/personas build: ESM dist/index.js.map 322.00 B
+#13 69.56 packages/personas build: ESM ⚡️ Build success in 108ms
+#13 69.69 packages/agent build: ESM dist/index.js     80.85 KB
+#13 69.70 packages/agent build: ESM dist/index.js.map 144.14 KB
+#13 69.70 packages/agent build: ESM ⚡️ Build success in 261ms
+#13 70.03 packages/cloud build: ESM dist/retention.js          898.00 B
+#13 70.03 packages/cloud build: ESM dist/entitlements.js       865.00 B
+#13 70.03 packages/cloud build: ESM dist/chunk-OR2GQEHG.js     24.02 KB
+#13 70.03 packages/cloud build: ESM dist/chunk-X4XMFPR4.js     1.27 KB
+#13 70.03 packages/cloud build: ESM dist/chunk-KQH5YUG7.js     28.84 KB
+#13 70.03 packages/cloud build: ESM dist/chunk-NGJFFLA2.js     19.91 KB
+#13 70.03 packages/cloud build: ESM dist/ledger.js             971.00 B
+#13 70.03 packages/cloud build: ESM dist/index.js              6.27 KB
+#13 70.03 packages/cloud build: ESM dist/chunk-H7QPVEYF.js     39.87 KB
+#13 70.03 packages/cloud build: ESM dist/metering.js           1.05 KB
+#13 70.04 packages/cloud build: ESM dist/chunk-FPKIMSUR.js     19.53 KB
+#13 70.04 packages/cloud build: ESM dist/queue.js              618.00 B
+#13 70.04 packages/cloud build: ESM dist/chunk-AIX3AFVG.js     13.89 KB
+#13 70.04 packages/cloud build: ESM dist/quota.js              1.33 KB
+#13 70.04 packages/cloud build: ESM dist/chunk-NSBPE2FW.js     611.00 B
+#13 70.04 packages/cloud build: ESM dist/signup.js             829.00 B
+#13 70.04 packages/cloud build: ESM dist/chunk-XZVYSW6U.js     12.25 KB
+#13 70.04 packages/cloud build: ESM dist/auth.js               597.00 B
+#13 70.04 packages/cloud build: ESM dist/billing.js            944.00 B
+#13 70.04 packages/cloud build: ESM dist/chunk-MRJZPFVK.js     30.85 KB
+#13 70.04 packages/cloud build: ESM dist/retention.js.map      71.00 B
+#13 70.04 packages/cloud build: ESM dist/chunk-OR2GQEHG.js.map 44.04 KB
+#13 70.04 packages/cloud build: ESM dist/chunk-KQH5YUG7.js.map 53.19 KB
+#13 70.04 packages/cloud build: ESM dist/chunk-NGJFFLA2.js.map 37.41 KB
+#13 70.04 packages/cloud build: ESM dist/ledger.js.map         71.00 B
+#13 70.04 packages/cloud build: ESM dist/index.js.map          1.07 KB
+#13 70.05 packages/cloud build: ESM dist/chunk-H7QPVEYF.js.map 73.35 KB
+#13 70.05 packages/cloud build: ESM dist/metering.js.map       71.00 B
+#13 70.05 packages/cloud build: ESM dist/chunk-FPKIMSUR.js.map 39.36 KB
+#13 70.05 packages/cloud build: ESM dist/chunk-AIX3AFVG.js.map 28.24 KB
+#13 70.05 packages/cloud build: ESM dist/chunk-NSBPE2FW.js.map 71.00 B
+#13 70.05 packages/cloud build: ESM dist/signup.js.map         71.00 B
+#13 70.05 packages/cloud build: ESM dist/quota.js.map          71.00 B
+#13 70.05 packages/cloud build: ESM dist/chunk-X4XMFPR4.js.map 241.00 B
+#13 70.05 packages/cloud build: ESM dist/billing.js.map        71.00 B
+#13 70.05 packages/cloud build: ESM dist/chunk-XZVYSW6U.js.map 23.84 KB
+#13 70.05 packages/cloud build: ESM dist/entitlements.js.map   71.00 B
+#13 70.05 packages/cloud build: ESM dist/queue.js.map          71.00 B
+#13 70.06 packages/cloud build: ESM dist/chunk-MRJZPFVK.js.map 58.67 KB
+#13 70.06 packages/cloud build: ESM dist/auth.js.map           71.00 B
+#13 70.06 packages/cloud build: ESM ⚡️ Build success in 560ms
+#13 70.72 packages/agent build: DTS Build start
+#13 71.41 packages/cloud build: DTS Build start
+#13 71.59 packages/personas build: DTS Build start
+#13 75.85 packages/personas build: DTS ⚡️ Build success in 4258ms
+#13 75.85 packages/personas build: DTS dist/index.d.ts 225.00 B
+#13 76.05 packages/personas build: Done
+#13 85.05 packages/agent build: DTS ⚡️ Build success in 14327ms
+#13 85.05 packages/agent build: DTS dist/index.d.ts 19.68 KB
+#13 85.14 packages/agent build: Done
+#13 98.54 packages/cloud build: DTS ⚡️ Build success in 27115ms
+#13 98.54 packages/cloud build: DTS dist/index.d.ts                 3.55 KB
+#13 98.54 packages/cloud build: DTS dist/metering.d.ts              3.75 KB
+#13 98.54 packages/cloud build: DTS dist/retention.d.ts             3.32 KB
+#13 98.55 packages/cloud build: DTS dist/billing.d.ts               7.65 KB
+#13 98.55 packages/cloud build: DTS dist/ledger.d.ts                7.32 KB
+#13 98.55 packages/cloud build: DTS dist/queue.d.ts                 4.30 KB
+#13 98.55 packages/cloud build: DTS dist/signup.d.ts                4.60 KB
+#13 98.55 packages/cloud build: DTS dist/auth.d.ts                  6.05 KB
+#13 98.55 packages/cloud build: DTS dist/quota.d.ts                 7.59 KB
+#13 98.55 packages/cloud build: DTS dist/entitlements.d.ts          420.00 B
+#13 98.55 packages/cloud build: DTS dist/entitlements-wHs_qkoy.d.ts 2.63 KB
+#13 98.73 packages/cloud build: Done
+#13 98.74 packages/adapters/codex build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 98.74 packages/adapters/claude-code build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 98.74 packages/adapters/cursor build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 98.75 packages/adapters/antigravity build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 100.0 packages/adapters/cursor build: CLI Building entry: src/index.ts
+#13 100.0 packages/adapters/cursor build: CLI Using tsconfig: tsconfig.json
+#13 100.0 packages/adapters/cursor build: CLI tsup v8.5.1
+#13 100.1 packages/adapters/cursor build: CLI Target: node20
+#13 100.1 packages/adapters/cursor build: CLI Cleaning output folder
+#13 100.1 packages/adapters/cursor build: ESM Build start
+#13 100.2 packages/adapters/cursor build: ESM dist/index.js     7.73 KB
+#13 100.2 packages/adapters/cursor build: ESM dist/index.js.map 15.33 KB
+#13 100.2 packages/adapters/cursor build: ESM ⚡️ Build success in 121ms
+#13 100.3 packages/adapters/antigravity build: CLI Building entry: src/index.ts
+#13 100.3 packages/adapters/antigravity build: CLI Using tsconfig: tsconfig.json
+#13 100.3 packages/adapters/antigravity build: CLI tsup v8.5.1
+#13 100.3 packages/adapters/antigravity build: CLI Target: node20
+#13 100.3 packages/adapters/antigravity build: CLI Cleaning output folder
+#13 100.3 packages/adapters/antigravity build: ESM Build start
+#13 100.4 packages/adapters/antigravity build: ESM dist/index.js     7.88 KB
+#13 100.4 packages/adapters/antigravity build: ESM dist/index.js.map 15.48 KB
+#13 100.4 packages/adapters/antigravity build: ESM ⚡️ Build success in 98ms
+#13 100.8 packages/adapters/claude-code build: CLI Building entry: src/index.ts
+#13 100.8 packages/adapters/claude-code build: CLI Using tsconfig: tsconfig.json
+#13 100.8 packages/adapters/claude-code build: CLI tsup v8.5.1
+#13 100.8 packages/adapters/claude-code build: CLI Target: node20
+#13 100.8 packages/adapters/claude-code build: CLI Cleaning output folder
+#13 100.8 packages/adapters/claude-code build: ESM Build start
+#13 100.9 packages/adapters/claude-code build: ESM dist/index.js     8.02 KB
+#13 100.9 packages/adapters/claude-code build: ESM dist/index.js.map 15.67 KB
+#13 100.9 packages/adapters/claude-code build: ESM ⚡️ Build success in 105ms
+#13 101.4 packages/adapters/codex build: CLI Building entry: src/index.ts
+#13 101.4 packages/adapters/codex build: CLI Using tsconfig: tsconfig.json
+#13 101.4 packages/adapters/codex build: CLI tsup v8.5.1
+#13 101.4 packages/adapters/codex build: CLI Target: node20
+#13 101.4 packages/adapters/codex build: CLI Cleaning output folder
+#13 101.5 packages/adapters/codex build: ESM Build start
+#13 101.5 packages/adapters/codex build: ESM dist/index.js     8.15 KB
+#13 101.5 packages/adapters/codex build: ESM dist/index.js.map 16.53 KB
+#13 101.5 packages/adapters/codex build: ESM ⚡️ Build success in 86ms
+#13 102.0 packages/adapters/cursor build: DTS Build start
+#13 102.1 packages/adapters/claude-code build: DTS Build start
+#13 102.1 packages/adapters/antigravity build: DTS Build start
+#13 103.5 packages/adapters/codex build: DTS Build start
+#13 176.9 packages/adapters/claude-code build: DTS ⚡️ Build success in 74742ms
+#13 176.9 packages/adapters/claude-code build: DTS dist/index.d.ts 2.65 KB
+#13 177.3 packages/adapters/claude-code build: Done
+#13 177.3 packages/adapters/opencode build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+#13 177.4 packages/adapters/antigravity build: DTS ⚡️ Build success in 75367ms
+#13 177.5 packages/adapters/antigravity build: DTS dist/index.d.ts 2.67 KB
+#13 177.6 packages/adapters/antigravity build: Done
+#13 177.6 packages/cli build$ tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20
+#13 177.7 packages/adapters/cursor build: DTS ⚡️ Build success in 75690ms
+#13 177.7 packages/adapters/cursor build: DTS dist/index.d.ts 2.54 KB
+#13 177.7 packages/adapters/codex build: DTS ⚡️ Build success in 74357ms
+#13 177.7 packages/adapters/codex build: DTS dist/index.d.ts 3.03 KB
+#13 177.9 packages/adapters/cursor build: Done
+#13 178.2 packages/adapters/codex build: Done
+#13 178.8 packages/adapters/opencode build: CLI Building entry: src/index.ts
+#13 178.8 packages/adapters/opencode build: CLI Using tsconfig: tsconfig.json
+#13 178.8 packages/adapters/opencode build: CLI tsup v8.5.1
+#13 178.8 packages/adapters/opencode build: CLI Target: node20
+#13 178.8 packages/adapters/opencode build: CLI Cleaning output folder
+#13 178.8 packages/adapters/opencode build: ESM Build start
+#13 179.0 packages/adapters/opencode build: ESM dist/index.js     7.95 KB
+#13 179.0 packages/adapters/opencode build: ESM dist/index.js.map 15.81 KB
+#13 179.0 packages/adapters/opencode build: ESM ⚡️ Build success in 131ms
+#13 179.2 packages/cli build: CLI Building entry: src/cli.ts, src/index.ts
+#13 179.2 packages/cli build: CLI Using tsconfig: tsconfig.json
+#13 179.2 packages/cli build: CLI tsup v8.5.1
+#13 179.3 packages/cli build: CLI Target: node20
+#13 179.3 packages/cli build: CLI Cleaning output folder
+#13 179.3 packages/cli build: ESM Build start
+#13 179.5 packages/cli build: ESM dist/index.js              606.00 B
+#13 179.5 packages/cli build: ESM dist/cli.js                293.00 B
+#13 179.5 packages/cli build: ESM dist/chunk-6N37HVJ3.js     30.88 KB
+#13 179.5 packages/cli build: ESM dist/index.js.map          71.00 B
+#13 179.5 packages/cli build: ESM dist/cli.js.map            533.00 B
+#13 179.5 packages/cli build: ESM dist/chunk-6N37HVJ3.js.map 59.04 KB
+#13 179.5 packages/cli build: ESM ⚡️ Build success in 239ms
+#13 181.2 packages/adapters/opencode build: DTS Build start
+#13 181.2 packages/cli build: DTS Build start
+#13 202.6 packages/adapters/opencode build: DTS ⚡️ Build success in 21443ms
+#13 202.6 packages/adapters/opencode build: DTS dist/index.d.ts 2.59 KB
+#13 202.9 packages/adapters/opencode build: Done
+#13 205.2 packages/cli build: DTS ⚡️ Build success in 24022ms
+#13 205.2 packages/cli build: DTS dist/cli.d.ts   20.00 B
+#13 205.2 packages/cli build: DTS dist/index.d.ts 2.40 KB
+#13 205.4 packages/cli build: Done
+#13 DONE 206.6s
+
+#14 [runtime 3/7] COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+#14 DONE 0.2s
+
+#15 [runtime 4/7] COPY --from=build /app/node_modules ./node_modules
+#15 DONE 11.2s
+
+#16 [runtime 5/7] COPY --from=build /app/packages ./packages
+#16 DONE 0.6s
+
+#17 [runtime 6/7] COPY --from=build /app/schemas ./schemas
+#17 DONE 0.2s
+
+#18 [runtime 7/7] COPY --from=build /app/policies ./policies
+#18 DONE 0.1s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 4.0s done
+#19 writing image sha256:83fddafbb7a21f43aae5dfc1812024ecd1219c9b1198e0a5cac0717b086d2a88 0.0s done
+#19 naming to docker.io/library/lemma-core:lem135 0.1s done
+#19 DONE 4.2s
