@@ -25,6 +25,7 @@ import {
   type RunStateDomain,
 } from "../../src/index.js";
 import { StateStore } from "../../src/index.js";
+import type { Workflow } from "../../src/workflows.js";
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "lemma-perf-scale-"));
@@ -34,6 +35,8 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
     await rm(dir, { recursive: true, force: true });
   }
 }
+
+const workflow = RELEASE_CONFIDENCE as unknown as Workflow;
 
 function makeCheck(i: number): Check {
   const passed = i % 5 !== 0;
@@ -113,7 +116,7 @@ describe("LEM-131 performance and scale budgets", () => {
       run_id: "run-scale-1",
       workflow_id: RELEASE_CONFIDENCE.id,
       workflow_version: RELEASE_CONFIDENCE.version,
-      target: { raw: ".", kind: "directory", resolved: "/repo", source: null } as any,
+      target: { raw: ".", kind: "directory", resolved: "/repo", source: null } as RunStateDomain["target"],
       intent: "scale budget",
       status: RunStatus.COMPLETED,
       current_phase: "confidence_scoring",
@@ -126,7 +129,7 @@ describe("LEM-131 performance and scale budgets", () => {
       contract_failures: {},
       contract_failure_streaks: {},
       degraded_personas: [],
-      confidence: normalizeConfidence(confidence as any),
+      confidence: normalizeConfidence(confidence),
       kill_switch: { armed: true, threshold: "critical", triggered: false, reason: "", triggered_at: null, finding_id: "", manual: false },
       inventory: {},
       personas: [],
@@ -143,7 +146,7 @@ describe("LEM-131 performance and scale budgets", () => {
 
     const report = buildReport(
       state,
-      RELEASE_CONFIDENCE as any,
+      workflow,
       { directory: ".lemma/evidence/run-scale-1", count: checks.length, by_kind: { text: checks.length }, total_bytes: 0, manifest: ".lemma/evidence/run-scale-1/manifest.json" },
       "2026-11-16T00:00:10Z",
     );
@@ -196,7 +199,6 @@ describe("LEM-131 performance and scale budgets", () => {
         store,
         handlers: {
           test_planning: (ctx) => {
-            // simulate a large candidate plan; bounded by handler/context budget
             const planned: Check[] = Array.from({ length: 200 }, (_, i) => ({
               id: `c-${i + 1}`,
               title: `C ${i + 1}`,
@@ -225,7 +227,7 @@ describe("LEM-131 performance and scale budgets", () => {
             ctx.phase.summary = "ok";
           },
           confidence_scoring: (ctx) => {
-            ctx.state.confidence = scoreConfidence(ctx.state.checks, ctx.state.findings, { halted: false }) as any;
+            ctx.state.confidence = scoreConfidence(ctx.state.checks, ctx.state.findings, { halted: false });
           },
         },
       });

@@ -64,9 +64,7 @@ describe("LEM-127 cross-platform atomic writes and locks", () => {
 
     await expect(
       atomicWriteJson(target, { ok: false, version: 2 }, {
-        renameFn: async () => {
-          throw new Error("simulated rename failure");
-        },
+        renameFn: () => Promise.reject(new Error("simulated rename failure")),
       }),
     ).rejects.toBeInstanceOf(StateError);
 
@@ -84,7 +82,7 @@ describe("LEM-127 cross-platform atomic writes and locks", () => {
     const lock = await acquireFileLock(target, { timeoutMs: 2000, staleMs: 60_000 });
     try {
       await expect(
-        withFileLock(target, async () => 1, { timeoutMs: 150, pollMs: 20, staleMs: 60_000 }),
+        withFileLock(target, () => 1, { timeoutMs: 150, pollMs: 20, staleMs: 60_000 }),
       ).rejects.toBeInstanceOf(StateError);
 
       await expect(

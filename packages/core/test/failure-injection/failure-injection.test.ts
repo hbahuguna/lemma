@@ -22,7 +22,9 @@ import {
   scoreConfidence,
   type Check,
   type Finding,
+  type RunStateDomain,
 } from "../../src/index.js";
+import type { Workflow } from "../../src/workflows.js";
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "lemma-failure-injection-"));
@@ -34,6 +36,7 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 }
 
 const target = normalizeTarget({ raw: ".", kind: "directory", resolved: "/repo" });
+const workflow = RELEASE_CONFIDENCE as unknown as Workflow;
 
 function baseCheck(id: string, overrides: Partial<Check> = {}): Check {
   return {
@@ -81,6 +84,10 @@ function finding(overrides: Partial<Finding> & Pick<Finding, "id" | "check_id" |
     suppression_ticket: overrides.suppression_ticket ?? "",
     suppression_expires_at: overrides.suppression_expires_at ?? "",
   };
+}
+
+function asRunStateDomain(value: Record<string, unknown>): RunStateDomain {
+  return value as unknown as RunStateDomain;
 }
 
 describe("LEM-126 state, evidence, and kill-switch failure injection", () => {
@@ -162,23 +169,42 @@ describe("LEM-126 state, evidence, and kill-switch failure injection", () => {
       expect(progress.error).toBe("simulated evidence write failure");
       expect(progress.status).not.toBe(RunStatus.COMPLETED);
 
+      const state: RunStateDomain = {
+        schema_version: "1.0",
+        run_id: String(progress.run_id ?? "run-failed"),
+        workflow_id: String(progress.workflow_id ?? RELEASE_CONFIDENCE.id),
+        workflow_version: String(progress.workflow_version ?? RELEASE_CONFIDENCE.version),
+        target: (progress.target as RunStateDomain["target"]) ?? ({ raw: ".", kind: "directory", resolved: "/repo", source: null } as RunStateDomain["target"]),
+        intent: String(progress.intent ?? ""),
+        status: String(progress.status ?? RunStatus.FAILED),
+        current_phase: String(progress.current_phase ?? DomainPhaseName.EVIDENCE_COLLECTION),
+        phases: (progress.phases as RunStateDomain["phases"]) ?? [],
+        risks: (progress.risks as RunStateDomain["risks"]) ?? [],
+        checks: (progress.checks as RunStateDomain["checks"]) ?? [],
+        findings: (progress.findings as RunStateDomain["findings"]) ?? [],
+        invalid_findings: (progress.invalid_findings as RunStateDomain["invalid_findings"]) ?? [],
+        blockers: (progress.blockers as RunStateDomain["blockers"]) ?? [],
+        contract_failures: (progress.contract_failures as Record<string, number>) ?? {},
+        contract_failure_streaks: (progress.contract_failure_streaks as Record<string, number>) ?? {},
+        degraded_personas: (progress.degraded_personas as string[]) ?? [],
+        confidence: (progress.confidence as RunStateDomain["confidence"]) ?? ({ score: 0, band: "none", coverage: 0, rationale: "", limitations: [], penalties: {}, domain_scores: {}, breakdown: {}, gate: { status: "fail", reasons: [], policy: "advisory-v1" } } as RunStateDomain["confidence"]),
+        kill_switch: (progress.kill_switch as RunStateDomain["kill_switch"]) ?? { armed: true, threshold: "critical", triggered: false, reason: "", triggered_at: null, finding_id: "", manual: false },
+        inventory: (progress.inventory as Record<string, unknown>) ?? {},
+        personas: (progress.personas as unknown[]) ?? [],
+        options: (progress.options as Record<string, unknown>) ?? {},
+        evidence_dir: String(progress.evidence_dir ?? ".lemma/evidence/run-failed"),
+        started_at: String(progress.started_at ?? "2026-11-14T00:00:00Z"),
+        updated_at: String(progress.updated_at ?? "2026-11-14T00:00:00Z"),
+        completed_at: (progress.completed_at as string | null | undefined) ?? null,
+        halted_reason: String(progress.halted_reason ?? ""),
+        error: String(progress.error ?? ""),
+        seed: (progress.seed as number | null | undefined) ?? null,
+        clock_mode: String(progress.clock_mode ?? "real"),
+      };
+
       const report = buildReport(
-        {
-          ...(progress as any),
-          checks: (progress.checks as any[]) ?? [],
-          findings: (progress.findings as any[]) ?? [],
-          invalid_findings: (progress.invalid_findings as any[]) ?? [],
-          blockers: (progress.blockers as any[]) ?? [],
-          personas: (progress.personas as any[]) ?? [],
-          contract_failures: (progress.contract_failures as any) ?? {},
-          contract_failure_streaks: (progress.contract_failure_streaks as any) ?? {},
-          degraded_personas: (progress.degraded_personas as any[]) ?? [],
-          confidence: (progress.confidence as any) ?? { score: 0, band: "none", coverage: 0, rationale: "", limitations: [], penalties: {}, domain_scores: {}, breakdown: {}, gate: { status: "fail", reasons: [], policy: "advisory-v1" } },
-          phases: (progress.phases as any[]) ?? [],
-          kill_switch: (progress.kill_switch as any) ?? { armed: true, threshold: "critical", triggered: false, reason: "", triggered_at: null, finding_id: "", manual: false },
-          options: (progress.options as any) ?? {},
-        } as any,
-        RELEASE_CONFIDENCE,
+        state,
+        workflow,
         { directory: ".lemma/evidence/run", count: 0, by_kind: {}, total_bytes: 0, manifest: "" },
         "2026-11-14T00:00:00Z",
       );
@@ -217,14 +243,14 @@ describe("LEM-126 state, evidence, and kill-switch failure injection", () => {
       );
 
       const report = buildReport(
-        state as any,
-        RELEASE_CONFIDENCE,
+        asRunStateDomain(state as unknown as Record<string, unknown>),
+        workflow,
         { directory: ".lemma/evidence/run", count: 0, by_kind: {}, total_bytes: 0, manifest: "" },
         "2026-11-14T00:00:00Z",
       );
       expect(report.status).toBe(RunStatus.HALTED);
       expect((report.decision as { decision: string }).decision).toBe("hold");
-      expect(String(report.halted_reason ?? "").toLowerCase()).toContain("kill");
+      expect(String(report.halted_reason).toLowerCase()).toContain("kill");
     });
   });
 
@@ -275,8 +301,8 @@ describe("LEM-126 state, evidence, and kill-switch failure injection", () => {
       expect(state.confidence.gate?.status).not.toBe("pass");
 
       const report = buildReport(
-        state as any,
-        RELEASE_CONFIDENCE,
+        asRunStateDomain(state as unknown as Record<string, unknown>),
+        workflow,
         { directory: ".lemma/evidence/run", count: 0, by_kind: {}, total_bytes: 0, manifest: "" },
         "2026-11-14T00:00:00Z",
       );

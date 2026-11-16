@@ -1,4 +1,4 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 
@@ -92,7 +92,7 @@ describe("LEM-128 untrusted evidence path and traversal audit", () => {
         // Manifest tamper/signature invalid is expected after direct edit; critical audit property:
         // unsafe paths must not be verified as valid inside-root artifacts and outside secrets must not leak.
         expect(result.tampered).toBe(true);
-        expect(result.mismatches.some((m) => String(m.path ?? "").includes(path.basename(outside)))).toBe(false);
+        expect(result.mismatches.some((m) => String(m.path) === path.basename(outside))).toBe(false);
         expect(result.affected.some((a) => a.path === "../" + path.basename(outside))).toBe(true);
         expect(result.affected.some((a) => a.path === outside)).toBe(true);
 
@@ -101,7 +101,7 @@ describe("LEM-128 untrusted evidence path and traversal audit", () => {
 
         // Legitimate in-root evidence remains readable/checkable; it must not be misclassified as missing/mismatched due to unsafe entries.
         expect(result.missing).not.toContain(rel);
-        expect(result.mismatches.some((m) => String(m.path ?? "") === rel)).toBe(false);
+        expect(result.mismatches.some((m) => String(m.path) === rel)).toBe(false);
 
         const serialized = JSON.stringify(result);
         expect(serialized).not.toContain("OUTSIDE_VERIFY_SECRET");

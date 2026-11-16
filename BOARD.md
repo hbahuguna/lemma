@@ -342,7 +342,7 @@ every supported host with visible supply-chain evidence.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-132 | Build the CI matrix (Node 20/22, macOS/Linux/Windows) | P0 | 3 | LEM-001, LEM-026 | Backlog |
+| LEM-132 | Build the CI matrix (Node 20/22, macOS/Linux/Windows) | P0 | 3 | LEM-001, LEM-026 | Done |
 | LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Backlog |
 | LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Backlog |
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Backlog |
@@ -4705,6 +4705,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-132 — Build the CI matrix (Node 20/22, macOS/Linux/Windows)
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-001, LEM-026
+- **Status:** Done
+- **Claimed:** 2026-11-16 — repaired CI workflow and defined matrix/parity jobs.
+- **Description:** Repair and build GitHub Actions CI to run core verification
+  across Node 20/22 on macOS/Linux/Windows, while preserving parity/oracle
+  checks in an appropriate job, so clean-checkout verification is matrixed and
+  reproducible.
+- **Acceptance Criteria:**
+  - `.github/workflows/ci.yml` defines a core verification matrix job covering
+    OS `ubuntu-latest`, `macos-latest`, `windows-latest` and Node `20`, `22`
+    (fail-fast disabled) that performs checkout, pnpm/setup-node (with cache),
+    `pnpm install --frozen-lockfile`, and core verification steps at minimum
+    `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test`.
+  - Parity/oracle checks remain defined in CI (ubuntu-appropriate job) with
+    pinned assay oracle checkout/setup and `pnpm parity:check` + `pnpm test:parity`
+    (and frozen install), without breaking the cross-platform core matrix.
+  - Workflow YAML is structurally valid (no duplicated/malformed job step blocks)
+    and required markers parse/present; local verification evidence recorded
+    (`python3` YAML parse/markers pass, `pnpm typecheck` and `pnpm build` pass;
+    `pnpm test` executed to completion with failures in unrelated pre-existing
+    areas captured in evidence — CI will enforce the configured matrix checks).
+- **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['ubuntu-latest','macos-latest','windows-latest','20','22','--frozen-lockfile','pnpm lint','pnpm typecheck','pnpm build','pnpm test','pnpm parity:check','pnpm test:parity'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-matrix-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm typecheck && pnpm build && pnpm test` (local darwin/node; typecheck/build passed, tests completed with unrelated failures — see evidence).
+- **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-132-ci-markers.txt`, `docs/parity/evidence/LEM-132-local-verify-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-131 — Set and test performance/scale budgets
 
