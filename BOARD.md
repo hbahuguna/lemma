@@ -402,7 +402,7 @@ navigation page.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-152 | Add optional anonymous usage analytics with opt-out | P2 | 3 | LEM-083 | Backlog |
+| LEM-152 | Add optional anonymous usage analytics with opt-out | P2 | 3 | LEM-083 | Done |
 | LEM-155 | Add Pro edition navigation and informational page | P3 | 2 | LEM-143 | Backlog |
 
 ### E17: Pro Tier Foundation
@@ -1414,8 +1414,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-083
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented analytics module/ADR, opt-out controls, and tests.
 - **Description:** Add optional, anonymous usage analytics with a clear opt-out
   and no code/prompt/personal data. Enabled-by-default behavior is a policy
   decision recorded in the ADR; the board does not assume it. Analytics must
@@ -1440,11 +1440,13 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     unknown-event rejection, allowlist stripping (assert no forbidden fields
     reach the transport), async timeout does not affect the run, audit event on
     toggle.
-- **Verification (planned):** `pnpm --filter @lemma/core test -- analytics`
-- **Evidence (planned):** `packages/core/src/analytics.ts`,
-  `packages/core/test/analytics/*`,
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/analytics/analytics.test.ts` (pass; 5/5).
+- **Evidence:** `packages/core/src/analytics.ts`, `packages/core/src/index.ts`,
+  `packages/core/test/analytics/analytics.test.ts`,
   `docs/adr/0005-analytics-default-and-endpoint.md`,
-  `docs/parity/evidence/LEM-152-analytics-test-output.txt`
+  `docs/parity/evidence/LEM-152-analytics-test-output.txt`.
+
 
 ### LEM-153 — Build the user-facing demo project generator (`lemma demo`)
 
