@@ -198,6 +198,19 @@ export function parseTestsSlash(raw: string): { action?: string; format?: string
   return { ...(action ? { action } : {}), ...(format ? { format } : {}), ...(suite ? { suite } : {}) };
 }
 
+
+export function parseUpgradeSlash(raw: string): { kind?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-upgrade") return null;
+  const argText = rest.join(" ").trim();
+  const parts = argText.split(/\s+/).filter(Boolean);
+  const kind = parts[0] && !parts[0].startsWith("--") ? parts[0] : undefined;
+  return { ...(kind ? { kind } : {}) };
+}
+
 export function parseGenerateSlash(raw: string): { source?: string; maxTests?: number; url?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -406,6 +419,7 @@ export function routeSlashCommand(
   const human = parseHumanSlash(raw);
   const generate = parseGenerateSlash(raw);
   const tests = parseTestsSlash(raw);
+  const upgrade = parseUpgradeSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
@@ -414,6 +428,7 @@ export function routeSlashCommand(
   const isHuman = human !== null || spec.command === "/lemma-human";
   const isGenerate = generate !== null || spec.command === "/lemma-generate";
   const isTests = tests !== null || spec.command === "/lemma-tests";
+  const isUpgrade = upgrade !== null || spec.command === "/lemma-upgrade";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -486,6 +501,12 @@ export function routeSlashCommand(
           ...(tests?.action ? { tests_action: tests.action } : {}),
           ...(tests?.format ? { tests_format: tests.format } : {}),
           ...(tests?.suite ? { tests_suite: tests.suite } : {}),
+        }
+      : {}),
+    ...(isUpgrade
+      ? {
+          lemma_upgrade: true,
+          ...(upgrade?.kind ? { upgrade_kind: upgrade.kind } : {}),
         }
       : {}),
   };

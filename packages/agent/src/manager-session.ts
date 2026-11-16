@@ -390,6 +390,48 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaUpgrade = (d as any).lemma_upgrade === true;
+      if (lemmaUpgrade) {
+        this.state.status = "running";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running upgrade dry-run (/lemma-upgrade).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent },
+        } as any);
+        try {
+          const { runUpgrade } = await import("@lemma/core");
+          const result = await runUpgrade({
+            root: this.options.cwd,
+            source: { kind: ((d as any).upgrade_kind || "manual") as any },
+            dryRun: true,
+          } as any);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Upgrade dry-run ${result.status} (${result.counts?.planned ?? 0} planned).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+            details: { upgrade: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaTests = (d as any).lemma_tests === true;
       if (lemmaTests) {
         this.state.status = "running";

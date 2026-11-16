@@ -12,6 +12,7 @@ import {
   runHumanContext,
   runGenerate,
   manageTests,
+  runUpgrade,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1414,6 +1415,39 @@ export const testsCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const upgradeCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const kind = (getString(flags, "kind", "source", "type") ?? positionals[0] ?? "manual") as any;
+  const input = getString(flags, "input", "i", "path", "file") ?? positionals[1];
+  const target = getString(flags, "target", "out", "suite");
+  const dryRun = !getBool(flags, "apply");
+  const approveFlag = getBool(flags, "approve", "yes", "y");
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const url = getString(flags, "url");
+
+  const source: any = { kind, ...(url ? { url } : {}) };
+  if (input) {
+    // treat as path if exists, else inline content
+    const abs = path.isAbsolute(input) ? input : path.join(root, input);
+    try {
+      await fs.access(abs);
+      source.path = input;
+    } catch {
+      source.content = input;
+    }
+  }
+
+  const result = await runUpgrade({
+    root,
+    source,
+    ...(target ? { target } : {}),
+    dryRun,
+    ...(dryRun ? {} : { approve: () => approveFlag }),
+  } as any);
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1425,6 +1459,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },
     { name: "generate", description: "Generate prioritized, planned browser.steps-compatible test intents (no execution).", handler: generateCommand },
     { name: "tests", description: "Manage durable test intents (create/import/convert/repair/bake/list/delete).", handler: testsCommand },
+    { name: "upgrade", description: "Upgrade test frameworks into lemma-native intents (dry-run first, approval-gated apply).", handler: upgradeCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

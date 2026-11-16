@@ -891,6 +891,26 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaUpgrade = (d as any).lemma_upgrade === true;
+    if (lemmaUpgrade) {
+      try {
+        const { runUpgrade } = await import("@lemma/core");
+        const result = await runUpgrade({
+          root: cwd || process.cwd(),
+          source: { kind: ((d as any).upgrade_kind || "manual") as any },
+          dryRun: true,
+        } as any);
+        state.runSummaries.push(`Upgrade dry-run ${result.status}`);
+        await sendFinal(`Upgrade dry-run ${result.status} (${result.counts?.planned ?? 0} planned).${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaTests = (d as any).lemma_tests === true;
     if (lemmaTests) {
       try {

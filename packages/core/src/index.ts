@@ -58,3 +58,4 @@ export * from "./human-context.js";
 export * from "./feedback.js";
 export * from "./generate.js";
 export * from "./test-intent.js";
+export * from "./upgrade.js";

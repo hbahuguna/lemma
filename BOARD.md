@@ -460,7 +460,7 @@ workflow and produces durable `.lemma/` artifacts.
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Done |
 | LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Done |
 | LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Done |
-| LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Backlog |
+| LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Done |
 
 ### E21: Advanced Quality Workflows
 
@@ -2308,28 +2308,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-171
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed framework upgrade workflow (dry-run/approval-gated apply, core/CLI/slash) with passing acceptance tests.
 - **Description:** Add a `/lemma-upgrade` (and `lemma upgrade`) workflow that
   modernizes Selenium, Playwright, Cypress, pytest, JUnit, TestRail, Xray,
   spreadsheets, and manual tests into lemma's native scenario format. Each
   upgrade is bounded, reviewable, and reversible.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runUpgrade({ source, target?, dryRun? })` supporting
+  - [x] `@lemma/core` exposes `runUpgrade({ source, target?, dryRun? })` supporting
     at minimum: `selenium`, `playwright`, `cypress`, `pytest`, `junit`,
     `testrail`, `xray`, `xlsx`, `docx`, `manual`.
-  - Every upgrade produces a dry-run report first; applying changes requires
+  - [x] Every upgrade produces a dry-run report first; applying changes requires
     `dryRun: false` and an approval callback (mirroring LEM-166's mutation
     gate). Refusal leaves the source untouched.
-  - The upgraded output is a set of `lemma-native` tests under
+  - [x] The upgraded output is a set of `lemma-native` tests under
     `.lemma/tests/upgraded/`, each validated against the scenario schema and
     tagged with its origin so re-runs are traceable.
-  - Reversibility: the original source is preserved; upgrades never delete or
+  - [x] Reversibility: the original source is preserved; upgrades never delete or
     overwrite source files.
-  - Tests cover each supported source kind, dry-run-first behavior, approval
+  - [x] Tests cover each supported source kind, dry-run-first behavior, approval
     gate, schema validation, origin tagging, and non-destructive behavior.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- upgrade`
-- **Evidence (planned):** `packages/core/src/upgrade.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- upgrade` (pass, 15/15) — `docs/parity/evidence/LEM-172-upgrade-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass); `pnpm --filter @lemma/agent build` (pass)
+- **Evidence:** `packages/core/src/upgrade.ts`,
   `packages/core/test/upgrade/*`,
   `docs/parity/evidence/LEM-172-upgrade-test-output.txt`
 

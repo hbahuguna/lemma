@@ -438,6 +438,25 @@
         "invalid_format",
         "validation_failed"
       ]
+    },
+    {
+      "command": "/lemma-upgrade",
+      "target": "catalog",
+      "description": "Upgrade tests from a supported framework into lemma-native intents (dry-run first, approval-gated apply).",
+      "intent": "run",
+      "catalog_intent": "Assay upgrade assessment",
+      "arguments": [
+        {
+          "name": "kind",
+          "required": false,
+          "description": "selenium|playwright|cypress|pytest|junit|testrail|xray|xlsx|docx|manual"
+        }
+      ],
+      "errors": [
+        "invalid_source",
+        "approval_required",
+        "validation_failed"
+      ]
     }
   ]
 }
