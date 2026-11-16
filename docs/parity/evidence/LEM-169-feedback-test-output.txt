@@ -1,0 +1,24 @@
+## core feedback
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/feedback/feedback.test.ts (4 tests) 572ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  23:56:16
+   Duration  2.31s (transform 599ms, setup 0ms, collect 853ms, tests 572ms, environment 0ms, prepare 271ms)
+
+
+## feedback-service integration
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ feedback-service/test/integration.test.ts (2 tests) 1038ms
+   ✓ LEM-169 feedback-service integration > issues branded, scoped, expiring invitation links and ingests redacted responses (idempotent)  1033ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:56:20
+   Duration  1.87s (transform 566ms, setup 0ms, collect 53ms, tests 1.04s, environment 0ms, prepare 261ms)
+

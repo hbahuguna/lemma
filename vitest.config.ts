@@ -40,7 +40,7 @@ export default defineConfig({
     ],
   },
   test: {
-    include: ["packages/**/test/**/*.test.ts"],
+    include: ["packages/**/test/**/*.test.ts", "feedback-service/test/**/*.test.ts"],
     environment: "node",
     reporters: ["default"],
   },

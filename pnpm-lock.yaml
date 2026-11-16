@@ -39,6 +39,12 @@ importers:
         specifier: ^3.2.0
         version: 3.2.7(@types/node@22.20.5)(supports-color@7.2.0)(tsx@4.23.15)
 
+  feedback-service:
+    devDependencies:
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.7(@types/node@22.20.5)(supports-color@7.2.0)(tsx@4.23.15)
+
   packages/adapters/antigravity:
     dependencies:
       '@lemma/adapters-sdk':

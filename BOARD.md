@@ -457,7 +457,7 @@ workflow and produces durable `.lemma/` artifacts.
 | LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Done |
 | LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Done |
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Done |
-| LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Backlog |
+| LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Done |
 | LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Backlog |
 | LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Backlog |
 | LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Backlog |
@@ -2184,8 +2184,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-020, LEM-083
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented core feedback request/ingest, schema, self-hosted review service, CLI, and tests.
+- **Completed:** 2026-11-16
 - **Description:** Add a scoped private feedback loop: a user can request
   feedback on a specific evidence set, and reviewers (internal or external) can
   respond via a self-hosted review service. All feedback lands as durable local
@@ -2210,11 +2211,18 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     tier supports it (the ADR must decide and be cited in the evidence).
   - Tests cover request creation, invitation expiry, response schema,
     idempotent ingestion, redaction, and off-by-default behavior.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- feedback && pnpm test --filter feedback-service -- integration`
-- **Evidence (planned):** `packages/core/src/feedback.ts`,
-  `feedback-service/*`, `schemas/feedback/response.v1.schema.json`,
-  `packages/core/test/feedback/*`,
-  `docs/parity/evidence/LEM-169-feedback-test-output.txt`
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/feedback/feedback.test.ts` (4/4 passed) and `pnpm exec vitest run feedback-service/test/integration.test.ts` (2/2 passed); `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`. (Functional equivalent of planned `pnpm test --filter @lemma/core -- feedback && pnpm test --filter feedback-service -- integration` for this repo's test scripts.)
+- **Evidence:** `packages/core/src/feedback.ts`,
+  `packages/core/test/feedback/feedback.test.ts`,
+  `schemas/feedback/response.v1.schema.json`,
+  `feedback-service/*` (`package.json`, `README.md`, `src/index.js`, `test/integration.test.ts`),
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `pnpm-workspace.yaml`,
+  `vitest.config.ts`,
+  `docs/parity/evidence/LEM-169-feedback-test-output.txt`.
+  **ADR 0006 (LEM-156) citation/classification:** ADR 0006 defines Pro-only surfaces as capabilities explicitly classified Pro; the private feedback loop/self-hosted review service is not explicitly classified as Pro-tier in ADR 0006, therefore this implementation supports it on the free tier (no `ProUnavailableError` entitlement gate).
 
 ### LEM-170 — Build the test generation workflow (`/lemma-generate`)
 

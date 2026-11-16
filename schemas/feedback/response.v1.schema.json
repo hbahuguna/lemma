@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/feedback/response.v1.schema.json",
+  "title": "Lemma Feedback Response v1",
+  "type": "object",
+  "required": ["schema_version", "request_id", "response_id", "reviewer", "submitted_at", "items"],
+  "properties": {
+    "schema_version": { "const": "lemma.feedback.response/v1" },
+    "request_id": { "type": "string", "minLength": 1 },
+    "response_id": { "type": "string", "minLength": 1 },
+    "reviewer": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "submitted_at": { "type": "string", "minLength": 1 },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["target", "comment"],
+        "properties": {
+          "target": {
+            "type": "object",
+            "required": ["kind", "id"],
+            "properties": {
+              "kind": { "type": "string", "enum": ["finding", "check"] },
+              "id": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          },
+          "comment": { "type": "string" },
+          "verdict": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "summary": { "type": "string" }
+  },
+  "additionalProperties": true
+}

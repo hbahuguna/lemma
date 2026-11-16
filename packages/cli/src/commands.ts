@@ -1322,6 +1322,41 @@ export const humanCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const feedbackCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const sub = (positionals[0] ?? "serve").toLowerCase();
+  if (sub !== "serve") {
+    throw new CliUsageError(`Unknown feedback subcommand: ${sub}`, { subcommand: sub, allowed: ["serve"] });
+  }
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const portStr = getString(flags, "port");
+  const host = getString(flags, "host") ?? "127.0.0.1";
+  const port = portStr !== undefined ? toInt(portStr, "--port") : 8787;
+
+  // Self-hosted review service is off by default and enabled only by this explicit command.
+  let svcMod: any;
+  try {
+    // @ts-ignore - optional in-repo dev service module
+    svcMod = await import("feedback-service/src/index.js");
+  } catch {
+    try {
+      // in-repo fallback
+      const here = path.dirname(new URL(import.meta.url).pathname);
+      const repoSvc = path.resolve(here, "../../../feedback-service/src/index.js");
+      // @ts-ignore - runtime path import
+      svcMod = await import(repoSvc);
+    } catch (err: any) {
+      throw new StateError(`Feedback service is unavailable: ${err?.message || String(err)}. Ensure feedback-service/ is present.`);
+    }
+  }
+  const start = svcMod.startFeedbackService || svcMod.default?.startFeedbackService;
+  if (typeof start !== "function") throw new StateError("Feedback service module does not export startFeedbackService");
+  const svc = await start({ enabled: true, root, port, host });
+  const actualPort = svc.port ?? (svc.server?.address?.() as any)?.port ?? port;
+  return { stdoutJson: { status: "serving", enabled: true, root, host, port: actualPort, url: svc.url ?? `http://${host}:${actualPort}` } };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1330,6 +1365,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
+    { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

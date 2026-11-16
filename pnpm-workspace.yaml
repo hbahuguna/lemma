@@ -1,6 +1,7 @@
 packages:
   - "packages/*"
   - "packages/adapters/*"
+  - "feedback-service"
 
 allowBuilds:
   esbuild: true
