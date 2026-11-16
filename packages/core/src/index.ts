@@ -63,3 +63,4 @@ export * from "./load.js";
 export * from "./stress.js";
 export * from "./state-hunt.js";
 export * from "./agent-readiness.js";
+export * from "./geo.js";

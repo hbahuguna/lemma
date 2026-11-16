@@ -475,7 +475,7 @@ pass.
 | LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Done |
 | LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Done |
-| LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | In Progress |
 | LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
 | LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
 | LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Backlog |
@@ -2466,8 +2466,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing GEO evaluation workflow (schema/core/evidence/tests) and verification.
 - **Description:** Evaluate AI-search SEO readiness: crawl/indexing
   eligibility, grounded answers, credibility signals, structured data, and
   measured citation behaviour. Produces a GEO report; no fabricated rankings.
@@ -2482,8 +2482,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     snapshot references); unchecked items are reported as `unknown`.
   - Tests cover each check, evidence linkage, `unknown` reporting, and report
     schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- geo`
-- **Evidence (planned):** `packages/core/src/geo.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- geo`
+- **Evidence (planned/in progress):** `packages/core/src/geo.ts`,
   `schemas/geo/report.v1.schema.json`,
   `packages/core/test/geo/*`,
   `docs/parity/evidence/LEM-177-geo-test-output.txt`

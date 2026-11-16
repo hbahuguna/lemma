@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/geo/geo.test.ts (2 tests) 286ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  01:01:43
+   Duration  5.47s (transform 1.56s, setup 0ms, collect 2.17s, tests 286ms, environment 0ms, prepare 593ms)
+
