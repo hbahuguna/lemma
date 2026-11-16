@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/intl/intl.test.ts (3 tests) 366ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:05:00
+   Duration  5.27s (transform 1.58s, setup 0ms, collect 2.25s, tests 366ms, environment 4ms, prepare 709ms)
+

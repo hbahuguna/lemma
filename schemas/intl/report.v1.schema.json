@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/intl/report.v1.schema.json",
+  "title": "Lemma Internationalization Report v1",
+  "type": "object",
+  "required": ["schema_version", "run_id", "target", "locales", "requirements_matrix", "implementation_gaps", "runtime_evidence", "contextual_review", "evidence"],
+  "properties": {
+    "schema_version": { "const": "lemma.intl_report/v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "target": { "type": "string" },
+    "locales": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["locale", "status", "reason"],
+        "properties": {
+          "locale": { "type": "string" },
+          "status": { "type": "string", "enum": ["inspected", "unreviewed", "reviewed"] },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "requirements_matrix": { "type": "array", "items": { "type": "object" } },
+    "implementation_gaps": { "type": "array", "items": { "type": "object" } },
+    "runtime_evidence": { "type": "array", "items": { "type": "object" } },
+    "contextual_review": {
+      "type": "object",
+      "required": ["available", "locales"],
+      "properties": {
+        "available": { "type": "boolean" },
+        "locales": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["directory", "manifest", "artifacts"],
+      "properties": {
+        "directory": { "type": "string" },
+        "manifest": { "type": "string" },
+        "artifacts": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
