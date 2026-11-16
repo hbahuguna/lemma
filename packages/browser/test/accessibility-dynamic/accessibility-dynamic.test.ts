@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CheckStatus, Severity, type Check, type CheckOutcome } from "@lemma/core";
+import { CheckStatus, type Check, type CheckOutcome } from "@lemma/core";
 import { evaluateBrowserCheck, runBrowserChecks, type BrowserPageView } from "../../src/index.js";
 
 function makeCheck(id = "browser.accessibility"): Check {

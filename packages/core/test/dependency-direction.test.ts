@@ -23,6 +23,7 @@ const forbiddenImportPatterns: Array<{ label: string; pattern: RegExp }> = [
   { label: "@lemma/cli", pattern: /from\s+["']@lemma\/cli(?:\/[^"']*)?["']|import\s*\(\s*["']@lemma\/cli/ },
   { label: "@lemma/browser", pattern: /from\s+["']@lemma\/browser(?:\/[^"']*)?["']|import\s*\(\s*["']@lemma\/browser/ },
   { label: "@lemma/cloud", pattern: /from\s+["']@lemma\/cloud(?:\/[^"']*)?["']|import\s*\(\s*["']@lemma\/cloud/ },
+  { label: "@lemma/pro", pattern: /from\s+["']@lemma\/pro(?:\/[^"']*)?["']|import\s*\(\s*["']@lemma\/pro/ },
   { label: "@lemma/adapters-*", pattern: /from\s+["']@lemma\/adapters-[^"']*["']|import\s*\(\s*["']@lemma\/adapters-/ },
   // Host SDKs / optional runtimes must never leak into core.
   { label: "playwright", pattern: /from\s+["'](?:playwright|@playwright\/test|playwright-core)["']|import\s*\(\s*["'](?:playwright|@playwright\/test|playwright-core)/ },
@@ -46,4 +47,35 @@ describe("architecture dependency direction", () => {
 
     expect(violations).toEqual([]);
   });
+
+
+  it("keeps @lemma/pro source limited to @lemma/core and documented peers (no core/adapters/host leakage)", () => {
+    const proSrc = join(repoRoot, "packages/pro/src");
+    const files = listTsFiles(proSrc);
+    expect(files.length).toBeGreaterThan(0);
+
+    const allowed = [
+      /^node:/,
+      /^@lemma\/core(?:\/[^"']*)?$/,
+      // documented optional peer for LEM-114/LEM-117 entitlement/auth contract reuse (no parallel auth)
+      /^@lemma\/cloud(?:\/entitlements|\/signup|\/auth)?$/,
+    ];
+    const importRe = /(?:from\s+["']([^"']+)["'])|(?:import\s*\(\s*["']([^"']+)["']\s*\))/g;
+    const violations: string[] = [];
+
+    for (const file of files) {
+      const text = readFileSync(file, "utf8");
+      let m: RegExpExecArray | null;
+      while ((m = importRe.exec(text)) !== null) {
+        const spec = m[1] ?? m[2] ?? "";
+        if (!spec) continue;
+        if (spec.startsWith(".") || spec.startsWith("/")) continue; // relative/internal
+        if (allowed.some((re) => re.test(spec))) continue;
+        violations.push(`${relative(repoRoot, file)} imports non-allowed dependency: ${spec}`);
+      }
+    }
+
+    expect(violations).toEqual([]);
+  });
+
 });

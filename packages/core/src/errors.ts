@@ -24,6 +24,7 @@ export type ErrorCode =
   | "queue_error"
   | "ssrf_error"
   | "redaction_error"
+  | "pro_unavailable"
   | "kill_switch_halt"
   | "operator_interrupt"
   | "run_error";

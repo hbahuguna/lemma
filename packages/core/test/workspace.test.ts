@@ -25,6 +25,7 @@ const workspacePackages: readonly WorkspacePackage[] = [
   { dir: "packages/adapters/codex", name: "@lemma/adapters-codex" },
   { dir: "packages/adapters/antigravity", name: "@lemma/adapters-antigravity" },
   { dir: "packages/adapters/cursor", name: "@lemma/adapters-cursor" },
+  { dir: "packages/pro", name: "@lemma/pro" },
 ];
 
 interface PackageManifest {
@@ -81,6 +82,7 @@ describe("workspace skeleton", () => {
       "@lemma/adapters-codex": ["@lemma/adapters-sdk", "@lemma/agent"],
       "@lemma/adapters-antigravity": ["@lemma/adapters-sdk", "@lemma/agent"],
       "@lemma/adapters-cursor": ["@lemma/adapters-sdk", "@lemma/agent"],
+      "@lemma/pro": ["@lemma/core"],
     };
 
     for (const { dir, name } of workspacePackages) {

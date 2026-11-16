@@ -1,0 +1,21 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/dependency-direction.test.ts (2 tests) 17ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  21:52:56
+   Duration  950ms (transform 62ms, setup 0ms, collect 45ms, tests 17ms, environment 0ms, prepare 299ms)
+
+---
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/entitlement-gate/entitlement-gate.test.ts (5 tests) 7ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  21:52:59
+   Duration  1.61s (transform 591ms, setup 0ms, collect 746ms, tests 7ms, environment 0ms, prepare 257ms)
+

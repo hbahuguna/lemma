@@ -17,13 +17,15 @@ Status: **ratified** by `LEM-003` (2026-11-14). Changes require an ADR and a Dec
 ```text
 @lemma/adapters-opencode ─┐
 @lemma/adapters-claude   ─┤
-@lemma/adapters-codex    ─┼──> @lemma/agent ──> @lemma/core
-@lemma/adapters-antigrav ─┤          │              │
+@lemma/adapters-codex    ─┼──> @lemma/agent ──> @lemma/core <── @lemma/pro
+@lemma/adapters-antigrav ─┤          │              │              │
 @lemma/adapters-cursor   ─┘          │              ├──> schemas (types + zod)
-@lemma/cli ──────────────────────────┘              │
-@lemma/browser ──(peer: playwright)─────────────────┤
-@lemma/cloud ───────────────────────────────────────┘
+@lemma/cli ──────────────────────────┘              │              │
+@lemma/browser ──(peer: playwright)─────────────────┤              └─(peer, optional)──> @lemma/cloud
+@lemma/cloud ───────────────────────────────────────┘                    (LEM-114/117 entitlement/auth reuse)
 ```
+
+`@lemma/pro` is the commercial, entitlement-gated tier (separate package, per ADR 0006). It depends on `@lemma/core` public APIs only and may use `@lemma/cloud` public entitlement/auth/signup contracts as a documented optional peer to reuse LEM-114/117 (no parallel auth). `@lemma/pro` ships `ProUnavailableError` (stable code `pro_unavailable`, actionable message naming the Lemma Pro tier and learn-more link, no implementation details) and refuses unlicensed invocations before any Pro work (no crash, no silent pass, no partial execution).
 
 Rules:
 
@@ -34,6 +36,12 @@ Rules:
 - `@lemma/browser` is optional. `@lemma/core` exposes a `BrowserRunner` port; the
   browser package supplies the Playwright implementation.
 - `@lemma/cloud` is optional. The OSS CLI never requires it.
+- `@lemma/pro` is optional and commercial. `@lemma/pro` depends on `@lemma/core`
+  public APIs only (and documented peers such as `@lemma/cloud` for LEM-114/117
+  entitlement/auth reuse). `@lemma/core` must never import `@lemma/pro`. The
+  dependency direction is enforced in CI/tests via
+  `packages/core/test/dependency-direction.test.ts` (core↛pro and pro→core+documented
+  peers assertions) and `packages/core/test/workspace.test.ts`.
 - Schemas are the contract. Packages exchange inferred TypeScript types, not
   hand-maintained interfaces.
 

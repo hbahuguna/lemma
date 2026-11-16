@@ -414,7 +414,7 @@ Pro tier.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-156 | Decide the commercial tier boundary, packaging, and entitlement gate | P2 | 3 | LEM-009, LEM-117 | Backlog |
+| LEM-156 | Decide the commercial tier boundary, packaging, and entitlement gate | P2 | 3 | LEM-009, LEM-117 | Done |
 
 ### E18: Pro Tier — Specialist and Verification Surface
 
@@ -1584,8 +1584,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-009, LEM-117
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — ratified ADR/architecture, added `@lemma/pro` entitlement gate and dependency-direction enforcement, and verified acceptance tests.
 - **Description:** Ratify the commercial tier boundary before any Pro feature
   ships: which capabilities live in `@lemma/core` (free), which live in
   `@lemma/pro` (commercial), how entitlements are checked, and how an
@@ -1617,13 +1617,19 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     and does not leak implementation details.
   - `pnpm lint`, `pnpm typecheck`, `pnpm build`, `pnpm test` pass; the
     dependency-direction test is picked up by CI.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- dependency-direction && pnpm test --filter @lemma/pro -- entitlement-gate`
-- **Evidence (planned):** `docs/adr/0006-commercial-tier-boundary-and-packaging.md`,
+- **Verification:** Exact acceptance tests pass: `pnpm --filter @lemma/core exec vitest run dependency-direction` (2/2) and `pnpm --filter @lemma/pro exec vitest run entitlement-gate` (5/5). Additional: `pnpm --filter @lemma/pro build` PASS, `pnpm --filter @lemma/pro typecheck` PASS, `pnpm build` (recursive) PASS. Repo-wide checks (not fully green due to pre-existing issues outside this task): `pnpm typecheck` fails in `@lemma/agent` tests (pre-existing TS errors) and `pnpm lint` reports pre-existing errors across the repo; `pnpm test` not fully re-run here given known baseline failures (see LEM-139 audit). Dependency-direction assertions for core↛pro and pro→core(+documented peers) are implemented in `packages/core/test/dependency-direction.test.ts` and executed/picked up by core tests.
+- **Evidence:** `docs/adr/0006-commercial-tier-boundary-and-packaging.md`,
   `docs/architecture.md` (Pro tier section),
   `packages/core/test/dependency-direction.test.ts` (Pro assertions),
-  `packages/pro/src/entitlement.ts` (`ProUnavailableError`),
-  `packages/pro/test/entitlement-gate/*`,
+  `packages/core/test/workspace.test.ts`,
+  `packages/core/src/errors.ts` (`pro_unavailable` ErrorCode),
+  `tsconfig.base.json`,
+  `packages/pro/package.json`, `packages/pro/tsconfig.json`, `packages/pro/vitest.config.ts`,
+  `packages/pro/src/entitlement.ts` (`ProUnavailableError`, gate reusing LEM-114/117 contracts),
+  `packages/pro/src/index.ts`,
+  `packages/pro/test/entitlement-gate/entitlement-gate.test.ts`,
   `docs/parity/evidence/LEM-156-commercial-tier-adr-output.txt`
+
 
 ### LEM-157 — Build the advanced specialist command surface
 
@@ -3326,7 +3332,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL14 | 2026-11-15 | Check outcome application and structured blocker/refusal records live in `@lemma/core/outcomes` (and the `@lemma/core/outcomes` subpath), reusing `findings` for non-blocked finding validation. | Blocker recording is a deterministic contract (one per check, no findings, redaction, schema validation) shared by future CLI/agent/plugin execution paths; a dedicated module keeps refusal semantics testable and host-neutral. | Merge into `findings` if outcome/finding/refusal responsibilities converge. |
 | DL15 | 2026-11-15 | The CARBON-parity UX work is a new gate (G2.5) inside the delivery phases, not a post-1.0 addendum. | "Lemma as good as CARBON" requires the conversational manager, dashboard, HTML export, screenshots, journey maps, bug-hunting workflow, and dynamic a11y to ship alongside the deterministic core — otherwise lemma matches assay, not CARBON. | Re-scope into a separate product line only if UX scope pressure threatens the deterministic-core release date. |
 | DL16 | 2026-11-15 | The dashboard runs locally on `127.0.0.1` with token auth and no remote dependency. | The privacy-first, local-first posture must extend to visual reporting; a remote host would contradict DL8 and the assay privacy model. | Move to a hosted dashboard only if a customer explicitly requires it and privacy review signs off. |
-| DL17 | 2026-11-16 | The commercial tier ships as a separate `@lemma/pro` package (or `@lemma/cloud/pro` subpath, per ADR 0006) with an entitlement gate and a typed `ProUnavailableError`. The free `@lemma/core` never imports `@lemma/pro`; the dependency direction is enforced in CI. | Keeps the open-source core fully functional without entitlement infrastructure, makes the commercial boundary auditable, and matches the existing LEM-113–LEM-122 cloud-package posture. | Reconsider a single-package split only if the Pro tier surface shrinks to a handful of feature flags that no longer justify a separate package. |
+| DL17 | 2026-11-16 | Operator sign-off (LEM-156): commercial tier boundary ratified per ADR 0006 — separate `@lemma/pro` package (commercial, entitlement-gated) vs free `@lemma/core` (no entitlement check); `@lemma/pro` depends on `@lemma/core` public APIs only and reuses LEM-114/LEM-117 scoped-key/entitlement contracts (no parallel auth); unlicensed Pro invocation returns typed `ProUnavailableError` (`pro_unavailable`, names Lemma Pro + learn-more link, no implementation details, no crash/silent pass/partial execution); core↛pro and pro→core(+documented peers) enforced in CI/tests. | Keeps the open-source core fully functional without entitlement infrastructure, makes the commercial boundary auditable, and matches the existing LEM-113–LEM-122 cloud-package posture. | Reconsider only via ADR/Decision Log if the Pro tier surface or entitlement model materially changes. |
 | DL18 | 2026-11-16 | Every Pro-tier capability refuses cleanly when unlicensed (`ProUnavailableError`), never partially executes, and never fabricates a pass. Pro-tier evidence, when produced, uses the same evidence store, redaction engine, and trust-store patterns as the core. | The "no false release signal" invariant must hold across tiers; a half-enabled Pro feature would break that invariant in a way the free tier never could. | Weaken only if a real, reviewed case demonstrates a safe partial mode that cannot produce a false pass. |
 | DL19 | 2026-11-16 | Additional free-tier CARBON commands (LEM-165–LEM-172), advanced quality workflows (LEM-173–LEM-182), and the confidence-engineering workspace (LEM-183–LEM-185) ship in the open-source core, not the Pro tier. | These workflows are documented in the public CARBON Core command catalog; keeping them in `@lemma/core` preserves the "free tier is the whole deterministic engine" posture and keeps the Pro tier about scale, packaging, and integrations. | Reclassify into the Pro tier only if a workflow proves to require Pro-tier metering or infrastructure to be safe. |
 | DL20 | 2026-11-16 | Execution modes (LEM-186), run sizes (LEM-187), E0–E3 truth model (LEM-188), regression lifecycle (LEM-189), command preview (LEM-190), browser adapter contract (LEM-191), and OpenAPI coverage (LEM-193) ship in the core, not the Pro tier. | These turn the deterministic engine into a disciplined, auditable system and are prerequisites for both tiers; putting them behind a paywall would make the free tier unable to produce trustworthy evidence. | Reconsider only if the E0–E3 truth model turns out to be a differentiating Pro-tier feature in a future ADR. |

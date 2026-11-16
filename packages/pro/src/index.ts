@@ -1,0 +1,18 @@
+export const PACKAGE_NAME = "@lemma/pro" as const;
+
+export {
+  PRO_ENTITLEMENT_SCHEMA_VERSIONS,
+  PRO_LEARN_MORE_URL,
+  PRO_UNAVAILABLE_CODE,
+  ProUnavailableError,
+  invokeProCapability,
+  isProLicensed,
+  requireProLicense,
+} from "./entitlement.js";
+
+export type {
+  ProEntitlementLike,
+  ProEntitlementVerificationLike,
+  ProLicenseContext,
+  ProScopedAuthLike,
+} from "./entitlement.js";
