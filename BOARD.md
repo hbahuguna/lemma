@@ -403,7 +403,7 @@ navigation page.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-152 | Add optional anonymous usage analytics with opt-out | P2 | 3 | LEM-083 | Done |
-| LEM-155 | Add Pro edition navigation and informational page | P3 | 2 | LEM-143 | Backlog |
+| LEM-155 | Add Pro edition navigation and informational page | P3 | 2 | LEM-143 | Done |
 
 ### E17: Pro Tier Foundation
 
@@ -1546,8 +1546,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 2
 - **Depends on:** LEM-143
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented token-protected dashboard `/pro` page and `/lemma-pro` summary behavior with tests.
 - **Description:** A short in-product affordance that opens an informational
   page describing the Pro edition (feature list, pricing summary, learn-more
   link). No checkout, no telemetry, no account requirement. Purely a navigation
@@ -1567,12 +1567,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests: `/pro` route requires token, renders expected section markers, has no
     external `<script>`/`<link>`/`<img>` tags, and `/lemma-pro` returns the
     right summary in both dashboard-on and dashboard-off modes.
-- **Verification (planned):**
-  `pnpm --filter @lemma/core test -- pro-page && pnpm --filter @lemma/agent test -- pro-command`
-- **Evidence (planned):** `packages/core/src/dashboard.ts` (pro route),
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/pro-page/pro-page.test.ts` (pass; 1/1) and
+  `pnpm exec vitest run packages/agent/test/pro-command/pro-command.test.ts` (pass; 2/2).
+- **Evidence:** `packages/core/src/dashboard.ts` (pro route),
   `packages/agent/src/slash-commands.ts` (pro command),
-  `packages/core/test/pro-page/*`, `packages/agent/test/pro-command/*`,
-  `docs/parity/evidence/LEM-155-pro-page-test-output.txt`
+  `packages/agent/src/manager-session.ts`, `packages/agent/src/index.ts`,
+  `packages/core/test/pro-page/pro-page.test.ts`,
+  `packages/agent/test/pro-command/pro-command.test.ts`,
+  `docs/parity/evidence/LEM-155-pro-page-test-output.txt`.
+
 
 ### LEM-156 — Decide the commercial tier boundary, packaging, and entitlement gate
 
