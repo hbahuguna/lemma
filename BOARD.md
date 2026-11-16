@@ -392,7 +392,7 @@ and query a lemma run through native tools.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-151 | Build the native MCP server exposing testing tools | P1 | 8 | LEM-083, LEM-086, LEM-098 | Backlog |
+| LEM-151 | Build the native MCP server exposing testing tools | P1 | 8 | LEM-083, LEM-086, LEM-098 | Done |
 
 ### E16: Commercial and UX Extras
 
@@ -1365,8 +1365,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 8
 - **Depends on:** LEM-083, LEM-086, LEM-098
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented native MCP server/handlers in `@lemma/core/mcp`, schemas/ADR, and tests (core + cursor smoke).
 - **Description:** Ship a first-class MCP (Model Context Protocol) server that
   exposes lemma's testing tools to any MCP-compatible coding agent. Distinct
   from adapter-level bridges; adapters may still use the SDK (LEM-098), but the
@@ -1395,14 +1395,18 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests: MCP client fixture per tool, JSON-RPC framing, redaction of
     args/results, no-import-of-adapters dependency-direction assertion,
     determinism, and adapter compatibility.
-- **Verification (planned):**
-  `pnpm --filter @lemma/core test -- mcp && pnpm --filter @lemma/adapters-cursor test -- mcp-smoke`
-- **Evidence (planned):** `packages/core/src/mcp/*`,
-  `packages/core/src/mcp/index.ts`, `schemas/mcp/**`,
-  `packages/core/test/mcp/*`,
-  `packages/adapters/cursor/test/mcp-smoke/*`,
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/mcp/mcp.test.ts && pnpm exec vitest run packages/adapters/cursor/test/mcp-smoke/mcp-smoke.test.ts` (pass; core 4/4, cursor smoke 1/1).
+- **Evidence:** `packages/core/src/mcp/tools.ts`,
+  `packages/core/src/mcp/server.ts`, `packages/core/src/mcp/index.ts`,
+  `packages/core/src/mcp.ts`, `packages/core/src/index.ts`,
+  `packages/core/package.json`, `schemas/mcp/**`,
+  `packages/core/test/mcp/mcp.test.ts`,
+  `packages/adapters/cursor/src/index.ts`, `packages/adapters/cursor/package.json`,
+  `packages/adapters/cursor/test/mcp-smoke/mcp-smoke.test.ts`,
   `docs/adr/0004-native-mcp-server-and-transport.md`,
-  `docs/parity/evidence/LEM-151-mcp-test-output.txt`
+  `docs/parity/evidence/LEM-151-mcp-test-output.txt`.
+
 
 ### LEM-152 — Add optional anonymous usage analytics with opt-out
 
