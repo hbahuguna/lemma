@@ -142,7 +142,7 @@ describe("LEM-104 Antigravity adapter", () => {
     expect(ANTIGRAVITY_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
     expect(ANTIGRAVITY_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
     expect(ANTIGRAVITY_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".antigravity/skills/lemma/SKILL.md" });
-    expect(() => assertValidHostPackagingManifest(ANTIGRAVITY_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+    expect(() => assertValidHostPackagingManifest(ANTIGRAVITY_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
   });
 
 });

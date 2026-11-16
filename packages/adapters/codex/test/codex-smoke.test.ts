@@ -51,7 +51,7 @@ describe("LEM-111 Codex smoke suite", () => {
         commandsDir: ".codex/commands",
         skillPath: ".codex/skills/lemma/SKILL.md",
       });
-      expect(() => assertValidHostPackagingManifest(CODEX_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+      expect(() => assertValidHostPackagingManifest(CODEX_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
 
       const commandsDir = path.join(dir, ".codex/commands");
       const files = await readdir(commandsDir);

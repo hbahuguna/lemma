@@ -124,10 +124,10 @@ describe("LEM-047 personas lint", () => {
     expect(report.errors).toEqual([]);
     expect(report.warnings).toEqual([]);
     expect(report.known_check_count).toBe(catalogIds().length);
-    expect(report.summary.valid_personas).toBe(3);
-    expect(report.summary.files).toBe(3);
+    expect(report.summary.valid_personas).toBe(4);
+    expect(report.summary.files).toBe(4);
     expect(new Set(report.personas.map((persona) => persona.id))).toEqual(
-      new Set(["functional", "security", "accessibility"]),
+      new Set(["accessibility", "functional", "manager", "security"]),
     );
   });
 

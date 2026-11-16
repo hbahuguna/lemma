@@ -14,7 +14,7 @@ export interface CatalogInvocationResult {
   invocation: Invocation;
 }
 
-/** Canonical 59-command assay slash-command catalog (name/label), in assay order. */
+/** Canonical 60-command assay/lemma slash-command catalog (name/label), in assay order (LEM-089 baseline + LEM-148 hunt). */
 export const ASSAY_COMMAND_CATALOG: readonly AssayCommand[] = [
   { name: "assay-manager", label: "manager" },
   { name: "assay-full", label: "full" },
@@ -75,6 +75,7 @@ export const ASSAY_COMMAND_CATALOG: readonly AssayCommand[] = [
   { name: "assay-settings", label: "settings" },
   { name: "assay-human", label: "human" },
   { name: "assay-pro", label: "pro" },
+  { name: "assay-hunt", label: "hunt" },
 ] as const;
 
 const catalogByName = new Map(ASSAY_COMMAND_CATALOG.map((c) => [c.name, c]));

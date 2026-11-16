@@ -12,7 +12,7 @@ import {
   validateHostPackagingManifest,
 } from "../src/index.js";
 
-const catalogNames = Array.from({ length: 59 }, (_, i) => `assay-cmd-${i + 1}`);
+const catalogNames = Array.from({ length: 60 }, (_, i) => `assay-cmd-${i + 1}`);
 
 describe("LEM-108 host packaging manifest contract", () => {
   it("creates deterministic manifests with expected layout and asset metadata", () => {
@@ -26,12 +26,12 @@ describe("LEM-108 host packaging manifest contract", () => {
       expect(manifest.host).toBe(host);
       expect(manifest.packageName).toBe(`@lemma/adapters-${host}`);
       expect(manifest.layout).toEqual(DEFAULT_HOST_INSTALL_LAYOUTS[host]);
-      expect(manifest.commands.catalogCount).toBe(59);
+      expect(manifest.commands.catalogCount).toBe(60);
       expect(manifest.commands.catalogNames).toEqual(catalogNames);
       expect(manifest.commands.operationalNames).toEqual([...OPERATIONAL_COMMAND_TEMPLATE_NAMES]);
       expect(manifest.skill).toEqual({ name: SKILL_TEMPLATE_NAME, path: manifest.layout.skillPath });
-      expect(validateHostPackagingManifest(manifest, { catalogCount: 59, catalogNames }).ok).toBe(true);
-      expect(() => assertValidHostPackagingManifest(manifest, { catalogCount: 59 })).not.toThrow();
+      expect(validateHostPackagingManifest(manifest, { catalogCount: 60, catalogNames }).ok).toBe(true);
+      expect(() => assertValidHostPackagingManifest(manifest, { catalogCount: 60 })).not.toThrow();
       expect(getHostPackagingManifest(host, manifest.packageName, catalogNames)).toEqual(manifest);
     }
 
@@ -66,12 +66,12 @@ describe("LEM-108 host packaging manifest contract", () => {
     expect(
       validateHostPackagingManifest({
         ...valid,
-        commands: { ...valid.commands, catalogCount: 58 },
+        commands: { ...valid.commands, catalogCount: 59 },
       }).errors.join(" "),
     ).toContain("catalogCount must equal");
     expect(
-      validateHostPackagingManifest(valid, { catalogCount: 58 }).errors.join(" "),
-    ).toContain("commands.catalogCount must be 58");
+      validateHostPackagingManifest(valid, { catalogCount: 59 }).errors.join(" "),
+    ).toContain("commands.catalogCount must be 59");
     expect(() => assertValidHostPackagingManifest({ ...valid, packageName: "" })).toThrow(/Invalid host packaging manifest/);
   });
 });

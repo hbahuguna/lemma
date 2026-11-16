@@ -142,6 +142,6 @@ describe("LEM-101 OpenCode adapter", () => {
       "assay-verify-evidence",
     ]);
     expect(OPENCODE_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".opencode/skills/lemma/SKILL.md" });
-    expect(() => assertValidHostPackagingManifest(OPENCODE_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+    expect(() => assertValidHostPackagingManifest(OPENCODE_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
   });
 });

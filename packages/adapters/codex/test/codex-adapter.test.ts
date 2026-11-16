@@ -143,6 +143,6 @@ describe("LEM-103 Codex adapter", () => {
     expect(CODEX_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
     expect(CODEX_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
     expect(CODEX_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".codex/skills/lemma/SKILL.md" });
-    expect(() => assertValidHostPackagingManifest(CODEX_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+    expect(() => assertValidHostPackagingManifest(CODEX_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
   });
 });

@@ -50,7 +50,7 @@ describe("LEM-111 Cursor smoke suite", () => {
         commandsDir: ".cursor/commands",
         skillPath: ".cursor/skills/lemma/SKILL.md",
       });
-      expect(() => assertValidHostPackagingManifest(CURSOR_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+      expect(() => assertValidHostPackagingManifest(CURSOR_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
 
       const commandsDir = path.join(dir, ".cursor/commands");
       const files = await readdir(commandsDir);

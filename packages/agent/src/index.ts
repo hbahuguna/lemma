@@ -4,7 +4,7 @@
  * LEM-086: strict-judge loop core (cap 7, allowlist, dedupe).
  * LEM-087: persisted agent state and in-session resume.
  * LEM-088: command argument builders.
- * LEM-089: 59-command catalog and intent mapping.
+ * LEM-089: 59-command catalog and intent mapping (LEM-148 extends catalog with hunt).
  * LEM-090: browser agent prompt and invariants.
  * LEM-091: context protocol and question flow.
  */

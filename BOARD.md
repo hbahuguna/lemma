@@ -362,7 +362,7 @@ makes the tool tryable; slash commands work natively in-chat.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Done |
-| LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Backlog |
+| LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Done |
 | LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Backlog |
 | LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Backlog |
 | LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Backlog |
@@ -1197,8 +1197,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 8
 - **Depends on:** LEM-044, LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented `runBugHunt` core workflow, catalog/CLI wiring (`assay-hunt` / `lemma hunt`), and tests/evidence.
 - **Description:** Add a first-class bug-hunting workflow (`lemma hunt` /
   `lemma issues` catalog entry) that drives multi-step user journeys, simulates
   specialist personas per step, and records sequence-dependent defects with
@@ -1229,12 +1229,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover bounded stop on `maxSteps`/time, blocked-run behavior,
     persona/ownership invariants, evidence linkage, determinism, and
     command-catalog wiring.
-- **Verification (planned):**
-  `pnpm --filter @lemma/core test -- bug-hunt && pnpm --filter @lemma/agent test -- bug-hunt`
-- **Evidence (planned):** `packages/core/src/bug-hunt.ts`,
-  `packages/core/src/commands.ts` (catalog entry),
-  `packages/core/test/bug-hunt/*`, `packages/agent/test/bug-hunt/*`,
-  `docs/parity/evidence/LEM-148-bug-hunt-test-output.txt`
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/bug-hunt/bug-hunt.test.ts && pnpm exec vitest run packages/agent/test/bug-hunt/catalog-wiring.test.ts` (pass; 6/6 core, 1/1 agent). Catalog count/parity and dependent install/template/adapter tests updated for the added `assay-hunt` command; persona-contract tests adjusted to account for shipped manager persona (LEM-141 follow-up fix).
+- **Evidence:** `packages/core/src/bug-hunt.ts`,
+  `packages/core/src/index.ts`, `packages/cli/src/commands.ts`,
+  `packages/agent/src/catalog.ts`, `packages/agent/src/index.ts`,
+  `packages/agent/src/templates.ts`, `packages/core/src/schemas/index.ts`,
+  `packages/core/test/bug-hunt/bug-hunt.test.ts`,
+  `packages/agent/test/bug-hunt/catalog-wiring.test.ts`,
+  command-catalog/adapter/install test updates,
+  `docs/parity/evidence/LEM-148-bug-hunt-test-output.txt`.
 
 ### LEM-149 — Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints)
 

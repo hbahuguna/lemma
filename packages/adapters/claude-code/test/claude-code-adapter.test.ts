@@ -138,6 +138,6 @@ describe("LEM-102 Claude Code adapter", () => {
     expect(CLAUDE_CODE_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
     expect(CLAUDE_CODE_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
     expect(CLAUDE_CODE_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".claude/skills/lemma/SKILL.md" });
-    expect(() => assertValidHostPackagingManifest(CLAUDE_CODE_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+    expect(() => assertValidHostPackagingManifest(CLAUDE_CODE_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
   });
 });

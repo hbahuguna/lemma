@@ -140,7 +140,7 @@ describe("LEM-105 Cursor adapter", () => {
     expect(CURSOR_PACKAGING_MANIFEST.commands.catalogNames).toEqual(ASSAY_COMMAND_CATALOG.map((c) => c.name));
     expect(CURSOR_PACKAGING_MANIFEST.commands.operationalNames).toEqual(["assay", "assay-status", "assay-report", "assay-abort", "assay-verify-evidence"]);
     expect(CURSOR_PACKAGING_MANIFEST.skill).toEqual({ name: "lemma", path: ".cursor/skills/lemma/SKILL.md" });
-    expect(() => assertValidHostPackagingManifest(CURSOR_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+    expect(() => assertValidHostPackagingManifest(CURSOR_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
   });
 
 });

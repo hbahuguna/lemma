@@ -36,3 +36,5 @@ export { verifyEvidence } from "./evidence.js";
 export * from "./metering.js";
 
 export * from "./plugins.js";
+
+export * from "./bug-hunt.js";

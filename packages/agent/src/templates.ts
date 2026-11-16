@@ -224,7 +224,7 @@ export function renderLemmaSkillTemplate(options: CommandTemplateOptions = {}): 
     "## Commands and modes",
     `- Primary CLI: \`${cli}\` (JSON report to stdout for \`run\`; progress/warnings to stderr).`,
     `- Personas dir (configurable): \`${personasDir}\`.`,
-    "- Catalog assessments: 59 assay-style commands.",
+    "- Catalog assessments: 60 assay-style commands.",
     "  - `assay-browser`: live browser assessment, requires `http(s)` URL.",
     "  - `assay-demo`: static when no URL, live browser when URL provided.",
     "  - Other catalog commands: static intent-driven runs (`Assay <label> assessment`).",

@@ -50,7 +50,7 @@ describe("LEM-111 Antigravity smoke suite", () => {
         commandsDir: ".antigravity/commands",
         skillPath: ".antigravity/skills/lemma/SKILL.md",
       });
-      expect(() => assertValidHostPackagingManifest(ANTIGRAVITY_PACKAGING_MANIFEST, { catalogCount: 59 })).not.toThrow();
+      expect(() => assertValidHostPackagingManifest(ANTIGRAVITY_PACKAGING_MANIFEST, { catalogCount: 60 })).not.toThrow();
 
       const commandsDir = path.join(dir, ".antigravity/commands");
       const files = await readdir(commandsDir);

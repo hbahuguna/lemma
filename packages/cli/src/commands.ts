@@ -19,6 +19,7 @@ import {
   loadPersonas,
   normalizeTarget,
   now as coreNow,
+  runBugHunt,
   scaffoldPersona,
   severityRank,
   signReport,
@@ -832,6 +833,49 @@ export const installCommand: CliCommandHandler = async (argv) => {
   };
 };
 
+export const huntCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const targetRaw = getString(flags, "target", "t");
+  if (!targetRaw) throw new CliUsageError("Missing required --target", { flag: "target" });
+  const root = path.resolve(getString(flags, "root", "cwd") ?? ".");
+  const maxStepsStr = getString(flags, "max-steps");
+  const maxSteps = maxStepsStr !== undefined ? toInt(maxStepsStr, "--max-steps") : 20;
+  const wallClockMsStr = getString(flags, "wall-clock-ms");
+  const wallClockBudgetMs = wallClockMsStr !== undefined ? toInt(wallClockMsStr, "--wall-clock-ms") : 30_000;
+  const seedStr = getString(flags, "seed");
+  const seed = seedStr !== undefined ? toInt(seedStr, "--seed") : undefined;
+  const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
+  const frozenClock = getString(flags, "frozen-clock");
+  const personasDir = getString(flags, "personas-dir");
+  const scenarioText = getString(flags, "scenario");
+  const scenarioFile = getString(flags, "scenario-file");
+  let scenarioPlan: string | undefined = scenarioText;
+  if (scenarioFile) {
+    const p = path.isAbsolute(scenarioFile) ? scenarioFile : path.resolve(process.cwd(), scenarioFile);
+    scenarioPlan = await fs.readFile(p, "utf8");
+  }
+
+  const result = await runBugHunt({
+    target: normalizeCliTarget(targetRaw),
+    root,
+    maxSteps,
+    wallClockBudgetMs,
+    ...(seed !== undefined ? { seed } : {}),
+    ...((clockMode || frozenClock) ? { clock: { mode: clockMode, frozen: frozenClock ?? null } } : {}),
+    ...(personasDir ? { personasDir } : {}),
+    ...(scenarioPlan ? { scenarioPlan } : {}),
+  });
+
+  const code =
+    result.status === "halted"
+      ? EXIT_CODES.killSwitchHalt
+      : result.status === "failed"
+        ? EXIT_CODES.harnessError
+        : EXIT_CODES.pass;
+  return { exitCode: code, stdoutJson: result as unknown as Record<string, unknown> };
+};
+
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -850,5 +894,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "verify-evidence", description: "Verify evidence manifest and artifacts for a run.", handler: verifyEvidenceCommand },
     { name: "install", description: "Install lemma host integration assets for a target host.", handler: installCommand },
     { name: "migrate-state", description: "Migrate legacy .harness state to .lemma with a safe copy shim.", handler: migrateStateCommand },
+    { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
   ];
 }

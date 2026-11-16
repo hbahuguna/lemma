@@ -69,7 +69,7 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
 
     const skill = renderLemmaSkillTemplate({ cli: "lemma", personasDir: "./personas" });
     expect(skill).toContain("name: lemma");
-    expect(skill).toContain("59 assay-style commands");
+    expect(skill).toContain("60 assay-style commands");
     expect(skill).toContain(CONTEXT_PROTOCOL);
     expect(skill).toContain("Deterministic harness owns execution, evidence, and scoring");
     expect(skill).toContain("Blocked/skipped/errored/refused checks are coverage gaps");

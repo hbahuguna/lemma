@@ -36,6 +36,53 @@ export function buildJsonSchemas(): Record<string, unknown> {
   const defs = (name: string, schema: Parameters<typeof zodToJsonSchema>[0]) =>
     zodToJsonSchema(schema, name);
   return {
+    "schemas/agent/manager-message.v1.json": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "https://lemma.dev/schemas/agent/manager-message.v1.json",
+          "title": "Manager message v1",
+          "description": "Host-neutral conversational manager message emitted during a lemma assessment session.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+                "type",
+                "text",
+                "generated_at"
+          ],
+          "properties": {
+                "type": {
+                      "type": "string",
+                      "enum": [
+                            "plan",
+                            "question",
+                            "progress",
+                            "summary"
+                      ]
+                },
+                "text": {
+                      "type": "string",
+                      "description": "Redacted, human-readable message content."
+                },
+                "generated_at": {
+                      "type": "string",
+                      "description": "ISO-8601 timestamp (documented volatile field; may differ across runs)."
+                },
+                "step": {
+                      "type": "integer",
+                      "minimum": 0
+                },
+                "run_ids": {
+                      "type": "array",
+                      "items": {
+                            "type": "string"
+                      }
+                },
+                "details": {
+                      "type": "object",
+                      "description": "Structured, redacted details for the message type.",
+                      "additionalProperties": true
+                }
+          }
+    },
     "schemas/report/index.json": {
       schema_version: "lemma.report.schemas/v1",
       report: "report.v1.schema.json",

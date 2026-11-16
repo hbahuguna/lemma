@@ -77,6 +77,7 @@ const EXPECTED_CATALOG: ReadonlyArray<{ name: string; label: string }> = [
   { name: "assay-settings", label: "settings" },
   { name: "assay-human", label: "human" },
   { name: "assay-pro", label: "pro" },
+  { name: "assay-hunt", label: "hunt" },
 ];
 
 describe("LEM-095 command-builder and catalog parity", () => {
@@ -197,8 +198,8 @@ describe("LEM-095 command-builder and catalog parity", () => {
     expect(assayInvocation("--version", PERSONAS).args).toEqual(["--version"]);
   });
 
-  it("catalog exposes canonical 59 commands in assay order with intent/kind parity", () => {
-    expect(ASSAY_COMMAND_CATALOG).toHaveLength(59);
+  it("catalog exposes canonical 60 commands in assay order with intent/kind parity", () => {
+    expect(ASSAY_COMMAND_CATALOG).toHaveLength(60);
     expect(ASSAY_COMMAND_CATALOG.map((c) => ({ name: c.name, label: c.label }))).toEqual(EXPECTED_CATALOG);
     expect(getAssayCommand("assay-security-review")).toEqual({
       name: "assay-security-review",
@@ -209,6 +210,7 @@ describe("LEM-095 command-builder and catalog parity", () => {
     expect(getCatalogCommandKind("assay-browser")).toBe("browser");
     expect(getCatalogCommandKind("assay-demo")).toBe("demo");
     expect(getCatalogCommandKind("assay-manager")).toBe("static");
+    expect(getCatalogCommandKind("assay-hunt")).toBe("static");
   });
 
   it("catalog invocation mapping is deterministic and loop-facing builders stay consistent", () => {

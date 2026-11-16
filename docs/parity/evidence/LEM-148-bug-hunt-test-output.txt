@@ -1,0 +1,23 @@
+== core bug-hunt ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/bug-hunt/bug-hunt.test.ts (6 tests) 435ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  20:00:29
+   Duration  2.20s (transform 355ms, setup 0ms, collect 424ms, tests 435ms, environment 0ms, prepare 363ms)
+
+
+== agent bug-hunt ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/bug-hunt/catalog-wiring.test.ts (1 test) 6ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:00:33
+   Duration  2.16s (transform 715ms, setup 0ms, collect 1.01s, tests 6ms, environment 0ms, prepare 362ms)
+

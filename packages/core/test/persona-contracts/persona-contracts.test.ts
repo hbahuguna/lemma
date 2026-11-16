@@ -177,11 +177,12 @@ async function loadPersonasError(
 }
 
 describe("LEM-043 functional, security, and accessibility contracts", () => {
-  it("loads the three ported specialist contracts with assay ownership", async () => {
+  it("loads shipped persona contracts including manager with assay ownership for specialists", async () => {
     const personas = await loadPersonas(PERSONAS_DIR, { requireMinimum: 3 });
     expect(personas.map((persona) => persona.id)).toEqual([
       "accessibility",
       "functional",
+      "manager",
       "security",
     ]);
 
@@ -355,7 +356,7 @@ describe("LEM-043 functional, security, and accessibility contracts", () => {
         selected: ["does-not-exist"],
       });
       expect(unknownSelection.message).toBe(
-        "Unknown persona id(s): does-not-exist. Available: accessibility, functional, security",
+        "Unknown persona id(s): does-not-exist. Available: accessibility, functional, manager, security",
       );
     });
   });
@@ -365,11 +366,13 @@ describe("LEM-043 functional, security, and accessibility contracts", () => {
     expect(selectPersonas(all).map((persona) => persona.id)).toEqual([
       "accessibility",
       "functional",
+      "manager",
       "security",
     ]);
     expect(selectPersonas(all, []).map((persona) => persona.id)).toEqual([
       "accessibility",
       "functional",
+      "manager",
       "security",
     ]);
     expect(selectPersonas(all, ["security", "accessibility"]).map((persona) => persona.id)).toEqual(
@@ -381,7 +384,7 @@ describe("LEM-043 functional, security, and accessibility contracts", () => {
 
     const error = personaError(() => selectPersonas(all, ["missing"]));
     expect(error.message).toBe(
-      "Unknown persona id(s): missing. Available: accessibility, functional, security",
+      "Unknown persona id(s): missing. Available: accessibility, functional, manager, security",
     );
   });
 });

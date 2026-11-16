@@ -41,7 +41,7 @@ describe("LEM-107 install command", () => {
       expect(payload.dir).toBe(path.resolve(dir));
       expect(payload.dry_run).toBe(false);
       expect(payload.force).toBe(false);
-      expect(payload.planned).toBe(65); // 59 catalog + 5 operational + 1 skill
+      expect(payload.planned).toBe(66); // 60 catalog + 5 operational + 1 skill
       expect(payload.written).toBe(65);
       expect(payload.skipped).toBe(0);
 
@@ -68,7 +68,7 @@ describe("LEM-107 install command", () => {
 
       const skill = await readFile(path.join(dir, ".opencode", "skills", "lemma", "SKILL.md"), "utf8");
       expect(skill).toContain("name: lemma");
-      expect(skill).toContain("59 assay-style commands");
+      expect(skill).toContain("60 assay-style commands");
       expect(skill).toContain("Deterministic harness owns execution, evidence, and scoring");
     });
   });

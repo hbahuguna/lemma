@@ -11,12 +11,13 @@ import {
 const PERSONAS = "/tmp/personas";
 
 describe("LEM-089 command catalog and intent mapping", () => {
-  it("exports the canonical 59-command catalog in assay order with intent helpers", () => {
-    expect(ASSAY_COMMAND_CATALOG).toHaveLength(59);
+  it("exports the canonical 60-command catalog in assay order with intent helpers", () => {
+    expect(ASSAY_COMMAND_CATALOG).toHaveLength(60);
     expect(ASSAY_COMMAND_CATALOG[0]).toEqual({ name: "assay-manager", label: "manager" });
     expect(ASSAY_COMMAND_CATALOG[4]).toEqual({ name: "assay-browser", label: "browser" });
     expect(ASSAY_COMMAND_CATALOG[6]).toEqual({ name: "assay-demo", label: "demo" });
     expect(ASSAY_COMMAND_CATALOG[58]).toEqual({ name: "assay-pro", label: "pro" });
+    expect(ASSAY_COMMAND_CATALOG[59]).toEqual({ name: "assay-hunt", label: "hunt" });
     expect(getAssayCommand("assay-security-review")?.label).toBe("security-review");
     expect(getAssayCommand("nope")).toBeUndefined();
     expect(assayIntent("ui")).toBe("Assay ui assessment");
@@ -58,7 +59,7 @@ describe("LEM-089 command catalog and intent mapping", () => {
   });
 
   it("maps other catalog commands to deterministic static assessment runs", () => {
-    const names = ["assay-manager", "assay-accessibility", "assay-full-report", "assay-pro"];
+    const names = ["assay-manager", "assay-accessibility", "assay-full-report", "assay-pro", "assay-hunt"];
     for (const name of names) {
       expect(getCatalogCommandKind(name)).toBe("static");
       const result = buildCatalogInvocation(name, "ignored freeform text", PERSONAS);

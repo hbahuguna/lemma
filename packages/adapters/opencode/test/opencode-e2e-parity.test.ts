@@ -117,7 +117,7 @@ describe("LEM-109 OpenCode end-to-end parity suite", () => {
       expect(await exists(skillPath)).toBe(true);
       const skillContent = await readFile(skillPath, "utf8");
       expect(skillContent).toContain("name: lemma");
-      expect(skillContent).toContain("59 assay-style commands");
+      expect(skillContent).toContain("60 assay-style commands");
       expect(skillContent).toContain("Deterministic harness owns execution, evidence, and scoring");
       expect(skillContent).not.toContain("/Users/");
     });

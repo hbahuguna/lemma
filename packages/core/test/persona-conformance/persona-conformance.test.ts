@@ -45,15 +45,19 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 }
 
 describe("LEM-049 persona conformance", () => {
-  it("loads the three specialist contracts with valid tool capabilities and schemas", async () => {
+  it("loads the shipped persona contracts with valid tool capabilities and schemas (including manager)", async () => {
     const personas = await loadPersonas(PERSONAS_DIR, { requireMinimum: 3 });
     expect(new Set(personas.map((persona) => persona.id))).toEqual(
-      new Set(["functional", "security", "accessibility"]),
+      new Set(["accessibility", "functional", "manager", "security"]),
     );
     for (const persona of personas) {
       expect(persona.domains.length).toBeGreaterThan(0);
       expect(persona.tools.length).toBeGreaterThan(0);
-      expect(persona.checks.length).toBeGreaterThan(0);
+      if (persona.id !== "manager") {
+        expect(persona.checks.length).toBeGreaterThan(0);
+      } else {
+        expect(persona.checks).toEqual([]);
+      }
       for (const tool of persona.tools) {
         expect(tool).toMatch(TOOL_CAPABILITY_PATTERN);
       }
