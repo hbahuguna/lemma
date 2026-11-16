@@ -177,6 +177,25 @@ export type ProSpecialistId = "confidence" | "security" | "performance" | "priva
 
 
 
+
+export function parseAutoSlash(raw: string): { maxCycles?: number; resume?: boolean; runId?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-auto") return null;
+  const argText = rest.join(" ").trim();
+  const maxM = argText.match(/(?:^|\s)--max-cycles\s+(\d+)/i);
+  const resume = /(?:^|\s)--resume(?:\s|$)/i.test(argText);
+  const runM = argText.match(/(?:^|\s)--run(?:-id)?\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const runId = runM ? (runM[1] || runM[2] || runM[3] || "").trim() || undefined : undefined;
+  return {
+    ...(maxM ? { maxCycles: parseInt(maxM[1]!, 10) } : {}),
+    ...(resume ? { resume: true } : {}),
+    ...(runId ? { runId } : {}),
+  };
+}
+
 export function parseMoreSlash(raw: string): { runId?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -313,9 +332,11 @@ export function routeSlashCommand(
   const proof = parseProofSlash(raw);
   const modelEval = parseModelEvalSlash(raw);
   const more = parseMoreSlash(raw);
+  const auto = parseAutoSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
+  const isAuto = auto !== null || spec.command === "/lemma-auto";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -349,6 +370,14 @@ export function routeSlashCommand(
       ? {
           lemma_more: true,
           ...(more?.runId ? { more_run_id: more.runId } : {}),
+        }
+      : {}),
+    ...(isAuto
+      ? {
+          lemma_auto: true,
+          ...(auto?.maxCycles ? { auto_max_cycles: auto.maxCycles } : {}),
+          ...(auto?.resume ? { auto_resume: true } : {}),
+          ...(auto?.runId ? { auto_run_id: auto.runId } : {}),
         }
       : {}),
   };

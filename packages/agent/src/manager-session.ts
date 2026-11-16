@@ -390,6 +390,53 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaAuto = (d as any).lemma_auto === true;
+      if (lemmaAuto) {
+        this.state.status = "running";
+        const runId = (d as any).auto_run_id || `auto-${Date.now()}`;
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running bounded auto test-fix-retest loop (/lemma-auto).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent, run_id: runId },
+        } as any);
+        try {
+          const { runAutoLoop } = await import("@lemma/core");
+          const result = await runAutoLoop({
+            root: this.options.cwd,
+            target: { kind: "directory", resolved: this.options.cwd },
+            ...(Number.isFinite((d as any).auto_max_cycles) ? { maxCycles: Number((d as any).auto_max_cycles) } : {}),
+            ...(runId ? { runId } : {}),
+            ...(((d as any).auto_resume) ? { resume: true } : {}),
+            approveMutation: async () => ({ approved: false, reason: "mutation approval required in agent session; run `lemma auto --approve-mutations` in CLI to allow gated mutations" }),
+          } as any);
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Auto loop ${result.status} for run ${result.run_id} (stop: ${result.stop_reason}, cycles: ${result.cycles_completed}).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { auto: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaMore = (d as any).lemma_more === true;
       if (lemmaMore) {
         this.state.status = "running";

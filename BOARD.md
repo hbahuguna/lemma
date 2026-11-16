@@ -454,7 +454,7 @@ workflow and produces durable `.lemma/` artifacts.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Done |
-| LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Backlog |
+| LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Done |
 | LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Backlog |
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Backlog |
@@ -2050,8 +2050,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-015, LEM-083
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented bounded auto loop (core/CLI/agent), state/resume/approval gates, and tests.
+- **Completed:** 2026-11-16
 - **Description:** Add a `/lemma-auto` (and `lemma auto`) workflow that runs a
   bounded local test-fix-retest loop with explicit stop conditions, user
   approval before any file mutation, and durable cycle state under
@@ -2077,10 +2078,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     observe.
   - Tests cover cycle cap, wall-clock cap, no-progress halt, mutation approval
     gate, resume, fingerprint mismatch refusal, and determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- auto-loop && pnpm test --filter @lemma/cli -- auto`
-- **Evidence (planned):** `packages/core/src/auto-loop.ts`,
-  `packages/core/test/auto-loop/*`,
-  `packages/cli/test/auto/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/auto-loop/auto-loop.test.ts` (7/7 passed) and `pnpm exec vitest run packages/cli/test/auto/auto.test.ts` (2/2 passed); `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`.
+- **Evidence:** `packages/core/src/auto-loop.ts`,
+  `packages/core/test/auto-loop/auto-loop.test.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/cli/test/auto/auto.test.ts`,
+  `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
   `docs/parity/evidence/LEM-166-auto-loop-test-output.txt`
 
 ### LEM-167 — Build the dedicated browser inspection command (`/lemma-browser`)

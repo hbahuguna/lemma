@@ -1,0 +1,31 @@
+## core auto-loop
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/auto-loop/auto-loop.test.ts (7 tests) 4646ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > respects cycle cap and halts cleanly with halted status  690ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > halts on no-progress  366ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > gates every mutation via approveMutation; decline stops loop and records typed result (no silent mutation)  327ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > resumes from last completed cycle  922ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > refuses resume on registry fingerprint mismatch (LEM-021)  350ms
+   ✓ LEM-166 bounded auto test-fix-retest loop > is deterministic with stub executor, frozen clock, and same seed/run inputs  1881ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  23:36:10
+   Duration  6.35s (transform 583ms, setup 0ms, collect 802ms, tests 4.65s, environment 0ms, prepare 280ms)
+
+
+## cli auto
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/auto/auto.test.ts (2 tests) 655ms
+   ✓ LEM-166 CLI auto command > runs bounded auto loop and persists durable cycle state/evidence under .lemma/auto/  307ms
+   ✓ LEM-166 CLI auto command > defaults to gated mutations (decline) so silent mutation is not possible  346ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:36:18
+   Duration  3.46s (transform 1.07s, setup 0ms, collect 1.50s, tests 655ms, environment 0ms, prepare 234ms)
+

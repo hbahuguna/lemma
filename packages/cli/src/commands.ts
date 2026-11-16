@@ -7,6 +7,7 @@ import {
   EvidenceStore,
   Orchestrator,
   runMore,
+  runAutoLoop,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1216,11 +1217,47 @@ export const proCommand: CliCommandHandler = async (argv) => {
 };
 
 
+
+export const autoCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const targetRaw = getString(flags, "target", "t") ?? positionals[0] ?? root;
+  const maxCyclesStr = getString(flags, "max-cycles", "maxCycles");
+  const wallClockStr = getString(flags, "wall-clock-ms", "wallClockMs", "wall-clock-budget-ms");
+  const runId = getString(flags, "run-id", "run");
+  const resume = getBool(flags, "resume");
+  const seedStr = getString(flags, "seed");
+  const frozenClock = getString(flags, "frozen-clock", "frozenClock", "frozen-now");
+  const clock = (getString(flags, "clock") as "real" | "frozen" | undefined) ?? (frozenClock ? "frozen" : undefined);
+  const approveMutations = getBool(flags, "approve-mutations", "approveMutations", "yes-mutations", "yes");
+  const failOnDecline = getBool(flags, "fail-on-decline");
+
+  const result = await runAutoLoop({
+    root,
+    target: normalizeCliTarget(targetRaw),
+    ...(maxCyclesStr !== undefined ? { maxCycles: toInt(maxCyclesStr, "--max-cycles") } : {}),
+    stopOn: {
+      ...(wallClockStr !== undefined ? { wallClockMs: toInt(wallClockStr, "--wall-clock-ms") } : {}),
+    },
+    approveMutation: async (_proposal) => {
+      if (approveMutations) return { approved: true, note: "approved by --approve-mutations" };
+      return { approved: false, reason: failOnDecline ? "mutation declined (fail-on-decline)" : "mutation approval required; rerun with --approve-mutations to allow gated mutations" };
+    },
+    ...(runId ? { runId } : {}),
+    ...(resume ? { resume: true } : {}),
+    ...(seedStr !== undefined ? { seed: toInt(seedStr, "--seed") } : {}),
+    ...(clock ? { clock } : {}),
+    ...(frozenClock ? { frozenNow: frozenClock } : {}),
+  });
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
+    { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

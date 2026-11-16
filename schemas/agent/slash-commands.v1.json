@@ -320,6 +320,31 @@
         "registry_fingerprint_mismatch",
         "run_not_found"
       ]
+    },
+    {
+      "command": "/lemma-auto",
+      "target": "catalog",
+      "description": "Run bounded auto test-fix-retest loop with approval-gated mutations.",
+      "intent": "run",
+      "catalog_intent": "Assay auto assessment",
+      "arguments": [
+        {
+          "name": "max_cycles",
+          "required": false,
+          "description": "Maximum cycles (default <= 5)."
+        },
+        {
+          "name": "resume",
+          "required": false,
+          "description": "Resume last auto loop from last completed cycle."
+        }
+      ],
+      "errors": [
+        "mutation_declined",
+        "registry_fingerprint_mismatch",
+        "max_cycles",
+        "wall_clock_budget"
+      ]
     }
   ]
 }

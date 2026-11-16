@@ -891,6 +891,31 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaAuto = (d as any).lemma_auto === true;
+    if (lemmaAuto) {
+      const runId = (d as any).auto_run_id || `auto-${Date.now()}`;
+      try {
+        const { runAutoLoop } = await import("@lemma/core");
+        const result = await runAutoLoop({
+          root: cwd || process.cwd(),
+          target: { kind: "directory", resolved: cwd || process.cwd() },
+          ...(Number.isFinite((d as any).auto_max_cycles) ? { maxCycles: Number((d as any).auto_max_cycles) } : {}),
+          ...(runId ? { runId } : {}),
+          ...(((d as any).auto_resume) ? { resume: true } : {}),
+          approveMutation: async () => ({ approved: false, reason: "mutation approval required in agent session; run `lemma auto --approve-mutations` in CLI to allow gated mutations" }),
+        } as any);
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Auto loop ${result.status}: ${result.run_id} (${result.stop_reason})`);
+        await sendFinal(`Auto loop ${result.status} for run ${result.run_id} (stop: ${result.stop_reason}, cycles: ${result.cycles_completed}).${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaMore = (d as any).lemma_more === true;
     if (lemmaMore) {
       const runId = (d as any).more_run_id || (state.runIds.length ? state.runIds[state.runIds.length - 1] : undefined);
