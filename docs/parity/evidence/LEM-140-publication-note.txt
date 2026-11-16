@@ -1,0 +1,11 @@
+LEM-140 publication/deprecation evidence (2026-11-16)
+
+Applied locally:
+- Updated ../assay/README.md with a prominent deprecation banner pointing to lemma (https://github.com/hbahuguna/lemma) and migration guidance (lemma docs/migration-assay-to-lemma.md).
+- Captured evidence in this repo: docs/parity/evidence/LEM-140-assay-readme-snippet.txt, docs/parity/evidence/LEM-140-assay-deprecation.patch, docs/parity/evidence/LEM-140-acceptance-check.txt.
+
+Not performed (explicitly not claimed as published externally):
+- No git commit/push made in ../assay repository. The assay working tree contained pre-existing unrelated modifications/deletions (notably .opencode/commands/*); only README.md was edited for LEM-140 and changes were left uncommitted to avoid disturbing unrelated state.
+- No package-registry deprecation (PyPI/npm/etc.) was executed; no registry credentials/actions were used.
+
+"Published" in this task context is evidenced as an in-repo deprecation notice applied to the local assay checkout and recorded in lemma with verifiable artifacts.

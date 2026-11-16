@@ -350,7 +350,7 @@ every supported host with visible supply-chain evidence.
 | LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Done |
 | LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Done |
 | LEM-139 | Run the full parity audit and sign off | P0 | 8 | LEM-112, LEM-115, LEM-121, LEM-126, LEM-131, LEM-133, LEM-134, LEM-135, LEM-136, LEM-137, LEM-138 | Done |
-| LEM-140 | Point assay at lemma and publish the deprecation notice | P2 | 2 | LEM-139 | Backlog |
+| LEM-140 | Point assay at lemma and publish the deprecation notice | P2 | 2 | LEM-139 | Done |
 
 ### E13: Conversational Agent Surface
 
@@ -4734,6 +4734,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-140 — Point assay at lemma and publish the deprecation notice
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P2
+- **Points:** 2
+- **Depends on:** LEM-139
+- **Status:** Done
+- **Claimed:** 2026-11-16 — added prominent assay deprecation notice pointing to lemma and recorded publication evidence in lemma (with explicit limits on external actions).
+- **Description:** Point the legacy `assay` (`quality-harness`) project at
+  `lemma` and publish a clear deprecation notice directing users to lemma and
+  migration guidance.
+- **Acceptance Criteria:**
+  - The local `assay` checkout (`../assay`, quality-harness) is updated to point
+    users to `lemma` with a prominent deprecation notice in `README.md` (and any
+    minimal repo-facing text needed for clarity), including direction to lemma and
+    migration guidance (`docs/migration-assay-to-lemma.md` in lemma) and an
+    honest status statement.
+  - A "published" deprecation notice artifact is evidenced in this repo:
+    captured README snippet/diff and audit notes under
+    `docs/parity/evidence/LEM-140-*` showing the notice content and where it was
+    applied. Any external publication actions not performed (e.g. pushing the
+    assay repo, package-registry deprecation) are explicitly recorded as
+    out-of-scope/blocked with reason rather than falsely claimed.
+  - `BOARD.md` and `docs/parity/assay-feature-inventory.md` (if an owned parity
+    mapping requires update) are updated with LEM-140 completion details and
+    evidence; task moved to Done only when criteria are met and committed.
+- **Verification:** `test -f docs/parity/evidence/LEM-140-assay-readme-snippet.txt && rg -n "DEPRECATED|deprecated|lemma|migration" docs/parity/evidence/LEM-140-assay-readme-snippet.txt ../assay/README.md` (pass; output recorded in `docs/parity/evidence/LEM-140-acceptance-check.txt`).
+- **Evidence:** updated local `../assay/README.md` (deprecation banner pointing to `https://github.com/hbahuguna/lemma` and `docs/migration-assay-to-lemma.md`), `docs/parity/evidence/LEM-140-assay-readme-snippet.txt`, `docs/parity/evidence/LEM-140-assay-deprecation.patch`, `docs/parity/evidence/LEM-140-acceptance-check.txt`, `docs/parity/evidence/LEM-140-publication-note.txt`, updated `BOARD.md`. External publication actions not performed/claimed: no git commit/push in assay repo (pre-existing unrelated dirty state) and no package-registry deprecation (documented in evidence note).
 
 
 ### LEM-139 — Run the full parity audit and sign off

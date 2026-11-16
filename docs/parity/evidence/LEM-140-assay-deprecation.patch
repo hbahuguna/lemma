@@ -1,0 +1,20 @@
+diff --git a/README.md b/README.md
+index 44c8734..dac03af 100644
+--- a/README.md
++++ b/README.md
+@@ -1,4 +1,14 @@
+-# quality-harness
++# quality-harness (assay) — DEPRECATED
++
++> **Deprecated:** `quality-harness` (assay) is deprecated and superseded by **[lemma](https://github.com/hbahuguna/lemma)**.
++>
++> - **Use lemma for new work:** `https://github.com/hbahuguna/lemma`
++> - **Migration guide (in lemma):** `docs/migration-assay-to-lemma.md` (assay `.harness/` state → lemma `.lemma/`, compatibility notes, and migration command/shim)
++> - **Status:** lemma provides the TypeScript/ESM successor with host integrations and a migration path; some host/runtime surfaces may be provisional and capability-honest as documented in lemma. This repository is retained for historical/oracle reference and existing users migrating to lemma.
++>
++> The documentation below describes the legacy `quality-harness`/assay behavior.
++
++---
+ 
+ `quality-harness` is a deterministic, risk-based testing harness for release
+ decisions. It inspects a source tree, operates a live target when a browser is

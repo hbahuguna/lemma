@@ -1,0 +1,5 @@
+../assay/README.md:1:# quality-harness (assay) — DEPRECATED
+../assay/README.md:3:> **Deprecated:** `quality-harness` (assay) is deprecated and superseded by **[lemma](https://github.com/hbahuguna/lemma)**.
+../assay/README.md:5:> - **Use lemma for new work:** `https://github.com/hbahuguna/lemma`
+../assay/README.md:6:> - **Migration guide (in lemma):** `docs/migration-assay-to-lemma.md` (assay `.harness/` state → lemma `.lemma/`, compatibility notes, and migration command/shim)
+../assay/README.md:7:> - **Status:** lemma provides the TypeScript/ESM successor with host integrations and a migration path; some host/runtime surfaces may be provisional and capability-honest as documented in lemma. This repository is retained for historical/oracle reference and existing users migrating to lemma.
