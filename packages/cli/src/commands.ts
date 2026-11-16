@@ -279,6 +279,52 @@ export const statusCommand: CliCommandHandler = async (argv) => {
   const { flags } = parseArgs(argv);
   const root = path.resolve(getString(flags, "root") ?? ".");
   const store = new StateStore(root);
+  if (getBool(flags, "background")) {
+    const bgDir = path.join(root, ".lemma", "background");
+    const bgStatusPath = path.join(bgDir, "status.json");
+    const bgEventsPath = path.join(bgDir, "events.jsonl");
+    const bgSummaryPath = path.join(bgDir, "summary.json");
+    const bgKillPath = path.join(bgDir, "KILL");
+    const readJsonMaybe = async (p: string): Promise<unknown | null> => {
+      try { return JSON.parse(await fs.readFile(p, "utf8")) as unknown; } catch { return null; }
+    };
+    const readEventsTail = async (p: string, limit = 50): Promise<unknown[]> => {
+      try {
+        const raw = await fs.readFile(p, "utf8");
+        const lines = raw.split("\n").filter(Boolean);
+        return lines.slice(-limit).map((line) => {
+          try { return JSON.parse(line) as unknown; } catch { return { raw: line }; }
+        });
+      } catch { return []; }
+    };
+    const bgStatus = await readJsonMaybe(bgStatusPath);
+    const bgSummary = await readJsonMaybe(bgSummaryPath);
+    const bgEvents = await readEventsTail(bgEventsPath, 50);
+    let bgKill: unknown = null;
+    try {
+      const k = await fs.readFile(bgKillPath, "utf8");
+      bgKill = k.trim() ? (() => { try { return JSON.parse(k); } catch { return k.trim(); } })() : null;
+    } catch { bgKill = null; }
+    return {
+      stdoutJson: {
+        schema_version: REPORT_SCHEMA,
+        status: "ok",
+        background: {
+          root: bgDir,
+          status: bgStatus,
+          summary: bgSummary,
+          events: bgEvents,
+          kill: bgKill,
+          paths: {
+            status: bgStatusPath,
+            events: bgEventsPath,
+            summary: bgSummaryPath,
+            kill: bgKillPath,
+          },
+        },
+      },
+    };
+  }
   if (getBool(flags, "all")) {
     const history = await store.loadHistory();
     const runs = history.runs ?? [];

@@ -363,7 +363,7 @@ makes the tool tryable; slash commands work natively in-chat.
 | --- | --- | --- | --- | --- | --- |
 | LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Done |
 | LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Done |
-| LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Backlog |
+| LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Done |
 | LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Backlog |
 | LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Backlog |
 
@@ -1288,8 +1288,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-084, LEM-086
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented background supervisor core API, isolated `.lemma/background/` state/events/evidence, and CLI background status query.
 - **Description:** Add an optional background supervisor that runs bounded,
   lightweight quick checks while the developer works, with pause/review/disable
   controls. Disabled by default; global off switch (`LEMMA_BACKGROUND=off`);
@@ -1306,30 +1306,31 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     browser checks excluded by default with explicit opt-in) at a bounded
     interval; every check is bounded by a wall-clock budget and cannot starve
     the foreground.
-  - All background state, evidence, and logs write only under
-    `.lemma/background/`; supervisor never writes into `.lemma/state/`,
-    `.lemma/events.jsonl`, `.lemma/history.json`, or the foreground run's
-    evidence directory — verified by a test that runs a foreground assessment
-    concurrently and asserts byte-identical foreground artifacts.
-  - Pause/resume/status/stop are reflected in a JSONL event stream under
-    `.lemma/background/events.jsonl` (via `StateStore` event path scoped to
-    background) and queryable from the CLI.
-  - Background checks are bounded, deterministic-when-seeded, and never produce
-    findings that leak into the foreground report. Background findings appear
-    only in a background-specific summary that the CLI surfaces under
-    `lemma status --background` (documented).
-  - Kill file (LEM-011) is honored: a global kill stops background work within
-    one interval; a background-specific kill file stops only background work.
-  - Tests: default-off behavior, env-off behavior, concurrency limit,
-    foreground-isolation byte-identical check, event stream, kill file
-    semantics, and a bounded-time test asserting no starvation.
-- **Verification (planned):**
-  `pnpm --filter @lemma/core test -- background-supervisor && pnpm --filter @lemma/cli test -- background`
-- **Evidence (planned):** `packages/core/src/background-supervisor.ts`,
-  `packages/cli/src/background.ts`,
-  `packages/core/test/background-supervisor/*`,
-  `packages/cli/test/background/*`,
-  `docs/parity/evidence/LEM-150-background-supervisor-test-output.txt`
+  - All background state, evidence, and logs write under `.lemma/background/`
+    (never touching `.lemma/progress.json`, `.lemma/events.jsonl`,
+    `.lemma/history.json`, or foreground evidence dirs); background runs never
+    alter foreground run state, report, confidence, or release decision.
+  - Honors global `.lemma/KILL` and a background-specific
+    `.lemma/background/KILL`; pause/resume/stop are reflected in a JSONL event
+    stream under `.lemma/background/events.jsonl` and are queryable from the
+    CLI (`lemma status --background` or equivalent).
+  - Produces optional background evidence artifacts linked to background check
+    runs (evidence refs recorded per run) without requiring report rendering
+    unless the user explicitly requests a report.
+  - Determinism: same seed + frozen clock for background check runs → same
+    findings/ids/evidence fingerprints (modulo documented volatile fields).
+  - Tests cover default-off, env-off, concurrency limit, kill-file stop,
+    pause/resume, foreground-isolation (foreground state/report/evidence byte-
+    identical when a foreground assessment runs concurrently), and bounded
+    non-starving behavior.
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/background-supervisor/background-supervisor.test.ts && pnpm exec vitest run packages/cli/test/background/background-status.test.ts` (pass; 5/5 core, 1/1 CLI). Foreground-isolation verified by byte-identical snapshots of progress/history/events/evidence while background runs execute; controls emit queryable JSONL events under `.lemma/background/events.jsonl` and surfaced via `lemma status --background`.
+- **Evidence:** `packages/core/src/background-supervisor.ts`,
+  `packages/core/src/index.ts`, `packages/cli/src/commands.ts`,
+  `packages/core/test/background-supervisor/background-supervisor.test.ts`,
+  `packages/cli/test/background/background-status.test.ts`,
+  `docs/parity/evidence/LEM-150-background-supervisor-test-output.txt`.
+
 
 ### LEM-151 — Build the native MCP server exposing testing tools
 

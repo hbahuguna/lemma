@@ -38,3 +38,5 @@ export * from "./metering.js";
 export * from "./plugins.js";
 
 export * from "./bug-hunt.js";
+
+export * from "./background-supervisor.js";

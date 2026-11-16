@@ -1,0 +1,26 @@
+== core background-supervisor ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/background-supervisor/background-supervisor.test.ts (5 tests) 2499ms
+   ✓ LEM-150 background supervisor > enforces concurrency limit, emits pause/resume/stop events, and records bounded runs  774ms
+   ✓ LEM-150 background supervisor > honors global and background-specific kill files within one interval  767ms
+   ✓ LEM-150 background supervisor > is bounded/non-starving and records background summary without touching foreground report state  682ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  20:09:24
+   Duration  5.62s (transform 982ms, setup 0ms, collect 1.43s, tests 2.50s, environment 0ms, prepare 834ms)
+
+
+== cli background status ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/background/background-status.test.ts (1 test) 39ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:09:32
+   Duration  3.28s (transform 905ms, setup 0ms, collect 1.48s, tests 39ms, environment 1ms, prepare 314ms)
+
