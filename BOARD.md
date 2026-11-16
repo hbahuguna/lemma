@@ -439,7 +439,7 @@ without the same opt-out posture as the core.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-161 | Build the Jira/Xray integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Backlog |
+| LEM-161 | Build the Jira/Xray integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Done |
 | LEM-162 | Build the TestRail integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Backlog |
 | LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Backlog |
 | LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Backlog |
@@ -1830,8 +1830,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-020, LEM-083, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented Jira/Xray guarded push flow, manifest/evidence recording, and tests.
 - **Description:** Add a guarded integration flow that pushes findings and
   results into Jira/Xray. Requires explicit, user-confirmed opt-in per
   project; no silent push, no credential storage beyond the documented
@@ -1859,10 +1859,13 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover opt-in enforcement, redaction of payloads, manifest
     recording, partial-push handling, network/4xx/5xx failure surfacing,
     and unlicensed refusal.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- jira-xray`
-- **Evidence (planned):** `packages/pro/src/integrations/jira-xray.ts`,
-  `packages/pro/test/jira-xray/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/jira-xray/jira-xray.test.ts` PASS (4/4).
+  `pnpm --filter @lemma/pro build` PASS.
+- **Evidence:** `packages/pro/src/integrations/jira-xray.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/jira-xray/jira-xray.test.ts`,
   `docs/parity/evidence/LEM-161-jira-xray-test-output.txt`
+
 
 ### LEM-162 — Build the TestRail integration flow
 

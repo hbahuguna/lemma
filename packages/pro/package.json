@@ -35,6 +35,10 @@
     "./quality-history": {
       "types": "./dist/quality-history.d.ts",
       "import": "./dist/quality-history.js"
+    },
+    "./integrations/jira-xray": {
+      "types": "./dist/integrations/jira-xray.d.ts",
+      "import": "./dist/integrations/jira-xray.js"
     }
   },
   "main": "./dist/index.js",
@@ -43,7 +47,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/entitlement.ts src/commands/specialists.ts src/proof.ts src/proof/backends/index.ts src/inventory.ts src/quality-history.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/entitlement.ts src/commands/specialists.ts src/proof.ts src/proof/backends/index.ts src/inventory.ts src/quality-history.ts src/integrations/jira-xray.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""

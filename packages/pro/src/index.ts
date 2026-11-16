@@ -22,3 +22,4 @@ export * from "./proof.js";
 export * from "./proof/backends/index.js";
 export * from "./inventory.js";
 export * from "./quality-history.js";
+export * from "./integrations/jira-xray.js";
