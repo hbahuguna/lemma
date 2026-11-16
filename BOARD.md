@@ -493,7 +493,7 @@ fabricate a pass.
 | --- | --- | --- | --- | --- | --- |
 | LEM-183 | Build the confidence-engineering workspace (`.confidence/`) | P3 | 8 | LEM-020, LEM-089 | Done |
 | LEM-184 | Build the AI evaluation design and review workflows | P3 | 8 | LEM-163, LEM-183 | Done |
-| LEM-185 | Build the specialized review workflows (security, skeptical, statistical, release) | P3 | 8 | LEM-179, LEM-183 | Backlog |
+| LEM-185 | Build the specialized review workflows (security, skeptical, statistical, release) | P3 | 8 | LEM-179, LEM-183 | Done |
 
 ### E23: Execution Model, Evidence Discipline, and Browser Adapters
 
@@ -2726,8 +2726,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-179, LEM-183
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed specialized review workflows (core/schema/checklists/tests) with passing acceptance tests.
 - **Description:** Add four specialized review workflows on top of the
   independent review (LEM-179): security (prompt injection, untrusted
   channels, leakage, tenant boundaries, tool permissions), skeptical (weak
@@ -2736,23 +2736,23 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   multiplicity), and release (independent synthesis of code, evals, severe
   failures, production signals, reversibility).
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runSpecializedReview({ kind, runId, workspace })`
+  - [x] `@lemma/core` exposes `runSpecializedReview({ kind, runId, workspace })`
     with `kind` one of `security`, `skeptical`, `statistical`, `release`;
     returns a typed `SpecializedReviewReport` validated against
     `schemas/confidence/specialized_review.v1.json`.
-  - Each review kind has a documented checklist (committed as JSON under
+  - [x] Each review kind has a documented checklist (committed as JSON under
     `schemas/confidence/checklists/<kind>.v1.json`) that the workflow
     enforces; unchecked items are reported as `unreviewed`, never a pass.
-  - Reviews write to `.confidence/reviews/<review_id>/` via atomic writes;
+  - [x] Reviews write to `.confidence/reviews/<review_id>/` via atomic writes;
     findings link to the underlying evidence in `.confidence/evals/` and
     `.confidence/claims/`.
-  - Release review consumes the other three reviews and the release decision
+  - [x] Release review consumes the other three reviews and the release decision
     workflow (LEM-180) when present; missing inputs downgrade to
     `MORE EVIDENCE`.
-  - Tests cover each kind's checklist enforcement, evidence linkage,
+  - [x] Tests cover each kind's checklist enforcement, evidence linkage,
     `unreviewed` reporting, release-review downgrade behavior, and schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- specialized-review`
-- **Evidence (planned):** `packages/core/src/specialized-review.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/specialized-review/specialized-review.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- specialized-review` — `docs/parity/evidence/LEM-185-specialized-review-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/specialized-review.ts`,
   `schemas/confidence/specialized_review.v1.schema.json`,
   `schemas/confidence/checklists/*.json`,
   `packages/core/test/specialized-review/*`,

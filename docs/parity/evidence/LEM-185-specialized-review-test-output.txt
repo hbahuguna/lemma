@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/specialized-review/specialized-review.test.ts (3 tests) 1869ms
+   ✓ LEM-185 specialized review workflows > enforces checklists for each kind and reports unchecked items as unreviewed (never pass) with schema-valid reports  713ms
+   ✓ LEM-185 specialized review workflows > release review consumes other three reviews and release decision when present; missing inputs downgrade to MORE EVIDENCE  936ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:19:57
+   Duration  4.83s (transform 1.12s, setup 0ms, collect 1.54s, tests 1.87s, environment 0ms, prepare 304ms)
+

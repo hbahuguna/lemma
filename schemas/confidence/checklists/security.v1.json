@@ -1,0 +1,11 @@
+{
+  "schema_version": "lemma.confidence.checklist/v1",
+  "kind": "security",
+  "items": [
+    { "id": "prompt_injection", "description": "Prompt injection risks reviewed (direct/indirect) and mitigations evidenced." },
+    { "id": "untrusted_channels", "description": "Untrusted input channels and data sources are identified and handled safely." },
+    { "id": "leakage", "description": "Data leakage/exfiltration paths (secrets, PII, cross-tenant) reviewed." },
+    { "id": "tenant_boundaries", "description": "Tenant isolation and authorization boundaries are enforced and evidenced." },
+    { "id": "tool_permissions", "description": "Tool/agent permissions and least-privilege controls are reviewed." }
+  ]
+}

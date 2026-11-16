@@ -1,0 +1,10 @@
+{
+  "schema_version": "lemma.confidence.checklist/v1",
+  "kind": "skeptical",
+  "items": [
+    { "id": "weak_evidence", "description": "Evidence strength reviewed; weak or indirect evidence is challenged." },
+    { "id": "misleading_averages", "description": "Aggregate metrics/averages checked for masking severe failures or tail risk." },
+    { "id": "hidden_severe_failures", "description": "Potential hidden severe failures and edge cases are explicitly examined." },
+    { "id": "confidence_theater", "description": "Claims of confidence are scrutinized for unsupported assurance (confidence theater)." }
+  ]
+}

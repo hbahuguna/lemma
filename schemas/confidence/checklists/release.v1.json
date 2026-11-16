@@ -1,0 +1,11 @@
+{
+  "schema_version": "lemma.confidence.checklist/v1",
+  "kind": "release",
+  "items": [
+    { "id": "independent_synthesis_code", "description": "Independent synthesis of code changes and quality signals reviewed." },
+    { "id": "independent_synthesis_evals", "description": "Independent synthesis of evaluation results and coverage reviewed." },
+    { "id": "severe_failures", "description": "Severe failures and regressions are accounted for with evidence." },
+    { "id": "production_signals", "description": "Production/operational signals and incidents are considered." },
+    { "id": "reversibility", "description": "Reversibility/rollback/canary readiness is reviewed and documented." }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema_version": "lemma.confidence.checklist/v1",
+  "kind": "statistical",
+  "items": [
+    { "id": "pairing", "description": "Paired comparisons and matched conditions are appropriate and documented." },
+    { "id": "ordinal_scores", "description": "Ordinal/scale scores are treated appropriately (not as misleading arithmetic means)." },
+    { "id": "clusters", "description": "Clustering/correlation (by user, prompt, environment) is accounted for." },
+    { "id": "repetitions", "description": "Repetitions/sample counts are sufficient and documented." },
+    { "id": "intervals", "description": "Uncertainty/intervals are reported where applicable without overclaiming." },
+    { "id": "multiplicity", "description": "Multiple comparisons/multiplicity risks are considered." }
+  ]
+}

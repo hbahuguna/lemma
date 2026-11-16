@@ -54,7 +54,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts src/dashboard.ts src/mcp.ts src/more.ts src/auto-loop.ts src/browser-command.ts src/human-context.ts src/feedback.ts src/generate.ts src/test-intent.ts --format esm --dts --clean --sourcemap --target node20 src/upgrade.ts src/load.ts src/stress.ts src/state-hunt.ts src/agent-readiness.ts src/geo.ts src/intl.ts src/review.ts src/release-decision.ts src/incident.ts src/forever.ts src/confidence-workspace.ts src/eval-design.ts",
+    "build": "tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts src/dashboard.ts src/mcp.ts src/more.ts src/auto-loop.ts src/browser-command.ts src/human-context.ts src/feedback.ts src/generate.ts src/test-intent.ts --format esm --dts --clean --sourcemap --target node20 src/upgrade.ts src/load.ts src/stress.ts src/state-hunt.ts src/agent-readiness.ts src/geo.ts src/intl.ts src/review.ts src/release-decision.ts src/incident.ts src/forever.ts src/confidence-workspace.ts src/eval-design.ts src/specialized-review.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "schemas:generate": "tsx ../../scripts/schemas/generate.ts",
