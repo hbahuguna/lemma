@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/release-brief/release-brief.test.ts (3 tests) 97ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  20:59:14
+   Duration  1.86s (transform 538ms, setup 0ms, collect 775ms, tests 97ms, environment 0ms, prepare 243ms)
+

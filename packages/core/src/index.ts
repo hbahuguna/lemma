@@ -44,3 +44,5 @@ export * from "./background-supervisor.js";
 export * from "./html-report.js";
 
 export * from "./dashboard.js";
+
+export * from "./release-brief.js";

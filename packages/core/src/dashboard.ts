@@ -5,6 +5,7 @@ import { URL } from "node:url";
 import { HarnessError } from "./errors.js";
 import type { StateStore } from "./state-store.js";
 import type { EvidenceStore } from "./evidence.js";
+import { buildReleaseBrief } from "./release-brief.js";
 
 export interface DashboardHandle {
   url: string;
@@ -214,6 +215,8 @@ function htmlPage(): string {
 (async function(){
   const params = new URLSearchParams(location.search);
   const token = params.get('token') || '';
+  const brief = document.getElementById('briefLink');
+  if (brief) brief.href = '/brief?token=' + encodeURIComponent(token);
   const headers = token ? {'x-lemma-dashboard-token': token} : {};
   async function tick(){
     try{
@@ -314,6 +317,32 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
       if (method === "GET" && reqUrl.pathname === "/api/live") {
         const view = await readLiveView(options);
         json(res, 200, view);
+        return;
+      }
+
+      if (method === "GET" && reqUrl.pathname === "/brief") {
+        const format = (reqUrl.searchParams.get("format") || "html").toLowerCase();
+        const report = options.report ?? null;
+        if (!report) {
+          json(res, 404, { ok: false, error: "not_found", message: "No completed report available for release brief." });
+          return;
+        }
+        const brief = buildReleaseBrief(report, { topN: 5 });
+        if (format === "json") {
+          json(res, 200, brief);
+          return;
+        }
+        if (format === "md" || format === "markdown") {
+          res.statusCode = 200;
+          res.setHeader("content-type", "text/markdown; charset=utf-8");
+          res.setHeader("cache-control", "no-store");
+          res.end(brief.markdown);
+          return;
+        }
+        res.statusCode = 200;
+        res.setHeader("content-type", "text/html; charset=utf-8");
+        res.setHeader("cache-control", "no-store");
+        res.end(brief.html);
         return;
       }
 
