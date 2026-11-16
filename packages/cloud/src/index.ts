@@ -6,3 +6,4 @@
 export const PACKAGE_NAME = "@lemma/cloud" as const;
 
 export * from "./metering.js";
+export * from "./auth.js";

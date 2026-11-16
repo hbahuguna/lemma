@@ -308,7 +308,7 @@ retention contracts.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-113 | Port the frozen metering event contract and local sink | P1 | 5 | LEM-013, LEM-020 | Done |
-| LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Backlog |
+| LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Done |
 | LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Backlog |
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Backlog |
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Backlog |
@@ -4705,6 +4705,57 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-114 — Port workspace auth, hashed scoped keys, and audit
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-013
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/auth.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port workspace-scoped authentication to `@lemma/cloud`:
+  durable workspace/key/run-ownership store with hashed scoped API keys (secret
+  returned once), typed auth errors/contexts, opaque cross-workspace/run
+  authorization, and append-only audit logging, using lemma `.lemma/`-relative
+  cloud storage conventions and deterministic/core primitives.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports auth APIs in `src/auth.ts` (and package entry):
+    scope constants/normalization (`run`,`read`,`export`,`admin`), typed
+    `AuthError` (status/code/message/required_scope, data-free `headers`/
+    `toDict`/`response` semantics with no workspace leakage), `AuthContext`
+    (scope checks/require/workspace binding), and `AuthStore` (durable JSON
+    store + JSONL audit) with workspace create/get/list/delete/resolve,
+    key create/list/revoke/rotate/authenticate, run claim/authorize/lookup, and
+    audit loading.
+  - Security and persistence semantics: API key secrets are generated/returned
+    once and never persisted or audited (only salt/hash/prefix/metadata stored);
+    tokens use prefix+secret form with hash verification; missing/malformed/
+    invalid/expired/revoked keys and inactive workspace/key-revoked states yield
+    correct typed 401/403 responses; wrong scope yields 403 `insufficient_scope`
+    without workspace data; cross-workspace workspace/run access and guessed
+    run IDs are indistinguishable opaque 404 `*_not_found` responses (no
+    workspace identifiers leaked); key rotation atomically issues replacement and
+    revokes old key with audit events.
+  - Store/audit behavior: default paths under `.lemma/cloud/` (store and
+    audit), schema/versioned durable records, append-only audit events for
+    workspace/key/run lifecycle actions (no secrets), atomic/durable writes for
+    store and fsynced audit appends, and state persists/reloads across store
+    instances.
+  - `packages/cloud/test/auth.test.ts` ports/verifies core auth behavior:
+    secret-once/hash-only persistence, distinct typed failures without workspace
+    leakage, opaque cross-workspace/run authorization and claim conflicts,
+    rotation/revocation semantics and audit, scope validation/admin coverage,
+    persistence across instances, and public key/workspace views excluding
+    secrets.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/auth.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/auth.test.ts` (pass; output recorded).
+- **Evidence:** `packages/cloud/src/auth.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/auth.test.ts`, `docs/parity/evidence/LEM-114-auth-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. CLI `lemma auth ...` command wiring remains follow-on (tracked in parity inventory).
+
 
 ### LEM-113 — Port the frozen metering event contract and local sink
 

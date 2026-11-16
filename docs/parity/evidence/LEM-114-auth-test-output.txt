@@ -1,0 +1,29 @@
+$ pnpm --filter @lemma/cloud typecheck
+$ tsc --noEmit
+
+$ pnpm --filter @lemma/cloud build
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     31.90 KB
+ESM dist/index.js.map 63.57 KB
+ESM ⚡️ Build success in 93ms
+DTS Build start
+DTS ⚡️ Build success in 4644ms
+DTS dist/index.d.ts 10.00 KB
+
+$ pnpm exec vitest run packages/cloud/test/auth.test.ts
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/auth.test.ts (7 tests) 1065ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  12:56:25
+   Duration  3.28s (transform 645ms, setup 0ms, collect 938ms, tests 1.06s, environment 1ms, prepare 293ms)
+

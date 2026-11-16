@@ -41,7 +41,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/step_planner.py` | Scenario step planning (`packages/core/src/steps.ts`: `StepAction`/`ScenarioPlan`, deterministic `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch and heuristic fallback; tests `packages/core/test/steps/steps.test.ts`, output `docs/parity/evidence/LEM-025-steps-test-output.txt`) | `@lemma/core/steps` | LEM-025 |
 | `harness/step_runner.py` | Scenario step execution/result contracts (`packages/core/src/steps.ts`: `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck` pass/fail/blocked outcomes, evidence/count metadata, deterministic failed-scenario findings; tests `packages/core/test/steps/steps.test.ts`). LEM-058 browser integration: scenario-file/JSON/text plan loading and Playwright-driven `executeScenarioPlan`/`browser.steps` execution+evaluation with injected execution/page support and blocked degradation (`packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, tests `packages/browser/test/browser-scenarios.test.ts`, output `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`) | `@lemma/core/steps`, `@lemma/browser` | LEM-025, LEM-058 |
 | `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113 (`packages/cloud/src/metering.ts`, exports via `packages/cloud/src/index.ts`: frozen event types/units/envelope+metadata contract constants, schema path helpers, `validateEvent`, `defaultIdempotencyKey`, `buildEvent`, append-only JSONL `MeteringEmitter` with fsync/idempotency reload dedupe/deterministic sink-wide+run-scoped `summary()`; tests `packages/cloud/test/metering.test.ts`, output `docs/parity/evidence/LEM-113-metering-test-output.txt`), LEM-072 (core run-scoped/sink-wide summary computation: `packages/core/src/metering.ts`, tests `packages/core/test/metering/metering-summary.test.ts`, output `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
-| `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 |
+| `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 (`packages/cloud/src/auth.ts`, exports via `packages/cloud/src/index.ts`: scopes/normalization, typed `AuthError`/`AuthContext`, `AuthStore` with workspace/key/run-ownership APIs, secret-once hashed scoped keys, opaque cross-tenant/run authorization, append-only audit and durable `.lemma/cloud/` store; tests `packages/cloud/test/auth.test.ts`, output `docs/parity/evidence/LEM-114-auth-test-output.txt`) |
 | `harness/quota.py` | Monthly soft/hard allowance, locking, headers | `@lemma/cloud/quota` | LEM-115 |
 | `harness/ledger.py` | Append-only hash-chained ledger, periods, invoices | `@lemma/cloud/ledger` | LEM-116 |
 | `harness/signup.py` | Self-serve signup, free allowance, plan selection | `@lemma/cloud/signup` | LEM-117 |
@@ -71,15 +71,15 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma suppress add` | Baseline suppression with owner/expiry | LEM-069, LEM-085 (CLI `suppress`/`suppressions add` via `SuppressionStore.add`, JSON status/suppression; `packages/cli/src/commands.ts`, tests/output as above) |
 | `lemma suppress list` | List suppressions | LEM-069, LEM-085 (CLI `suppress`/`suppressions list` via `SuppressionStore.load`; JSON count/suppressions) |
 | `lemma suppress remove` | Remove suppression | LEM-069, LEM-085 (CLI `suppress`/`suppressions remove` via `SuppressionStore.remove`, structured error when missing) |
-| `lemma auth create-workspace` | Create workspace | LEM-114 |
-| `lemma auth list-workspaces` | List workspaces | LEM-114 |
-| `lemma auth create-key` | Issue scoped key, secret once | LEM-114 |
-| `lemma auth list-keys` | Public key metadata | LEM-114 |
-| `lemma auth revoke-key` | Revoke with audit | LEM-114 |
-| `lemma auth rotate-key` | Atomic replacement, revoke old | LEM-114 |
-| `lemma auth authenticate` | Token → auth context | LEM-114 |
-| `lemma auth claim-run` | Claim run for one workspace | LEM-114 |
-| `lemma auth authorize-run` | Opaque run authorization | LEM-114 |
+| `lemma auth create-workspace` | Create workspace | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth list-workspaces` | List workspaces | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth create-key` | Issue scoped key, secret once | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth list-keys` | Public key metadata | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth revoke-key` | Revoke with audit | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth rotate-key` | Atomic replacement, revoke old | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth authenticate` | Token → auth context | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth claim-run` | Claim run for one workspace | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
+| `lemma auth authorize-run` | Opaque run authorization | LEM-114  (cloud auth API/store ported in LEM-114; CLI command wiring pending) |
 | `lemma quota show` | Usage, remaining, reset time | LEM-115 |
 | `lemma quota consume` | Per-action enforcement, 429 on hard limit | LEM-115 |
 | `lemma ledger ingest` | Aggregate events, hash-chain | LEM-116 |
@@ -242,7 +242,7 @@ with rationale.
 | `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |
 | `test_failure_injection.py` | LEM-126 |
 | `test_metering.py` | LEM-113 (frozen contract/local sink parity: `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt`), LEM-072 (run-scoped vs sink-wide summary semantics parity: `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
-| `test_auth.py` | LEM-114 |
+| `test_auth.py` | LEM-114 (core auth store/API/audit parity: `packages/cloud/test/auth.test.ts`, `docs/parity/evidence/LEM-114-auth-test-output.txt`; CLI auth command wiring remains follow-on) |
 | `test_quota.py` | LEM-115 |
 | `test_ledger.py` | LEM-116 |
 | `test_signup.py` | LEM-117 |
@@ -275,7 +275,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | D17 | Invalid findings quarantined, never scored (LEM-045 ports raw-payload extraction, schema validation/quarantine, redaction, contract-failure streaks, degradation, and rebuild-after-resume to `@lemma/core/findings`; evidence `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
 | D18 | One structured blocker per blocked check (LEM-046 ports blocker payload derivation, redacted blocker records, dedupe, and refusal outcome application to `@lemma/core/outcomes`; evidence `docs/parity/evidence/LEM-046-blockers-test-output.txt`) | LEM-046 |
 | D21 | Frozen metering v1 names and idempotency keys | LEM-113 — `packages/cloud/src/metering.ts`, `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt` |
-| D22 | Hashed scoped keys; opaque cross-tenant lookups | LEM-114 |
+| D22 | Hashed scoped keys; opaque cross-tenant lookups | LEM-114 — `packages/cloud/src/auth.ts`, `packages/cloud/test/auth.test.ts`, `docs/parity/evidence/LEM-114-auth-test-output.txt` |
 | D23 | Per-action quota enforcement | LEM-115 |
 | D24 | Append-only hash-chained ledger | LEM-116 |
 | D27 | Tenant queue and isolated roots | LEM-119 |
