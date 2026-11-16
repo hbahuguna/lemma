@@ -93,7 +93,18 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
   }
 
   if (!progress || typeof progress !== "object") {
-    const r: any = report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return { ...safeNoopLiveView(), evidence, report_summary: report ? summarizeReport(report) : null, review_notes: notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")) };
+    const r: any = report ?? {};
+    const notes = Array.isArray(r.review_notes) ? r.review_notes : [];
+    const summary = report ? summarizeReport(report) : null;
+    const noop = safeNoopLiveView() as any;
+    if (noop.live && typeof noop.live === "object") noop.live.report_summary = summary;
+    return {
+      ...noop,
+      evidence,
+      report_summary: summary,
+      review_notes: notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")),
+      release_decision: r.release_decision ?? null,
+    };
   }
 
   const phases = Array.isArray(progress.phases) ? progress.phases : [];
@@ -162,6 +173,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
     review_notes: (() => { const r: any = report ?? (progress as any).report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")); })(),
     },
     evidence,
+    release_decision: (() => { const r: any = report ?? (progress as any).report ?? {}; return r.release_decision ?? null; })(),
   };
 }
 
@@ -172,6 +184,7 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
   const confidence = r.confidence && typeof r.confidence === "object" ? r.confidence : {};
   const reviewNotes = Array.isArray(r.review_notes) ? r.review_notes : [];
   const contested = reviewNotes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note"));
+  const rd = r.release_decision && typeof r.release_decision === "object" ? r.release_decision : null;
   return {
     run_id: r.run_id ?? null,
     status: r.status ?? null,
@@ -180,6 +193,7 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
     coverage: r.coverage ?? null,
     review_notes_count: reviewNotes.length,
     contested_count: contested.length,
+    release_decision: rd ? { decision: (rd as any).decision ?? null, decision_id: (rd as any).decision_id ?? null } : null,
   };
 }
 
@@ -216,6 +230,7 @@ function htmlPage(): string {
     <div class="card"><h2>Report summary</h2><pre id="report">(none)</pre></div>
   </div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
+  <div class="card" style="margin-top:1rem"><h2>Explicit release decision</h2><pre id="releaseDecision">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Review notes (contested)</h2><pre id="reviews">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Completed checks</h2><div id="checks" class="muted">(none)</div></div>
   <div id="shotPanel" class="panel"><button class="close" id="shotClose">Close</button><img id="shotImg" alt="Screenshot evidence"/></div>
@@ -244,6 +259,14 @@ function htmlPage(): string {
       document.getElementById('report').textContent = live.report_summary ? JSON.stringify(live.report_summary, null, 2) : '(none)';
       const inflight = live.in_flight_evidence_refs || [];
       document.getElementById('inflight').textContent = inflight.length ? inflight.join('\\n') : '(none)';
+
+      const reviewNotes = (data.review_notes || (live && live.review_notes) || []);
+      const contested = Array.isArray(reviewNotes) ? reviewNotes.filter(n => n && (n.status === 'contested' || n.type === 'review_note')) : [];
+      const reviewsEl = document.getElementById('reviews');
+      if (reviewsEl) reviewsEl.textContent = contested.length ? JSON.stringify(contested, null, 2) : '(none)';
+      const rd = data.release_decision || (live && live.report_summary && live.report_summary.release_decision) || null;
+      const rdEl = document.getElementById('releaseDecision');
+      if (rdEl) rdEl.textContent = rd ? JSON.stringify(rd, null, 2) : '(none)';
       const checks = live.completed_checks || [];
       if(!checks.length){ document.getElementById('checks').innerHTML = '<span class="muted">(none)</span>'; }
       else {

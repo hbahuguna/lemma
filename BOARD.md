@@ -478,7 +478,7 @@ pass.
 | LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Done |
 | LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Done |
-| LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Backlog |
+| LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Done |
 | LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Backlog |
 | LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Backlog |
 
@@ -2561,29 +2561,29 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-019, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed explicit release-decision workflow (core/schema/surfacing/tests) with passing acceptance tests.
 - **Description:** Add an explicit release-decision workflow: decide SHIP /
   CANARY / HOLD / ROLL BACK / MORE EVIDENCE with documented reversibility and
   signals. Every decision cites evidence; no decision is made from a score
   alone.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runReleaseDecision({ report, policy?, history? })`
+  - [x] `@lemma/core` exposes `runReleaseDecision({ report, policy?, history? })`
     returning a `ReleaseDecision` validated against
     `schemas/release/decision.v1.json` with one of five decisions.
-  - The workflow requires: score AND coverage AND blockers/refusals AND
+  - [x] The workflow requires: score AND coverage AND blockers/refusals AND
     reviewer sign-off (via LEM-179) AND unanswered `HUM-*` questions (via
     LEM-168) to all be explicit. Missing any of these downgrades to
     `MORE EVIDENCE`, never to `SHIP`.
-  - Reversibility is recorded: `ROLL BACK` requires a documented rollback
+  - [x] Reversibility is recorded: `ROLL BACK` requires a documented rollback
     plan; `CANARY` requires a documented canary scope; `HOLD` requires the
     specific reason. All are attached to the decision record.
-  - The decision is surfaced in the dashboard (LEM-143) and the HTML report
+  - [x] The decision is surfaced in the dashboard (LEM-143) and the HTML report
     (LEM-142); the workflow never mutates the run's own evidence.
-  - Tests cover all five decisions, downgrade-to-MORE-EVIDENCE behavior,
+  - [x] Tests cover all five decisions, downgrade-to-MORE-EVIDENCE behavior,
     reversibility recording, dashboard/HTML surfacing, and decision schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- release-decision`
-- **Evidence (planned):** `packages/core/src/release-decision.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- release-decision` (pass, 4/4) — `docs/parity/evidence/LEM-180-release-decision-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/release-decision.ts`,
   `schemas/release/decision.v1.schema.json`,
   `packages/core/test/release-decision/*`,
   `docs/parity/evidence/LEM-180-release-decision-test-output.txt`

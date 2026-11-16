@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/release/decision.v1.schema.json",
+  "title": "Lemma Release Decision v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "decision_id",
+    "decision",
+    "signals",
+    "evidence_citations",
+    "reversibility",
+    "rationale"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.release_decision/v1" },
+    "decision_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": ["string", "null"] },
+    "decision": {
+      "type": "string",
+      "enum": ["SHIP", "CANARY", "HOLD", "ROLL BACK", "MORE EVIDENCE"]
+    },
+    "rationale": { "type": "string" },
+    "signals": {
+      "type": "object",
+      "required": ["score", "coverage", "blockers_refusals", "reviewer_signoff", "unanswered_hum_questions"],
+      "properties": {
+        "score": { "type": "object", "required": ["explicit"], "properties": { "explicit": { "type": "boolean" } }, "additionalProperties": true },
+        "coverage": { "type": "object", "required": ["explicit"], "properties": { "explicit": { "type": "boolean" } }, "additionalProperties": true },
+        "blockers_refusals": { "type": "object", "required": ["explicit"], "properties": { "explicit": { "type": "boolean" } }, "additionalProperties": true },
+        "reviewer_signoff": { "type": "object", "required": ["explicit"], "properties": { "explicit": { "type": "boolean" } }, "additionalProperties": true },
+        "unanswered_hum_questions": { "type": "object", "required": ["explicit"], "properties": { "explicit": { "type": "boolean" } }, "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "evidence_citations": { "type": "array", "minItems": 1, "items": { "type": "object", "additionalProperties": true } },
+    "reversibility": {
+      "type": "object",
+      "required": ["required", "satisfied", "details"],
+      "properties": {
+        "required": { "type": "boolean" },
+        "satisfied": { "type": "boolean" },
+        "details": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
+    "downgraded_to_more_evidence": { "type": "boolean" },
+    "downgrade_reasons": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": true
+}

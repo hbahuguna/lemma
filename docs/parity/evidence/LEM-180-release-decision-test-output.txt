@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/release-decision/release-decision.test.ts (4 tests) 143ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  01:31:55
+   Duration  4.28s (transform 1.59s, setup 0ms, collect 2.18s, tests 143ms, environment 0ms, prepare 401ms)
+

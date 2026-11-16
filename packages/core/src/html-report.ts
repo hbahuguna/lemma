@@ -302,6 +302,7 @@ export async function buildHtmlReport(
   ${renderSection("Findings", findingsHtml)}
   ${renderSection("Blockers", blockersHtml)}
 
+  ${isRecord(r.release_decision) ? renderSection("Explicit Release Decision", `<pre class="json">${fmtJson(r.release_decision)}</pre>`) : ""}
   ${renderSection("Review Notes (Contested)", (() => {
     const reviews = Array.isArray(r.reviews) ? r.reviews : [];
     const notes = Array.isArray(r.review_notes) ? r.review_notes : [];
