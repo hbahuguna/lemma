@@ -1,5 +1,6 @@
 import { HarnessError, KillSwitchHaltError, StateError } from "./errors.js";
 import { ModeMismatchError, normalizeExecutionMode } from "./execution-modes.js";
+import { RunSizeMismatchError, buildRunSizeCoverageNotes, normalizeRunSize, perspectiveCountForSize } from "./run-size.js";
 import { registryFingerprint, type CheckRegistryLike } from "./checks.js";
 import {
   currentDeterminism,
@@ -61,6 +62,8 @@ export interface OrchestratorRunOptions {
   clockMode?: ClockMode;
   frozenClock?: unknown;
   mode?: string;
+  runSize?: string;
+  run_size?: string;
 }
 
 export interface PhaseHandlerContext {
@@ -278,6 +281,15 @@ export class Orchestrator {
     (state as any).mode = savedMode;
     state.options = { ...(state.options ?? {}), execution_mode: savedMode };
 
+    const savedRunSize = normalizeRunSize((state as any).run_size ?? state.options?.run_size, "medium");
+    const requestedRunSize = normalizeRunSize((options as any).runSize ?? (options as any).run_size ?? (options.options as any)?.run_size ?? savedRunSize, savedRunSize);
+    if (savedRunSize !== requestedRunSize) {
+      throw new RunSizeMismatchError(savedRunSize as any, requestedRunSize as any);
+    }
+    (state as any).run_size = savedRunSize;
+    (state as any).perspectives_count = perspectiveCountForSize(savedRunSize as any);
+    state.options = { ...(state.options ?? {}), execution_mode: savedMode, run_size: savedRunSize, perspectives_count: (state as any).perspectives_count };
+
     prepareResumeState(state, requestedTarget);
 
     const evidenceStore = options.evidenceStore ?? new EvidenceStore(
@@ -349,6 +361,7 @@ export class Orchestrator {
     const workflow = options.workflow ?? RELEASE_CONFIDENCE;
     const intent = options.intent ?? "";
     const mode = normalizeExecutionMode(options.mode ?? (options.options as any)?.execution_mode, "test");
+    const runSize = normalizeRunSize((options as any).runSize ?? (options as any).run_size ?? (options.options as any)?.run_size, "medium");
     const resolvedOptions: Required<Pick<OrchestratorRunOptions, "intent" | "maxChecks">> &
       Omit<OrchestratorRunOptions, "intent" | "maxChecks"> = {
       ...options,
@@ -377,7 +390,10 @@ export class Orchestrator {
         target: options.target,
         intent,
         mode,
-        options: { ...(options.options ?? {}), maxChecks: budget.maxChecks, execution_mode: mode },
+        run_size: runSize,
+        perspectives_count: perspectiveCountForSize(runSize as any),
+        coverage_notes: buildRunSizeCoverageNotes(runSize as any),
+        options: { ...(options.options ?? {}), maxChecks: budget.maxChecks, execution_mode: mode, run_size: runSize, perspectives_count: perspectiveCountForSize(runSize as any) },
       });
       state.phases = PHASE_ORDER.map((name) => phaseFromWorkflow(name, workflow));
       state.current_phase = DomainPhaseName.RISK_ANALYSIS;
@@ -551,7 +567,14 @@ export class Orchestrator {
       // Mode semantics (LEM-186): enforce evidence-per-mode contract at run boundary
       const mode = normalizeExecutionMode((state as any).mode ?? state.options?.execution_mode, "test");
       (state as any).mode = mode;
-      state.options = { ...(state.options ?? {}), execution_mode: mode };
+      const runSizeFinal = normalizeRunSize((state as any).run_size ?? state.options?.run_size, "medium");
+      (state as any).run_size = runSizeFinal;
+      (state as any).perspectives_count = perspectiveCountForSize(runSizeFinal as any);
+      if (!Array.isArray((state as any).coverage_notes)) (state as any).coverage_notes = [];
+      for (const note of buildRunSizeCoverageNotes(runSizeFinal as any)) {
+        if (!(state as any).coverage_notes.includes(note)) (state as any).coverage_notes.push(note);
+      }
+      state.options = { ...(state.options ?? {}), execution_mode: mode, run_size: runSizeFinal, perspectives_count: (state as any).perspectives_count };
       if (mode === "learn") {
         // exploration without producing final findings
         state.findings = [];

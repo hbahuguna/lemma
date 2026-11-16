@@ -478,6 +478,9 @@ export interface RunStateDomain {
   seed?: number | null;
   clock_mode: string;
   mode: string;
+  run_size: string;
+  perspectives_count: number;
+  coverage_notes: string[];
 }
 
 export function createRunState(input: {
@@ -490,6 +493,8 @@ export function createRunState(input: {
 }): RunStateDomain {
   const { target, ...rest } = input;
   const mode = typeof (rest as any).mode === "string" ? (rest as any).mode : (typeof (asRecord((rest as any).options) as any).execution_mode === "string" ? (asRecord((rest as any).options) as any).execution_mode : "test");
+  const run_size = typeof (rest as any).run_size === "string" ? (rest as any).run_size : (typeof (asRecord((rest as any).options) as any).run_size === "string" ? (asRecord((rest as any).options) as any).run_size : "medium");
+  const perspectives_count = typeof (rest as any).perspectives_count === "number" ? (rest as any).perspectives_count : (typeof (asRecord((rest as any).options) as any).perspectives_count === "number" ? (asRecord((rest as any).options) as any).perspectives_count : ({quick:2,medium:4,large:6} as any)[String(run_size).toLowerCase()] ?? 4);
   return normalizeRunState({
     run_id: input.run_id ?? newId("run"),
     workflow_id: input.workflow_id ?? "release-confidence",
@@ -500,6 +505,8 @@ export function createRunState(input: {
     started_at: now(),
     updated_at: now(),
     mode,
+    run_size,
+    perspectives_count,
     ...rest,
     target,
   });
@@ -518,6 +525,8 @@ export function normalizeRunState(data: unknown): RunStateDomain {
   const d = isRecord(data) ? data : {};
   const startedAt = asString(d.started_at, now());
   const modeRaw = asString(d.mode, asString((asRecord(d.options) as any).execution_mode, "test"));
+  const runSizeRaw = asString((d as any).run_size, asString((asRecord(d.options) as any).run_size, "medium"));
+  const perspectivesRaw = (d as any).perspectives_count ?? (asRecord(d.options) as any).perspectives_count;
   return {
     schema_version: asString(d.schema_version, MODEL_SCHEMA_VERSION),
     run_id: asString(d.run_id),
@@ -550,6 +559,9 @@ export function normalizeRunState(data: unknown): RunStateDomain {
     seed: (d.seed === null || typeof d.seed === "number") ? d.seed : null,
     clock_mode: asString(d.clock_mode, "real"),
     mode: (modeRaw || "test").toLowerCase(),
+    run_size: (runSizeRaw || "medium").toLowerCase(),
+    perspectives_count: typeof perspectivesRaw === "number" && Number.isFinite(perspectivesRaw) ? perspectivesRaw : ({quick:2,medium:4,large:6} as any)[(runSizeRaw || "medium").toLowerCase()] ?? 4,
+    coverage_notes: Array.isArray((d as any).coverage_notes) ? (d as any).coverage_notes.filter((x: any) => typeof x === "string") : [],
   };
 }
 

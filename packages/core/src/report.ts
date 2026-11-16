@@ -230,12 +230,18 @@ export function buildReport(
 
   const confidence = state.confidence;
   const executionMode = (state as any).mode ?? (state.options as any)?.execution_mode ?? "test";
+  const runSize = (state as any).run_size ?? (state.options as any)?.run_size ?? "medium";
+  const perspectivesCount = (state as any).perspectives_count ?? (state.options as any)?.perspectives_count ?? ({quick:2,medium:4,large:6} as any)[runSize] ?? 4;
+  const coverageNotes = Array.isArray((state as any).coverage_notes) ? (state as any).coverage_notes : [];
   return {
     schema_version: REPORT_SCHEMA,
     generated_at: generatedAt ?? now(),
     run_id: state.run_id,
     execution_mode: executionMode,
     mode: executionMode,
+    run_size: runSize,
+    perspectives_count: perspectivesCount,
+    coverage_notes: coverageNotes,
     determinism: {
       seed: state.seed ?? null,
       clock_mode: state.clock_mode ?? "real",

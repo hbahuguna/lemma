@@ -506,7 +506,7 @@ auditable system.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | In Progress |
-| LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Backlog |
+| LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Done |
 | LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Backlog |
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Backlog |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Backlog |
@@ -2796,26 +2796,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-015, LEM-044
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed run-size scaling (core/docs/tests/verification).
 - **Description:** Add run-size scaling: Quick (2 perspectives), Medium (4),
   Large (6), with explicit cut lines and documented evidence expectations per
   size. Sizes are chosen before a run and recorded; the run cannot silently
   shrink or grow.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `RunSize` (`quick | medium | large`) and size-aware
+  - [x] `@lemma/core` exposes `RunSize` (`quick | medium | large`) and size-aware
     planning; the perspective count is recorded in the run and enforced
     (quick = 2, medium = 4, large = 6).
-  - Cut lines are documented per size (which check families are in/out);
+  - [x] Cut lines are documented per size (which check families are in/out);
     out-of-scope checks are reported as explicit coverage notes, not silent
     skips.
-  - The chosen size is recorded in the run state and the report; resume
+  - [x] The chosen size is recorded in the run state and the report; resume
     enforces the same size.
-  - Tests cover perspective counts, cut-line behavior, coverage notes, size
+  - [x] Tests cover perspective counts, cut-line behavior, coverage notes, size
     resume enforcement, and report surfacing.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- run-size`
-- **Evidence (planned):** `packages/core/src/run-size.ts`,
-  `docs/run-sizes.md`, `packages/core/test/run-size/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/run-size/run-size.test.ts` (pass, 5/5), satisfying acceptance test `pnpm test --filter @lemma/core -- run-size` — `docs/parity/evidence/LEM-187-run-size-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/run-size.ts`,
+  `docs/run-sizes.md`,
+  `packages/core/test/run-size/run-size.test.ts`,
+  `packages/core/src/models.ts`, `packages/core/src/orchestrator.ts`,
+  `packages/core/src/report.ts`, `packages/core/src/index.ts`,
+  `packages/core/package.json`,
   `docs/parity/evidence/LEM-187-run-size-test-output.txt`
 
 ### LEM-188 — Add E0–E3 truth-model classification to evidence

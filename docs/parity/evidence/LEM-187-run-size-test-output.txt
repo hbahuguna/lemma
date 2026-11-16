@@ -1,0 +1,14 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/run-size/run-size.test.ts (5 tests) 4841ms
+   ✓ LEM-187 run-size scaling > records and enforces perspective counts per size and surfaces in report  1762ms
+   ✓ LEM-187 run-size scaling > documents cut lines and emits explicit out-of-scope coverage notes (no silent skips)  1797ms
+   ✓ LEM-187 run-size scaling > enforces same run size on resume and throws typed RunSizeMismatchError on change  695ms
+   ✓ LEM-187 run-size scaling > defaults size for compatibility and records it in progress/report  585ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  02:33:32
+   Duration  7.17s (transform 898ms, setup 0ms, collect 1.27s, tests 4.84s, environment 0ms, prepare 250ms)
+
