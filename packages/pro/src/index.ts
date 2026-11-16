@@ -16,3 +16,5 @@ export type {
   ProLicenseContext,
   ProScopedAuthLike,
 } from "./entitlement.js";
+
+export * from "./commands/specialists.js";

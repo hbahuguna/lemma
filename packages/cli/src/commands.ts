@@ -41,6 +41,11 @@ import {
   renderLemmaSkillTemplate,
   renderOperationalCommandTemplate,
 } from "@lemma/agent";
+import {
+  ProUnavailableError,
+  getSpecialistCommand,
+  runSpecialistCommand,
+} from "@lemma/pro";
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -1002,6 +1007,85 @@ export const settingsCommand: CliCommandHandler = async (argv) => {
 };
 
 
+
+export const proCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const specialist = positionals[0] ?? "";
+  if (!specialist) {
+    throw new CliUsageError("Missing specialist. Usage: lemma pro <confidence|security|performance|privacy> --target <path|url>", { command: "pro" });
+  }
+  const spec = getSpecialistCommand(specialist);
+  if (!spec) {
+    throw new CliUsageError(`Unknown pro specialist: ${specialist}`, { specialist, allowed: ["confidence", "security", "performance", "privacy"] });
+  }
+
+  const targetRaw = getString(flags, "target", "t") ?? ".";
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const personasDir = getString(flags, "personas-dir");
+  const maxChecksStr = getString(flags, "max-checks");
+  const wallClockStr = getString(flags, "wall-clock-budget-ms", "wall-clock-ms");
+  const seedStr = getString(flags, "seed");
+  const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
+  const frozenClock = getString(flags, "frozen-clock");
+  const noBrowser = getBool(flags, "no-browser");
+
+  // License resolution reusing LEM-114/LEM-117 contract-shaped inputs (no parallel auth).
+  // Provide entitlement/verification material via env JSON or file for licensed contexts/tests.
+  let license: any = null;
+  const entitlementJson = getString(flags, "entitlement-json") ?? process.env.LEMMA_PRO_ENTITLEMENT_JSON;
+  const entitlementFile = getString(flags, "entitlement-file") ?? process.env.LEMMA_PRO_ENTITLEMENT_FILE;
+  try {
+    if (entitlementJson) {
+      license = { entitlement: JSON.parse(entitlementJson) };
+      if (isRecord(license.entitlement) && isRecord((license.entitlement as any).verification)) {
+        license = { verification: (license.entitlement as any).verification, entitlement: (license.entitlement as any).entitlement ?? null };
+      } else if (isRecord(license.entitlement) && (license.entitlement as any).valid !== undefined && (license.entitlement as any).schema_version === undefined) {
+        license = { verification: license.entitlement };
+      }
+    } else if (entitlementFile) {
+      const p = path.isAbsolute(entitlementFile) ? entitlementFile : path.resolve(process.cwd(), entitlementFile);
+      const raw = await fs.readFile(p, "utf8");
+      const parsed = JSON.parse(raw);
+      if (isRecord(parsed) && (parsed as any).valid !== undefined && !("schema_version" in (parsed as any))) {
+        license = { verification: parsed };
+      } else if (isRecord(parsed) && (parsed as any).verification) {
+        license = { verification: (parsed as any).verification, entitlement: (parsed as any).entitlement ?? null, auth: (parsed as any).auth ?? null };
+      } else {
+        license = { entitlement: parsed };
+      }
+    }
+  } catch {
+    // malformed license material -> treat as unlicensed (typed refusal below)
+    license = null;
+  }
+
+  try {
+    const result = await runSpecialistCommand({
+      specialist: spec.id,
+      target: normalizeCliTarget(targetRaw),
+      root,
+      ...(personasDir ? { personasDir: path.isAbsolute(personasDir) ? personasDir : path.resolve(process.cwd(), personasDir) } : {}),
+      license,
+      ...(maxChecksStr !== undefined ? { maxChecks: toInt(maxChecksStr, "--max-checks") } : {}),
+      ...(wallClockStr !== undefined ? { wallClockBudgetMs: toInt(wallClockStr, "--wall-clock-budget-ms") } : {}),
+      ...(seedStr !== undefined ? { seed: toInt(seedStr, "--seed") } : {}),
+      ...(clockMode ? { clockMode } : {}),
+      ...(frozenClock ? { frozenClock } : {}),
+      ...(noBrowser ? { noBrowser: true } : {}),
+      intent: spec.intent,
+    });
+    // stdout JSON report/result (machine-first); includes findings/blockers and evidence refs via report
+    return { stdoutJson: result.report && Object.keys(result.report).length ? result.report : (result as any) };
+  } catch (err) {
+    if (err instanceof ProUnavailableError) {
+      // typed, documented refusal; no partial execution/fabricated pass/crash
+      throw err;
+    }
+    throw err;
+  }
+};
+
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1023,5 +1107,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
     { name: "settings", description: "View or update lemma settings.", handler: settingsCommand },
     { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
+    { name: "pro", description: "Run entitlement-gated Pro specialist investigations (confidence, security, performance, privacy).", handler: proCommand },
   ];
 }

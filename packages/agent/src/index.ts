@@ -891,6 +891,31 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const proSpecialist = (d as any).pro_specialist as string | undefined;
+    if (proSpecialist) {
+      const targetArg = String((d as any).pro_target || d.parsed?.named?.["target_or_args"] || d.args.join(" ") || ".").trim() || ".";
+      try {
+        const { runSpecialistCommand } = await import("@lemma/pro");
+        const result = await runSpecialistCommand({
+          specialist: proSpecialist,
+          target: targetArg,
+          cwd: cwd || process.cwd(),
+          root: cwd || process.cwd(),
+          personasDir,
+          license: null,
+        } as any);
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Pro specialist: ${proSpecialist}\n${JSON.stringify(result.report ?? { run_id: result.run_id, status: result.status })}`);
+        state.currentReport = JSON.stringify(result.report ?? {}, null, 2);
+        await sendFinal(`Pro ${proSpecialist} investigation complete.${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
     if (d.target === "dashboard") {
       const route = d.dashboard_route || "/";
       const msg = [

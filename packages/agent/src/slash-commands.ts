@@ -167,6 +167,33 @@ function parseNamedArgs(spec: SlashCommandSpec, positional: string[]): Record<st
   return named;
 }
 
+
+
+export type ProSpecialistId = "confidence" | "security" | "performance" | "privacy";
+
+export function parseProSpecialistSlash(raw: string): { specialist: ProSpecialistId; target: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  const argText = rest.join(" ").trim();
+  const map: Record<string, ProSpecialistId> = {
+    "/lemma-confidence": "confidence",
+    "/lemma-security": "security",
+    "/lemma-performance": "performance",
+    "/lemma-privacy": "privacy",
+  };
+  if (map[c]) return { specialist: map[c]!, target: argText || "." };
+  if (c === "/lemma-pro" || c === "/pro") {
+    const [sub, ...more] = argText.split(/\s+/);
+    const subLc = (sub || "").toLowerCase() as ProSpecialistId;
+    if (subLc === "confidence" || subLc === "security" || subLc === "performance" || subLc === "privacy") {
+      return { specialist: subLc, target: more.join(" ").trim() || "." };
+    }
+  }
+  return null;
+}
+
 export function routeSlashCommand(
   rawMessage: string,
   catalog: SlashCommandCatalog = DEFAULT_CATALOG,
@@ -228,7 +255,8 @@ export function routeSlashCommand(
   }
 
   const positional = args;
-  const decision: SlashCommandKnownDecision = {
+  const proSpecialist = parseProSpecialistSlash(raw);
+  const decision: any = {
     kind: "known",
     target: spec.target,
     raw,
@@ -243,9 +271,10 @@ export function routeSlashCommand(
       named: parseNamedArgs(spec, positional),
       positional,
     },
+    ...(proSpecialist ? { pro_specialist: proSpecialist.specialist, pro_target: proSpecialist.target } : {}),
   };
   let message: string | undefined;
-  if (spec.command === "/lemma-pro" || spec.intent === "dashboard.pro") {
+  if ((spec.command === "/lemma-pro" || spec.intent === "dashboard.pro") && !proSpecialist) {
     // default to static summary (dashboard-off/agent-only); callers can override with dashboard-running context
     message = renderLemmaProSummary({ dashboardRunning: false, route: spec.dashboard_route ?? "/pro" });
   } else if (spec.command === "/lemma-help" || spec.intent === "manager.help") {

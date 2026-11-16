@@ -23,7 +23,8 @@
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
   "dependencies": {
-    "@lemma/core": "workspace:*"
+    "@lemma/core": "workspace:*",
+    "@lemma/pro": "workspace:*"
   },
   "engines": {
     "node": ">=20"

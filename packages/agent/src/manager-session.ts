@@ -390,6 +390,54 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const proSpecialist = (d as any).pro_specialist as string | undefined;
+      if (proSpecialist) {
+        this.state.status = "running";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: `Running Pro specialist investigation: ${proSpecialist} (entitlement-gated).`,
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent, specialist: proSpecialist },
+        } as any);
+        try {
+          const { runSpecialistCommand } = await import("@lemma/pro");
+          const targetArg = String((d as any).pro_target || d.parsed?.named?.["target_or_args"] || d.args.join(" ") || ".").trim() || ".";
+          const result = await runSpecialistCommand({
+            specialist: proSpecialist,
+            target: targetArg,
+            cwd: this.options.cwd,
+            root: this.options.cwd,
+            ...(this.options.personasDir ? { personasDir: this.options.personasDir } : {}),
+            license: null,
+          } as any);
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          const summary = (result.report as any) || result;
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Pro ${proSpecialist} investigation complete (run ${result.run_id}, status ${result.status}).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { specialist: proSpecialist, run_id: result.run_id, status: result.status, report: summary, evidence_refs: result.evidence_refs },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { specialist: proSpecialist, error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       if (d.target === "dashboard") {
         const route = d.dashboard_route || "/";
         this.state.status = "completed";

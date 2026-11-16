@@ -425,7 +425,7 @@ unlicensed; never a fabricated pass, never a crash.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Backlog |
+| LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Done |
 | LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Backlog |
 | LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Backlog |
 | LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Backlog |
@@ -1637,8 +1637,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-089, LEM-141, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented Pro specialist catalog/runner, CLI `lemma pro <specialist>`, agent slash routing, and tests.
 - **Description:** Add dedicated, intent-first commands for each specialist
   domain (confidence, security, performance, privacy, and any additional
   domains decided in this task). Each is a first-class catalog entry with its
@@ -1668,11 +1668,21 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover catalog integrity, bounded stop on time/check caps, evidence
     linkage, unlicensed refusal, slash-command routing, CLI routing, and
     determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- specialist-commands && pnpm test --filter @lemma/agent -- specialist-routing`
-- **Evidence (planned):** `packages/pro/src/commands/specialists.ts`,
-  `packages/pro/test/specialist-commands/*`,
-  `packages/agent/test/specialist-routing/*`,
+- **Verification:** Planned acceptance tests satisfied (equivalent commands executed):
+  `pnpm --filter @lemma/pro exec vitest run specialist-commands` PASS (5/5),
+  `pnpm exec vitest run packages/agent/test/specialist-routing/specialist-routing.test.ts` PASS (1/1),
+  and CLI routing coverage `pnpm exec vitest run packages/cli/test/pro-specialist-routing.test.ts` PASS (1/1).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/agent build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/commands/specialists.ts`, `packages/pro/src/index.ts`,
+  `packages/pro/package.json`, `packages/pro/test/specialist-commands/specialist-commands.test.ts`,
+  `packages/cli/src/commands.ts`, `packages/cli/package.json`,
+  `packages/cli/test/pro-specialist-routing.test.ts`,
+  `packages/agent/src/slash-commands.ts`, `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`, `packages/agent/package.json`,
+  `schemas/agent/slash-commands.v1.json`,
+  `packages/agent/test/specialist-routing/specialist-routing.test.ts`,
   `docs/parity/evidence/LEM-157-specialist-commands-test-output.txt`
+
 
 ### LEM-158 — Build the property proof workflow (`/proof`)
 

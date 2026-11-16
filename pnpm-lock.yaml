@@ -94,6 +94,9 @@ importers:
       '@lemma/core':
         specifier: workspace:*
         version: link:../core
+      '@lemma/pro':
+        specifier: workspace:*
+        version: link:../pro
 
   packages/browser:
     dependencies:
@@ -115,6 +118,9 @@ importers:
       '@lemma/core':
         specifier: workspace:*
         version: link:../core
+      '@lemma/pro':
+        specifier: workspace:*
+        version: link:../pro
 
   packages/cloud:
     dependencies:

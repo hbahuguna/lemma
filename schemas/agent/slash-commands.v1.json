@@ -182,6 +182,82 @@
         "dashboard_unavailable",
         "entitlement_required"
       ]
+    },
+    {
+      "command": "/lemma-confidence",
+      "target": "catalog",
+      "description": "Run the Pro confidence specialist investigation (entitlement-gated).",
+      "intent": "pro.specialist.confidence",
+      "catalog_intent": "Assay confidence assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_target",
+        "specialist_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-security",
+      "target": "catalog",
+      "description": "Run the Pro security specialist investigation (entitlement-gated).",
+      "intent": "pro.specialist.security",
+      "catalog_intent": "Assay security assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_target",
+        "specialist_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-performance",
+      "target": "catalog",
+      "description": "Run the Pro performance specialist investigation (entitlement-gated).",
+      "intent": "pro.specialist.performance",
+      "catalog_intent": "Assay performance assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_target",
+        "specialist_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-privacy",
+      "target": "catalog",
+      "description": "Run the Pro privacy specialist investigation (entitlement-gated).",
+      "intent": "pro.specialist.privacy",
+      "catalog_intent": "Assay privacy assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_target",
+        "specialist_unavailable"
+      ]
     }
   ]
 }
