@@ -44,8 +44,8 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 (`packages/cloud/src/auth.ts`, exports via `packages/cloud/src/index.ts`: scopes/normalization, typed `AuthError`/`AuthContext`, `AuthStore` with workspace/key/run-ownership APIs, secret-once hashed scoped keys, opaque cross-tenant/run authorization, append-only audit and durable `.lemma/cloud/` store; tests `packages/cloud/test/auth.test.ts`, output `docs/parity/evidence/LEM-114-auth-test-output.txt`) |
 | `harness/quota.py` | Monthly soft/hard allowance, locking, headers | `@lemma/cloud/quota` | LEM-115 (`packages/cloud/src/quota.ts`, exports via `packages/cloud/src/index.ts`: plan/limit parsing, period/decision/exceeded, `QuotaStore` per-action consume/peek/try/metering-event mapping, workspace/auth-context binding, durable `.lemma/quota` store/events, warnings/429 semantics, snapshot/reset; tests `packages/cloud/test/quota.test.ts`, output `docs/parity/evidence/LEM-115-quota-test-output.txt`) |
 | `harness/ledger.py` | Append-only hash-chained ledger, periods, invoices | `@lemma/cloud/ledger` | LEM-116 (`packages/cloud/src/ledger.ts`, exports via `packages/cloud/src/index.ts`: period helpers, `PriceBook`, hash-chained `LedgerStore` with ingest/idempotency+closed-period rules, corrections/late adjustments, close, invoice JSON/CSV, verify/reconcile, context-bound helpers; tests `packages/cloud/test/ledger.test.ts`, output `docs/parity/evidence/LEM-116-ledger-test-output.txt`) |
-| `harness/signup.py` | Self-serve signup, free allowance, plan selection | `@lemma/cloud/signup` | LEM-117 |
-| `harness/entitlements.py` | Signed entitlement compatibility surface | `@lemma/cloud/signup` | LEM-117 |
+| `harness/signup.py` | Self-serve signup, free allowance, plan selection | `@lemma/cloud/signup` | LEM-117 (`packages/cloud/src/signup.ts`, exports via `packages/cloud/src/index.ts`: `SignupStore` idempotent signup/replay, usage/allowance, plan selection with effective date/downgrade guard, signed entitlement issue/verify and auth/quota integration; tests `packages/cloud/test/signup.test.ts`, output `docs/parity/evidence/LEM-117-signup-test-output.txt`) |
+| `harness/entitlements.py` | Signed entitlement compatibility surface | `@lemma/cloud/signup` | LEM-117 (`packages/cloud/src/entitlements.ts` compatibility exports via signup/index; tests/evidence `docs/parity/evidence/LEM-117-signup-test-output.txt`) |
 | `harness/billing.py` | Feature-gated metered billing, sandbox provider, kill switch | `@lemma/cloud/billing` | LEM-118, LEM-121 |
 | `harness/queue.py` | Durable tenant queue, polling, cancel, recovery, metrics | `@lemma/cloud/queue` | LEM-119 |
 | `harness/retention.py` | Retention policy, signed export, soft/hard delete | `@lemma/cloud/retention` | LEM-120 |
@@ -90,10 +90,10 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma ledger invoice` | JSON/CSV invoice | LEM-116  (cloud ledger API/store ported in LEM-116; CLI command wiring pending) |
 | `lemma ledger verify` | Hash/sequence continuity | LEM-116  (cloud ledger API/store ported in LEM-116; CLI command wiring pending) |
 | `lemma ledger reconcile` | Invoice vs quantity × price | LEM-116  (cloud ledger API/store ported in LEM-116; CLI command wiring pending) |
-| `lemma signup create` | Idempotent onboarding | LEM-117 |
-| `lemma signup select-plan` | Effective-date plan change | LEM-117 |
-| `lemma signup usage` | Usage against allowance | LEM-117 |
-| `lemma signup verify` | Offline entitlement verification | LEM-117 |
+| `lemma signup create` | Idempotent onboarding | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
+| `lemma signup select-plan` | Effective-date plan change | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
+| `lemma signup usage` | Usage against allowance | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
+| `lemma signup verify` | Offline entitlement verification | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
 | `lemma billing status` | Feature flag, sandbox, degradation | LEM-118 |
 | `lemma billing sync` | Ledger invoice → provider | LEM-118 |
 | `lemma billing disable` | Operator kill switch | LEM-118 |
@@ -180,7 +180,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy (`policies/advisory-v1.json`, `packages/core/src/scoring.ts` policy validation/load/defaulting and gate semantics; tests `packages/core/test/policy/policy.test.ts`, output `docs/parity/evidence/LEM-019-policy-test-output.txt`; regression coverage in `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, output `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt`) | LEM-019, LEM-074 |
 | Quota plan contract | `quality-harness.quota-plan/v1` | LEM-115 — `@lemma/cloud/quota` plan/period contract; evidence `docs/parity/evidence/LEM-115-quota-test-output.txt` |
 | Price book contract | `quality-harness.price-book/v1` | LEM-116 — `@lemma/cloud/ledger` `PriceBook`; evidence `docs/parity/evidence/LEM-116-ledger-test-output.txt` |
-| Entitlement contract | `quality-harness.entitlement/v1` | LEM-117 |
+| Entitlement contract | `quality-harness.entitlement/v1` | LEM-117 — `@lemma/cloud/signup` signed entitlements/verification; evidence `docs/parity/evidence/LEM-117-signup-test-output.txt` |
 
 ## 6. Fixtures, examples, and packaging
 
@@ -245,7 +245,7 @@ with rationale.
 | `test_auth.py` | LEM-114 (core auth store/API/audit parity: `packages/cloud/test/auth.test.ts`, `docs/parity/evidence/LEM-114-auth-test-output.txt`; CLI auth command wiring remains follow-on) |
 | `test_quota.py` | LEM-115 (core quota enforcement parity: `packages/cloud/test/quota.test.ts`, `docs/parity/evidence/LEM-115-quota-test-output.txt`; CLI quota command wiring remains follow-on) |
 | `test_ledger.py` | LEM-116 (core ledger/invoice parity: `packages/cloud/test/ledger.test.ts`, `docs/parity/evidence/LEM-116-ledger-test-output.txt`; CLI ledger command wiring remains follow-on) |
-| `test_signup.py` | LEM-117 |
+| `test_signup.py` | LEM-117 (core signup/entitlement parity: `packages/cloud/test/signup.test.ts`, `docs/parity/evidence/LEM-117-signup-test-output.txt`; CLI signup command wiring remains follow-on) |
 | `test_billing.py`, `test_billing_regression.py` | LEM-118, LEM-121 |
 | `test_queue.py` | LEM-119 |
 | `test_retention.py` | LEM-120 |

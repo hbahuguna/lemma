@@ -9,3 +9,5 @@ export * from "./metering.js";
 export * from "./auth.js";
 export * from "./quota.js";
 export * from "./ledger.js";
+export * from "./signup.js";
+export * as entitlements from "./entitlements.js";

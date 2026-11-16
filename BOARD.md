@@ -311,7 +311,7 @@ retention contracts.
 | LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Done |
 | LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Done |
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Done |
-| LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Backlog |
+| LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Done |
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Backlog |
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Backlog |
 | LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Backlog |
@@ -4705,6 +4705,49 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-117 — Port self-serve signup and signed entitlements
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-114, LEM-115
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/signup.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port self-serve signup/onboarding and signed entitlement
+  compatibility APIs to `@lemma/cloud`: idempotent signup creating workspace,
+  owner API key, and entitlement; plan selection with effective period/date;
+  usage/allowance visibility; and HMAC-signed entitlements with offline
+  verification, using lemma `.lemma/cloud/` storage and auth/quota primitives.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports signup/entitlement APIs in `src/signup.ts` (and
+    package entry / `entitlements` compatibility): versioned signup/entitlement
+    schemas, signing key handling, entitlement issue/verify helpers, and
+    `SignupStore` with durable state, idempotent `signup` (request replay returns
+    original result without duplicating workspace/key/entitlement), `usage`,
+    `selectPlan` with effective date/period recording, and quota/auth integration.
+  - Signup semantics: creates exactly one workspace, one owner key (scoped,
+    secret returned once on create only), and one signed entitlement per request
+    id; replays are idempotent and do not leak new secrets; free/selected plan
+    allowance and usage are visible from first request; no cross-workspace
+    identifiers leaked for missing/other workspaces.
+  - Plan/entitlement semantics: plan selection records effective date/period and
+    rejects downgrades below current usage; entitlements encode workspace/plan/
+    limits/period/effective/expiry metadata and HMAC-SHA256 signature; offline
+    verification rejects tampering, expiry, wrong workspace, or wrong period and
+    accepts valid entitlements (with provided/root signing key).
+  - `packages/cloud/test/signup.test.ts` ports/verifies core signup/entitlement
+    behavior: create+replay idempotency, allowance/usage visibility, plan
+    selection effective dating and downgrade rejection, signed entitlement issue/
+    verify (tamper/expiry/workspace/period), and compatibility exports.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/signup.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/signup.test.ts` (pass; output recorded).
+- **Evidence:** `packages/cloud/src/signup.ts`, `packages/cloud/src/entitlements.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/signup.test.ts`, `docs/parity/evidence/LEM-117-signup-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. CLI `lemma signup ...` command wiring remains follow-on (tracked in parity inventory).
+
 
 ### LEM-116 — Port the append-only ledger and invoice export
 
