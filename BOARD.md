@@ -453,7 +453,7 @@ workflow and produces durable `.lemma/` artifacts.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Backlog |
+| LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Done |
 | LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Backlog |
 | LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Backlog |
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
@@ -2005,8 +2005,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-015, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — core `runMore`, CLI/slash wiring, and tests implemented.
+- **Completed:** 2026-11-16
 - **Description:** Add a `/lemma-more` (and `lemma more`) command that, after a
   bounded run ends, resumes with the next highest-value deferred checks. The
   deferred set is derived from the run's own `maxChecks` cut line, so the
@@ -2030,9 +2031,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     extended-run artifacts (modulo documented volatile fields).
   - Tests cover deferred-set derivation, empty-deferred refusal, fingerprint
     mismatch refusal, evidence linkage, and determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- more`
-- **Evidence (planned):** `packages/core/src/more.ts`,
-  `packages/core/test/more/*`,
+- **Verification:** `pnpm test --filter @lemma/core -- more` (5/5 passed);
+  `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`.
+- **Evidence:** `packages/core/src/more.ts`,
+  `packages/core/test/more/more.test.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
   `docs/parity/evidence/LEM-165-more-test-output.txt`
 
 ### LEM-166 — Build the bounded auto test-fix-retest loop (`/lemma-auto`)

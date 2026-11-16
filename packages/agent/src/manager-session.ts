@@ -390,6 +390,57 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaMore = (d as any).lemma_more === true;
+      if (lemmaMore) {
+        this.state.status = "running";
+        const runId = (d as any).more_run_id || (this.state.run_ids.length ? this.state.run_ids[this.state.run_ids.length - 1] : undefined);
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Continuing run with deferred checks (/lemma-more).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent, ...(runId ? { run_id: runId } : {}) },
+        } as any);
+        try {
+          if (!runId) throw new Error("No run id available to continue with /lemma-more.");
+          const { StateStore, runMore, buildReport, EvidenceStore, RELEASE_CONFIDENCE } = await import("@lemma/core");
+          const store = new StateStore(this.options.cwd);
+          const result = await runMore({ runId, stateStore: store } as any);
+          let report: any = null;
+          try {
+            const evidence = new EvidenceStore(this.options.cwd, result.run_id);
+            await evidence.init();
+            let manifest: any = null;
+            try { manifest = await evidence.finalize({ run_id: result.run_id }); } catch { manifest = null; }
+            const summary: any = manifest && manifest.summary ? manifest.summary : evidence.summary();
+            report = buildReport(result as any, RELEASE_CONFIDENCE, summary, manifest?.generated_at || deterministicNow());
+          } catch { /* ignore */ }
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Continued deferred checks for run ${result.run_id}.`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { run_id: result.run_id, ...(report ? { report } : {}) },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const proModelEval = (d as any).pro_model_eval === true;
       if (proModelEval) {
         this.state.status = "running";

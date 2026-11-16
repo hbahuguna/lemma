@@ -6,6 +6,7 @@ import {
   EXIT_CODES,
   EvidenceStore,
   Orchestrator,
+  runMore,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1015,6 +1016,24 @@ export const settingsCommand: CliCommandHandler = async (argv) => {
 
 
 
+
+export const moreCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const store = new StateStore(root);
+  if (!(await store.exists())) {
+    throw new StateError("No .lemma/progress.json exists yet; run `lemma run` first.", { details: { root } });
+  }
+  const state = (await store.loadProgress<unknown>()) as any;
+  const runId = getString(flags, "run-id", "run") ?? positionals[0] ?? (typeof state?.run_id === "string" ? state.run_id : "");
+  if (!runId) {
+    throw new CliUsageError("Missing run id for `lemma more`", { command: "more" });
+  }
+  const result = await runMore({ runId, stateStore: store } as any);
+  const report = await loadReportForState(root, result as any);
+  return { stdoutJson: report };
+};
+
 export const proCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
   const sub = positionals[0] ?? "";
@@ -1201,6 +1220,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
+    { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

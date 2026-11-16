@@ -301,6 +301,25 @@
         "invalid_cases",
         "eval_unavailable"
       ]
+    },
+    {
+      "command": "/lemma-more",
+      "target": "catalog",
+      "description": "Continue a bounded run with the next deferred checks (same run).",
+      "intent": "run",
+      "catalog_intent": "Assay more assessment",
+      "arguments": [
+        {
+          "name": "run_id",
+          "required": false,
+          "description": "Optional run id (defaults to active/latest run context)."
+        }
+      ],
+      "errors": [
+        "no_deferred_checks",
+        "registry_fingerprint_mismatch",
+        "run_not_found"
+      ]
     }
   ]
 }

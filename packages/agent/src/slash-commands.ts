@@ -175,6 +175,20 @@ export type ProSpecialistId = "confidence" | "security" | "performance" | "priva
 
 
 
+
+
+export function parseMoreSlash(raw: string): { runId?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-more") return null;
+  const argText = rest.join(" ").trim();
+  const m = argText.match(/(?:^|\s)--run(?:-id)?\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const runId = m ? (m[1] || m[2] || m[3] || "").trim() || undefined : (argText && !argText.startsWith("--") ? argText : undefined);
+  return { ...(runId ? { runId } : {}) };
+}
+
 export function parseModelEvalSlash(raw: string): { cases?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -298,8 +312,10 @@ export function routeSlashCommand(
   const proSpecialist = parseProSpecialistSlash(raw);
   const proof = parseProofSlash(raw);
   const modelEval = parseModelEvalSlash(raw);
+  const more = parseMoreSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
+  const isMore = more !== null || spec.command === "/lemma-more";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -327,6 +343,12 @@ export function routeSlashCommand(
       ? {
           pro_model_eval: true,
           ...(modelEval?.cases ? { model_eval_cases: modelEval.cases } : {}),
+        }
+      : {}),
+    ...(isMore
+      ? {
+          lemma_more: true,
+          ...(more?.runId ? { more_run_id: more.runId } : {}),
         }
       : {}),
   };

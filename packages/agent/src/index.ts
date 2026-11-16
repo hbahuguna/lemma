@@ -891,6 +891,36 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaMore = (d as any).lemma_more === true;
+    if (lemmaMore) {
+      const runId = (d as any).more_run_id || (state.runIds.length ? state.runIds[state.runIds.length - 1] : undefined);
+      try {
+        if (!runId) throw new Error("No run id available to continue with /lemma-more.");
+        const { StateStore, runMore, buildReport, EvidenceStore, RELEASE_CONFIDENCE } = await import("@lemma/core");
+        const store = new StateStore(cwd || process.cwd());
+        const result = await runMore({ runId, stateStore: store } as any);
+        let report: any = null;
+        try {
+          const evidence = new EvidenceStore(cwd || process.cwd(), result.run_id);
+          await evidence.init();
+          let manifest: any = null;
+          try { manifest = await evidence.finalize({ run_id: result.run_id }); } catch { manifest = null; }
+          const summary: any = manifest && manifest.summary ? manifest.summary : evidence.summary();
+          report = buildReport(result as any, RELEASE_CONFIDENCE, summary, manifest?.generated_at || "");
+        } catch { /* ignore */ }
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Continued deferred checks: ${result.run_id}`);
+        if (report) state.currentReport = JSON.stringify(report, null, 2);
+        await sendFinal(`Continued deferred checks for run ${result.run_id}.${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const proModelEval = (d as any).pro_model_eval === true;
     if (proModelEval) {
       const cases = (d as any).model_eval_cases || d.parsed?.named?.["cases"] || (d.args.join(" ").trim() || undefined);
