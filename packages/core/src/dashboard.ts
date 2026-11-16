@@ -6,6 +6,7 @@ import { HarnessError, StateError } from "./errors.js";
 import type { StateStore } from "./state-store.js";
 import type { EvidenceStore } from "./evidence.js";
 import { buildReleaseBrief } from "./release-brief.js";
+import { buildJourneyMap } from "./journey-map.js";
 import { loadSettings, saveSettings } from "./settings.js";
 
 export interface DashboardHandle {
@@ -218,6 +219,8 @@ function htmlPage(): string {
   const token = params.get('token') || '';
   const brief = document.getElementById('briefLink');
   if (brief) brief.href = '/brief?token=' + encodeURIComponent(token);
+  const journey = document.getElementById('journeyLink');
+  if (journey) journey.href = '/journey?token=' + encodeURIComponent(token);
   const settings = document.getElementById('settingsLink');
   if (settings) settings.href = '/settings?token=' + encodeURIComponent(token);
   const headers = token ? {'x-lemma-dashboard-token': token} : {};
@@ -388,6 +391,136 @@ async function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
   }
 }
 
+
+function escapeHtmlServer(s: string): string {
+  return String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c] as string));
+}
+
+async function journeyMapPageHtml(options: StartDashboardOptions, token: string): Promise<string> {
+  const report = options.report ?? null;
+  const map = buildJourneyMap(report ?? {}, {});
+  const evidenceStore = options.evidenceStore;
+  const shotUrl = (ref: string) => `/api/evidence?path=${encodeURIComponent(ref)}&token=${encodeURIComponent(token)}`;
+
+  const nodes = map.nodes;
+  const nodePos = new Map<string, { x: number; y: number }>();
+  const cols = Math.max(1, Math.min(4, Math.ceil(Math.sqrt(Math.max(1, nodes.length)))));
+  const spacingX = 260;
+  const spacingY = 140;
+  nodes.forEach((n, i) => {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    nodePos.set(n.id, { x: 140 + col * spacingX, y: 80 + row * spacingY });
+  });
+  const width = Math.max(800, 220 + cols * spacingX);
+  const height = Math.max(320, 160 + Math.ceil(nodes.length / cols) * spacingY);
+
+  const svgEdges = map.edges.map((e) => {
+    const a = nodePos.get(e.from);
+    const b = nodePos.get(e.to);
+    if (!a || !b) return "";
+    const label = escapeHtmlServer(`${e.label} (${e.source})`);
+    const mx = (a.x + b.x) / 2;
+    const my = (a.y + b.y) / 2 - 6;
+    return `<line x1="${a.x}" y1="${a.y}" x2="${b.x}" y2="${b.y}" stroke="#666" stroke-width="2" marker-end="url(#arrow)" />
+      <text x="${mx}" y="${my}" font-size="11" text-anchor="middle" fill="#333">${label}</text>`;
+  }).join("\n");
+
+  const renderShot = async (ref: string | null): Promise<string> => {
+    if (!ref) return `<span class="placeholder">evidence unavailable</span>`;
+    if (!evidenceStore) return `<span class="placeholder">evidence unavailable</span>`;
+    try {
+      const art = await evidenceStore.readEvidenceArtifact(ref);
+      if (!art) return `<span class="placeholder">evidence unavailable</span>`;
+      const src = shotUrl(ref);
+      return `<a href="${src}" target="_blank" rel="noopener"><img class="thumb" src="${src}" alt="Screenshot for ${escapeHtmlServer(ref)}"/></a>`;
+    } catch {
+      return `<span class="placeholder">evidence unavailable</span>`;
+    }
+  };
+
+  const svgNodesParts: string[] = [];
+  for (const n of nodes) {
+    const p = nodePos.get(n.id)!;
+    const route = escapeHtmlServer(n.route);
+    const checksLabel = escapeHtmlServer(`${n.checks.length} check(s)`);
+    const shot = await renderShot(n.screenshot_ref);
+    svgNodesParts.push(`<g>
+      <rect x="${p.x - 110}" y="${p.y - 34}" rx="8" ry="8" width="220" height="68" fill="#f7f7fb" stroke="#444" />
+      <title>${route}</title>
+      <text x="${p.x}" y="${p.y - 8}" font-size="12" text-anchor="middle">${route.length > 34 ? route.slice(0, 31) + "..." : route}</text>
+      <text x="${p.x}" y="${p.y + 10}" font-size="11" text-anchor="middle" fill="#444">${checksLabel}</text>
+    </g>
+    <foreignObject x="${p.x - 60}" y="${p.y + 38}" width="120" height="90"><div xmlns="http://www.w3.org/1999/xhtml">${shot}</div></foreignObject>`);
+  }
+
+  const tableRows = map.text_table.map((row) => {
+    const checks = row.checks.length === 0
+      ? `<tr><td>${escapeHtmlServer(row.route)}</td><td colspan="3" class="muted">(no checks)</td></tr>`
+      : row.checks.map((c, idx) => `<tr>${idx === 0 ? `<td rowspan="${row.checks.length}">${escapeHtmlServer(row.route)}</td>` : ""}<td><code>${escapeHtmlServer(c.id)}</code></td><td>${escapeHtmlServer(c.status)}</td><td>${escapeHtmlServer(c.title || "")}</td></tr>`).join("");
+    return checks;
+  }).join("");
+
+  const edgeRows = map.edges.length === 0
+    ? `<tr><td colspan="4" class="muted">(no observed transitions)</td></tr>`
+    : (await Promise.all(map.edges.map(async (e) => {
+        const from = nodes.find((n) => n.id === e.from)?.route ?? e.from;
+        const to = nodes.find((n) => n.id === e.to)?.route ?? e.to;
+        const shot = await renderShot(e.screenshot_ref);
+        return `<tr><td>${escapeHtmlServer(from)}</td><td>${escapeHtmlServer(to)}</td><td>${escapeHtmlServer(e.label)} <span class="muted">(${escapeHtmlServer(e.source)})</span></td><td>${shot}</td></tr>`;
+      }))).join("");
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Lemma Journey Map</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:1rem 1.25rem;line-height:1.4}
+    .muted{color:#666}
+    .placeholder{display:inline-block;padding:.4rem .6rem;border:1px dashed #c33;color:#a00;background:#fff5f5;border-radius:4px;font-size:.8rem}
+    .thumb{max-width:110px;max-height:80px;border:1px solid #ddd;border-radius:4px;display:block}
+    table{border-collapse:collapse;width:100%;margin:.5rem 0}
+    th,td{border:1px solid #ddd;padding:.35rem .45rem;text-align:left;vertical-align:top}
+    th{background:#f3f3f3}
+    .card{border:1px solid #ccc;border-radius:8px;padding:1rem;margin:.75rem 0}
+    svg{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;background:#fff}
+  </style>
+</head>
+<body>
+  <h1>Journey Map</h1>
+  <p class="muted">Derived deterministically from run artifacts (scenario plans and browser evidence/check metadata). No inferred transitions. Schema: ${escapeHtmlServer(map.schema_version)} · Run: ${escapeHtmlServer(map.run_id ?? "(unknown)")}</p>
+
+  <div class="card">
+    <h2>Graph (accessible visual)</h2>
+    ${nodes.length === 0 ? '<p class="muted">No route/view nodes available from run artifacts.</p>' : `<svg role="img" aria-label="Journey map graph showing routes, transitions, and checks" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#666" /></marker></defs>
+      ${svgEdges}
+      ${svgNodesParts.join("\n")}
+    </svg>`}
+    <p class="muted">Textual fallback below provides routes → checks → outcomes and observed transitions.</p>
+  </div>
+
+  <div class="card">
+    <h2>Textual fallback: routes → checks → outcomes</h2>
+    <table aria-label="Routes to checks and outcomes">
+      <thead><tr><th>Route / view</th><th>Check ID</th><th>Status / outcome</th><th>Title</th></tr></thead>
+      <tbody>${tableRows || '<tr><td colspan="4" class="muted">(none)</td></tr>'}</tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Observed transitions (edges)</h2>
+    <table aria-label="Observed journey transitions">
+      <thead><tr><th>From</th><th>To</th><th>Label</th><th>Evidence</th></tr></thead>
+      <tbody>${edgeRows}</tbody>
+    </table>
+  </div>
+</body>
+</html>`;
+}
+
 export async function startDashboard(options: StartDashboardOptions): Promise<DashboardHandle> {
   const host = options.host ?? "127.0.0.1";
   if (!isLoopback127(host)) {
@@ -491,6 +624,22 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
           }
         }
         json(res, 405, { ok: false, error: "method_not_allowed" });
+        return;
+      }
+
+      if (method === "GET" && (reqUrl.pathname === "/journey" || reqUrl.pathname === "/map")) {
+        const format = (reqUrl.searchParams.get("format") || "html").toLowerCase();
+        const report = options.report ?? null;
+        const map = buildJourneyMap(report ?? {}, {});
+        if (format === "json") {
+          json(res, 200, map);
+          return;
+        }
+        const body = await journeyMapPageHtml({ ...options, report }, token);
+        res.statusCode = 200;
+        res.setHeader("content-type", "text/html; charset=utf-8");
+        res.setHeader("cache-control", "no-store");
+        res.end(body);
         return;
       }
 

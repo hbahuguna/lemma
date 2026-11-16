@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/journey_map/journey_map.v1.schema.json",
+  "title": "Lemma Journey Map v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "nodes", "edges", "checks", "summary", "text_table"],
+  "properties": {
+    "schema_version": { "const": "lemma.journey_map/v1" },
+    "run_id": { "type": ["string", "null"] },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "route", "label", "checks", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "route": { "type": "string" },
+          "label": { "type": "string" },
+          "checks": { "type": "array", "items": { "type": "string" } },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "screenshot_ref": { "type": ["string", "null"] },
+          "evidence_unavailable": { "type": "boolean" }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "from", "to", "label", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "label": { "type": "string" },
+          "source": { "type": "string" },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "screenshot_ref": { "type": ["string", "null"] },
+          "evidence_unavailable": { "type": "boolean" }
+        }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "status", "route", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "status": { "type": "string" },
+          "route": { "type": "string" },
+          "node_id": { "type": ["string", "null"] },
+          "evidence": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "summary": { "type": "object", "additionalProperties": true },
+    "text_table": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["route", "checks"],
+        "properties": {
+          "route": { "type": "string" },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "status"],
+              "properties": {
+                "id": { "type": "string" },
+                "status": { "type": "string" },
+                "title": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
