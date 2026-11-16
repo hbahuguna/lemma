@@ -377,7 +377,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Done |
-| LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Backlog |
+| LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Done |
 | LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Backlog |
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Backlog |
 | LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Backlog |
@@ -1017,8 +1017,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-016, LEM-020, LEM-061
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented localhost-only token-protected dashboard, core subpath export, ADR, and tests.
 - **Description:** Build a host-neutral, localhost-only dashboard that serves a
   live investigation view of the current run: current phase, current check,
   in-flight evidence, and a rolling feed of completed checks with links into
@@ -1043,11 +1043,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests: bind-only-127.0.0.1, token required on every route, missing/mismatched
     token → 401 JSON, live view reflects current progress, safe no-op on missing
     state.
-- **Verification (planned):** `pnpm --filter @lemma/core test -- dashboard`
-- **Evidence (planned):** `packages/core/src/dashboard.ts`,
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/dashboard/dashboard.test.ts` (pass; 4/4 tests).
+- **Evidence:** `packages/core/src/dashboard.ts`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
+  `packages/core/src/evidence.ts` (read-only manifest/list helpers),
   `packages/core/test/dashboard/dashboard.test.ts`,
+  `packages/core/test/html-report/html-report.test.ts` (type-safety fix),
   `docs/adr/0003-local-dashboard-serving-and-token-auth.md`,
-  `docs/parity/evidence/LEM-143-dashboard-test-output.txt`
+  `docs/parity/evidence/LEM-143-dashboard-test-output.txt`.
+
 
 ### LEM-144 — Capture and display screenshots for browser check evidence
 

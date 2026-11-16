@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/dashboard/dashboard.test.ts (4 tests) 183ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  20:44:20
+   Duration  2.58s (transform 602ms, setup 0ms, collect 860ms, tests 183ms, environment 0ms, prepare 182ms)
+

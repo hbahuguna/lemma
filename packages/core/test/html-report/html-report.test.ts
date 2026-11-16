@@ -134,7 +134,7 @@ describe("LEM-142 HTML report", () => {
     const rel = await store.saveText("secret-artifact", `token context ${secret}`, "text", "secret", "check");
     await store.finalize({ run_id: "run_test_001", status: "completed" });
     const report = sampleReport(rel);
-    report.findings[0].title = `Issue with ${secret}`;
+    report.findings[0]!.title = `Issue with ${secret}`;
 
     const html = await buildHtmlReport(report, store);
     expect(html).not.toContain("supersecret123");
@@ -151,8 +151,8 @@ describe("LEM-142 HTML report", () => {
     const largeRel = await store.saveText("large", largeContent, "text", "large", "a11y.img_alt");
     await store.finalize({ run_id: "run_test_001", status: "completed" });
     const report = sampleReport(smallRel);
-    report.findings[0].evidence = [smallRel, largeRel];
-    report.checks[0].evidence = [smallRel, largeRel];
+    report.findings[0]!.evidence = [smallRel, largeRel];
+    report.checks[0]!.evidence = [smallRel, largeRel];
 
     const html = await buildHtmlReport(report, store);
     expect(html).toContain("data:");

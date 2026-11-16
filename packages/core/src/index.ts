@@ -42,3 +42,5 @@ export * from "./bug-hunt.js";
 export * from "./background-supervisor.js";
 
 export * from "./html-report.js";
+
+export * from "./dashboard.js";

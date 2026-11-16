@@ -429,6 +429,48 @@ export class EvidenceStore {
     await this.checkpoint();
   }
 
+
+  /** Read-only: return manifest summary/metadata if available (no writes). */
+  async readManifestSummary(): Promise<Record<string, unknown> | null> {
+    try {
+      const raw = await fs.readFile(this.manifestPath, "utf8");
+      const data = JSON.parse(raw) as Record<string, unknown>;
+      const summary = data.summary;
+      return {
+        run_id: typeof data.run_id === "string" ? data.run_id : this.runId,
+        generated_at: typeof data.generated_at === "string" ? data.generated_at : null,
+        summary: summary && typeof summary === "object" ? summary : null,
+        evidence_count: Array.isArray(data.evidence) ? data.evidence.length : this.entries.length,
+      };
+    } catch {
+      return this.entries.length
+        ? {
+            run_id: this.runId,
+            generated_at: null,
+            summary: { directory: this.relative(this.runDir), count: this.entries.length },
+            evidence_count: this.entries.length,
+          }
+        : null;
+    }
+  }
+
+  /** Read-only: list known evidence artifact paths (relative) from manifest/entries. */
+  async listEvidencePaths(): Promise<string[]> {
+    try {
+      const raw = await fs.readFile(this.manifestPath, "utf8");
+      const data = JSON.parse(raw) as Record<string, unknown>;
+      const evidence = data.evidence;
+      if (Array.isArray(evidence)) {
+        return evidence
+          .map((e) => (e && typeof e === "object" && typeof (e as any).path === "string" ? (e as any).path : null))
+          .filter((p): p is string => typeof p === "string");
+      }
+    } catch {
+      // fall through
+    }
+    return this.entries.map((e) => e.path).filter((p): p is string => typeof p === "string");
+  }
+
   async finalize(runMetadata?: Record<string, unknown>): Promise<EvidenceManifest> {
     if (!this.finalized) {
       await ensureDir(this.runDir);
