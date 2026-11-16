@@ -88,7 +88,7 @@ export interface HarnessInvocation {
 export interface AgentDeps {
   runHarness: (args: string[], env?: Record<string, string | undefined>) => Promise<string>;
   askLlm: (prompt: string) => Promise<string>;
-  progress?: (message: string) => void;
+  progress?: (message: string) => void | Promise<void>;
   sendFinal: (text: string) => Promise<void>;
   /** Discover available MCP resources (optional, host-provided). May return display strings or a raw MCP listing object. */
   listMcpResources?: () => Promise<unknown>;
@@ -822,7 +822,8 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
   const maxIterations = Math.max(1, Math.min(options.maxIterations ?? DEFAULT_MAX_ITERATIONS, DEFAULT_MAX_ITERATIONS));
   const minHarnessRuns = Math.max(1, options.minHarnessRuns ?? DEFAULT_MIN_HARNESS_RUNS);
   const personasDir = options.personasDir ?? "personas";
-  const log = deps.progress ?? (() => {});
+  const progressCb = deps.progress;
+  const log = async (message: string): Promise<void> => { if (progressCb) await progressCb(message); };
   const sendFinal = deps.sendFinal ?? (async () => {});
   const key = agentStateKey(options);
   const cwd = options.cwd;
@@ -880,7 +881,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
   if (!state.initialDone) {
     const initialSig = commandSignature(initialArgs, options.initialEnv);
     if (!executed.has(initialSig)) {
-      log("Iteration 1: running initial assessment...");
+      await log("Iteration 1: running initial assessment...");
       executed.add(initialSig);
       state.executedCommands = [...executed];
       const output = await deps.runHarness(initialArgs, options.initialEnv);
@@ -902,32 +903,32 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       if (!continued) return state;
     }
 
-    log(`Iteration ${state.step + 1}: consulting strict judge...`);
+    await log(`Iteration ${state.step + 1}: consulting strict judge...`);
     const prompt = buildPrompt(options, state, executed);
     let llmText = "";
     try {
       llmText = await deps.askLlm(prompt);
     } catch {
-      log("LLM call failed; stopping.");
+      await log("LLM call failed; stopping.");
       state.step += 1;
       await maybePersist(cwd, state);
       break;
     }
     const decision = parseDecision(llmText);
     if (decision.type === "invalid") {
-      log("Could not parse LLM decision; stopping.");
+      await log("Could not parse LLM decision; stopping.");
       state.step += 1;
       await maybePersist(cwd, state);
       break;
     }
     if (decision.test_plan && decision.test_plan.trim()) {
       state.testPlan = decision.test_plan.trim();
-      log("Test plan updated.");
+      await log("Test plan updated.");
     }
 
     if (decision.type === "done") {
       if (state.iteration < minHarnessRuns) {
-        log(`Rejecting early completion (${state.iteration}/${minHarnessRuns} runs).`);
+        await log(`Rejecting early completion (${state.iteration}/${minHarnessRuns} runs).`);
         state.pending = {
           kind: "need_context",
           type: "jira",
@@ -940,7 +941,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
         if (!continued) return state;
         continue;
       }
-      log("Agent decided it is done.");
+      await log("Agent decided it is done.");
       const fixes = decision.fixes ?? [];
       await sendFinal(
         `${decision.summary ?? "Assessment complete."}${buildExecutionSummary(state)}\n\n## Suggested fixes\n${fixes.map((f) => `- ${f}`).join("\n") || "- (none)"}`,
@@ -969,13 +970,13 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
 
     const cmd = decision.command.trim();
     if (!cmd) {
-      log("Empty command; stopping.");
+      await log("Empty command; stopping.");
       state.step += 1;
       await maybePersist(cwd, state);
       break;
     }
     if (!isAllowedCommand(cmd)) {
-      log(`Rejected disallowed command: ${cmd}`);
+      await log(`Rejected disallowed command: ${cmd}`);
       state.runSummaries.push(`NOTE: rejected disallowed command: ${redactTranscriptText(cmd)}`);
       state.step += 1;
       await maybePersist(cwd, state);
@@ -983,7 +984,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     }
     const invocation = commandToArgs(cmd, personasDir);
     if (invocation.error) {
-      log(redactTranscriptText(invocation.error));
+      await log(redactTranscriptText(invocation.error));
       state.runSummaries.push(`NOTE: command error: ${redactTranscriptText(cmd)}: ${redactTranscriptText(invocation.error)}`);
       state.step += 1;
       await maybePersist(cwd, state);
@@ -991,14 +992,14 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     }
     const sig = commandSignature(invocation.args, invocation.env);
     if (executed.has(sig)) {
-      log(`Skipping duplicate command (already executed): ${cmd}`);
+      await log(`Skipping duplicate command (already executed): ${cmd}`);
       state.runSummaries.push(`NOTE: duplicate skipped: ${redactTranscriptText(cmd)}`);
       state.step += 1;
       await maybePersist(cwd, state);
       continue;
     }
 
-    log(`Executing unique step: ${cmd}`);
+    await log(`Executing unique step: ${cmd}`);
     executed.add(sig);
     state.executedCommands = [...executed];
     const output = await deps.runHarness(invocation.args, invocation.env);
@@ -1010,8 +1011,22 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     await maybePersist(cwd, state);
   }
 
-  log(`Agent reached iteration cap (${maxIterations}).`);
+  await log(`Agent reached iteration cap (${maxIterations}).`);
   await sendFinal(`Agent reached iteration cap (${maxIterations}).${buildExecutionSummary(state)}`);
   await maybePersist(cwd, state);
   return state;
 }
+
+export {
+  ManagerSession,
+  loadManagerSessionState,
+  managerStatePath,
+  redactManagerMessage,
+} from "./manager-session.js";
+export type {
+  ManagerMessage,
+  ManagerMessageSink,
+  ManagerMessageType,
+  ManagerSessionOptions,
+  ManagerSessionState,
+} from "./manager-session.js";

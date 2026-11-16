@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/manager/manager-session.test.ts (5 tests) 1426ms
+   ✓ LEM-141 manager session > routes plan/progress/summary messages to a host-neutral sink and redacts emitted/persisted content  591ms
+   ✓ LEM-141 manager session > emits a redacted question message when context is requested and persists awaiting state  383ms
+   ✓ LEM-141 manager session > is deterministic and resumable with same seed/frozen clock and same assessment (manager state/messages replay)  413ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  19:43:47
+   Duration  3.77s (transform 722ms, setup 0ms, collect 863ms, tests 1.43s, environment 0ms, prepare 444ms)
+

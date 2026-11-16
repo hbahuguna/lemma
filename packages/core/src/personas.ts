@@ -506,10 +506,20 @@ export function personaFromDocument(document: PersonaDocument, source = "persona
   const metadata = document.metadata;
   for (const key of PERSONA_REQUIRED_FRONTMATTER_KEYS) {
     const value = metadata[key];
-    const empty =
-      value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
-    if (empty) {
-      throw new PersonaError(`${source}: missing frontmatter key '${key}'`);
+    if (key === "checks") {
+      if (value === undefined || value === "") {
+        throw new PersonaError(`${source}: missing frontmatter key '${key}'`);
+      }
+      if (!Array.isArray(value)) {
+        throw new PersonaError(`${source}: ${key} must be a list`);
+      }
+      // checks may be empty for non-owning personas (e.g. manager/session lead)
+    } else {
+      const empty =
+        value === undefined || value === "" || (Array.isArray(value) && value.length === 0);
+      if (empty) {
+        throw new PersonaError(`${source}: missing frontmatter key '${key}'`);
+      }
     }
   }
 

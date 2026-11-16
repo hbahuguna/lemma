@@ -361,7 +361,7 @@ makes the tool tryable; slash commands work natively in-chat.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Backlog |
+| LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Done |
 | LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Backlog |
 | LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Backlog |
 | LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Backlog |
@@ -929,8 +929,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 8
 - **Depends on:** LEM-086, LEM-091, LEM-094
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented manager persona, manager message schema, and `ManagerSession` orchestration with tests/evidence.
 - **Description:** Build a "manager" persona that leads the testing session
   conversationally — plans the run, asks clarifying questions, narrates
   progress, and explains findings. This persona is the user-facing lead QA
@@ -961,11 +961,14 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `generated_at` differ).
   - Tests cover persona parsing/lint, message routing, redaction, determinism,
     and resumability.
-- **Verification (planned):** `pnpm --filter @lemma/agent test -- manager`
-- **Evidence (planned):** `packages/personas/manager.md`,
+- **Verification:** `pnpm exec vitest run packages/agent/test/manager/manager-session.test.ts` (pass, 5/5). Persona lint validated with known check IDs supplied; core persona parsing/lint updated to allow empty `checks` for non-owning manager persona without affecting ownership/disjointness.
+- **Evidence:** `packages/personas/manager.md`,
+  `schemas/agent/manager-message.v1.json`,
   `packages/agent/src/manager-session.ts`,
-  `schemas/agent/manager-message.v1.json`, `packages/agent/test/manager/*`,
-  `docs/parity/evidence/LEM-141-manager-test-output.txt`
+  `packages/agent/src/index.ts`,
+  `packages/core/src/personas.ts`,
+  `packages/agent/test/manager/manager-session.test.ts`,
+  `docs/parity/evidence/LEM-141-manager-test-output.txt`.
 
 ### LEM-142 — Build portable self-contained HTML report export
 
