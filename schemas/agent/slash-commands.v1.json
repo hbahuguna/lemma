@@ -391,6 +391,29 @@
         "invalid_catalog",
         "material_unanswered_hold"
       ]
+    },
+    {
+      "command": "/lemma-generate",
+      "target": "catalog",
+      "description": "Generate prioritized, planned test intents (no execution).",
+      "intent": "run",
+      "catalog_intent": "Assay generate assessment",
+      "arguments": [
+        {
+          "name": "source",
+          "required": false,
+          "description": "code|page|requirements|recording|custom"
+        },
+        {
+          "name": "max_tests",
+          "required": false,
+          "description": "Cap on generated intents."
+        }
+      ],
+      "errors": [
+        "invalid_source",
+        "invalid_scope"
+      ]
     }
   ]
 }

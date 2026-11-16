@@ -390,6 +390,47 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaGenerate = (d as any).lemma_generate === true;
+      if (lemmaGenerate) {
+        this.state.status = "running";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Generating prioritized test intents (/lemma-generate).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent },
+        } as any);
+        try {
+          const source = (d as any).generate_source || "page";
+          const maxTests = (d as any).generate_max_tests;
+          const url = (d as any).generate_url;
+          const { runGenerate } = await import("@lemma/core");
+          const result = await runGenerate({ source, root: this.options.cwd, ...(url ? { scope: { url } } : {}), ...(Number.isFinite(maxTests) ? { maxTests: Number(maxTests) } : {}) } as any);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Generated ${result.counts.generated} test intent(s) (${result.counts.not_generated} not generated).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+            details: { generate: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaHuman = (d as any).lemma_human === true;
       if (lemmaHuman) {
         this.state.status = "running";

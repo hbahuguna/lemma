@@ -10,6 +10,7 @@ import {
   runAutoLoop,
   runBrowserInspection,
   runHumanContext,
+  runGenerate,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1357,6 +1358,34 @@ export const feedbackCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: { status: "serving", enabled: true, root, host, port: actualPort, url: svc.url ?? `http://${host}:${actualPort}` } };
 };
 
+
+export const generateCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const source = (getString(flags, "source", "from") ?? positionals[0] ?? "page") as any;
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const maxTestsStr = getString(flags, "max-tests", "maxTests", "max");
+  const seed = getString(flags, "seed");
+  const url = getString(flags, "url", "target");
+  const input = getString(flags, "input", "scope", "text");
+  const feature = getString(flags, "feature");
+  const items = getStringArray(flags, "item", "items");
+
+  const scope: any = {};
+  if (url) scope.url = url;
+  if (input) scope.input = input;
+  if (feature) scope.feature = feature;
+  if (items.length) scope.items = items;
+
+  const result = await runGenerate({
+    source,
+    scope,
+    root,
+    ...(maxTestsStr !== undefined ? { maxTests: toInt(maxTestsStr, "--max-tests") } : {}),
+    ...(seed !== undefined ? { seed } : {}),
+  } as any);
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1366,6 +1395,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
     { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },
+    { name: "generate", description: "Generate prioritized, planned browser.steps-compatible test intents (no execution).", handler: generateCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

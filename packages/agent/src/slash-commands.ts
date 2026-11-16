@@ -180,6 +180,26 @@ export type ProSpecialistId = "confidence" | "security" | "performance" | "priva
 
 
 
+
+export function parseGenerateSlash(raw: string): { source?: string; maxTests?: number; url?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-generate") return null;
+  const argText = rest.join(" ").trim();
+  const srcM = argText.match(/(?:^|\s)--source\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const maxM = argText.match(/(?:^|\s)--max-tests\s+(\d+)/i);
+  const urlM = argText.match(/(?:^|\s)--(?:url|target)\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const source = srcM ? (srcM[1] || srcM[2] || srcM[3] || "").trim() || undefined : (argText && !argText.startsWith("--") ? argText.split(/\s+/)[0] : undefined);
+  const url = urlM ? (urlM[1] || urlM[2] || urlM[3] || "").trim() || undefined : undefined;
+  return {
+    ...(source ? { source } : {}),
+    ...(maxM ? { maxTests: parseInt(maxM[1]!, 10) } : {}),
+    ...(url ? { url } : {}),
+  };
+}
+
 export function parseHumanSlash(raw: string): { runId?: string; questions?: string; answers?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -367,12 +387,14 @@ export function routeSlashCommand(
   const auto = parseAutoSlash(raw);
   const browser = parseBrowserSlash(raw);
   const human = parseHumanSlash(raw);
+  const generate = parseGenerateSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
   const isAuto = auto !== null || spec.command === "/lemma-auto";
   const isBrowser = browser !== null || spec.command === "/lemma-browser";
   const isHuman = human !== null || spec.command === "/lemma-human";
+  const isGenerate = generate !== null || spec.command === "/lemma-generate";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -429,6 +451,14 @@ export function routeSlashCommand(
           ...(human?.runId ? { human_run_id: human.runId } : {}),
           ...(human?.questions ? { human_questions: human.questions } : {}),
           ...(human?.answers ? { human_answers: human.answers } : {}),
+        }
+      : {}),
+    ...(isGenerate
+      ? {
+          lemma_generate: true,
+          ...(generate?.source ? { generate_source: generate.source } : {}),
+          ...(generate?.maxTests ? { generate_max_tests: generate.maxTests } : {}),
+          ...(generate?.url ? { generate_url: generate.url } : {}),
         }
       : {}),
   };

@@ -891,6 +891,25 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaGenerate = (d as any).lemma_generate === true;
+    if (lemmaGenerate) {
+      try {
+        const source = (d as any).generate_source || "page";
+        const maxTests = (d as any).generate_max_tests;
+        const url = (d as any).generate_url;
+        const { runGenerate } = await import("@lemma/core");
+        const result = await runGenerate({ source, root: cwd || process.cwd(), ...(url ? { scope: { url } } : {}), ...(Number.isFinite(maxTests) ? { maxTests: Number(maxTests) } : {}) } as any);
+        state.runSummaries.push(`Generated ${result.counts.generated} test intent(s)`);
+        await sendFinal(`Generated ${result.counts.generated} test intent(s) (${result.counts.not_generated} not generated) in ${result.output_dir}.${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaHuman = (d as any).lemma_human === true;
     if (lemmaHuman) {
       const runId = (d as any).human_run_id || (state.runIds.length ? state.runIds[state.runIds.length - 1] : "");

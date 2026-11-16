@@ -56,3 +56,4 @@ export * from "./auto-loop.js";
 export * from "./browser-command.js";
 export * from "./human-context.js";
 export * from "./feedback.js";
+export * from "./generate.js";

@@ -458,7 +458,7 @@ workflow and produces durable `.lemma/` artifacts.
 | LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Done |
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Done |
-| LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Backlog |
+| LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Done |
 | LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Backlog |
 | LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Backlog |
 
@@ -2230,8 +2230,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-014, LEM-058
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented generate workflow (core/CLI/agent), scenario-format intents, and tests.
+- **Completed:** 2026-11-17
 - **Description:** Add a `/lemma-generate` (and `lemma generate`) workflow that
   generates prioritized, planned tests from code, pages, requirements, and
   recordings. Generates test intent, not executed tests; each generated intent
@@ -2254,9 +2255,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     `reviewed: true` unless a human explicitly promotes them (LEM-189).
   - Tests cover each source kind, intent schema validation, priority ordering,
     cap enforcement, determinism, and "not generated" overflow.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- generate`
-- **Evidence (planned):** `packages/core/src/generate.ts`,
-  `packages/core/test/generate/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/generate/generate.test.ts` (8/8 passed); `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`.
+- **Evidence:** `packages/core/src/generate.ts`,
+  `packages/core/test/generate/generate.test.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
   `docs/parity/evidence/LEM-170-generate-test-output.txt`
 
 ### LEM-171 — Build the durable test-intent management workflow (`/lemma-tests`)
