@@ -40,7 +40,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/ssrf.py` | SSRF validation, DNS, allowlists, redirects (`packages/core/src/ssrf.ts`: `validateUrl`/`validateTargetUrl`, `validateRedirectChain`, `isSafeUrl`/`ssrfSafe`, `loadAllowlist` with injectable resolver, http/https+host checks, blocked metadata/local hostnames, default blocked/private ranges incl. link-local/metadata, CIDR/hostname allowlists with env/file/root loading, per-call resolution/rebinding checks, redirect-chain revalidation, and non-leaking typed `SsrfError`s; `@lemma/core` export + `@lemma/core/ssrf` subpath; tests `packages/core/test/ssrf/ssrf.test.ts`, output `docs/parity/evidence/LEM-059-ssrf-test-output.txt`) | `@lemma/core/ssrf` | LEM-059, LEM-125 |
 | `harness/step_planner.py` | Scenario step planning (`packages/core/src/steps.ts`: `StepAction`/`ScenarioPlan`, deterministic `HeuristicStepPlanner`, `LLMStepPlanner`/`createStepPlanner` with OpenAI-compatible fetch and heuristic fallback; tests `packages/core/test/steps/steps.test.ts`, output `docs/parity/evidence/LEM-025-steps-test-output.txt`) | `@lemma/core/steps` | LEM-025 |
 | `harness/step_runner.py` | Scenario step execution/result contracts (`packages/core/src/steps.ts`: `StepResult`/`ScenarioExecutionResult`, `evaluateScenarioCheck` pass/fail/blocked outcomes, evidence/count metadata, deterministic failed-scenario findings; tests `packages/core/test/steps/steps.test.ts`). LEM-058 browser integration: scenario-file/JSON/text plan loading and Playwright-driven `executeScenarioPlan`/`browser.steps` execution+evaluation with injected execution/page support and blocked degradation (`packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, tests `packages/browser/test/browser-scenarios.test.ts`, output `docs/parity/evidence/LEM-058-browser-steps-test-output.txt`) | `@lemma/core/steps`, `@lemma/browser` | LEM-025, LEM-058 |
-| `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113, LEM-072 (core run-scoped/sink-wide summary computation: `packages/core/src/metering.ts`, tests `packages/core/test/metering/metering-summary.test.ts`, output `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
+| `harness/metering.py` | Frozen v1 usage events, idempotent sink | `@lemma/cloud/metering` | LEM-113 (`packages/cloud/src/metering.ts`, exports via `packages/cloud/src/index.ts`: frozen event types/units/envelope+metadata contract constants, schema path helpers, `validateEvent`, `defaultIdempotencyKey`, `buildEvent`, append-only JSONL `MeteringEmitter` with fsync/idempotency reload dedupe/deterministic sink-wide+run-scoped `summary()`; tests `packages/cloud/test/metering.test.ts`, output `docs/parity/evidence/LEM-113-metering-test-output.txt`), LEM-072 (core run-scoped/sink-wide summary computation: `packages/core/src/metering.ts`, tests `packages/core/test/metering/metering-summary.test.ts`, output `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
 | `harness/auth.py` | Workspaces, hashed scoped keys, run ownership, audit | `@lemma/cloud/auth` | LEM-114 |
 | `harness/quota.py` | Monthly soft/hard allowance, locking, headers | `@lemma/cloud/quota` | LEM-115 |
 | `harness/ledger.py` | Append-only hash-chained ledger, periods, invoices | `@lemma/cloud/ledger` | LEM-116 |
@@ -168,13 +168,13 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | --- | --- | --- |
 | `schemas/report/report.v1.schema.json` | Published report contract (updated to assay-compatible `quality-harness.report/v1` shape with schema-version enum; validated by `packages/core/src/report.ts` and `packages/core/test/report/report.test.ts`; compatibility/contract tests in `packages/core/test/report/report-contract.test.ts`, output `docs/parity/evidence/LEM-073-report-contract-test-output.txt`) | LEM-020, LEM-073 |
 | `schemas/report/index.json` | Report schema index (lemma `schemas/report/index.json` references report schema; report contract/builder alignment landed in LEM-020; index/schema alignment asserted in LEM-073 contract tests) | LEM-004, LEM-020, LEM-073 |
-| `schemas/metering/envelope.v1.schema.json` | Event envelope | LEM-113 |
-| `schemas/metering/run_started.v1.schema.json` | Run event | LEM-113 |
-| `schemas/metering/check_executed.v1.schema.json` | Check event | LEM-113 |
-| `schemas/metering/browser_minute_consumed.v1.schema.json` | Browser-minute event | LEM-113 |
-| `schemas/metering/evidence_byte_stored.v1.schema.json` | Evidence-byte event | LEM-113 |
-| `schemas/metering/export_generated.v1.schema.json` | Export event | LEM-113 |
-| `schemas/metering/index.json` | Metering schema index | LEM-004, LEM-113 |
+| `schemas/metering/envelope.v1.schema.json` | Event envelope | LEM-113 — contract/schema path helpers and validation aligned in `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/run_started.v1.schema.json` | Run event | LEM-113 — `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/check_executed.v1.schema.json` | Check event | LEM-113 — `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/browser_minute_consumed.v1.schema.json` | Browser-minute event | LEM-113 — `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/evidence_byte_stored.v1.schema.json` | Evidence-byte event | LEM-113 — `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/export_generated.v1.schema.json` | Export event | LEM-113 — `@lemma/cloud/metering`; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
+| `schemas/metering/index.json` | Metering schema index | LEM-004, LEM-113 — `@lemma/cloud/metering` schema helpers; evidence `docs/parity/evidence/LEM-113-metering-test-output.txt` |
 | Report JSON contract | `schema_version`, decision, confidence, findings, blockers, coverage (implemented/validated in `packages/core/src/report.ts`, `schemas/report/report.v1.schema.json`, `packages/core/test/report/report.test.ts`, `packages/core/test/report/report-contract.test.ts`; evidence `docs/parity/evidence/LEM-020-report-test-output.txt`, `docs/parity/evidence/LEM-073-report-contract-test-output.txt`; CLI-produced report contract parity continues in LEM-084/085+) | LEM-020, LEM-073 |
 | Metering v1 event names | Frozen names and idempotency keys | LEM-113 |
 | Policy contract (`advisory-v1`, weight overrides) | Versioned gate policy (`policies/advisory-v1.json`, `packages/core/src/scoring.ts` policy validation/load/defaulting and gate semantics; tests `packages/core/test/policy/policy.test.ts`, output `docs/parity/evidence/LEM-019-policy-test-output.txt`; regression coverage in `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, output `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt`) | LEM-019, LEM-074 |
@@ -241,7 +241,7 @@ with rationale.
 | `test_ssrf.py` | LEM-059, LEM-125 |
 | `test_redaction_corpus.py` (ported corpus/tests: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-008-artifact-scan-output.json`) | LEM-008, LEM-123 |
 | `test_failure_injection.py` | LEM-126 |
-| `test_metering.py` | LEM-113, LEM-072 (run-scoped vs sink-wide summary semantics parity: `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
+| `test_metering.py` | LEM-113 (frozen contract/local sink parity: `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt`), LEM-072 (run-scoped vs sink-wide summary semantics parity: `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
 | `test_auth.py` | LEM-114 |
 | `test_quota.py` | LEM-115 |
 | `test_ledger.py` | LEM-116 |
@@ -274,7 +274,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | D16 | Persona frontmatter is the only ownership source (LEM-044 ports `checkOwnership`/`validateOwnership` and extends the functional frontmatter with lemma-only `static.category.*` scope markers; evidence `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
 | D17 | Invalid findings quarantined, never scored (LEM-045 ports raw-payload extraction, schema validation/quarantine, redaction, contract-failure streaks, degradation, and rebuild-after-resume to `@lemma/core/findings`; evidence `docs/parity/evidence/LEM-045-invalid-findings-test-output.txt`) | LEM-045 |
 | D18 | One structured blocker per blocked check (LEM-046 ports blocker payload derivation, redacted blocker records, dedupe, and refusal outcome application to `@lemma/core/outcomes`; evidence `docs/parity/evidence/LEM-046-blockers-test-output.txt`) | LEM-046 |
-| D21 | Frozen metering v1 names and idempotency keys | LEM-113 |
+| D21 | Frozen metering v1 names and idempotency keys | LEM-113 — `packages/cloud/src/metering.ts`, `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt` |
 | D22 | Hashed scoped keys; opaque cross-tenant lookups | LEM-114 |
 | D23 | Per-action quota enforcement | LEM-115 |
 | D24 | Append-only hash-chained ledger | LEM-116 |

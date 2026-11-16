@@ -307,7 +307,7 @@ retention contracts.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-113 | Port the frozen metering event contract and local sink | P1 | 5 | LEM-013, LEM-020 | Backlog |
+| LEM-113 | Port the frozen metering event contract and local sink | P1 | 5 | LEM-013, LEM-020 | Done |
 | LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Backlog |
 | LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Backlog |
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Backlog |
@@ -4705,6 +4705,55 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-113 — Port the frozen metering event contract and local sink
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-013, LEM-020
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/metering.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port the frozen v1 metering event contract and local
+  append-only JSONL sink (validation, event construction/idempotency, and
+  emitter/summary behavior) to lemma with deterministic, dependency-free
+  runtime semantics compatible with assay's metering contract while using
+  lemma's `.lemma/` state conventions.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports frozen metering contract constants/APIs in
+    `src/metering.ts` (and package entry): event type names
+    `run_started`, `check_executed`, `browser_minute_consumed`,
+    `evidence_byte_stored`, `export_generated` (frozen order/set), required
+    envelope fields, per-event units and required metadata keys, schema path
+    helpers for envelope/event schemas, `validateEvent`, `defaultIdempotencyKey`,
+    and `buildEvent` producing canonical envelopes with all required fields.
+  - Validation/build semantics match the frozen contract: required fields and
+    schema version checked; non-empty strings for `event_id`, `idempotency_key`,
+    `workspace`, `run`, `source`; ISO-8601 `timestamp`; numeric finite quantity
+    with per-type rules (`run_started`/`check_executed`/`export_generated` == 1,
+    `browser_minute_consumed` > 0, `evidence_byte_stored` integer >= 0); unit
+    matches event type; metadata is an object containing required per-type keys.
+  - `MeteringEmitter` provides a local append-only JSONL sink (default
+    `.lemma/metering/events.jsonl` under root, configurable sink/workspace/
+    source) that appends validated, key-sorted JSON events with fsync, ignores
+    duplicate `idempotency_key` deliveries in-memory and across reloads, returns
+    `null` for duplicates, exposes deduped `events()` and deterministic
+    `summary()` with sink-wide and run-scoped counts/types (`event_count`,
+    `event_types`, `run_event_count`, `run_event_types`) and workspace/sink
+    display.
+  - `packages/cloud/test/metering.test.ts` ports/verifies core contract and
+    sink behavior (frozen names, schema files/envelope fields, per-type
+    validation/metadata/quantity rules, envelope field presence/default
+    idempotency key, duplicate idempotency ignored including after reload, local
+    sink append/read, and deterministic run-scoped vs sink-wide summary).
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/metering.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/metering.test.ts` (pass; output recorded).
+- **Evidence:** `packages/cloud/src/metering.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-112 — Publish the adapter compatibility matrix and docs
 

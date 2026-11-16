@@ -1,0 +1,29 @@
+$ pnpm --filter @lemma/cloud typecheck
+$ tsc --noEmit
+
+$ pnpm --filter @lemma/cloud build
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     12.31 KB
+ESM dist/index.js.map 24.13 KB
+ESM ⚡️ Build success in 45ms
+DTS Build start
+DTS ⚡️ Build success in 6759ms
+DTS dist/index.d.ts 3.96 KB
+
+$ pnpm exec vitest run packages/cloud/test/metering.test.ts
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/metering.test.ts (8 tests) 279ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  12:46:11
+   Duration  2.89s (transform 663ms, setup 0ms, collect 976ms, tests 279ms, environment 0ms, prepare 459ms)
+
