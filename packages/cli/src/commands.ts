@@ -30,6 +30,7 @@ import {
 } from "@lemma/core";
 
 import { CliUsageError, type CliCommandHandler, type CliCommandSpec } from "./index-types.js";
+import { demoCommand } from "./demo.js";
 import { DEFAULT_HOST_INSTALL_LAYOUTS, HOST_IDS, isHostId, type HostId } from "@lemma/adapters-sdk";
 import {
   ASSAY_COMMAND_CATALOG,
@@ -907,7 +908,7 @@ export const huntCommand: CliCommandHandler = async (argv) => {
     maxSteps,
     wallClockBudgetMs,
     ...(seed !== undefined ? { seed } : {}),
-    ...((clockMode || frozenClock) ? { clock: { mode: clockMode, frozen: frozenClock ?? null } } : {}),
+    ...((clockMode || frozenClock) ? { clock: { ...(clockMode ? { mode: clockMode } : {}), frozen: frozenClock ?? null } } : {}),
     ...(personasDir ? { personasDir } : {}),
     ...(scenarioPlan ? { scenarioPlan } : {}),
   });
@@ -941,5 +942,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "install", description: "Install lemma host integration assets for a target host.", handler: installCommand },
     { name: "migrate-state", description: "Migrate legacy .harness state to .lemma with a safe copy shim.", handler: migrateStateCommand },
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
+    { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
   ];
 }

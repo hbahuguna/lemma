@@ -364,7 +364,7 @@ makes the tool tryable; slash commands work natively in-chat.
 | LEM-141 | Build the conversational test manager persona | P1 | 8 | LEM-086, LEM-091, LEM-094 | Done |
 | LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Done |
 | LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Done |
-| LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Backlog |
+| LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Done |
 | LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Backlog |
 
 ### E14: Visual Evidence and Reporting Surface
@@ -1421,8 +1421,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-038, LEM-083
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented `lemma demo` CLI generator, demo content/markers, and tests.
 - **Description:** A user-facing `lemma demo` command that generates a
   disposable, intentionally flawed sample project so new users can try lemma
   end-to-end without using their own code. The generated project must be clearly
@@ -1450,11 +1450,13 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests: generation, marker files, refusal on non-empty without `--force`,
     idempotence, end-to-end `lemma run` against the generated demo, and no
     writes outside target.
-- **Verification (planned):**
-  `pnpm --filter @lemma/cli test -- demo && pnpm --filter @lemma/core test -- demo-fixture`
-- **Evidence (planned):** `packages/cli/src/demo.ts`,
-  `packages/cli/test/demo/*`, `packages/core/test/demo-fixture/*`,
-  `docs/parity/evidence/LEM-153-demo-test-output.txt`
+- **Verification:**
+  `pnpm exec vitest run packages/cli/test/demo/demo.test.ts && pnpm --filter @lemma/core exec vitest run test/demo-fixture/demo-fixture.test.ts` (pass; 5/5 CLI, 1/1 core). End-to-end `lemma run --target <demo> --no-browser` produces a parseable, informative report exercising static checks/coverage.
+- **Evidence:** `packages/cli/src/demo.ts`,
+  `packages/cli/src/commands.ts`, `packages/cli/test/demo/demo.test.ts`,
+  `packages/core/test/demo-fixture/demo-fixture.test.ts`,
+  `docs/parity/evidence/LEM-153-demo-test-output.txt`.
+
 
 ### LEM-154 — Verify and complete the in-chat slash-command interface
 
