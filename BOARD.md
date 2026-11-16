@@ -346,7 +346,7 @@ every supported host with visible supply-chain evidence.
 | LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Done |
 | LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Done |
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Done |
-| LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Backlog |
+| LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Done |
 | LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Backlog |
 | LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Backlog |
 | LEM-139 | Run the full parity audit and sign off | P0 | 8 | LEM-112, LEM-115, LEM-121, LEM-126, LEM-131, LEM-133, LEM-134, LEM-135, LEM-136, LEM-137, LEM-138 | Backlog |
@@ -4734,6 +4734,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-136 — Ship the GitHub Action and one marker-based PR comment
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-020, LEM-084
+- **Status:** Done
+- **Claimed:** 2026-11-16 — shipped composite GitHub Action, fork-safe PR workflow, and marker-based PR comment contract/tests.
+- **Description:** Ship a reusable GitHub Action and fork-safe PR automation
+  that runs lemma and maintains exactly one marker-based PR comment with the
+  latest result summary.
+- **Acceptance Criteria:**
+  - `.github/actions/quality-harness/action.yml` (composite action) exists with
+    documented inputs/outputs and steps to run lemma in a PR/CI context, produce
+    report/summary artifacts, and generate/update a marker-based PR comment body
+    using a stable marker (`<!-- lemma-pr-comment -->` / `lemma-pr-comment`)
+    so only one lemma comment is maintained per PR.
+  - `.github/workflows/pr.yml` exists as fork-safe PR automation: validates/runs
+    lemma for PRs with least-privilege permissions and marker-based comment
+    upsert behavior gated to contexts where PR write access is available
+    (no secrets exposed to untrusted fork code; fork PRs degrade safely without
+    failing the core check on missing comment permissions).
+  - Deterministic PR comment rendering/upsert logic is implemented in a testable
+    script/module under `.github/actions/quality-harness/` and covered by local
+    tests (marker presence, single-comment upsert behavior, report-to-summary
+    rendering including decision/status/findings/evidence context).
+  - Workflow/action YAML parse and contract tests pass locally; evidence and
+    `docs/parity/assay-feature-inventory.md` + `BOARD.md` are updated.
+- **Verification:** `node -e "..."` marker check, `python3 -c "import yaml;yaml.safe_load(open('.github/actions/quality-harness/action.yml'));yaml.safe_load(open('.github/workflows/pr.yml'))"`, and `node --test .github/actions/quality-harness/pr-comment.test.mjs`.
+- **Evidence:** `.github/actions/quality-harness/action.yml`, `.github/actions/quality-harness/pr-comment.mjs`, `.github/actions/quality-harness/pr-comment.test.mjs`, `.github/workflows/pr.yml`, `docs/parity/evidence/LEM-136-pr-action-markers.txt`, `docs/parity/evidence/LEM-136-pr-comment-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 
 ### LEM-135 — Build core and browser container images

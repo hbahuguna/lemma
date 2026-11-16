@@ -1,0 +1,54 @@
+name: PR Quality Harness
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-harness-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lemma-pr:
+    name: lemma PR check and marker comment
+    runs-on: ubuntu-latest
+    # Fork-safe: avoid running with elevated permissions on untrusted fork contexts for comment mutation.
+    # The composite action also degrades safely when comment permissions/token are unavailable.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Run lemma and render marker-based PR comment
+        id: harness
+        uses: ./.github/actions/quality-harness
+        with:
+          root: .
+          target: .
+          intent: release confidence
+          report-path: .lemma/report.json
+          comment-body-path: .lemma/pr-comment.md
+          comment-enabled: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'true' || 'false' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.pull_request.number }}
+      - name: Upload lemma PR artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemma-pr-${{ github.event.pull_request.number || github.run_id }}
+          path: |
+            .lemma/report.json
+            .lemma/pr-comment.md
+          if-no-files-found: warn

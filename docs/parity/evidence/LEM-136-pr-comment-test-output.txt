@@ -1,0 +1,34 @@
+TAP version 13
+# Subtest: renderPrComment includes stable marker and key report fields
+ok 1 - renderPrComment includes stable marker and key report fields
+  ---
+  duration_ms: 2.703342
+  type: 'test'
+  ...
+# Subtest: findMarkedComment locates existing marker-based comment
+ok 2 - findMarkedComment locates existing marker-based comment
+  ---
+  duration_ms: 0.388873
+  type: 'test'
+  ...
+# Subtest: planCommentUpsert updates existing marked comment and creates when missing
+ok 3 - planCommentUpsert updates existing marked comment and creates when missing
+  ---
+  duration_ms: 3.582904
+  type: 'test'
+  ...
+# Subtest: renderPrComment is deterministic for same input
+ok 4 - renderPrComment is deterministic for same input
+  ---
+  duration_ms: 0.297286
+  type: 'test'
+  ...
+1..4
+# tests 4
+# suites 0
+# pass 4
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 200.088718

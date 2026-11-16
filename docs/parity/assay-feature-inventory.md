@@ -201,8 +201,8 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `.github/workflows/ci.yml` | Core CI matrix (Node 20/22, macOS/Linux/Windows) + parity/oracle job + browser blocked-degradation leg + browser-enabled Playwright smoke leg (ubuntu) | LEM-132 done, LEM-133 done |
 | `.github/workflows/release.yml` | Provenance-enabled signed npm release/publish workflow (OIDC/id-token, `--provenance`), credential-gated publish; registry publish blocked pending npm org/token | LEM-134 (workflow/config ready, end-to-end blocked) |
 | `.github/workflows/billing-coverage.yml` | Billing coverage job | LEM-121 (regression test coverage ported in cloud package; workflow file pending if required) |
-| `.github/workflows/pr.yml` | Fork-safe PR automation | LEM-136 |
-| `.github/actions/quality-harness/` | Composite PR action | LEM-136 |
+| `.github/workflows/pr.yml` | Fork-safe PR automation (lemma run + marker-based PR comment upsert with fork-safe guards) | LEM-136 |
+| `.github/actions/quality-harness/` | Composite PR action + marker-based PR comment renderer/upsert script and contract tests | LEM-136 |
 | `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 (LEM-095 command-builder/catalog parity coverage in `packages/agent/test/command-catalog-parity.test.ts`, output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`; LEM-096 agent-loop/prompt-contract coverage in `packages/agent/test/agent-loop-prompt-contract.test.ts`, output `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |
 | `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 (package/release provenance config ready) |
 
@@ -251,7 +251,7 @@ with rationale.
 | `test_queue.py` | LEM-119 |
 | `test_retention.py` | LEM-120 |
 | `test_packaging.py` | npm packaging/provenance dry-run + publish metadata/workflow checks (TS equivalent) | LEM-134 |
-| `test_github_action.py` | LEM-136 |
+| `test_github_action.py` | TS-equivalent GitHub Action/PR marker-comment contract tests (`.github/actions/quality-harness/pr-comment.test.mjs`) | LEM-136 |
 | `test_assay_command_contract.py` | LEM-095 (`packages/agent/test/command-catalog-parity.test.ts` ports command-builder/catalog contract parity for host-neutral agent APIs; output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`) |
 | `tests/plugin/agent-loop.test.mjs` | LEM-096 (`packages/agent/test/agent-loop-prompt-contract.test.ts`, `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |
 | `tests/plugin/browser-agent-prompt.test.mjs` | LEM-096 (`packages/agent/test/agent-loop-prompt-contract.test.ts`, `packages/agent/test/browser-agent-prompt.test.ts`; output `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |
@@ -280,7 +280,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | D23 | Per-action quota enforcement | LEM-115 — `packages/cloud/src/quota.ts`, `packages/cloud/test/quota.test.ts`, `docs/parity/evidence/LEM-115-quota-test-output.txt` |
 | D24 | Append-only hash-chained ledger | LEM-116 — `packages/cloud/src/ledger.ts`, `packages/cloud/test/ledger.test.ts`, `docs/parity/evidence/LEM-116-ledger-test-output.txt` |
 | D27 | Tenant queue and isolated roots | LEM-119 |
-| D31 | One marker-based PR comment, fork-safe | LEM-136 |
+| D31 | One marker-based PR comment (`<!-- lemma-pr-comment -->`), fork-safe | LEM-136 |
 | D33 | Redaction corpus scans every artifact | LEM-123 (`docs/parity/evidence/LEM-123-redaction-artifact-scan.json`, `docs/parity/evidence/LEM-123-redaction-test-output.txt`) |
 | D34 | Signed evidence manifest; tamper forces hold | LEM-017, LEM-124 (`docs/parity/evidence/LEM-124-evidence-tamper-test-output.txt`) |
 | D35 | SSRF fail-closed with explicit allowlists | LEM-059, LEM-125 (`docs/parity/evidence/LEM-125-ssrf-test-output.txt`) |

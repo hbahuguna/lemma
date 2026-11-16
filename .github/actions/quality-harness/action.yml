@@ -1,0 +1,120 @@
+name: Lemma Quality Harness
+description: Run lemma in CI/PR contexts and maintain one marker-based PR comment with the latest report summary.
+author: lemma
+
+inputs:
+  root:
+    description: Target repository/workspace root for lemma
+    required: false
+    default: .
+  target:
+    description: Target path or URL for lemma run
+    required: false
+    default: .
+  intent:
+    description: Intent string for lemma run
+    required: false
+    default: release confidence
+  run-args:
+    description: Additional arguments passed to `lemma run`
+    required: false
+    default: ""
+  report-path:
+    description: Path to write/read lemma report JSON
+    required: false
+    default: .lemma/report.json
+  comment-body-path:
+    description: Path to write rendered PR comment markdown
+    required: false
+    default: .lemma/pr-comment.md
+  comment-enabled:
+    description: Enable marker-based PR comment upsert when token and PR context are available
+    required: false
+    default: "true"
+  github-token:
+    description: "Token for PR comment upsert (fork-safe: may be unavailable/read-only on forks)"
+    required: false
+    default: ""
+  pr-number:
+    description: Pull request number for comment upsert
+    required: false
+    default: ""
+
+outputs:
+  report-path:
+    description: Path to lemma report JSON
+    value: ${{ steps.meta.outputs.report-path }}
+  comment-body-path:
+    description: Path to rendered marker-based PR comment body
+    value: ${{ steps.meta.outputs.comment-body-path }}
+  comment-marker:
+    description: Stable marker used for single PR comment upsert
+    value: "<!-- lemma-pr-comment -->"
+  comment-action:
+    description: Planned/executed comment action (create|update|skipped|unavailable)
+    value: ${{ steps.comment.outputs.comment-action }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve paths
+      id: meta
+      shell: bash
+      run: |
+        echo "report-path=${{ inputs.report-path }}" >> "$GITHUB_OUTPUT"
+        echo "comment-body-path=${{ inputs.comment-body-path }}" >> "$GITHUB_OUTPUT"
+
+    - name: Run lemma
+      id: run
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      env:
+        LEMMA_REPORT_PATH: ${{ inputs.report-path }}
+        LEMMA_EXTRA_ARGS: ${{ inputs.run-args }}
+      run: |
+        set -euo pipefail
+        mkdir -p "$(dirname "$LEMMA_REPORT_PATH")"
+        # Prefer local CLI build, then workspace bin, then npx fallback if installed.
+        if [ -f packages/cli/dist/cli.js ]; then
+          node packages/cli/dist/cli.js run --target "${{ inputs.target }}" --intent "${{ inputs.intent }}" --output "$LEMMA_REPORT_PATH" $LEMMA_EXTRA_ARGS
+        elif command -v lemma >/dev/null 2>&1; then
+          lemma run --target "${{ inputs.target }}" --intent "${{ inputs.intent }}" --output "$LEMMA_REPORT_PATH" $LEMMA_EXTRA_ARGS
+        else
+          pnpm exec lemma run --target "${{ inputs.target }}" --intent "${{ inputs.intent }}" --output "$LEMMA_REPORT_PATH" $LEMMA_EXTRA_ARGS
+        fi
+
+    - name: Render marker-based PR comment
+      id: render
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      run: |
+        set -euo pipefail
+        node "${{ github.action_path }}/pr-comment.mjs" --render-only --report "${{ inputs.report-path }}" --output "${{ inputs.comment-body-path }}"
+
+    - name: Upsert PR comment (marker-based)
+      id: comment
+      shell: bash
+      working-directory: ${{ inputs.root }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+      run: |
+        set -euo pipefail
+        if [ "${{ inputs.comment-enabled }}" != "true" ]; then
+          echo "comment-action=skipped" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ -z "${{ inputs.pr-number }}" ]; then
+          echo "comment-action=skipped" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        if [ -z "${GITHUB_TOKEN}" ]; then
+          echo "No token; skipping marker-based PR comment upsert (fork-safe)."
+          echo "comment-action=unavailable" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+        node "${{ github.action_path }}/pr-comment.mjs" --upsert --report "${{ inputs.report-path }}" --repo "${{ github.repository }}" --issue "${{ inputs.pr-number }}" || {
+          echo "PR comment upsert failed or unavailable; fork-safe degradation." >&2
+          echo "comment-action=unavailable" >> "$GITHUB_OUTPUT"
+          exit 0
+        }
+        echo "comment-action=upserted" >> "$GITHUB_OUTPUT"
