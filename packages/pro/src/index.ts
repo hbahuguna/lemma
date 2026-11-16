@@ -20,3 +20,4 @@ export type {
 export * from "./commands/specialists.js";
 export * from "./proof.js";
 export * from "./proof/backends/index.js";
+export * from "./inventory.js";

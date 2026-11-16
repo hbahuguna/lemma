@@ -427,7 +427,7 @@ unlicensed; never a fabricated pass, never a crash.
 | --- | --- | --- | --- | --- | --- |
 | LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Done |
 | LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Done |
-| LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Backlog |
+| LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Done |
 | LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Backlog |
 
 ### E19: Pro Tier — Integration and Model Evaluation Surface
@@ -1741,8 +1741,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-014, LEM-016, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented project-level Pro test inventory (build/persist/read/list), schema, CLI surface, and tests.
 - **Description:** Build a project-level test inventory that aggregates
   checks and tests across runs into a queryable, persistent view. This is a
   cross-run artifact, not a per-run report — useful for planning, coverage
@@ -1765,12 +1765,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     inventory reads or writes occur.
   - Tests cover inventory build, schema validation, bounded history, atomic
     write, corrupt-read error, CLI JSON output, and unlicensed refusal.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- inventory && pnpm test --filter @lemma/cli -- pro-inventory`
-- **Evidence (planned):** `packages/pro/src/inventory.ts`,
-  `schemas/pro/test_inventory.v1.schema.json`,
-  `packages/pro/test/inventory/*`,
-  `packages/cli/test/pro-inventory/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/inventory/inventory.test.ts` PASS (4/4) and
+  `pnpm exec vitest run packages/cli/test/pro-inventory/pro-inventory.test.ts` PASS (2/2).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/inventory.ts`,
+  `schemas/pro/test_inventory.v1.json`, `schemas/pro/test_inventory.v1.schema.json`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/inventory/inventory.test.ts`,
+  `packages/cli/src/commands.ts`,
+  `packages/cli/test/pro-inventory/pro-inventory.test.ts`,
   `docs/parity/evidence/LEM-159-inventory-test-output.txt`
+
 
 ### LEM-160 — Build cross-run quality history and trend analysis
 

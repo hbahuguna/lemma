@@ -1,0 +1,21 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/inventory/inventory.test.ts (4 tests) 143ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  22:33:10
+   Duration  2.59s (transform 945ms, setup 0ms, collect 1.18s, tests 143ms, environment 0ms, prepare 342ms)
+
+---CLI---
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/pro-inventory/pro-inventory.test.ts (2 tests) 70ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  22:33:15
+   Duration  3.36s (transform 1.09s, setup 0ms, collect 1.58s, tests 70ms, environment 0ms, prepare 558ms)
+

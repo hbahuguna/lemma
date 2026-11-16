@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/test_inventory.v1.json",
+  "title": "Lemma Pro Test Inventory v1",
+  "description": "Project-level cross-run test/check inventory (LEM-159).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_root",
+    "generated_at",
+    "history_cap",
+    "runs_indexed",
+    "checks"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.test_inventory/v1" },
+    "project_root": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "history_cap": { "type": "integer", "minimum": 1 },
+    "runs_indexed": { "type": "array", "items": { "type": "string" } },
+    "checks": { "type": "array", "items": { "$ref": "#/$defs/check" } }
+  },
+  "$defs": {
+    "history_entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["run_id", "status", "evidence_fingerprint"],
+      "properties": {
+        "run_id": { "type": "string" },
+        "status": { "type": "string" },
+        "evidence_fingerprint": { "type": "string" },
+        "observed_at": { "type": ["string", "null"] }
+      }
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stable_id",
+        "source",
+        "last_seen_run_id",
+        "last_seen_status",
+        "evidence_fingerprint",
+        "owner_persona",
+        "recent_history"
+      ],
+      "properties": {
+        "stable_id": { "type": "string", "minLength": 1 },
+        "source": { "type": "string", "enum": ["built-in", "plugin", "Pro specialist"] },
+        "last_seen_run_id": { "type": "string" },
+        "last_seen_status": { "type": "string" },
+        "evidence_fingerprint": { "type": "string" },
+        "owner_persona": { "type": "string" },
+        "recent_history": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/history_entry" }
+        }
+      }
+    }
+  }
+}
