@@ -1,0 +1,24 @@
+## browser inspection
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/inspection/inspection.test.ts (3 tests) 971ms
+   ✓ LEM-167 browser inspection (browser package) > scopes to user-selected check subset and links evidence + fix prompts  967ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:42:23
+   Duration  3.87s (transform 895ms, setup 0ms, collect 1.29s, tests 971ms, environment 0ms, prepare 262ms)
+
+
+## core browser-command
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/core/test/browser-command/browser-command.test.ts (2 tests) 376ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:42:30
+   Duration  3.05s (transform 848ms, setup 0ms, collect 1.09s, tests 376ms, environment 0ms, prepare 420ms)
+

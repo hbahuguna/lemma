@@ -455,7 +455,7 @@ workflow and produces durable `.lemma/` artifacts.
 | --- | --- | --- | --- | --- | --- |
 | LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Done |
 | LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Done |
-| LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Backlog |
+| LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Done |
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Backlog |
 | LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Backlog |
@@ -2097,8 +2097,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-051, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented browser inspection API, scoped evidence/fix prompts, CLI/slash wiring, and tests.
+- **Completed:** 2026-11-16
 - **Description:** Add a first-class `/lemma-browser` (and `lemma browser`)
   command for focused browser inspection/exercise, distinct from the general
   `/lemma` run. Records page observations, screenshots, console/network
@@ -2117,10 +2118,20 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     blocker and no fabricated screenshot.
   - Tests cover subset scoping, evidence linkage, blocked behavior, fix-prompt
     determinism, and catalog wiring.
-- **Verification (planned):** `pnpm test --filter @lemma/browser -- inspection && pnpm test --filter @lemma/core -- browser-command`
-- **Evidence (planned):** `packages/core/src/browser-command.ts`,
+- **Verification:** `pnpm exec vitest run packages/browser/test/inspection/inspection.test.ts` (3/3 passed) and `pnpm exec vitest run packages/core/test/browser-command/browser-command.test.ts` (2/2 passed); `pnpm --filter @lemma/browser build`; `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`.
+- **Evidence:** `packages/core/src/browser-command.ts`,
+  `packages/core/test/browser-command/browser-command.test.ts`,
   `packages/browser/src/inspection.ts`,
-  `packages/browser/test/inspection/*`,
+  `packages/browser/test/inspection/inspection.test.ts`,
+  `packages/browser/src/runtime.ts`,
+  `packages/browser/src/index.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
   `docs/parity/evidence/LEM-167-browser-command-test-output.txt`
 
 ### LEM-168 — Build the human decision-context workflow (`/lemma-human`)

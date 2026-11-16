@@ -9,3 +9,5 @@ export * from "./capture.js";
 export * from "./checks.js";
 export * from "./runtime.js";
 export * from "./scenarios.js";
+
+export * from "./inspection.js";

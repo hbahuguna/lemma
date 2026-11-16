@@ -390,6 +390,48 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaBrowser = (d as any).lemma_browser === true;
+      if (lemmaBrowser) {
+        this.state.status = "running";
+        const target = (d as any).browser_target || (d as any).target || "";
+        const checks = Array.isArray((d as any).browser_checks) ? (d as any).browser_checks : undefined;
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running focused browser inspection (/lemma-browser).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent, ...(target ? { target } : {}) },
+        } as any);
+        try {
+          if (!target) throw new Error("Missing target URL for /lemma-browser.");
+          const { runBrowserInspection } = await import("@lemma/core");
+          const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: this.options.cwd } as any);
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Browser inspection ${result.status} for run ${result.run_id}.`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { browser_inspection: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaAuto = (d as any).lemma_auto === true;
       if (lemmaAuto) {
         this.state.status = "running";

@@ -178,6 +178,21 @@ export type ProSpecialistId = "confidence" | "security" | "performance" | "priva
 
 
 
+
+export function parseBrowserSlash(raw: string): { url?: string; checks?: string[] } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-browser") return null;
+  const argText = rest.join(" ").trim();
+  const urlM = argText.match(/(?:^|\s)--(?:url|target)\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i) || argText.match(/^(?:"([^"]+)"|'([^']+)'|(\S+))/);
+  const checksM = argText.match(/(?:^|\s)--checks?\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const url = urlM ? (urlM[1] || urlM[2] || urlM[3] || "").trim() || undefined : undefined;
+  const checks = checksM ? (checksM[1] || checksM[2] || checksM[3] || "").split(",").map(x=>x.trim()).filter(Boolean) : undefined;
+  return { ...(url ? { url } : {}), ...(checks && checks.length ? { checks } : {}) };
+}
+
 export function parseAutoSlash(raw: string): { maxCycles?: number; resume?: boolean; runId?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -333,10 +348,12 @@ export function routeSlashCommand(
   const modelEval = parseModelEvalSlash(raw);
   const more = parseMoreSlash(raw);
   const auto = parseAutoSlash(raw);
+  const browser = parseBrowserSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
   const isAuto = auto !== null || spec.command === "/lemma-auto";
+  const isBrowser = browser !== null || spec.command === "/lemma-browser";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -378,6 +395,13 @@ export function routeSlashCommand(
           ...(auto?.maxCycles ? { auto_max_cycles: auto.maxCycles } : {}),
           ...(auto?.resume ? { auto_resume: true } : {}),
           ...(auto?.runId ? { auto_run_id: auto.runId } : {}),
+        }
+      : {}),
+    ...(isBrowser
+      ? {
+          lemma_browser: true,
+          ...(browser?.url ? { browser_target: browser.url } : {}),
+          ...(browser?.checks ? { browser_checks: browser.checks } : {}),
         }
       : {}),
   };

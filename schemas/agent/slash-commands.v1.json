@@ -345,6 +345,29 @@
         "max_cycles",
         "wall_clock_budget"
       ]
+    },
+    {
+      "command": "/lemma-browser",
+      "target": "catalog",
+      "description": "Focused browser inspection with scoped checks and durable evidence.",
+      "intent": "browser",
+      "catalog_intent": "Assay browser assessment",
+      "arguments": [
+        {
+          "name": "url",
+          "required": true,
+          "description": "Target URL to inspect."
+        },
+        {
+          "name": "checks",
+          "required": false,
+          "description": "Optional comma-separated check subset."
+        }
+      ],
+      "errors": [
+        "browser_unavailable",
+        "invalid_target"
+      ]
     }
   ]
 }

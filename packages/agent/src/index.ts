@@ -891,6 +891,26 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaBrowser = (d as any).lemma_browser === true;
+    if (lemmaBrowser) {
+      const target = (d as any).browser_target || "";
+      const checks = Array.isArray((d as any).browser_checks) ? (d as any).browser_checks : undefined;
+      try {
+        if (!target) throw new Error("Missing target URL for /lemma-browser.");
+        const { runBrowserInspection } = await import("@lemma/core");
+        const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: cwd || process.cwd() } as any);
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Browser inspection ${result.status}: ${result.run_id}`);
+        await sendFinal(`Browser inspection ${result.status} for run ${result.run_id}.${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaAuto = (d as any).lemma_auto === true;
     if (lemmaAuto) {
       const runId = (d as any).auto_run_id || `auto-${Date.now()}`;

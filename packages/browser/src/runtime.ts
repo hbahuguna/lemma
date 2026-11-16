@@ -797,7 +797,7 @@ async function finalizeCaptureArtifacts(args: {
   return refs;
 }
 
-async function captureWithPlaywright(
+export async function captureWithPlaywright(
   url: string,
   playwright: PlaywrightModuleLike,
   options: BrowserRuntimeOptions | undefined,

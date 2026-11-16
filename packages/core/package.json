@@ -54,7 +54,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts src/dashboard.ts src/mcp.ts src/more.ts src/auto-loop.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts src/dashboard.ts src/mcp.ts src/more.ts src/auto-loop.ts src/browser-command.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "schemas:generate": "tsx ../../scripts/schemas/generate.ts",

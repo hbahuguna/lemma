@@ -8,6 +8,7 @@ import {
   Orchestrator,
   runMore,
   runAutoLoop,
+  runBrowserInspection,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1252,12 +1253,36 @@ export const autoCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const browserCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const targetRaw = getString(flags, "target", "t", "url") ?? positionals[0] ?? "";
+  if (!targetRaw) {
+    throw new CliUsageError("Missing target URL for `lemma browser`", { command: "browser" });
+  }
+  const checks = getStringArray(flags, "check", "checks");
+  const scopePages = getStringArray(flags, "scope-page", "scope-pages", "page", "pages");
+  const noBrowser = getBool(flags, "no-browser");
+  const runId = getString(flags, "run-id", "run");
+  const result = await runBrowserInspection({
+    target: normalizeCliTarget(targetRaw),
+    ...(checks.length ? { checks } : {}),
+    ...(scopePages.length ? { scope: { pages: scopePages } } : {}),
+    ...(runId ? { runId } : {}),
+    root,
+    options: { ...(noBrowser ? { noBrowser: true } : {}) },
+  } as any);
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
+    { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },
