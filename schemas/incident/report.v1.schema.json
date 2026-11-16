@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/incident/report.v1.schema.json",
+  "title": "Lemma AI Incident Report v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "incident_id",
+    "status",
+    "containment_actions",
+    "preserved_traces",
+    "regression_promotions",
+    "redaction",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.incident_report/v1" },
+    "incident_id": { "type": "string", "minLength": 1 },
+    "status": { "type": "string" },
+    "containment_actions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "action", "destructive", "approval_required", "approved", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "action": { "type": "string" },
+          "destructive": { "type": "boolean" },
+          "approval_required": { "type": "boolean" },
+          "approved": { "type": "boolean" },
+          "status": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "preserved_traces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trace_id", "source", "preserved_path", "overwritten"],
+        "properties": {
+          "trace_id": { "type": "string" },
+          "source": { "type": "string" },
+          "preserved_path": { "type": "string" },
+          "overwritten": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "regression_promotions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trace_id", "regression_id", "lifecycle", "status", "linked"],
+        "properties": {
+          "trace_id": { "type": "string" },
+          "regression_id": { "type": "string" },
+          "lifecycle": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["candidate", "observed", "repeatable", "promoted"] }
+          },
+          "status": { "type": "string" },
+          "linked": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "redaction": { "type": "object", "additionalProperties": true },
+    "evidence": { "type": "object", "additionalProperties": true }
+  },
+  "additionalProperties": true
+}

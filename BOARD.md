@@ -479,7 +479,7 @@ pass.
 | LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Done |
 | LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Done |
-| LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Done |
 | LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Backlog |
 
 ### E22: AI Systems / Confidence Engineering Workflows
@@ -2594,28 +2594,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-020, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed AI-incident containment workflow (core/schema/tests) with passing acceptance tests.
 - **Description:** Add an AI-incident containment workflow: contain an AI
   incident (prompt injection, data leak, unsafe tool use), preserve traces,
   and promote production failures into regressions (via LEM-189). Every step
   is bounded and evidence-backed.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runIncident({ incidentId, traces, promote? })`
+  - [x] `@lemma/core` exposes `runIncident({ incidentId, traces, promote? })`
     returning an `IncidentReport` validated against
     `schemas/incident/report.v1.json`.
-  - The workflow records the containment actions (with approval gates where
+  - [x] The workflow records the containment actions (with approval gates where
     destructive), preserves trace references in an incident directory under
     `.lemma/incidents/<incident_id>/`, and never overwrites existing evidence.
-  - Promotion of a trace to a regression uses the LEM-189 lifecycle (candidate
+  - [x] Promotion of a trace to a regression uses the LEM-189 lifecycle (candidate
     → observed → repeatable → promoted), and the resulting regression is
     linked from the incident report.
-  - Redaction is applied before persisting traces; tokens, cookies, and
+  - [x] Redaction is applied before persisting traces; tokens, cookies, and
     credential-shaped strings are stripped.
-  - Tests cover containment actions, approval gates, trace preservation,
+  - [x] Tests cover containment actions, approval gates, trace preservation,
     regression promotion, redaction, and report schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- incident`
-- **Evidence (planned):** `packages/core/src/incident.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- incident` (pass, 3/3) — `docs/parity/evidence/LEM-181-incident-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/incident.ts`,
   `schemas/incident/report.v1.schema.json`,
   `packages/core/test/incident/*`,
   `docs/parity/evidence/LEM-181-incident-test-output.txt`

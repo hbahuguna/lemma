@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/incident/incident.test.ts (3 tests) 481ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:40:31
+   Duration  3.27s (transform 933ms, setup 0ms, collect 1.38s, tests 481ms, environment 0ms, prepare 252ms)
+
