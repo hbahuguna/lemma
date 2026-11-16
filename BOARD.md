@@ -480,7 +480,7 @@ pass.
 | LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Done |
 | LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Done |
-| LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Backlog |
+| LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Done |
 
 ### E22: AI Systems / Confidence Engineering Workflows
 
@@ -2626,30 +2626,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-084, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed continuous testing workflow /lemma-forever (core/cli/dashboard/tests) with passing acceptance tests.
 - **Description:** Add a `/lemma-forever` (and `lemma forever`) continuous
   workflow that learns, expands coverage, and hunts bugs after two
   confirmations; durable checkpoints and a live mission report.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runForever({ root, target, maxCycles, checkpointEvery })`
+  - [x] `@lemma/core` exposes `runForever({ root, target, maxCycles, checkpointEvery })`
     returning a `ForeverResult` with per-cycle evidence under
     `.lemma/forever/<run_id>/`.
-  - Expansion is bounded by `maxCycles` and wall-clock caps; only confirmed
+  - [x] Expansion is bounded by `maxCycles` and wall-clock caps; only confirmed
     findings (observed twice with the same fingerprint) trigger coverage
     expansion; unconfirmed findings are recorded but never trigger expansion.
-  - Every cycle writes a checkpoint via `@lemma/core/state` atomic writes;
+  - [x] Every cycle writes a checkpoint via `@lemma/core/state` atomic writes;
     resume replays from the last checkpoint; fingerprint mismatch refusal
     applies (per LEM-021).
-  - A live mission report is served through the dashboard (LEM-143); the CLI
+  - [x] A live mission report is served through the dashboard (LEM-143); the CLI
     surfaces the same report as JSON.
-  - Determinism: same seed + frozen clock + same root → byte-identical
+  - [x] Determinism: same seed + frozen clock + same root → byte-identical
     checkpoints (modulo documented volatile fields).
-  - Tests cover cycle cap, wall-clock cap, confirmed-vs-unconfirmed expansion,
+  - [x] Tests cover cycle cap, wall-clock cap, confirmed-vs-unconfirmed expansion,
     checkpoint write/resume, fingerprint refusal, dashboard surfacing, and
     determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- forever && pnpm test --filter @lemma/cli -- forever`
-- **Evidence (planned):** `packages/core/src/forever.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/forever/forever.test.ts` (pass, 4/4) and `pnpm exec vitest run packages/cli/test/forever/forever.test.ts` (pass, 1/1), satisfying acceptance test `pnpm test --filter @lemma/core -- forever && pnpm test --filter @lemma/cli -- forever` — `docs/parity/evidence/LEM-182-forever-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass)
+- **Evidence:** `packages/core/src/forever.ts`,
   `packages/core/test/forever/*`,
   `packages/cli/test/forever/*`,
   `docs/parity/evidence/LEM-182-forever-test-output.txt`

@@ -1,6 +1,8 @@
 import http from "node:http";
 import { randomBytes } from "node:crypto";
 import { URL } from "node:url";
+import path from "node:path";
+import { promises as fs } from "node:fs";
 
 import { HarnessError, StateError } from "./errors.js";
 import type { StateStore } from "./state-store.js";
@@ -8,6 +10,7 @@ import type { EvidenceStore } from "./evidence.js";
 import { buildReleaseBrief } from "./release-brief.js";
 import { buildJourneyMap } from "./journey-map.js";
 import { loadSettings, saveSettings } from "./settings.js";
+import { readJsonFile } from "./state.js";
 
 export interface DashboardHandle {
   url: string;
@@ -73,6 +76,27 @@ function safeNoopLiveView(): Record<string, unknown> {
   };
 }
 
+
+async function readForeverMission(root: string, runId?: string | null): Promise<Record<string, unknown> | null> {
+  const base = path.join(root, ".lemma", "forever");
+  const tryRead = async (id: string) => {
+    try {
+      const data = await readJsonFile<any>(path.join(base, id, "mission.json"));
+      return data && typeof data === "object" ? data as Record<string, unknown> : null;
+    } catch { return null; }
+  };
+  if (runId) return await tryRead(runId);
+  try {
+    const entries = await fs.readdir(base, { withFileTypes: true });
+    const dirs = entries.filter((e: any) => e.isDirectory()).map((e: any) => e.name as string).sort();
+    for (let i = dirs.length - 1; i >= 0; i--) {
+      const m = await tryRead(dirs[i]!);
+      if (m) return m;
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+
 async function readLiveView(options: StartDashboardOptions): Promise<Record<string, unknown>> {
   const { stateStore, evidenceStore, report } = options;
   let progress: any = null;
@@ -92,6 +116,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
     }
   }
 
+  const foreverMission = await readForeverMission(stateStore.root, progress && typeof progress === "object" ? (progress.run_id ?? null) : null).catch(() => null) ?? await readForeverMission(stateStore.root, null).catch(() => null);
   if (!progress || typeof progress !== "object") {
     const r: any = report ?? {};
     const notes = Array.isArray(r.review_notes) ? r.review_notes : [];
@@ -104,6 +129,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
       report_summary: summary,
       review_notes: notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")),
       release_decision: r.release_decision ?? null,
+      forever_mission: foreverMission,
     };
   }
 
@@ -170,10 +196,11 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
       in_flight_evidence_refs,
       completed_checks,
       report_summary: report ? summarizeReport(report) : summarizeReport(progress.report ?? null),
-    review_notes: (() => { const r: any = report ?? (progress as any).report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")); })(),
+      review_notes: (() => { const r: any = report ?? (progress as any).report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")); })(),
     },
     evidence,
     release_decision: (() => { const r: any = report ?? (progress as any).report ?? {}; return r.release_decision ?? null; })(),
+    forever_mission: foreverMission,
   };
 }
 
@@ -230,6 +257,7 @@ function htmlPage(): string {
     <div class="card"><h2>Report summary</h2><pre id="report">(none)</pre></div>
   </div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
+  <div class="card" style="margin-top:1rem"><h2>Forever mission report</h2><pre id="foreverMission">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Explicit release decision</h2><pre id="releaseDecision">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Review notes (contested)</h2><pre id="reviews">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Completed checks</h2><div id="checks" class="muted">(none)</div></div>
@@ -267,6 +295,9 @@ function htmlPage(): string {
       const rd = data.release_decision || (live && live.report_summary && live.report_summary.release_decision) || null;
       const rdEl = document.getElementById('releaseDecision');
       if (rdEl) rdEl.textContent = rd ? JSON.stringify(rd, null, 2) : '(none)';
+      const fm = data.forever_mission || null;
+      const fmEl = document.getElementById('foreverMission');
+      if (fmEl) fmEl.textContent = fm ? JSON.stringify(fm, null, 2) : '(none)';
       const checks = live.completed_checks || [];
       if(!checks.length){ document.getElementById('checks').innerHTML = '<span class="muted">(none)</span>'; }
       else {

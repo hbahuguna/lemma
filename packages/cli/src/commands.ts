@@ -8,6 +8,7 @@ import {
   Orchestrator,
   runMore,
   runAutoLoop,
+  runForever,
   runBrowserInspection,
   runHumanContext,
   runGenerate,
@@ -1461,12 +1462,46 @@ export const reviewCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: report };
 };
 
+
+export const foreverCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const target = getString(flags, "target", "path", "url") ?? root;
+  const maxCycles = toInt(getString(flags, "max-cycles", "maxCycles") ?? "5", "--max-cycles");
+  const checkpointEvery = toInt(getString(flags, "checkpoint-every", "checkpointEvery") ?? "1", "--checkpoint-every");
+  const wallClockMsStr = getString(flags, "wall-clock-ms", "wallClockMs");
+  const wallClockMs = wallClockMsStr != null ? toInt(wallClockMsStr, "--wall-clock-ms") : undefined;
+  const runId = getString(flags, "run-id", "runId");
+  const resume = getBool(flags, "resume") === true;
+  const clock = getString(flags, "clock") === "frozen" ? "frozen" : "real";
+  const frozenNow = getString(flags, "frozen-clock", "frozenClock", "frozen-now", "frozenNow");
+  const seedRaw = getString(flags, "seed");
+  const seed = seedRaw != null ? Number(seedRaw) : null;
+
+  const result = await runForever({
+    root,
+    target,
+    maxCycles,
+    checkpointEvery,
+    ...(wallClockMs != null ? { wallClockMs } : {}),
+    ...(runId ? { runId } : {}),
+    resume,
+    clock,
+    ...(frozenNow ? { frozenNow } : {}),
+    ...(seed != null && Number.isFinite(seed) ? { seed } : {}),
+  } as any);
+
+  // CLI surfaces the same mission report as JSON
+  return { stdoutJson: result.mission, exitCode: result.status === "failed" ? 1 : 0 };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
+    { name: "forever", description: "Run continuous testing workflow (/lemma-forever) with durable checkpoints and live mission report.", handler: foreverCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
     { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },

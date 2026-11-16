@@ -1,0 +1,16 @@
+$ vitest run --filter @lemma/core -- forever
+file:///Users/skaparwan/github/lemma/node_modules/.pnpm/vitest@3.2.7_@types+node@22.20.5_supports-color@7.2.0_tsx@4.23.15/node_modules/vitest/dist/chunks/cac.BfaZ95xE.js:404
+          throw new CACError(`Unknown option \`${name.length > 1 ? `--${name}` : `-${name}`}\``);
+                ^
+
+CACError: Unknown option `--filter`
+    at Command.checkUnknownOptions (file:///Users/skaparwan/github/lemma/node_modules/.pnpm/vitest@3.2.7_@types+node@22.20.5_supports-color@7.2.0_tsx@4.23.15/node_modules/vitest/dist/chunks/cac.BfaZ95xE.js:404:17)
+    at CAC.runMatchedCommand (file:///Users/skaparwan/github/lemma/node_modules/.pnpm/vitest@3.2.7_@types+node@22.20.5_supports-color@7.2.0_tsx@4.23.15/node_modules/vitest/dist/chunks/cac.BfaZ95xE.js:604:13)
+    at CAC.parse (file:///Users/skaparwan/github/lemma/node_modules/.pnpm/vitest@3.2.7_@types+node@22.20.5_supports-color@7.2.0_tsx@4.23.15/node_modules/vitest/dist/chunks/cac.BfaZ95xE.js:545:12)
+    at file:///Users/skaparwan/github/lemma/node_modules/.pnpm/vitest@3.2.7_@types+node@22.20.5_supports-color@7.2.0_tsx@4.23.15/node_modules/vitest/dist/cli.js:27:13
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.2
+[ELIFECYCLE] Test failed. See above for more details.
