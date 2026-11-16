@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { applyEvidenceLevelsToFindings } from "./evidence-level.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -129,7 +130,8 @@ export function buildReport(
   evidenceSummary: Record<string, unknown>,
   generatedAt?: string,
 ): Record<string, unknown> {
-  const findings = sortFindings(state.findings);
+  const findingsRaw = sortFindings(state.findings);
+  const findings = applyEvidenceLevelsToFindings(findingsRaw as any[]) as typeof findingsRaw;
   const invalidFindings = sortByRecordedAtId(state.invalid_findings);
   const blockers = sortByRecordedAtId(state.blockers);
   const contractFailures: Record<string, number> = {};

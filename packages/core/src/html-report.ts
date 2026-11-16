@@ -197,16 +197,18 @@ export async function buildHtmlReport(
   }
 
   const findingsHtml = findings.length
-    ? `<table class="findings"><thead><tr><th>Severity</th><th>ID</th><th>Check</th><th>Title</th><th>Evidence</th><th>Location</th></tr></thead><tbody>${findings
+    ? `<table class="findings"><thead><tr><th>Severity</th><th>Level</th><th>ID</th><th>Check</th><th>Title</th><th>Evidence</th><th>Location</th></tr></thead><tbody>${findings
         .map((f) => {
           if (!isRecord(f)) return "";
           const sev = escapeHtml(redactStr(f.severity));
+          const level = escapeHtml(redactStr((f as any).evidence_level ?? "E0"));
+          const levelNote = (f as any).evidence_level_note ? ` <span class="note" title="${escapeHtml(redactStr((f as any).evidence_level_note))}">↓</span>` : "";
           const id = escapeHtml(redactStr(f.id));
           const checkId = escapeHtml(redactStr(f.check_id));
           const t = escapeHtml(redactStr(f.title));
           const loc = escapeHtml(redactStr(f.location));
           const ev = Array.isArray(f.evidence) ? f.evidence.filter((x): x is string => typeof x === "string").map((x) => escapeHtml(x)).join(", ") : "";
-          return `<tr><td class="sev sev-${sev.toLowerCase()}">${sev}</td><td>${id}</td><td>${checkId}</td><td>${t}</td><td class="ev">${ev || "—"}</td><td>${loc || "—"}</td></tr>`;
+          return `<tr><td class="sev sev-${sev.toLowerCase()}">${sev}</td><td class="evidence-level">${level}${levelNote}</td><td>${id}</td><td>${checkId}</td><td>${t}</td><td class="ev">${ev || "—"}</td><td>${loc || "—"}</td></tr>`;
         })
         .join("")}</tbody></table>`
     : `<p class="empty">No findings.</p>`;

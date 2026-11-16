@@ -507,7 +507,7 @@ auditable system.
 | --- | --- | --- | --- | --- | --- |
 | LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | In Progress |
 | LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Done |
-| LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Backlog |
+| LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | In Progress |
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Backlog |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Backlog |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Backlog |
@@ -2828,8 +2828,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-016, LEM-020
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing E0–E3 evidence-level classification (core/report/surfacing/tests) and verification.
 - **Description:** Classify every finding with an explicit truth level: E3
   (observed live behavior + captured result), E2 (corroborated, e.g. source
   + test), E1 (inspected source only), E0 (unknown). No finding claims a
@@ -2849,8 +2849,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Classification is deterministic (same finding + evidence → same level).
   - Tests cover each level, downgrade path, policy gate interaction,
     dashboard/HTML surfacing, and determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- evidence-level`
-- **Evidence (planned):** `packages/core/src/evidence-level.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- evidence-level`
+- **Evidence (planned/in progress):** `packages/core/src/evidence-level.ts`,
   `packages/core/test/evidence-level/*`,
   `docs/parity/evidence/LEM-188-evidence-level-test-output.txt`
 

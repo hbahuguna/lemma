@@ -212,6 +212,12 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
   const reviewNotes = Array.isArray(r.review_notes) ? r.review_notes : [];
   const contested = reviewNotes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note"));
   const rd = r.release_decision && typeof r.release_decision === "object" ? r.release_decision : null;
+  const findings = Array.isArray(r.findings) ? r.findings : [];
+  const levelCounts: Record<string, number> = { E0: 0, E1: 0, E2: 0, E3: 0 };
+  for (const f of findings) {
+    const lvl = f && typeof f === "object" ? (f.evidence_level || "E0") : "E0";
+    if (lvl === "E0" || lvl === "E1" || lvl === "E2" || lvl === "E3") levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
+  }
   return {
     run_id: r.run_id ?? null,
     status: r.status ?? null,
@@ -221,6 +227,7 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
     review_notes_count: reviewNotes.length,
     contested_count: contested.length,
     release_decision: rd ? { decision: (rd as any).decision ?? null, decision_id: (rd as any).decision_id ?? null } : null,
+    finding_evidence_levels: levelCounts,
   };
 }
 

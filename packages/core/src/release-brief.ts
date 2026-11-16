@@ -12,6 +12,7 @@ export interface ReleaseBriefFinding {
   title: string;
   severity: string;
   check_id: string;
+  evidence_level?: string;
 }
 
 export interface ReleaseBriefDecision {
@@ -116,6 +117,7 @@ export function buildReleaseBrief(report: unknown, options: BuildReleaseBriefOpt
     title: asString(f.title),
     severity: asString(f.severity),
     check_id: asString(f.check_id),
+    ...(asString((f as any).evidence_level) ? { evidence_level: asString((f as any).evidence_level) } : {}),
   }));
 
   const blockersRaw = Array.isArray(r.blockers) ? r.blockers.filter(isRecord) : [];
@@ -189,7 +191,8 @@ export function renderReleaseBriefMarkdown(brief: Omit<ReleaseBrief, "markdown" 
     lines.push("- (none)");
   } else {
     for (const f of brief.top_findings) {
-      lines.push(`- [${f.severity}] ${f.title} (id: ${f.id}, check: ${f.check_id})`);
+      const lvl = (f as any).evidence_level ? ` ${f.evidence_level}` : "";
+      lines.push(`- [${f.severity}${lvl ? `/${lvl}` : ""}] ${f.title} (id: ${f.id}, check: ${f.check_id})`);
     }
   }
   lines.push("");
@@ -209,7 +212,7 @@ export function renderReleaseBriefMarkdown(brief: Omit<ReleaseBrief, "markdown" 
 export function renderReleaseBriefHtml(brief: Omit<ReleaseBrief, "markdown" | "html">): string {
   const esc = (v: unknown) => escapeHtml(redactText(String(v ?? "")));
   const findings = brief.top_findings.length
-    ? `<ul>${brief.top_findings.map((f) => `<li><strong>[${esc(f.severity)}]</strong> ${esc(f.title)} <small>(id: ${esc(f.id)}, check: ${esc(f.check_id)})</small></li>`).join("")}</ul>`
+    ? `<ul>${brief.top_findings.map((f) => `<li><strong>[${esc(f.severity)}${(f as any).evidence_level ? "/" + esc((f as any).evidence_level) : ""}]</strong> ${esc(f.title)} <small>(id: ${esc(f.id)}, check: ${esc(f.check_id)})</small></li>`).join("")}</ul>`
     : `<p>(none)</p>`;
   const gaps = brief.coverage_gaps.length ? `<ul>${brief.coverage_gaps.map((g) => `<li>${esc(g)}</li>`).join("")}</ul>` : `<p>(none)</p>`;
   const steps = brief.next_steps.length ? `<ol>${brief.next_steps.map((s) => `<li>${esc(s)}</li>`).join("")}</ol>` : `<p>(none)</p>`;

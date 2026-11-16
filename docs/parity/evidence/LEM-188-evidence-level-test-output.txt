@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/evidence-level/evidence-level.test.ts (5 tests) 85ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  02:41:48
+   Duration  2.52s (transform 889ms, setup 0ms, collect 1.24s, tests 85ms, environment 0ms, prepare 144ms)
+

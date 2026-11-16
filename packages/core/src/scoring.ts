@@ -1,4 +1,5 @@
 import { promises as fs } from "node:fs";
+import { classifyFinding, evidenceLevelRank, isEvidenceLevel, type EvidenceLevel } from "./evidence-level.js";
 
 import { PolicyError } from "./errors.js";
 import { CheckStatus, Severity, normalizeConfidence, type Check, type Confidence, type Finding } from "./models.js";
@@ -35,6 +36,8 @@ export interface ScoringPolicyGate {
   fail_on_high: boolean;
   coverage_warn: number;
   coverage_fail: number;
+  min_evidence_level?: EvidenceLevel;
+  minimum_evidence_level?: EvidenceLevel;
   [key: string]: unknown;
 }
 
@@ -161,7 +164,8 @@ export function policyFromDict(data: unknown): ScoringPolicy {
   if (!isRecord(gate)) throw new PolicyError("gate must be an object.");
   const requiredGate = new Set(["pass_score", "warn_score", "fail_on_critical", "fail_on_high", "coverage_warn", "coverage_fail"]);
   for (const k of requiredGate) if (!(k in gate)) throw new PolicyError("gate is missing required keys.");
-  for (const k of Object.keys(gate)) if (!requiredGate.has(k)) throw new PolicyError("gate contains unknown keys.");
+  const allowedGate = new Set([...requiredGate, "min_evidence_level", "minimum_evidence_level"]);
+  for (const k of Object.keys(gate)) if (!allowedGate.has(k)) throw new PolicyError("gate contains unknown keys.");
   const passScore = assertNumber(gate.pass_score, "gate.pass_score must be a number from 0 to 100.");
   const warnScore = assertNumber(gate.warn_score, "gate.warn_score must be a number from 0 to 100.");
   if (passScore < 0 || passScore > 100) throw new PolicyError("gate.pass_score must be a number from 0 to 100.");
@@ -174,6 +178,23 @@ export function policyFromDict(data: unknown): ScoringPolicy {
   if (covWarn < 0 || covWarn > 1) throw new PolicyError("gate.coverage_warn must be a number from 0 to 1.");
   if (covFail < 0 || covFail > 1) throw new PolicyError("gate.coverage_fail must be a number from 0 to 1.");
   if (covFail > covWarn) throw new PolicyError("gate.coverage_fail must not exceed gate.coverage_warn.");
+  const minLevelRaw = (gate as any).min_evidence_level ?? (gate as any).minimum_evidence_level;
+  if (minLevelRaw !== undefined && !isEvidenceLevel(minLevelRaw)) {
+    throw new PolicyError("gate.min_evidence_level must be one of E0, E1, E2, E3 when provided.");
+  }
+
+  const gateOut: any = {
+      pass_score: passScore,
+      warn_score: warnScore,
+      fail_on_critical: gate.fail_on_critical,
+      fail_on_high: gate.fail_on_high,
+      coverage_warn: covWarn,
+      coverage_fail: covFail,
+    };
+  if (minLevelRaw !== undefined) {
+    gateOut.min_evidence_level = minLevelRaw;
+    gateOut.minimum_evidence_level = minLevelRaw;
+  }
 
   return {
     id: policyId,
@@ -187,14 +208,7 @@ export function policyFromDict(data: unknown): ScoringPolicy {
       two_high: Number(caps.two_high),
       halted: Number(caps.halted),
     },
-    gate: {
-      pass_score: passScore,
-      warn_score: warnScore,
-      fail_on_critical: gate.fail_on_critical,
-      fail_on_high: gate.fail_on_high,
-      coverage_warn: covWarn,
-      coverage_fail: covFail,
-    },
+    gate: gateOut,
   };
 }
 
@@ -408,6 +422,16 @@ export function scoreConfidence(
 
   const gateReasons: string[] = [];
   const gate = policy.gate;
+  const minEvidenceLevel = (gate as any).min_evidence_level ?? (gate as any).minimum_evidence_level;
+  let evidenceLevelGateFailed = false;
+  if (isEvidenceLevel(minEvidenceLevel)) {
+    const minRank = evidenceLevelRank(minEvidenceLevel);
+    const below = uniqueFindings.filter((f) => !f.suppressed).filter((f) => evidenceLevelRank(classifyFinding(f as any).level) < minRank);
+    if (below.length > 0) {
+      evidenceLevelGateFailed = true;
+      gateReasons.push(`${below.length} finding(s) are below required minimum evidence level ${minEvidenceLevel} for SHIP.`);
+    }
+  }
   if (gate.fail_on_critical && criticalCount > 0) {
     gateReasons.push("One or more critical findings are present.");
   }
@@ -424,7 +448,7 @@ export function scoreConfidence(
     gateReasons.push(`Confidence is below the advisory release floor of ${gate.warn_score}.`);
   }
   let gateStatus: "pass" | "warn" | "fail";
-  if (criticalCount > 0 || score < gate.warn_score || coverageRatio < gate.coverage_fail || (gate.fail_on_high && highCount > 0)) {
+  if (evidenceLevelGateFailed || criticalCount > 0 || score < gate.warn_score || coverageRatio < gate.coverage_fail || (gate.fail_on_high && highCount > 0)) {
     gateStatus = "fail";
   } else if (score < gate.pass_score || highCount > 0 || coverageRatio < gate.coverage_warn) {
     gateStatus = "warn";
