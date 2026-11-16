@@ -477,6 +477,7 @@ export interface RunStateDomain {
   error: string;
   seed?: number | null;
   clock_mode: string;
+  mode: string;
 }
 
 export function createRunState(input: {
@@ -488,6 +489,7 @@ export function createRunState(input: {
   [key: string]: unknown;
 }): RunStateDomain {
   const { target, ...rest } = input;
+  const mode = typeof (rest as any).mode === "string" ? (rest as any).mode : (typeof (asRecord((rest as any).options) as any).execution_mode === "string" ? (asRecord((rest as any).options) as any).execution_mode : "test");
   return normalizeRunState({
     run_id: input.run_id ?? newId("run"),
     workflow_id: input.workflow_id ?? "release-confidence",
@@ -497,6 +499,7 @@ export function createRunState(input: {
     current_phase: DomainPhaseName.RISK_ANALYSIS,
     started_at: now(),
     updated_at: now(),
+    mode,
     ...rest,
     target,
   });
@@ -514,6 +517,7 @@ function asIntRecord(value: unknown): Record<string, number> {
 export function normalizeRunState(data: unknown): RunStateDomain {
   const d = isRecord(data) ? data : {};
   const startedAt = asString(d.started_at, now());
+  const modeRaw = asString(d.mode, asString((asRecord(d.options) as any).execution_mode, "test"));
   return {
     schema_version: asString(d.schema_version, MODEL_SCHEMA_VERSION),
     run_id: asString(d.run_id),
@@ -545,6 +549,7 @@ export function normalizeRunState(data: unknown): RunStateDomain {
     error: asString(d.error),
     seed: (d.seed === null || typeof d.seed === "number") ? d.seed : null,
     clock_mode: asString(d.clock_mode, "real"),
+    mode: (modeRaw || "test").toLowerCase(),
   };
 }
 

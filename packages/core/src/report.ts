@@ -229,10 +229,13 @@ export function buildReport(
   }
 
   const confidence = state.confidence;
+  const executionMode = (state as any).mode ?? (state.options as any)?.execution_mode ?? "test";
   return {
     schema_version: REPORT_SCHEMA,
     generated_at: generatedAt ?? now(),
     run_id: state.run_id,
+    execution_mode: executionMode,
+    mode: executionMode,
     determinism: {
       seed: state.seed ?? null,
       clock_mode: state.clock_mode ?? "real",

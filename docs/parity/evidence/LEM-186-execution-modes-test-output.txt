@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/execution-modes/execution-modes.test.ts (3 tests) 4814ms
+   ✓ LEM-186 explicit execution modes > supports each mode with documented semantics and records mode in progress state and final report  3246ms
+   ✓ LEM-186 explicit execution modes > enforces same mode on resume and throws typed ModeMismatchError on invalid transition  715ms
+   ✓ LEM-186 explicit execution modes > records mode in persisted progress and cannot be silently changed mid-run (resume enforces saved mode)  852ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:26:58
+   Duration  7.30s (transform 1.04s, setup 0ms, collect 1.46s, tests 4.81s, environment 0ms, prepare 152ms)
+

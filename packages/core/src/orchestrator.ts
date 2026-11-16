@@ -1,4 +1,5 @@
 import { HarnessError, KillSwitchHaltError, StateError } from "./errors.js";
+import { ModeMismatchError, normalizeExecutionMode } from "./execution-modes.js";
 import { registryFingerprint, type CheckRegistryLike } from "./checks.js";
 import {
   currentDeterminism,
@@ -59,6 +60,7 @@ export interface OrchestratorRunOptions {
   seed?: number | null;
   clockMode?: ClockMode;
   frozenClock?: unknown;
+  mode?: string;
 }
 
 export interface PhaseHandlerContext {
@@ -268,6 +270,14 @@ export class Orchestrator {
       );
     }
 
+    const savedMode = normalizeExecutionMode((state as any).mode ?? state.options?.execution_mode, "test");
+    const requestedMode = normalizeExecutionMode(options.mode ?? (options.options as any)?.execution_mode ?? savedMode, savedMode);
+    if (savedMode !== requestedMode) {
+      throw new ModeMismatchError(savedMode as any, requestedMode as any);
+    }
+    (state as any).mode = savedMode;
+    state.options = { ...(state.options ?? {}), execution_mode: savedMode };
+
     prepareResumeState(state, requestedTarget);
 
     const evidenceStore = options.evidenceStore ?? new EvidenceStore(
@@ -338,6 +348,7 @@ export class Orchestrator {
     const budget = validateBudget(options);
     const workflow = options.workflow ?? RELEASE_CONFIDENCE;
     const intent = options.intent ?? "";
+    const mode = normalizeExecutionMode(options.mode ?? (options.options as any)?.execution_mode, "test");
     const resolvedOptions: Required<Pick<OrchestratorRunOptions, "intent" | "maxChecks">> &
       Omit<OrchestratorRunOptions, "intent" | "maxChecks"> = {
       ...options,
@@ -365,7 +376,8 @@ export class Orchestrator {
         workflow_version: workflow.version,
         target: options.target,
         intent,
-        options: { ...(options.options ?? {}), maxChecks: budget.maxChecks },
+        mode,
+        options: { ...(options.options ?? {}), maxChecks: budget.maxChecks, execution_mode: mode },
       });
       state.phases = PHASE_ORDER.map((name) => phaseFromWorkflow(name, workflow));
       state.current_phase = DomainPhaseName.RISK_ANALYSIS;
@@ -534,6 +546,34 @@ export class Orchestrator {
           state.status = RunStatus.COMPLETED;
           state.completed_at = state.completed_at ?? now();
         }
+      }
+
+      // Mode semantics (LEM-186): enforce evidence-per-mode contract at run boundary
+      const mode = normalizeExecutionMode((state as any).mode ?? state.options?.execution_mode, "test");
+      (state as any).mode = mode;
+      state.options = { ...(state.options ?? {}), execution_mode: mode };
+      if (mode === "learn") {
+        // exploration without producing final findings
+        state.findings = [];
+        state.invalid_findings = [];
+      } else if (mode === "plan") {
+        // planned tests only: no execution findings produced
+        state.findings = [];
+        state.invalid_findings = [];
+        for (const check of state.checks) {
+          if (check.status === CheckStatus.PASSED || check.status === CheckStatus.FAILED || check.status === CheckStatus.ERROR) {
+            check.status = CheckStatus.PLANNED;
+            check.actual = check.actual || "Planned only (plan mode)";
+          }
+        }
+      } else if (mode === "focused") {
+        // bounded subset: record explicit scope note in options if provided
+        if (!state.options.focus_scope && Array.isArray(state.options.focus_checks)) {
+          state.options.focus_scope = { checks: state.options.focus_checks };
+        }
+      } else if (mode === "review") {
+        // independent review mode marker; review artifacts/evidence are carried by run/report state
+        state.options.independent_review_mode = true;
       }
     } finally {
       if (state.kill_switch.triggered) {

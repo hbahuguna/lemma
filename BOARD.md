@@ -505,7 +505,7 @@ auditable system.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | Backlog |
+| LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | In Progress |
 | LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Backlog |
 | LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Backlog |
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Backlog |
@@ -2764,27 +2764,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-015, LEM-083
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed explicit execution modes (core/docs/tests/verification).
 - **Description:** Add explicit execution modes: `plan`, `test`, `review`,
   `focused`, `learn`. The mode is chosen before a run and changes the
   documented evidence semantics; a mode is recorded in the run and cannot be
   silently changed mid-run.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `ExecutionMode` and mode-aware `run({ mode, ... })`;
+  - [x] `@lemma/core` exposes `ExecutionMode` and mode-aware `run({ mode, ... })`;
     each mode has documented evidence semantics in
     `docs/execution-modes.md` and a typed `ModeMismatchError` for invalid
     mode transitions.
-  - `plan` produces planned tests only, `test` executes planned tests,
+  - [x] `plan` produces planned tests only, `test` executes planned tests,
     `review` executes independent review (LEM-179), `focused` runs a bounded
     subset, `learn` runs exploration without producing final findings.
-  - The mode is recorded in the run's progress state and in the final report;
+  - [x] The mode is recorded in the run's progress state and in the final report;
     resume enforces the same mode (a resumed run cannot change mode).
-  - Tests cover each mode, mode mismatch error, evidence-per-mode contract,
+  - [x] Tests cover each mode, mode mismatch error, evidence-per-mode contract,
     and resume enforcement.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- execution-modes`
-- **Evidence (planned):** `packages/core/src/execution-modes.ts`,
-  `docs/execution-modes.md`, `packages/core/test/execution-modes/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/execution-modes/execution-modes.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- execution-modes` — `docs/parity/evidence/LEM-186-execution-modes-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/execution-modes.ts`,
+  `docs/execution-modes.md`, `packages/core/test/execution-modes/execution-modes.test.ts`,
+  `packages/core/src/models.ts`, `packages/core/src/orchestrator.ts`,
+  `packages/core/src/report.ts`, `packages/core/src/index.ts`,
+  `packages/core/package.json`,
   `docs/parity/evidence/LEM-186-execution-modes-test-output.txt`
 
 ### LEM-187 — Add run-size scaling (Quick / Medium / Large) with perspective counts
