@@ -310,7 +310,7 @@ retention contracts.
 | LEM-113 | Port the frozen metering event contract and local sink | P1 | 5 | LEM-013, LEM-020 | Done |
 | LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Done |
 | LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Done |
-| LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Backlog |
+| LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Done |
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Backlog |
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Backlog |
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Backlog |
@@ -4705,6 +4705,55 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-116 — Port the append-only ledger and invoice export
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-113, LEM-115
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/ledger.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port the append-only, hash-chained usage ledger and
+  deterministic invoice export to `@lemma/cloud`: versioned price book, period
+  handling/close records, metering-event ingestion with idempotency and
+  closed-period rules, corrections/late adjustments, invoice JSON/CSV rendering,
+  verification, and reconciliation, using lemma `.lemma/ledger/` storage.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports ledger APIs in `src/ledger.ts` (and package entry):
+    period helpers (`periodForTimestamp`/`normalizePeriod`/`periodBounds`),
+    `PriceBook` (`quality-harness.price-book/v1` load/parse/price),
+    `LedgerStore` (configurable/bound workspace, entries/periods/lock paths,
+    `fromAuthContext`) with append-only hash-chained JSONL entries, durable period
+    close store, ingest/ingest_events idempotency+validation, corrections and
+    late adjustments with references/reasons, period close, invoice build/export,
+    verify and reconcile, and context-bound helpers.
+  - Ledger integrity and behavior: each appended entry includes schema/sequence/
+    previous_hash/entry_hash and `verify()` detects sequence/hash/tail issues;
+    duplicate metering event idempotency keys return existing entry (or error on
+    conflicting payload), closed periods reject late usage ingestion but allow
+    explicit adjustments referencing close/original entries, corrections reduce
+    invoice totals/credits while preserving originals, and amounts/prices are
+    deterministic.
+  - Invoice and reconciliation: `invoice()` returns versioned period invoice with
+    line items, adjustments, subtotal/credits/adjustments_total/total, close
+    metadata and currency/period bounds; `invoiceToCsv()` renders deterministic
+    CSV including line items/adjustments/totals; `reconcile()` compares ledger
+    quantity×price totals to invoice totals and reports status/difference.
+  - `packages/cloud/test/ledger.test.ts` ports/verifies core ledger behavior:
+    price book parsing/validation, immutable hash-chained ingest/idempotency and
+    tamper detection, closed-period rejection with allowed late adjustment,
+    corrections/credits, invoice totals/CSV rendering/reconciliation (including
+    duplicate-late-corrected cases), period helpers, and auth-context/workspace
+    binding.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/ledger.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/ledger.test.ts` (pass; output recorded).
+- **Evidence:** `packages/cloud/src/ledger.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/ledger.test.ts`, `docs/parity/evidence/LEM-116-ledger-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. CLI `lemma ledger ...` command wiring remains follow-on (tracked in parity inventory).
+
 
 ### LEM-115 — Port per-action quota enforcement
 

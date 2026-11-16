@@ -1,0 +1,29 @@
+$ pnpm --filter @lemma/cloud typecheck
+$ tsc --noEmit
+
+$ pnpm --filter @lemma/cloud build
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     102.25 KB
+ESM dist/index.js.map 195.12 KB
+ESM ⚡️ Build success in 50ms
+DTS Build start
+DTS ⚡️ Build success in 3854ms
+DTS dist/index.d.ts 24.83 KB
+
+$ pnpm exec vitest run packages/cloud/test/ledger.test.ts
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/ledger.test.ts (5 tests) 583ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  13:23:39
+   Duration  2.29s (transform 561ms, setup 0ms, collect 814ms, tests 583ms, environment 0ms, prepare 188ms)
+
