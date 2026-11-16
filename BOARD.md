@@ -381,7 +381,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Done |
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Done |
 | LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Done |
-| LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Backlog |
+| LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Done |
 | LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Backlog |
 
 ### E15: MCP Tool Server
@@ -1182,8 +1182,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-058, LEM-143
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented journey map builder/schema, dashboard route/UI, and tests.
 - **Description:** Visualize, in the dashboard, the paths the AI took during
   testing: routes visited, checks applied per route, outcomes per check, and the
   resulting evidence. This is CARBON's "Journey Atlas" equivalent, expressed
@@ -1204,13 +1204,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     missing evidence shows the same "unavailable" placeholder as LEM-144.
   - Tests cover graph construction determinism, schema validation, dashboard
     rendering (including textual fallback), and consistency with evidence refs.
-- **Verification (planned):**
-  `pnpm --filter @lemma/core test -- journey-map && pnpm --filter @lemma/browser test -- journey-map-links`
-- **Evidence (planned):** `packages/core/src/journey-map.ts`,
-  `packages/core/src/dashboard.ts` (journey map route),
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/journey-map/journey-map.test.ts` (pass; 2/2) and
+  `pnpm exec vitest run packages/browser/test/journey-map-links.test.ts` (pass; 1/1).
+- **Evidence:** `packages/core/src/journey-map.ts`,
+  `packages/core/src/index.ts`, `packages/core/src/schemas/index.ts`,
+  `packages/core/src/dashboard.ts` (journey map route/UI),
   `schemas/journey_map/journey_map.v1.schema.json`,
-  `packages/core/test/journey-map/*`,
-  `docs/parity/evidence/LEM-147-journey-map-test-output.txt`
+  `packages/core/test/journey-map/journey-map.test.ts`,
+  `packages/browser/test/journey-map-links.test.ts`,
+  `docs/parity/evidence/LEM-147-journey-map-test-output.txt`.
+
 
 ### LEM-148 — Build the dedicated bug-hunting workflow
 
