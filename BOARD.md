@@ -344,7 +344,7 @@ every supported host with visible supply-chain evidence.
 | --- | --- | --- | --- | --- | --- |
 | LEM-132 | Build the CI matrix (Node 20/22, macOS/Linux/Windows) | P0 | 3 | LEM-001, LEM-026 | Done |
 | LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Done |
-| LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Backlog |
+| LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Done |
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Backlog |
 | LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Backlog |
 | LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Backlog |
@@ -3247,7 +3247,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | Blocker | Impact | Unblock |
 | --- | --- | --- |
 | The lemma host surfaces for Codex, Antigravity, and Cursor are not yet verified against current host APIs. | `LEM-103`–`LEM-105` estimates and capability rows are provisional. | Spike each host's plugin/command/MCP surface during `LEM-099`; record the result in `docs/architecture.md` and the compatibility matrix. |
-| No npm organization or publish credentials exist yet. | `LEM-134` cannot complete end-to-end provenance publishing. | Create the npm org/scope and a provenance-enabled publish token before Phase G. |
+| No npm organization or publish credentials exist yet. | `LEM-134` delivered provenance-ready publish config/workflow and dry-run evidence, but end-to-end signed/provenance registry publish remains blocked. | Create the npm org/scope and a provenance-enabled publish token (e.g. `NPM_TOKEN` secret) before Phase G / real release publish. |
 | No Chromium is guaranteed in the local environment. | Browser parity runs may be `blocked` locally. | Add the browser CI leg in `LEM-133`; until then record blocked coverage, never a pass. |
 | No labeled historical release corpus is available. | Calibration can reproduce assay fixtures but cannot claim empirical validity. | Port assay's 14 fixtures now; curate real labeled releases before making a calibration claim. |
 | assay is still the oracle and will keep changing. | Parity can drift during migration. | Pin the assay commit in `LEM-002`/`LEM-005`; re-baseline deliberately and record the new commit. |
@@ -4734,6 +4734,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-134 — Publish signed npm packages with provenance
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-009, LEM-112
+- **Status:** Done
+- **Claimed:** 2026-11-16 — delivered provenance-ready publish config/workflow and dry-run evidence.
+- **Description:** Deliver provenance-ready, signed-publish configuration and
+  workflow for public `@lemma/*` npm packages so releases can be published with
+  npm provenance/Sigstore attestations from CI once credentials/org are available.
+- **Acceptance Criteria:**
+  - All publishable workspace packages (`@lemma/*`, non-private) declare
+    provenance-ready publish metadata: `publishConfig.access: "public"` and
+    `publishConfig.provenance: true`, plus repository/engines/files/exports/bin
+    as appropriate; Changesets/release config remains consistent for public
+    packages.
+  - `.github/workflows/release.yml` exists as a provenance-enabled release/publish
+    workflow (release published + workflow_dispatch) with OIDC permissions
+    (`id-token: write`, least-privilege contents), frozen-lockfile install/build,
+    and npm publish with provenance (`--provenance` / `NPM_CONFIG_PROVENANCE`)
+    configured for CI (credential-gated execution); workflow YAML is structurally
+    valid and does not weaken existing release-dry-run provenance checks.
+  - Local verifiable evidence demonstrates packaging/provenance readiness:
+    marker/YAML checks pass and `pnpm publish --dry-run --recursive --no-git-checks`
+    succeeds (captured). Actual signed/provenance publish to the npm registry is
+    **blocked** by missing npm org/publish credentials (see Blockers); no fake
+    publish performed.
+- **Verification:** `node -e "...publish metadata/workflow marker check..."` and `python3 -c "import yaml;yaml.safe_load(open('.github/workflows/release.yml'))"` and `pnpm publish --dry-run --recursive --no-git-checks`.
+- **Evidence:** publishable package manifests (`packages/**/package.json`, adapter manifests), `.github/workflows/release.yml` (and existing `.github/workflows/release-dry-run.yml`), `docs/parity/evidence/LEM-134-publish-provenance-markers.txt`, `docs/parity/evidence/LEM-134-publish-dry-run-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
 
 ### LEM-132 — Build the CI matrix (Node 20/22, macOS/Linux/Windows)

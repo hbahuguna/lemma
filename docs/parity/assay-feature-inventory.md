@@ -195,16 +195,16 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `policies/advisory-v1.json` | Default gate policy (ported to `policies/advisory-v1.json`, schema `quality-harness.policy/v1`; validated/loaded by core policy APIs; evidence `docs/parity/evidence/LEM-019-policy-test-output.txt`) | LEM-019 |
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
-| `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance release dry-run — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`) | LEM-009, LEM-134 |
+| `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance-ready publish config/workflows — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`, `.github/workflows/release.yml`) | LEM-009, LEM-134 |
 | Cloud package boundaries and optional extras | `@lemma/cloud` optional/isolated package with granular service subpath exports and enforced dependency boundaries | LEM-122 (`packages/cloud/package.json` sideEffects/explicit root+`./metering|auth|quota|ledger|signup|billing|queue|retention|entitlements` exports and multi-entry build; boundary enforcement/tests in `packages/cloud/test/package-boundaries.test.ts`, `packages/core/test/dependency-direction.test.ts`, `packages/core/test/workspace.test.ts`; evidence `docs/parity/evidence/LEM-122-cloud-boundaries-test-output.txt`, `docs/parity/evidence/LEM-122-core-boundary-tests-output.txt`) |
 | `requirements.txt` | Dependency declaration (replaced by pnpm workspace manifests and committed `pnpm-lock.yaml`) | LEM-001 | LEM-001 |
 | `.github/workflows/ci.yml` | Core CI matrix (Node 20/22, macOS/Linux/Windows) + parity/oracle job + browser blocked-degradation leg + browser-enabled Playwright smoke leg (ubuntu) | LEM-132 done, LEM-133 done |
-| `.github/workflows/release.yml` | Signed release and publish | LEM-134 |
+| `.github/workflows/release.yml` | Provenance-enabled signed npm release/publish workflow (OIDC/id-token, `--provenance`), credential-gated publish; registry publish blocked pending npm org/token | LEM-134 (workflow/config ready, end-to-end blocked) |
 | `.github/workflows/billing-coverage.yml` | Billing coverage job | LEM-121 (regression test coverage ported in cloud package; workflow file pending if required) |
 | `.github/workflows/pr.yml` | Fork-safe PR automation | LEM-136 |
 | `.github/actions/quality-harness/` | Composite PR action | LEM-136 |
 | `tests/plugin/*.test.mjs` | Node plugin tests | LEM-095, LEM-096 (LEM-095 command-builder/catalog parity coverage in `packages/agent/test/command-catalog-parity.test.ts`, output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`; LEM-096 agent-loop/prompt-contract coverage in `packages/agent/test/agent-loop-prompt-contract.test.ts`, output `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |
-| `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 |
+| `schemas/` release staging | Published schemas as artifacts | LEM-073 (core contract tests assert published report schema/index artifacts), LEM-134 (package/release provenance config ready) |
 
 | Adapter compatibility matrix and docs | Published per-host adapter compatibility matrix, install/layouts, capability declarations/degradation, and verification status | LEM-112 — `docs/adapters.md` with cross-links from `docs/architecture.md`, `docs/cli-and-agent.md`, `README.md`; evidence `docs/parity/evidence/LEM-112-adapter-docs-test-output.txt` |
 
@@ -250,7 +250,7 @@ with rationale.
 | `test_billing.py`, `test_billing_regression.py` | LEM-118, LEM-121 (ported/adapted in `packages/cloud/test/billing.test.ts` and `packages/cloud/test/billing-regression.test.ts`; evidence `docs/parity/evidence/LEM-118-billing-test-output.txt`, `docs/parity/evidence/LEM-121-billing-regression-test-output.txt`) |
 | `test_queue.py` | LEM-119 |
 | `test_retention.py` | LEM-120 |
-| `test_packaging.py` | LEM-134 |
+| `test_packaging.py` | npm packaging/provenance dry-run + publish metadata/workflow checks (TS equivalent) | LEM-134 |
 | `test_github_action.py` | LEM-136 |
 | `test_assay_command_contract.py` | LEM-095 (`packages/agent/test/command-catalog-parity.test.ts` ports command-builder/catalog contract parity for host-neutral agent APIs; output `docs/parity/evidence/LEM-095-command-catalog-parity-test-output.txt`) |
 | `tests/plugin/agent-loop.test.mjs` | LEM-096 (`packages/agent/test/agent-loop-prompt-contract.test.ts`, `docs/parity/evidence/LEM-096-agent-loop-prompt-contract-test-output.txt`) |

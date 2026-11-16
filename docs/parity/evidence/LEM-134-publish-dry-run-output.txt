@@ -1,0 +1,24 @@
+📦 @lemma/adapters-sdk@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-sdk@0.0.0 (dry run)
+📦 @lemma/browser@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/browser@0.0.0 (dry run)
+📦 @lemma/core@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/core@0.0.0 (dry run)
+📦 @lemma/agent@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/agent@0.0.0 (dry run)
+📦 @lemma/cloud@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/cloud@0.0.0 (dry run)
+📦 @lemma/personas@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/personas@0.0.0 (dry run)
+📦 @lemma/adapters-antigravity@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-antigravity@0.0.0 (dry run)
+📦 @lemma/adapters-claude-code@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-claude-code@0.0.0 (dry run)
+📦 @lemma/adapters-codex@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-codex@0.0.0 (dry run)
+📦 @lemma/adapters-cursor@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-cursor@0.0.0 (dry run)
+📦 @lemma/adapters-opencode@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/adapters-opencode@0.0.0 (dry run)
+📦 @lemma/cli@0.0.0 → https://registry.npmjs.org/
+[WARN] Skip publishing @lemma/cli@0.0.0 (dry run)
