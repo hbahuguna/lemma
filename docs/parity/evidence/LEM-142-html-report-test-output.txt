@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/html-report/html-report.test.ts (6 tests) 223ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  20:35:48
+   Duration  2.41s (transform 583ms, setup 0ms, collect 854ms, tests 223ms, environment 0ms, prepare 566ms)
+

@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Lemma Release Confidence Report — run_fixture_001</title>
+<style>
+    :root { color-scheme: light dark; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif; line-height: 1.4; margin: 2rem; }
+    h1 { margin-bottom: .25rem; }
+    .meta { color: #555; font-size: .9rem; margin-bottom: 1.5rem; }
+    .section { border: 1px solid #ccc; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    .section h2 { margin-top: 0; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: .5rem 1.5rem; }
+    table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+    th, td { border: 1px solid #ccc; padding: .4rem .5rem; text-align: left; vertical-align: top; }
+    th { background: rgba(0,0,0,.04); }
+    .json { white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,.03); padding: .5rem; border-radius: 4px; overflow-x: auto; }
+    .empty { color: #666; font-style: italic; }
+    .sev-critical { font-weight: 700; }
+    .sev-high { font-weight: 600; }
+    .ev { max-width: 320px; word-break: break-word; }
+    .thumb { max-width: 320px; max-height: 240px; display: block; margin-top: .25rem; }
+    .note { color: #666; font-size: .85rem; }
+    ul.evidence-links { padding-left: 1.25rem; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lemma Release Confidence Report — run_fixture_001</h1>
+    <div class="meta">Generated: 2026-11-16T00:00:00Z · Report schema: quality-harness.report/v1 (HTML export lemma.report.html/v1) · Deterministic sections follow JSON report ordering; volatile timestamps may vary as documented.</div>
+  </header>
+  <section class="section"><h2>Summary &amp; Decision</h2>
+    <div class="grid">
+      <div><strong>Run ID:</strong> <code>run_fixture_001</code></div>
+      <div><strong>Status:</strong> completed</div>
+      <div><strong>Decision:</strong> ship</div>
+      <div><strong>Rationale:</strong> Sample fixture report.</div>
+      <div><strong>Confidence score:</strong> 90</div>
+      <div><strong>Band:</strong> high</div>
+      <div><strong>Coverage (exec %):</strong> 100</div>
+    </div></section>
+  <section class="section"><h2>Policy</h2><table class="kv"><tbody><tr><th>id</th><td><code>advisory-v1</code></td></tr><tr><th>version</th><td><code>1.0</code></td></tr><tr><th>result</th><td><code>pass</code></td></tr></tbody></table></section>
+  <section class="section"><h2>Trend</h2><table class="kv"><tbody><tr><th>baseline</th><td><code>true</code></td></tr><tr><th>previous_run_id</th><td><code></code></td></tr><tr><th>new</th><td><pre class="json">[]</pre></td></tr><tr><th>resolved</th><td><pre class="json">[]</pre></td></tr><tr><th>persistent</th><td><pre class="json">[]</pre></td></tr><tr><th>score_delta</th><td><code>0</code></td></tr><tr><th>coverage_delta</th><td><code>0</code></td></tr></tbody></table></section>
+  <section class="section"><h2>Confidence / Coverage Details</h2><pre class="json">{
+  &quot;confidence&quot;: {
+    &quot;score&quot;: 90,
+    &quot;band&quot;: &quot;high&quot;,
+    &quot;coverage&quot;: 1,
+    &quot;rationale&quot;: &quot;High confidence sample.&quot;,
+    &quot;limitations&quot;: [],
+    &quot;penalties&quot;: {},
+    &quot;domain_scores&quot;: {
+      &quot;functional&quot;: 90
+    },
+    &quot;breakdown&quot;: {},
+    &quot;gate&quot;: {
+      &quot;status&quot;: &quot;pass&quot;
+    }
+  },
+  &quot;coverage&quot;: {
+    &quot;total_checks&quot;: 1,
+    &quot;executed&quot;: 1,
+    &quot;passed&quot;: 0,
+    &quot;failed&quot;: 1,
+    &quot;blocked&quot;: 0,
+    &quot;skipped&quot;: 0,
+    &quot;error&quot;: 0,
+    &quot;planned_not_run&quot;: 0,
+    &quot;blockers&quot;: 0,
+    &quot;blockers_covered_elsewhere&quot;: 0,
+    &quot;blockers_uncovered&quot;: 0,
+    &quot;blockers_by_persona&quot;: {},
+    &quot;executed_pct&quot;: 100,
+    &quot;by_domain&quot;: {}
+  }
+}</pre></section>
+  <section class="section"><h2>Findings</h2><table class="findings"><thead><tr><th>Severity</th><th>ID</th><th>Check</th><th>Title</th><th>Evidence</th><th>Location</th></tr></thead><tbody><tr><td class="sev sev-medium">medium</td><td>f1</td><td>static.sample</td><td>Sample finding</td><td class="ev">—</td><td>index.html</td></tr></tbody></table></section>
+  <section class="section"><h2>Blockers</h2><p class="empty">No blockers.</p></section>
+  <section class="section"><h2>Invalid / Quarantined Findings</h2><p class="empty">No invalid/quarantined findings.</p></section>
+  <section class="section"><h2>Contract Health</h2><table class="kv"><tbody><tr><th>total</th><td><code>0</code></td></tr><tr><th>by_persona</th><td><pre class="json">{}</pre></td></tr><tr><th>degraded_personas</th><td><pre class="json">[]</pre></td></tr></tbody></table></section>
+  <section class="section"><h2>Limitations</h2><p class="empty">No recorded limitations.</p></section>
+  <section class="section"><h2>Evidence</h2>
+    <p><strong>Evidence directory (relative):</strong> <code>.lemma/evidence/run_fixture_001</code></p>
+    <table class="kv"><tbody><tr><th>count</th><td><code>0</code></td></tr><tr><th>total_bytes</th><td><code>0</code></td></tr></tbody></table>
+    <p class="empty">No referenced artifacts resolved from report evidence refs.</p>
+  </section>
+  <section class="section"><h2>Full Report (redacted JSON)</h2><details><summary>Show full redacted report JSON</summary><pre class="json">{
+  &quot;schema_version&quot;: &quot;quality-harness.report/v1&quot;,
+  &quot;generated_at&quot;: &quot;2026-11-16T00:00:00Z&quot;,
+  &quot;run_id&quot;: &quot;run_fixture_001&quot;,
+  &quot;status&quot;: &quot;completed&quot;,
+  &quot;workflow&quot;: {
+    &quot;id&quot;: &quot;release-confidence&quot;,
+    &quot;name&quot;: &quot;Release Confidence&quot;,
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;phases&quot;: [
+      &quot;risk_analysis&quot;,
+      &quot;test_planning&quot;,
+      &quot;execution&quot;,
+      &quot;evidence_collection&quot;,
+      &quot;confidence_scoring&quot;
+    ]
+  },
+  &quot;target&quot;: {
+    &quot;raw&quot;: &quot;.&quot;,
+    &quot;kind&quot;: &quot;directory&quot;,
+    &quot;resolved&quot;: &quot;.&quot;,
+    &quot;source&quot;: &quot;&quot;
+  },
+  &quot;intent&quot;: &quot;sample&quot;,
+  &quot;policy&quot;: {
+    &quot;id&quot;: &quot;advisory-v1&quot;,
+    &quot;version&quot;: &quot;1.0&quot;,
+    &quot;result&quot;: &quot;pass&quot;
+  },
+  &quot;metering&quot;: {
+    &quot;schema_version&quot;: &quot;quality-harness.metering/v1&quot;,
+    &quot;sink&quot;: &quot;.lemma/metering/events.jsonl&quot;,
+    &quot;workspace&quot;: &quot;local&quot;,
+    &quot;event_count&quot;: 0,
+    &quot;event_types&quot;: {},
+    &quot;run_event_count&quot;: 0,
+    &quot;run_event_types&quot;: {}
+  },
+  &quot;decision&quot;: {
+    &quot;decision&quot;: &quot;ship&quot;,
+    &quot;rationale&quot;: &quot;Sample fixture report.&quot;
+  },
+  &quot;trend&quot;: {
+    &quot;baseline&quot;: true,
+    &quot;previous_run_id&quot;: null,
+    &quot;new&quot;: [],
+    &quot;resolved&quot;: [],
+    &quot;persistent&quot;: [],
+    &quot;score_delta&quot;: 0,
+    &quot;coverage_delta&quot;: 0
+  },
+  &quot;confidence&quot;: {
+    &quot;score&quot;: 90,
+    &quot;band&quot;: &quot;high&quot;,
+    &quot;coverage&quot;: 1,
+    &quot;rationale&quot;: &quot;High confidence sample.&quot;,
+    &quot;limitations&quot;: [],
+    &quot;penalties&quot;: {},
+    &quot;domain_scores&quot;: {
+      &quot;functional&quot;: 90
+    },
+    &quot;breakdown&quot;: {},
+    &quot;gate&quot;: {
+      &quot;status&quot;: &quot;pass&quot;
+    }
+  },
+  &quot;findings&quot;: [
+    {
+      &quot;id&quot;: &quot;f1&quot;,
+      &quot;title&quot;: &quot;Sample finding&quot;,
+      &quot;severity&quot;: &quot;medium&quot;,
+      &quot;domain&quot;: &quot;functional&quot;,
+      &quot;persona&quot;: &quot;functional&quot;,
+      &quot;strength&quot;: &quot;observed&quot;,
+      &quot;consequence&quot;: &quot;Sample consequence.&quot;,
+      &quot;location&quot;: &quot;index.html&quot;,
+      &quot;reproduction&quot;: &quot;Open page&quot;,
+      &quot;evidence&quot;: [],
+      &quot;remediation&quot;: &quot;Fix&quot;,
+      &quot;verification&quot;: &quot;Verify&quot;,
+      &quot;check_id&quot;: &quot;static.sample&quot;,
+      &quot;created_at&quot;: &quot;2026-11-16T00:00:00Z&quot;
+    }
+  ],
+  &quot;finding_counts&quot;: {
+    &quot;critical&quot;: 0,
+    &quot;high&quot;: 0,
+    &quot;medium&quot;: 1,
+    &quot;low&quot;: 0,
+    &quot;info&quot;: 0
+  },
+  &quot;invalid_findings&quot;: [],
+  &quot;blockers&quot;: [],
+  &quot;contract_failures&quot;: {
+    &quot;total&quot;: 0,
+    &quot;by_persona&quot;: {},
+    &quot;degraded_personas&quot;: []
+  },
+  &quot;checks&quot;: [
+    {
+      &quot;id&quot;: &quot;static.sample&quot;,
+      &quot;title&quot;: &quot;Sample check&quot;,
+      &quot;domain&quot;: &quot;functional&quot;,
+      &quot;persona&quot;: &quot;functional&quot;,
+      &quot;kind&quot;: &quot;static&quot;,
+      &quot;intent&quot;: &quot;sample&quot;,
+      &quot;expected&quot;: &quot;ok&quot;,
+      &quot;status&quot;: &quot;failed&quot;,
+      &quot;weight&quot;: 1,
+      &quot;actual&quot;: &quot;issue&quot;,
+      &quot;evidence&quot;: [],
+      &quot;finding_ids&quot;: [
+        &quot;f1&quot;
+      ],
+      &quot;skip_reason&quot;: &quot;&quot;,
+      &quot;metadata&quot;: {}
+    }
+  ],
+  &quot;coverage&quot;: {
+    &quot;total_checks&quot;: 1,
+    &quot;executed&quot;: 1,
+    &quot;passed&quot;: 0,
+    &quot;failed&quot;: 1,
+    &quot;blocked&quot;: 0,
+    &quot;skipped&quot;: 0,
+    &quot;error&quot;: 0,
+    &quot;planned_not_run&quot;: 0,
+    &quot;blockers&quot;: 0,
+    &quot;blockers_covered_elsewhere&quot;: 0,
+    &quot;blockers_uncovered&quot;: 0,
+    &quot;blockers_by_persona&quot;: {},
+    &quot;executed_pct&quot;: 100,
+    &quot;by_domain&quot;: {}
+  },
+  &quot;risks&quot;: [],
+  &quot;personas&quot;: [],
+  &quot;inventory&quot;: {},
+  &quot;phases&quot;: [],
+  &quot;kill_switch&quot;: {
+    &quot;halted&quot;: false
+  },
+  &quot;halted_reason&quot;: null,
+  &quot;limitations&quot;: [],
+  &quot;evidence&quot;: {
+    &quot;directory&quot;: &quot;.lemma/evidence/run_fixture_001&quot;,
+    &quot;summary&quot;: {
+      &quot;count&quot;: 0,
+      &quot;total_bytes&quot;: 0
+    }
+  },
+  &quot;started_at&quot;: &quot;2026-11-16T00:00:00Z&quot;,
+  &quot;completed_at&quot;: &quot;2026-11-16T00:00:01Z&quot;,
+  &quot;options&quot;: {},
+  &quot;error&quot;: &quot;&quot;
+}</pre></details></section>
+</body>
+</html>

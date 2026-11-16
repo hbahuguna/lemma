@@ -376,7 +376,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Backlog |
+| LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Done |
 | LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Backlog |
 | LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Backlog |
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Backlog |
@@ -976,8 +976,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-020
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented core HTML report builder/writer, tests, fixture, and evidence.
 - **Description:** Build a self-contained HTML report (single file, inline
   CSS/JS, embedded evidence thumbnails or documented escaped relative links)
   that renders findings, evidence references, scores, decisions, blockers, and
@@ -1002,11 +1002,14 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover rendering of every section, deterministic output, redaction,
     evidence embedding/escaping, size ceiling behavior, and refusal to include
     absolute paths.
-- **Verification (planned):** `pnpm --filter @lemma/core test -- html-report`
-- **Evidence (planned):** `packages/core/src/html-report.ts`,
-  `packages/core/test/html-report/*`,
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/html-report/html-report.test.ts` (pass; 6/6 tests).
+- **Evidence:** `packages/core/src/html-report.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/test/html-report/html-report.test.ts`,
   `packages/core/test/html-report/fixtures/sample-report.html`,
-  `docs/parity/evidence/LEM-142-html-report-test-output.txt`
+  `docs/parity/evidence/LEM-142-html-report-test-output.txt`.
+
 
 ### LEM-143 — Build the local visual evidence dashboard (shell + live investigation view)
 
