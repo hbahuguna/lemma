@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/model_eval_result.v1.json",
+  "title": "Lemma Pro Model Eval Result v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "run_id", "generated_at", "determinism", "cases", "summary"],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.model_eval_result/v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "determinism": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["seed", "clock_mode", "entropy"],
+      "properties": {
+        "seed": { "type": ["integer", "null"] },
+        "clock_mode": { "type": "string" },
+        "entropy": { "type": "string" }
+      }
+    },
+    "endpoint_configured": { "type": "boolean" },
+    "notes": { "type": "array", "items": { "type": "string" } },
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "outcome", "reviewed", "note", "fingerprint", "evidence_path"],
+        "properties": {
+          "id": { "type": "string" },
+          "description": { "type": ["string", "null"] },
+          "outcome": { "enum": ["PASS", "FAIL", "REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED"] },
+          "reviewed": { "type": "boolean" },
+          "note": { "type": "string" },
+          "fingerprint": { "type": "string" },
+          "evidence_path": { "type": "string" },
+          "judge_rationale": { "type": ["string", "null"] },
+          "baseline_outcome": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["PASS", "FAIL", "REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED", "total"],
+      "properties": {
+        "PASS": { "type": "integer", "minimum": 0 },
+        "FAIL": { "type": "integer", "minimum": 0 },
+        "REGRESSION": { "type": "integer", "minimum": 0 },
+        "IMPROVEMENT": { "type": "integer", "minimum": 0 },
+        "UNCHANGED": { "type": "integer", "minimum": 0 },
+        "UNEVALUATED": { "type": "integer", "minimum": 0 },
+        "total": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

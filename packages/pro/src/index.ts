@@ -24,3 +24,4 @@ export * from "./inventory.js";
 export * from "./quality-history.js";
 export * from "./integrations/jira-xray.js";
 export * from "./integrations/testrail.js";
+export * from "./model-eval.js";

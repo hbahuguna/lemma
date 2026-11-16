@@ -1,0 +1,7 @@
+{
+  "id": "sample.unreviewed_case",
+  "description": "Not yet reviewed; should be skipped.",
+  "input": { "prompt": "draft" },
+  "expected_business_behavior": "n/a",
+  "reviewed": false
+}

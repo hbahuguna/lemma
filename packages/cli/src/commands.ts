@@ -47,6 +47,7 @@ import {
   historyRead,
   inventoryListCheck,
   inventoryRead,
+  runModelEval,
   runPropertyProof,
   runSpecialistCommand,
 } from "@lemma/pro";
@@ -1016,7 +1017,7 @@ export const proCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
   const sub = positionals[0] ?? "";
   if (!sub) {
-    throw new CliUsageError("Missing subcommand. Usage: lemma pro <confidence|security|performance|privacy|proof|inventory|history> [options]", { command: "pro" });
+    throw new CliUsageError("Missing subcommand. Usage: lemma pro <confidence|security|performance|privacy|proof|inventory|history|eval> [options]", { command: "pro" });
   }
 
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
@@ -1112,9 +1113,36 @@ export const proCommand: CliCommandHandler = async (argv) => {
     throw new CliUsageError(`Unknown pro history action: ${action}`, { action, allowed: ["show"] });
   }
 
+  if (sub === "eval") {
+    const cases = getString(flags, "cases", "cases-dir") ?? positionals[1];
+    const baselinePath = getString(flags, "baseline", "baseline-path");
+    const endpoint = getString(flags, "endpoint");
+    const seedStr = getString(flags, "seed");
+    const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
+    const frozenClock = getString(flags, "frozen-clock");
+    const modelConfig: any = {};
+    if (baselinePath) modelConfig.baselinePath = path.isAbsolute(baselinePath) ? baselinePath : path.resolve(process.cwd(), baselinePath);
+    if (endpoint === "none" || endpoint === "unconfigured") modelConfig.endpoint = null;
+    // if explicitly configured stub endpoint requested
+    if (endpoint === "stub") {
+      modelConfig.stub = true;
+      modelConfig.endpoint = { invoke: ({ case: c }: any) => ({ output: { stub: true, id: c.id }, pass: true, rationale: "stub pass" }) };
+    }
+    // allow JSON endpoint config stub marker? not required
+    const result = await runModelEval({
+      ...(cases ? { cases } : {}),
+      modelConfig: Object.keys(modelConfig).length ? modelConfig : null,
+      ...(seedStr !== undefined ? { seed: toInt(seedStr, "--seed") } : {}),
+      ...(clockMode || frozenClock ? { clock: { ...(clockMode ? { mode: clockMode } : {}), ...(frozenClock ? { frozen: frozenClock } : {}) } } : {}),
+      license,
+      projectRoot: root,
+    } as any);
+    return { stdoutJson: result };
+  }
+
   const spec = getSpecialistCommand(sub);
   if (!spec) {
-    throw new CliUsageError(`Unknown pro subcommand/specialist: ${sub}`, { subcommand: sub, allowed: ["confidence", "security", "performance", "privacy", "proof", "inventory", "history"] });
+    throw new CliUsageError(`Unknown pro subcommand/specialist: ${sub}`, { subcommand: sub, allowed: ["confidence", "security", "performance", "privacy", "proof", "inventory", "history", "eval"] });
   }
 
   const targetRaw = getString(flags, "target", "t") ?? ".";
@@ -1170,6 +1198,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
     { name: "settings", description: "View or update lemma settings.", handler: settingsCommand },
     { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
-    { name: "pro", description: "Run entitlement-gated Pro workflows (specialists: confidence|security|performance|privacy, proof, inventory, history).", handler: proCommand },
+    { name: "pro", description: "Run entitlement-gated Pro workflows (specialists: confidence|security|performance|privacy, proof, inventory, history, eval).", handler: proCommand },
   ];
 }

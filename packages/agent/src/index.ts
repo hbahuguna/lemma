@@ -891,6 +891,30 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const proModelEval = (d as any).pro_model_eval === true;
+    if (proModelEval) {
+      const cases = (d as any).model_eval_cases || d.parsed?.named?.["cases"] || (d.args.join(" ").trim() || undefined);
+      try {
+        const { runModelEval } = await import("@lemma/pro");
+        const result = await runModelEval({
+          ...(cases ? { cases } : {}),
+          modelConfig: null,
+          projectRoot: cwd || process.cwd(),
+          license: null,
+        } as any);
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Pro model eval: ${JSON.stringify({ run_id: result.run_id, summary: result.summary, endpoint_configured: result.endpoint_configured })}`);
+        state.currentReport = JSON.stringify(result, null, 2);
+        await sendFinal(`Pro model eval completed (${result.summary.total} case(s)).${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const proProof = (d as any).pro_proof === true;
     if (proProof) {
       const property = String((d as any).proof_property || "").trim();

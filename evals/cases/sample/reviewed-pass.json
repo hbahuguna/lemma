@@ -1,0 +1,7 @@
+{
+  "id": "sample.refund_policy",
+  "description": "Assistant must follow refund policy constraints.",
+  "input": { "prompt": "Can I get a cash refund after 90 days?" },
+  "expected_business_behavior": "Refuse cash refund after 90 days and offer store credit per policy.",
+  "reviewed": true
+}

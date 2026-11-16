@@ -390,6 +390,51 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const proModelEval = (d as any).pro_model_eval === true;
+      if (proModelEval) {
+        this.state.status = "running";
+        const cases = (d as any).model_eval_cases || d.parsed?.named?.["cases"] || (d.args.join(" ").trim() || undefined);
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running Pro AI model evaluation workflow (entitlement-gated).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent },
+        } as any);
+        try {
+          const { runModelEval } = await import("@lemma/pro");
+          const result = await runModelEval({
+            ...(cases ? { cases } : {}),
+            modelConfig: null,
+            license: null,
+            projectRoot: this.options.cwd,
+          } as any);
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Pro model eval ${result.summary.total} case(s), run ${result.run_id}.`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { run_id: result.run_id, summary: result.summary, endpoint_configured: result.endpoint_configured },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const proProof = (d as any).pro_proof === true;
       if (proProof) {
         this.state.status = "running";

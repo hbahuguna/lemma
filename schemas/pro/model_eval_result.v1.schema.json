@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/model_eval_result.v1.schema.json",
+  "allOf": [{ "$ref": "model_eval_result.v1.json" }]
+}

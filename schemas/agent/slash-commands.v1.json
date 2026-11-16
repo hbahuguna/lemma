@@ -280,6 +280,27 @@
         "invalid_target",
         "proof_unavailable"
       ]
+    },
+    {
+      "command": "/lemma-eval",
+      "aliases": [
+        "/eval"
+      ],
+      "target": "catalog",
+      "description": "Run the Pro AI model evaluation workflow (entitlement-gated).",
+      "intent": "pro.model_eval",
+      "arguments": [
+        {
+          "name": "cases",
+          "required": false,
+          "description": "Optional cases path or identifier (CLI form: lemma pro eval --cases <path>)."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_cases",
+        "eval_unavailable"
+      ]
     }
   ]
 }

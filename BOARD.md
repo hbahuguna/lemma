@@ -441,7 +441,7 @@ without the same opt-out posture as the core.
 | --- | --- | --- | --- | --- | --- |
 | LEM-161 | Build the Jira/Xray integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Done |
 | LEM-162 | Build the TestRail integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Done |
-| LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Backlog |
+| LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Done |
 | LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Backlog |
 
 ### E20: Additional Core Workflows (Free Tier Parity)
@@ -1909,8 +1909,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-020, LEM-089, LEM-141, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented model eval workflow, schema/fixtures, evidence/determinism, routing, and tests.
 - **Description:** Turn expected business behaviors into reviewed evaluation
   cases, run them against a model endpoint, and compare pass-to-fail
   regressions. Enables "did the model get worse for our business rules?"
@@ -1940,13 +1940,20 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover case loading/review gating, all six outcomes, evidence
     recording, determinism with stub endpoint, redaction, unlicensed
     refusal, and endpoint-missing degradation.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- model-eval && pnpm test --filter @lemma/agent -- model-eval-routing`
-- **Evidence (planned):** `packages/pro/src/model-eval.ts`,
-  `schemas/pro/model_eval_result.v1.json`,
-  `evals/cases/sample/*.json`,
-  `packages/pro/test/model-eval/*`,
-  `packages/agent/test/model-eval-routing/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/model-eval/model-eval.test.ts` PASS (5/5) and
+  `pnpm exec vitest run packages/agent/test/model-eval-routing/model-eval-routing.test.ts` PASS (1/1).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/agent build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/model-eval.ts`,
+  `schemas/pro/model_eval_result.v1.json`, `schemas/pro/model_eval_result.v1.schema.json`,
+  `evals/cases/README.md`, `evals/cases/sample/*.json`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/model-eval/model-eval.test.ts`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`, `packages/agent/src/manager-session.ts`, `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
+  `packages/agent/test/model-eval-routing/model-eval-routing.test.ts`,
   `docs/parity/evidence/LEM-163-model-eval-test-output.txt`
+
 
 ### LEM-164 — Build evidence revision and comparison infrastructure
 
