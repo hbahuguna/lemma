@@ -1,0 +1,23 @@
+== agent slash-commands ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/slash-commands/slash-commands.test.ts (8 tests) 248ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  20:23:59
+   Duration  3.86s (transform 969ms, setup 0ms, collect 1.40s, tests 248ms, environment 1ms, prepare 240ms)
+
+
+== core slash-command-catalog ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/slash-command-catalog/slash-command-catalog.test.ts (1 test) 13ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  20:24:06
+   Duration  1.77s (transform 60ms, setup 0ms, collect 53ms, tests 13ms, environment 0ms, prepare 457ms)
+

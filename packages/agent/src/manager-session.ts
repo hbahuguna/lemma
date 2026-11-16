@@ -20,6 +20,7 @@ import type {
   AgentState,
   PendingContext,
 } from "./index.js";
+import { formatHelpMessage, isSlashCommand, routeSlashCommand } from "./slash-commands.js";
 
 export type ManagerMessageType = "plan" | "question" | "progress" | "summary";
 
@@ -130,7 +131,10 @@ export function redactManagerMessage(message: ManagerMessage): ManagerMessage {
   };
   if (typeof message.step === "number" && Number.isFinite(message.step)) out.step = message.step;
   if (Array.isArray(message.run_ids)) out.run_ids = message.run_ids.map((id) => redactString(id)).filter(Boolean);
-  if (message.details && typeof message.details === "object") out.details = redactDetails(message.details);
+  if (message.details && typeof message.details === "object") {
+    const rd = redactDetails(message.details);
+    if (rd) out.details = rd;
+  }
   return out;
 }
 
@@ -352,6 +356,59 @@ export class ManagerSession {
       if (existing.status === "completed" && !hasReply) {
         return this.getState();
       }
+    }
+
+    // LEM-154: slash commands flow through manager persona/narration
+    const slashInput = String(this.options.goal || this.options.userInput || "").trim();
+    if (isSlashCommand(slashInput)) {
+      const routed = routeSlashCommand(slashInput);
+      if (!this.state.plan_text) {
+        await emitAndRecord(this.state, this.options.sink, buildPlanMessage(this.options.goal, this.state.step));
+      }
+      if (routed.decision.kind === "unknown") {
+        this.state.status = "completed";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "summary",
+          text: routed.message || formatHelpMessage(),
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+        } as any);
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+      const d = routed.decision;
+      if (d.command === "/lemma-help" || d.intent === "manager.help") {
+        this.state.status = "completed";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "summary",
+          text: formatHelpMessage(),
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+        } as any);
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+      if (d.target === "dashboard") {
+        const route = d.dashboard_route || "/";
+        this.state.status = "completed";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "summary",
+          text: [
+            `Dashboard requested via ${d.command}.`,
+            `Route: ${route}`,
+            "A token-protected URL is provided via the manager/host UI channel (token never shown in transcript).",
+          ].join("\n"),
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { dashboard_route: route, command: d.command, intent: d.intent },
+          ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+        } as any);
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+      // For manager/catalog slash commands, continue into loop-driven flow with routed goal semantics handled by loop
     }
 
     const det = this.options.determinism ? makeDeterminism(this.options.determinism) : null;

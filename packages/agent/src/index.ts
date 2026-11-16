@@ -15,6 +15,7 @@ import path from "node:path";
 import { atomicWriteJson, ensureDir, readJsonFile } from "@lemma/core";
 
 import { browserInvocation, demoInvocation } from "./command-args.js";
+import { formatHelpMessage, isSlashCommand, routeSlashCommand } from "./slash-commands.js";
 
 export const PACKAGE_NAME = "@lemma/agent" as const;
 
@@ -873,6 +874,59 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
 
   const executed = new Set<string>(state.executedCommands);
 
+  // LEM-154: honor slash-command routing decisions in the agent loop (no fabricated execution)
+  const slashGoal = String(options.goal || "").trim();
+  if (isSlashCommand(slashGoal)) {
+    const routed = routeSlashCommand(slashGoal);
+    if (routed.decision.kind === "unknown") {
+      await sendFinal(routed.message || formatHelpMessage());
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+    const d = routed.decision;
+    if (d.command === "/lemma-help" || d.intent === "manager.help") {
+      await sendFinal(formatHelpMessage());
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+    if (d.target === "dashboard") {
+      const route = d.dashboard_route || "/";
+      const msg = [
+        `Opening ${d.command} dashboard route: ${route}`,
+        "A token-protected dashboard URL is provided via the manager/host UI channel (token never shown in transcript).",
+      ].join("\n");
+      await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+    if (d.target === "catalog" && d.catalog_intent) {
+      // Map catalog slash command to a catalog assessment intent for the loop.
+      const targetArg = d.parsed.named["target_or_args"] || d.args.join(" ") || ".";
+      const urlLike = /^https?:\/\//i.test(targetArg);
+      state.testPlan = state.testPlan || `Slash command ${d.command} routed to catalog intent: ${d.catalog_intent}`;
+      options = {
+        ...options,
+        goal: `${d.catalog_intent}${targetArg && targetArg !== "." ? ` (${targetArg})` : ""}`,
+        initialArgs: urlLike
+          ? ["run", "--target", targetArg, "--personas-dir", personasDir, "--intent", d.catalog_intent]
+          : ["run", "--target", targetArg || ".", ...(urlLike ? [] : ["--no-browser"]), "--personas-dir", personasDir, "--intent", d.catalog_intent],
+      };
+    } else if (d.target === "manager") {
+      // Normalize manager slash commands into manager assessment/help goals.
+      const argGoal = d.parsed.named["goal"] || d.parsed.named["action"] || d.args.join(" ");
+      if (d.intent === "manager.background") {
+        options = { ...options, goal: argGoal ? `Background supervisor ${argGoal}` : "Background supervisor status" };
+      } else if (d.command !== "/lemma" && d.command !== "/jay") {
+        options = { ...options, goal: argGoal || d.intent };
+      } else {
+        options = { ...options, goal: argGoal || options.goal || "lemma assessment" };
+      }
+    }
+  }
+
   if (state.pending) {
     const continued = await requestContextAndMaybeWait(state, options.goal, deps, options);
     if (!continued) return state;
@@ -1030,3 +1084,23 @@ export type {
   ManagerSessionOptions,
   ManagerSessionState,
 } from "./manager-session.js";
+
+
+export {
+  formatHelpMessage,
+  getSlashCommandCatalog,
+  isSlashCommand,
+  listSlashCommandHints,
+  resolveDashboardUrl,
+  routeSlashCommand,
+} from "./slash-commands.js";
+export type {
+  SlashCommandArgSpec,
+  SlashCommandCatalog,
+  SlashCommandDecision,
+  SlashCommandKnownDecision,
+  SlashCommandRouteResult,
+  SlashCommandSpec,
+  SlashCommandTarget,
+  SlashCommandUnknownDecision,
+} from "./slash-commands.js";

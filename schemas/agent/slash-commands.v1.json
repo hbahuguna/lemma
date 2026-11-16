@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/agent/slash-commands.v1.json",
+  "title": "Lemma slash command catalog v1",
+  "description": "Versioned host-neutral slash-command catalog for in-chat lemma interfaces.",
+  "schema_version": "lemma.agent.slash_commands/v1",
+  "commands": [
+    {
+      "command": "/lemma",
+      "target": "manager",
+      "description": "Start or resume a conversational lemma assessment with the manager persona.",
+      "intent": "manager.assess",
+      "arguments": [
+        {
+          "name": "goal",
+          "required": false,
+          "description": "Optional assessment goal or target context."
+        }
+      ],
+      "errors": [
+        "empty_goal_handled",
+        "manager_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-test",
+      "target": "catalog",
+      "description": "Run the test/catalog assessment intent.",
+      "intent": "Assay test assessment",
+      "catalog_intent": "Assay test assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "invalid_target",
+        "catalog_command_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-issues",
+      "target": "catalog",
+      "description": "Run the issues assessment intent.",
+      "intent": "Assay issues assessment",
+      "catalog_intent": "Assay issues assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "invalid_target",
+        "catalog_command_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-accessibility",
+      "target": "catalog",
+      "description": "Run the accessibility assessment intent.",
+      "intent": "Assay accessibility assessment",
+      "catalog_intent": "Assay accessibility assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "invalid_target",
+        "catalog_command_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-map",
+      "target": "dashboard",
+      "description": "Open the journey/evidence map dashboard view (token-protected).",
+      "intent": "dashboard.map",
+      "dashboard_route": "/dashboard/map",
+      "arguments": [
+        {
+          "name": "run_id",
+          "required": false,
+          "description": "Optional run ID to focus."
+        }
+      ],
+      "errors": [
+        "dashboard_unavailable",
+        "run_not_found"
+      ]
+    },
+    {
+      "command": "/lemma-help",
+      "target": "manager",
+      "description": "Show available lemma slash commands and usage hints.",
+      "intent": "manager.help",
+      "arguments": [],
+      "errors": []
+    },
+    {
+      "command": "/lemma-settings",
+      "target": "dashboard",
+      "description": "Open protected dashboard settings.",
+      "intent": "dashboard.settings",
+      "dashboard_route": "/dashboard/settings",
+      "arguments": [],
+      "errors": [
+        "dashboard_unavailable",
+        "unauthorized"
+      ]
+    },
+    {
+      "command": "/jay",
+      "aliases": [
+        "/lemma-jay"
+      ],
+      "target": "manager",
+      "description": "Start the manager persona flow for a guided assessment conversation.",
+      "intent": "manager.assess",
+      "arguments": [
+        {
+          "name": "goal",
+          "required": false,
+          "description": "Optional assessment goal."
+        }
+      ],
+      "errors": [
+        "manager_unavailable"
+      ]
+    },
+    {
+      "command": "/full",
+      "aliases": [
+        "/lemma-full"
+      ],
+      "target": "catalog",
+      "description": "Run a full assessment intent.",
+      "intent": "Assay full assessment",
+      "catalog_intent": "Assay full assessment",
+      "arguments": [
+        {
+          "name": "target_or_args",
+          "required": false,
+          "description": "Optional target URL/path or extra arguments."
+        }
+      ],
+      "errors": [
+        "invalid_target",
+        "catalog_command_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-background",
+      "target": "manager",
+      "description": "Query or control background quick-check supervisor status/behavior.",
+      "intent": "manager.background",
+      "arguments": [
+        {
+          "name": "action",
+          "required": false,
+          "description": "Optional: status|pause|resume|stop."
+        }
+      ],
+      "errors": [
+        "invalid_action",
+        "background_unavailable"
+      ]
+    },
+    {
+      "command": "/lemma-pro",
+      "target": "dashboard",
+      "description": "Open the lemma pro/dashboard surface (token-protected).",
+      "intent": "dashboard.pro",
+      "dashboard_route": "/dashboard/pro",
+      "arguments": [],
+      "errors": [
+        "dashboard_unavailable",
+        "entitlement_required"
+      ]
+    }
+  ]
+}

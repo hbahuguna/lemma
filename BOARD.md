@@ -365,7 +365,7 @@ makes the tool tryable; slash commands work natively in-chat.
 | LEM-148 | Build the dedicated bug-hunting workflow (stateful/persona-based exploration) | P1 | 8 | LEM-044, LEM-058, LEM-089 | Done |
 | LEM-150 | Build the background quick-check supervisor | P2 | 5 | LEM-084, LEM-086 | Done |
 | LEM-153 | Build the user-facing demo project generator (`lemma demo`) | P2 | 3 | LEM-038, LEM-083 | Done |
-| LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Backlog |
+| LEM-154 | Verify and complete the in-chat slash-command interface | P1 | 5 | LEM-089, LEM-091, LEM-106 | Done |
 
 ### E14: Visual Evidence and Reporting Surface
 
@@ -1464,8 +1464,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-089, LEM-091, LEM-106
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented host-neutral slash command router/catalog, schema, manager/agent-loop integration, and tests.
 - **Description:** Ensure the agent loop natively understands and responds to
   slash commands inside the AI chat (`/lemma`, `/lemma-test`, `/lemma-issues`,
   `/lemma-accessibility`, `/lemma-map`, `/lemma-help`, `/lemma-settings`,
@@ -1497,12 +1497,15 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     unknown-command behavior, manager-flow integration, dashboard-route
     integration (mock), redaction, and agent-loop (LEM-086) honoring router
     decisions.
-- **Verification (planned):**
-  `pnpm --filter @lemma/agent test -- slash-commands && pnpm --filter @lemma/core test -- slash-command-catalog`
-- **Evidence (planned):** `packages/agent/src/slash-commands.ts`,
+- **Verification:**
+  `pnpm --filter @lemma/agent exec vitest run test/slash-commands/slash-commands.test.ts && pnpm --filter @lemma/core exec vitest run test/slash-command-catalog/slash-command-catalog.test.ts` (pass; 8/8 agent, 1/1 core). Agent-loop honors router decisions (help/unknown short-circuit without fabricated harness execution); manager persona narrates slash flows and dashboard routes without exposing tokens.
+- **Evidence:** `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/index.ts`, `packages/agent/src/manager-session.ts`,
   `schemas/agent/slash-commands.v1.json`,
-  `packages/agent/test/slash-commands/*`,
-  `docs/parity/evidence/LEM-154-slash-commands-test-output.txt`
+  `packages/agent/test/slash-commands/slash-commands.test.ts`,
+  `packages/core/test/slash-command-catalog/slash-command-catalog.test.ts`,
+  `docs/parity/evidence/LEM-154-slash-commands-test-output.txt`.
+
 
 ### LEM-155 — Add Pro edition navigation and informational page
 
