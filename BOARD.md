@@ -313,7 +313,7 @@ retention contracts.
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Done |
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Done |
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Done |
-| LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Backlog |
+| LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Done |
 | LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Backlog |
 | LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Backlog |
 | LEM-122 | Enforce cloud package boundaries and optional extras | P1 | 3 | LEM-113–LEM-120 | Backlog |
@@ -4705,6 +4705,53 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-119 — Port the tenant queue and isolation
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-015, LEM-114, LEM-115
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/queue.test.ts`.
+- **Description:** Port durable tenant-scoped run queue and isolation primitives
+  to `@lemma/cloud` for cloud execution: append/replace-safe queue state, per-
+  workspace tenant roots, owner-only job visibility, cancellation (queued and
+  running kill-file signaling), crash/stale recovery, retry/requeue semantics,
+  queue metrics, and workspace job cleanup, using lemma `.lemma/` conventions.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports queue APIs in `src/queue.ts` (and package entry): a
+    durable `JobQueue`/`RunQueue`-compatible store with schema-versioned state at
+    `.lemma/cloud/queue.json`, tenant roots under `.lemma/tenants/<workspace>/`,
+    workspace-id validation, and public job views that never expose tenant root
+    filesystem paths or cross-tenant identifiers.
+  - Queue lifecycle semantics: `submit` enqueues a job with stable ids/status/
+    timestamps/attempt metadata for a validated workspace/target; `getJob` and
+    `listJobs` are owner-scoped (other workspaces cannot read/list jobs);
+    `cancel` marks queued jobs cancelled and, for running jobs, records a cancel
+    request and writes the tenant kill signal (`.lemma/KILL`) without affecting
+    other tenants; `deleteWorkspaceJobs` removes only the owning workspace's jobs.
+  - Reliability/isolation semantics: `recover`/`recoverStale` reset running jobs
+    to queued for retry; processing/claim-complete helpers support attempt
+    tracking and requeue-on-failure up to `maxAttempts` (terminal failure when
+    exhausted) with injectable execution for deterministic tests; completed/
+    cancelled/failed terminal states and durations are recorded; `metrics`
+    reports queue depth/status counts/totals and average/duration data.
+  - Isolation guarantees are verifiable: jobs for different workspaces use
+    distinct tenant roots/state; owner-only polling cannot read another
+    workspace's job; cancellation/kill signaling is scoped to the tenant root.
+  - `packages/cloud/test/queue.test.ts` verifies core queue contract: submit and
+    owner-only get/list with no root leakage, distinct tenant isolation, queued
+    cancellation, running cancellation writes tenant `.lemma/KILL`, recovery of
+    running jobs, requeue-on-failure then terminal completion/failure semantics,
+    and metrics/workspace deletion behavior.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/queue.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/queue.test.ts` (pass, 5/5 tests) on 2026-11-16.
+- **Evidence to record:** `packages/cloud/src/queue.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/queue.test.ts`, `docs/parity/evidence/LEM-119-queue-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-118 — Port feature-gated metered billing and kill switch
 
