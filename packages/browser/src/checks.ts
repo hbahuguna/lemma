@@ -485,10 +485,33 @@ function evalSecurity(view: BrowserPageView, navigation: BrowserNavigationResult
   return outcome;
 }
 
+function contrastRatio(fg: string, bg: string): number | null {
+  const parse = (c: string): [number, number, number] | null => {
+    const s = c.trim().toLowerCase();
+    const m = s.match(/rgba?\(([^)]+)\)/);
+    if (!m || m[1] == null) return null;
+    const parts = m[1].split(",").map((x) => Number(x.trim()));
+    if (parts.length < 3 || parts.some((n) => !Number.isFinite(n))) return null;
+    return [parts[0]!, parts[1]!, parts[2]!];
+  };
+  const toLin = (v: number) => {
+    const s = Math.max(0, Math.min(255, v)) / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  const lum = (rgb: [number, number, number]) => 0.2126 * toLin(rgb[0]) + 0.7152 * toLin(rgb[1]) + 0.0722 * toLin(rgb[2]);
+  const a = parse(fg), b = parse(bg);
+  if (!a || !b) return null;
+  const L1 = lum(a), L2 = lum(b);
+  const lighter = Math.max(L1, L2), darker = Math.min(L1, L2);
+  return Math.round(((lighter + 0.05) / (darker + 0.05)) * 100) / 100;
+}
+
 function evalAccessibility(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
   const outcome = baseOutcome(view);
   const snapshot = view.snapshot ?? {};
   const finalUrl = navigation.finalUrl || navigation.url;
+  const screenshotRef = view.evidenceRefs?.screenshot ?? (view.evidenceRefs ? view.evidenceRefs["screenshot"] : undefined) ?? "";
+  const a11yJsonRef = view.evidenceRefs?.accessibility ?? (view.evidenceRefs ? (view.evidenceRefs["a11y"] ?? view.evidenceRefs["a11y_json"]) : undefined) ?? "";
 
   const images = asArray(snapshot.images)
     .map(asRecord)
@@ -507,6 +530,10 @@ function evalAccessibility(view: BrowserPageView, navigation: BrowserNavigationR
 
   const selectorList = (items: Record<string, unknown>[]) =>
     items.slice(0, 5).map((item) => asString(item.selector)).filter(Boolean).join(", ");
+
+  const manualReview: string[] = [
+    "Screen-reader speech output is not fabricated; verify announcements/reading order manually.",
+  ];
 
   if (images.length > 0) {
     outcome.addFinding(
@@ -593,8 +620,183 @@ function evalAccessibility(view: BrowserPageView, navigation: BrowserNavigationR
     );
   }
 
+  // LEM-149: bounded keyboard traversal evaluation (artifact/snapshot-driven, deterministic)
+  const focusTraversalRaw = snapshot.focusTraversal ?? snapshot.focus_traversal;
+  const focusTraversal = focusTraversalRaw && typeof focusTraversalRaw === "object" && !Array.isArray(focusTraversalRaw) ? (focusTraversalRaw as Record<string, unknown>) : null;
+  if (focusTraversal) {
+    const maxN = Math.max(1, Math.min(500, Math.trunc(asNumber(focusTraversal.max, 50))));
+    const observed = asArray(focusTraversal.observed ?? focusTraversal.order).map((x) => asString(x)).filter(Boolean).slice(0, maxN);
+    const domSequence = asArray(focusTraversal.domSequence ?? focusTraversal.dom_sequence ?? focusTraversal.expected).map((x) => asString(x)).filter(Boolean).slice(0, maxN);
+    const unreachable = asArray(focusTraversal.unreachable).map((x) => asString(x)).filter(Boolean);
+    const traps = asArray(focusTraversal.traps ?? focusTraversal.trap_regions).map((x) => asString(x)).filter(Boolean);
+    const loopDetected = focusTraversal.loopDetected === true || focusTraversal.loop_detected === true;
+    const traversalEvidence = [screenshotRef, a11yJsonRef, ...asArray(focusTraversal.evidence).map((x) => asString(x))].filter(Boolean);
+    outcome.metadata.focus_traversal = {
+      max: maxN,
+      observed,
+      dom_sequence: domSequence,
+      unreachable,
+      traps,
+      loop_detected: loopDetected,
+      evidence: traversalEvidence,
+    };
+    if (traversalEvidence.length) outcome.evidence.push(...traversalEvidence.filter((e) => !outcome.evidence.includes(e)));
+    if (traps.length > 0 || loopDetected) {
+      outcome.addFinding(
+        "Keyboard focus traversal appears trap-prone",
+        Severity.HIGH,
+        "accessibility",
+        "Keyboard users may be unable to leave a region, blocking navigation.",
+        traps.join(", ") || sanitizeUrl(finalUrl),
+        "Tab through interactive elements and observe whether focus cycles or gets stuck.",
+        Strength.OBSERVED,
+        "Ensure focus can move forward and backward out of every interactive region.",
+        "Re-run bounded tab traversal and confirm no trap/loop is observed.",
+        ["a11y", "keyboard", "focus-traversal"],
+      );
+    }
+    if (unreachable.length > 0) {
+      outcome.addFinding(
+        `${unreachable.length} focusable element(s) were unreachable during keyboard traversal`,
+        Severity.MEDIUM,
+        "accessibility",
+        "Keyboard users cannot reach all interactive controls.",
+        unreachable.slice(0, 5).join(", "),
+        "Tab through the page and compare reachable focus targets with the DOM/focusable set.",
+        Strength.OBSERVED,
+        "Remove focus blockers and ensure interactive elements are keyboard reachable.",
+        "Re-run traversal and confirm focus reaches all intended controls.",
+        ["a11y", "keyboard", "focus-traversal"],
+      );
+    }
+    if (domSequence.length > 0 && observed.length > 0 && JSON.stringify(observed) !== JSON.stringify(domSequence)) {
+      outcome.addFinding(
+        "Observed keyboard focus order differs from the DOM sequence",
+        Severity.MEDIUM,
+        "accessibility",
+        "Keyboard focus order can diverge from visual/document order and confuse users.",
+        sanitizeUrl(finalUrl),
+        "Compare observed focus traversal with the DOM sequence metadata.",
+        Strength.OBSERVED,
+        "Align focus order with DOM/reading order and remove positive tabindex usage.",
+        "Re-run traversal and confirm observed order matches expected DOM sequence.",
+        ["a11y", "keyboard", "focus-traversal"],
+      );
+    }
+  }
+
+  // LEM-149: live contrast sampling (artifact/snapshot-driven)
+  const contrastSamplesRaw = asArray(snapshot.contrastSamples ?? snapshot.contrast_samples);
+  if (contrastSamplesRaw.length > 0) {
+    const samples = contrastSamplesRaw.map(asRecord).slice(0, 200);
+    const contrastEvidence = [screenshotRef, a11yJsonRef, ...samples.flatMap((s) => asArray(s.evidence).map((x) => asString(x)))].filter(Boolean);
+    if (contrastEvidence.length) outcome.evidence.push(...contrastEvidence.filter((e) => !outcome.evidence.includes(e)));
+    const violations: Array<Record<string, unknown>> = [];
+    for (const s of samples) {
+      const fg = asString(s.fg ?? s.foreground);
+      const bg = asString(s.bg ?? s.background);
+      const selector = asString(s.selector) || asString(s.text) || "text node";
+      const fontSize = asNumber(s.fontSize ?? s.font_size, 16);
+      const fontWeight = asNumber(s.fontWeight ?? s.font_weight, 400);
+      const large = fontSize >= 24 || (fontSize >= 18.66 && fontWeight >= 700);
+      const ratio = typeof s.ratio === "number" && Number.isFinite(s.ratio) ? s.ratio : contrastRatio(fg, bg);
+      if (ratio == null) continue;
+      const aaThreshold = large ? 3 : 4.5;
+      const aaaThreshold = large ? 4.5 : 7;
+      const passesAA = ratio >= aaThreshold;
+      const passesAAA = ratio >= aaaThreshold;
+      if (!passesAA) {
+        violations.push({ selector, ratio, fg, bg, fontSize, fontWeight, large_text: large, threshold: aaThreshold, wcag_level: "AA", passes_aa: passesAA, passes_aaa: passesAAA });
+        outcome.addFinding(
+          `Text contrast ${ratio}:1 fails WCAG AA (${large ? "large" : "normal"} text)`,
+          Severity.MEDIUM,
+          "accessibility",
+          "Low contrast text can be difficult or impossible for many users to read.",
+          selector,
+          "Inspect foreground/background colors for the sampled visible text node.",
+          Strength.OBSERVED,
+          `Increase contrast to at least ${aaThreshold}:1 for ${large ? "large" : "normal"} text (WCAG AA).`,
+          "Recompute contrast on rendered styles and confirm AA compliance.",
+          ["a11y", "contrast", large ? "contrast-large-text" : "contrast-normal-text"],
+        );
+        const f = outcome.findings[outcome.findings.length - 1];
+        if (f) {
+          (f as unknown as Record<string, unknown>).evidence = [...new Set([...(f.evidence ?? []), ...contrastEvidence])];
+        }
+      }
+    }
+    outcome.metadata.contrast = { sample_count: samples.length, violations };
+  }
+
+  // LEM-149: screen-reader hints (contract violations only; no fabricated output)
+  const srHintsRaw = snapshot.screenReaderHints ?? snapshot.screen_reader_hints;
+  const sr = srHintsRaw && typeof srHintsRaw === "object" && !Array.isArray(srHintsRaw) ? (srHintsRaw as Record<string, unknown>) : null;
+  if (sr) {
+    const contradictions = asArray(sr.contradictoryNames ?? sr.contradictory_names ?? sr.role_name_state_contradictions).map(asRecord);
+    const duplicateLandmarks = asArray(sr.duplicateLandmarks ?? sr.duplicate_landmarks).map((x) => asString(x)).filter(Boolean);
+    const interactiveNoName = asArray(sr.interactiveWithoutName ?? sr.interactive_without_name ?? sr.interactive_without_accessible_name).map(asRecord);
+    const srEvidence = [screenshotRef, a11yJsonRef, ...asArray(sr.evidence).map((x) => asString(x))].filter(Boolean);
+    if (srEvidence.length) outcome.evidence.push(...srEvidence.filter((e) => !outcome.evidence.includes(e)));
+    if (contradictions.length > 0) {
+      outcome.addFinding(
+        `${contradictions.length} element(s) have contradictory or invalid accessible role/name/state`,
+        Severity.MEDIUM,
+        "accessibility",
+        "Assistive technologies may announce incorrect semantics or state.",
+        contradictions.slice(0, 5).map((c) => asString(c.selector) || asString(c.role) || "element").filter(Boolean).join(", "),
+        "Inspect ARIA role/name/state and native semantics for contradictions.",
+        Strength.OBSERVED,
+        "Align role, accessible name, and state with the element's actual behavior.",
+        "Validate accessible name/role/state in the accessibility tree.",
+        ["a11y", "screen-reader", "aria"],
+      );
+    }
+    if (duplicateLandmarks.length > 0) {
+      outcome.addFinding(
+        `${duplicateLandmarks.length} duplicate landmark(s) without distinguishing labels`,
+        Severity.LOW,
+        "accessibility",
+        "Screen-reader landmark navigation can become ambiguous.",
+        duplicateLandmarks.slice(0, 5).join(", "),
+        "Inspect landmark roles/names for duplicates.",
+        Strength.OBSERVED,
+        "Provide unique accessible names for repeated landmarks.",
+        "Confirm landmarks are distinguishable in the accessibility tree.",
+        ["a11y", "screen-reader", "landmarks"],
+      );
+    }
+    if (interactiveNoName.length > 0) {
+      outcome.addFinding(
+        `${interactiveNoName.length} interactive element(s) lack an accessible name`,
+        Severity.MEDIUM,
+        "accessibility",
+        "Screen-reader users cannot identify the purpose of interactive controls.",
+        interactiveNoName.slice(0, 5).map((i) => asString(i.selector)).filter(Boolean).join(", "),
+        "Inspect interactive elements for accessible names.",
+        Strength.OBSERVED,
+        "Provide an accessible name via text content, label, aria-label, or aria-labelledby.",
+        "Confirm each interactive element exposes a meaningful accessible name.",
+        ["a11y", "screen-reader", "controls"],
+      );
+    }
+    const hintReviews = asArray(sr.manual_review_required ?? sr.manualReviewRequired).map((x) => asString(x)).filter(Boolean);
+    manualReview.push(...hintReviews);
+    outcome.metadata.screen_reader_hints = {
+      contradictory_names: contradictions.length,
+      duplicate_landmarks: duplicateLandmarks.length,
+      interactive_without_name: interactiveNoName.length,
+      evidence: srEvidence,
+    };
+  }
+
+  // Attach screenshot/structured evidence refs if available
+  if (screenshotRef && !outcome.evidence.includes(screenshotRef)) outcome.evidence.push(screenshotRef);
+  if (a11yJsonRef && !outcome.evidence.includes(a11yJsonRef)) outcome.evidence.push(a11yJsonRef);
+
   outcome.actual = `${images.length} image(s) without alt; ${unlabeled.length} unlabeled control(s); ${unnamed.length} unnamed control(s); ${duplicateIds.length} duplicate id(s).`;
-  outcome.metadata.manual_review_required = true;
+  const manualReviewItems = [...new Set(manualReview)].sort();
+  outcome.metadata.manual_review_required = true; // backward-compatible flag
+  outcome.metadata.manual_review_required_items = manualReviewItems;
   if (outcome.findings.length === 0) outcome.status = CheckStatus.PASSED;
   return outcome;
 }

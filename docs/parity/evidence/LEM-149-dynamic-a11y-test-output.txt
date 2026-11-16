@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/accessibility-dynamic/accessibility-dynamic.test.ts (5 tests) 16ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  21:23:56
+   Duration  2.50s (transform 700ms, setup 0ms, collect 985ms, tests 16ms, environment 2ms, prepare 179ms)
+
