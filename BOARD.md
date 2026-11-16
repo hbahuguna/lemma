@@ -330,8 +330,8 @@ artifacts cannot produce a false release signal.
 | LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Done |
 | LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Done |
 | LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Done |
-| LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | In Progress |
-| LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Backlog |
+| LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Done |
+| LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Done |
 | LEM-130 | Audit dependency and supply-chain posture | P1 | 3 | LEM-009 | Backlog |
 | LEM-131 | Set and test performance/scale budgets | P2 | 3 | LEM-026 | Backlog |
 
@@ -4706,13 +4706,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
+### LEM-129 — Audit that no path resumes a halted run
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-015
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/resume/halted-run-no-resume.test.ts packages/core/test/resume/resume.test.ts`.
+- **Description:** Audit and prove no supported path can resume a halted run:
+  resume attempts must fail with a typed error, must not mutate halted progress
+  state, and starting a new run must create a distinct run instead of continuing
+  the halted one.
+- **Acceptance Criteria:**
+  - `packages/core/test/resume/halted-run-no-resume.test.ts` proves halted runs
+    cannot be resumed via `Orchestrator.resume(...)` or
+    `Orchestrator.run({ resume: true, ... })`: both reject with a typed
+    `StateError` explaining the run was halted and must not continue; persisted
+    halted `progress.json`/state remains unchanged by the failed resume attempt.
+  - Starting a new non-resume run after a halted run creates a different run and
+    does not resurrect/continue the halted run state.
+  - Existing resume/crash-safety regressions remain passing
+    (`packages/core/test/resume/resume.test.ts`); no implementation fixes
+    required (orchestrator halted-resume guard audited and preserved).
+  - `pnpm --filter @lemma/core test -- packages/core/test/resume/halted-run-no-resume.test.ts packages/core/test/resume/resume.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/resume/halted-run-no-resume.test.ts test/resume/resume.test.ts` (pass, 6/6 tests, 2 files) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/resume/halted-run-no-resume.test.ts`, `packages/core/src/orchestrator.ts` (halted resume guard audited), `packages/core/test/resume/resume.test.ts`, `docs/parity/evidence/LEM-129-halted-no-resume-test-output.txt`, and updated `BOARD.md` (no additional parity inventory row ownership identified for LEM-129).
+
+
 ### LEM-128 — Audit untrusted evidence paths and path traversal
 
 - **Epic:** E11 Hardening, Privacy, and Reliability
 - **Priority:** P1
 - **Points:** 3
 - **Depends on:** LEM-016
-- **Status:** In Progress
+- **Status:** Done
 - **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/evidence/path-traversal-audit.test.ts packages/core/test/evidence/evidence.test.ts`.
 - **Description:** Audit and regress-test untrusted evidence path handling to
   ensure traversal/escape attempts (manifest entries, reconcile inputs, and
@@ -4726,14 +4755,12 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     entries as missing/affected (tamper-safe) rather than reading them; poisoned
     manifest evidence entries cannot exfiltrate or validate outside-root content.
   - Existing evidence store behavior remains correct for valid in-root artifacts
-    (`packages/core/test/evidence/evidence.test.ts` continues to pass); any
-    minimal fixes required to close traversal gaps are covered by tests.
+    (`packages/core/test/evidence/evidence.test.ts` continues to pass); minimal
+    hardening rejects absolute evidence paths in `ensureSafeRelative`.
   - `pnpm --filter @lemma/core test -- packages/core/test/evidence/path-traversal-audit.test.ts packages/core/test/evidence/evidence.test.ts`
     passes in this environment and committed test output evidence is recorded.
-- **Verification:** (planned) acceptance test command above.
-- **Evidence to record:** path-traversal audit test file, any minimal
-  `packages/core/src/evidence.ts` hardening, test output evidence file, and
-  updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/evidence/path-traversal-audit.test.ts test/evidence/evidence.test.ts` (pass, 7/7 tests, 2 files) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/evidence/path-traversal-audit.test.ts`, `packages/core/src/evidence.ts` (reject absolute untrusted evidence paths), `packages/core/test/evidence/evidence.test.ts`, `docs/parity/evidence/LEM-128-evidence-path-traversal-test-output.txt`, and updated `BOARD.md` (no additional parity inventory row ownership identified for LEM-128).
 
 
 ### LEM-127 — Prove atomic writes and locks cross-platform

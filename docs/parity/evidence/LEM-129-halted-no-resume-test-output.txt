@@ -1,0 +1,15 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/resume/halted-run-no-resume.test.ts (3 tests) 1594ms
+   ✓ LEM-129 no path resumes a halted run > starting a new non-resume run creates a distinct run and does not continue halted state  1264ms
+ ✓ test/resume/resume.test.ts (3 tests) 2688ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > records registry fingerprint and resumes unchanged without mutating completed run identity  1481ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > resumes after simulated crash, rerunning only unfinished checks and preserving completed evidence/findings  605ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > rejects target mismatch and registry fingerprint change without mutating saved state/evidence  600ms
+
+ Test Files  2 passed (2)
+      Tests  6 passed (6)
+   Start at  17:01:50
+   Duration  4.17s (transform 498ms, setup 0ms, collect 1.34s, tests 4.28s, environment 0ms, prepare 337ms)
+
