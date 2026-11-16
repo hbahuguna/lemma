@@ -1,0 +1,264 @@
+$ pnpm -r --if-present build
+Scope: 12 of 13 workspace projects
+packages/adapters/sdk build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/sdk build: CLI Building entry: src/index.ts
+packages/adapters/sdk build: CLI Using tsconfig: tsconfig.json
+packages/adapters/sdk build: CLI tsup v8.5.1
+packages/adapters/sdk build: CLI Target: node20
+packages/adapters/sdk build: CLI Cleaning output folder
+packages/adapters/sdk build: ESM Build start
+packages/adapters/sdk build: ESM dist/index.js     18.49 KB
+packages/adapters/sdk build: ESM dist/index.js.map 41.46 KB
+packages/adapters/sdk build: ESM ⚡️ Build success in 100ms
+packages/adapters/sdk build: DTS Build start
+packages/adapters/sdk build: DTS ⚡️ Build success in 1542ms
+packages/adapters/sdk build: DTS dist/index.d.ts 12.66 KB
+packages/adapters/sdk build: Done
+packages/core build$ tsup src/index.ts src/plugins.ts src/browser.ts src/cloud.ts src/personas.ts src/outcomes.ts src/ssrf-export.ts src/exports.ts --format esm --dts --clean --sourcemap --target node20
+packages/browser build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/core build: CLI Building entry: src/browser.ts, src/cloud.ts, src/exports.ts, src/index.ts, src/outcomes.ts, src/personas.ts, src/plugins.ts, src/ssrf-export.ts
+packages/core build: CLI Using tsconfig: tsconfig.json
+packages/core build: CLI tsup v8.5.1
+packages/browser build: CLI Building entry: src/index.ts
+packages/browser build: CLI Using tsconfig: tsconfig.json
+packages/browser build: CLI tsup v8.5.1
+packages/core build: CLI Target: node20
+packages/browser build: CLI Target: node20
+packages/browser build: CLI Cleaning output folder
+packages/browser build: ESM Build start
+packages/core build: CLI Cleaning output folder
+packages/core build: ESM Build start
+packages/browser build: ESM dist/index.js     89.33 KB
+packages/browser build: ESM dist/index.js.map 169.42 KB
+packages/browser build: ESM ⚡️ Build success in 107ms
+packages/core build: ESM dist/cloud.js              163.00 B
+packages/core build: ESM dist/browser.js            177.00 B
+packages/core build: ESM dist/chunk-LT74Q6RG.js     5.65 KB
+packages/core build: ESM dist/chunk-Z6TGCINJ.js     7.85 KB
+packages/core build: ESM dist/exports.js            412.00 B
+packages/core build: ESM dist/plugins.js            1.09 KB
+packages/core build: ESM dist/outcomes.js           443.00 B
+packages/core build: ESM dist/personas.js           1.62 KB
+packages/core build: ESM dist/chunk-OXNU7YIE.js     70.05 KB
+packages/core build: ESM dist/chunk-NHDRUPZH.js     14.84 KB
+packages/core build: ESM dist/ssrf-export.js        358.00 B
+packages/core build: ESM dist/chunk-KOLZ5OUH.js     5.63 KB
+packages/core build: ESM dist/index.js              255.11 KB
+packages/core build: ESM dist/chunk-X7VICLTE.js     9.16 KB
+packages/core build: ESM dist/chunk-SVM3JTYS.js     31.81 KB
+packages/core build: ESM dist/chunk-DARWEVMR.js     37.85 KB
+packages/core build: ESM dist/exports.js.map        71.00 B
+packages/core build: ESM dist/cloud.js.map          578.00 B
+packages/core build: ESM dist/chunk-LT74Q6RG.js.map 9.69 KB
+packages/core build: ESM dist/chunk-Z6TGCINJ.js.map 14.51 KB
+packages/core build: ESM dist/plugins.js.map        71.00 B
+packages/core build: ESM dist/personas.js.map       71.00 B
+packages/core build: ESM dist/outcomes.js.map       71.00 B
+packages/core build: ESM dist/browser.js.map        590.00 B
+packages/core build: ESM dist/chunk-NHDRUPZH.js.map 32.90 KB
+packages/core build: ESM dist/chunk-OXNU7YIE.js.map 116.89 KB
+packages/core build: ESM dist/ssrf-export.js.map    71.00 B
+packages/core build: ESM dist/chunk-KOLZ5OUH.js.map 11.45 KB
+packages/core build: ESM dist/chunk-X7VICLTE.js.map 18.29 KB
+packages/core build: ESM dist/chunk-SVM3JTYS.js.map 68.60 KB
+packages/core build: ESM dist/chunk-DARWEVMR.js.map 77.62 KB
+packages/core build: ESM dist/index.js.map          457.43 KB
+packages/core build: ESM ⚡️ Build success in 255ms
+packages/browser build: DTS Build start
+packages/core build: DTS Build start
+packages/browser build: DTS ⚡️ Build success in 9940ms
+packages/browser build: DTS dist/index.d.ts 13.86 KB
+packages/browser build: Done
+packages/core build: DTS ⚡️ Build success in 11148ms
+packages/core build: DTS dist/browser.d.ts              502.00 B
+packages/core build: DTS dist/cloud.d.ts                486.00 B
+packages/core build: DTS dist/exports.d.ts              815.00 B
+packages/core build: DTS dist/personas.d.ts             10.80 KB
+packages/core build: DTS dist/index.d.ts                158.05 KB
+packages/core build: DTS dist/outcomes.d.ts             356.00 B
+packages/core build: DTS dist/plugins.d.ts              771.00 B
+packages/core build: DTS dist/ssrf-export.d.ts          196.00 B
+packages/core build: DTS dist/models-CVrfVATZ.d.ts      8.01 KB
+packages/core build: DTS dist/outcomes-CAndjHLG.d.ts    7.31 KB
+packages/core build: DTS dist/plugins-BZozQx-0.d.ts     14.35 KB
+packages/core build: DTS dist/ssrf-export-C1EFbGqM.d.ts 4.70 KB
+packages/core build: Done
+packages/agent build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/cloud build$ tsup src/index.ts src/metering.ts src/auth.ts src/quota.ts src/ledger.ts src/signup.ts src/billing.ts src/queue.ts src/retention.ts src/entitlements.ts --format esm --dts --clean --sourcemap --target node20
+packages/personas build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/agent build: CLI Building entry: src/index.ts
+packages/agent build: CLI Using tsconfig: tsconfig.json
+packages/agent build: CLI tsup v8.5.1
+packages/personas build: CLI Building entry: src/index.ts
+packages/personas build: CLI Using tsconfig: tsconfig.json
+packages/personas build: CLI tsup v8.5.1
+packages/agent build: CLI Target: node20
+packages/cloud build: CLI Building entry: src/auth.ts, src/billing.ts, src/entitlements.ts, src/index.ts, src/ledger.ts, src/metering.ts, src/queue.ts, src/quota.ts, src/retention.ts, src/signup.ts
+packages/cloud build: CLI Using tsconfig: tsconfig.json
+packages/cloud build: CLI tsup v8.5.1
+packages/agent build: CLI Cleaning output folder
+packages/agent build: ESM Build start
+packages/personas build: CLI Target: node20
+packages/personas build: CLI Cleaning output folder
+packages/personas build: ESM Build start
+packages/cloud build: CLI Target: node20
+packages/personas build: ESM dist/index.js     114.00 B
+packages/personas build: ESM dist/index.js.map 322.00 B
+packages/personas build: ESM ⚡️ Build success in 70ms
+packages/cloud build: CLI Cleaning output folder
+packages/cloud build: ESM Build start
+packages/agent build: ESM dist/index.js     80.85 KB
+packages/agent build: ESM dist/index.js.map 144.14 KB
+packages/agent build: ESM ⚡️ Build success in 141ms
+packages/cloud build: ESM dist/retention.js          898.00 B
+packages/cloud build: ESM dist/auth.js               597.00 B
+packages/cloud build: ESM dist/signup.js             829.00 B
+packages/cloud build: ESM dist/billing.js            944.00 B
+packages/cloud build: ESM dist/entitlements.js       865.00 B
+packages/cloud build: ESM dist/chunk-OR2GQEHG.js     24.02 KB
+packages/cloud build: ESM dist/chunk-KQH5YUG7.js     28.84 KB
+packages/cloud build: ESM dist/chunk-X4XMFPR4.js     1.27 KB
+packages/cloud build: ESM dist/chunk-FPKIMSUR.js     19.53 KB
+packages/cloud build: ESM dist/index.js              6.27 KB
+packages/cloud build: ESM dist/metering.js           1.05 KB
+packages/cloud build: ESM dist/chunk-XZVYSW6U.js     12.25 KB
+packages/cloud build: ESM dist/chunk-H7QPVEYF.js     39.87 KB
+packages/cloud build: ESM dist/queue.js              618.00 B
+packages/cloud build: ESM dist/chunk-NGJFFLA2.js     19.91 KB
+packages/cloud build: ESM dist/quota.js              1.33 KB
+packages/cloud build: ESM dist/chunk-AIX3AFVG.js     13.89 KB
+packages/cloud build: ESM dist/chunk-NSBPE2FW.js     611.00 B
+packages/cloud build: ESM dist/chunk-MRJZPFVK.js     30.85 KB
+packages/cloud build: ESM dist/ledger.js             971.00 B
+packages/cloud build: ESM dist/retention.js.map      71.00 B
+packages/cloud build: ESM dist/signup.js.map         71.00 B
+packages/cloud build: ESM dist/auth.js.map           71.00 B
+packages/cloud build: ESM dist/billing.js.map        71.00 B
+packages/cloud build: ESM dist/entitlements.js.map   71.00 B
+packages/cloud build: ESM dist/chunk-FPKIMSUR.js.map 39.36 KB
+packages/cloud build: ESM dist/chunk-KQH5YUG7.js.map 53.19 KB
+packages/cloud build: ESM dist/index.js.map          1.07 KB
+packages/cloud build: ESM dist/metering.js.map       71.00 B
+packages/cloud build: ESM dist/chunk-H7QPVEYF.js.map 73.35 KB
+packages/cloud build: ESM dist/queue.js.map          71.00 B
+packages/cloud build: ESM dist/chunk-NGJFFLA2.js.map 37.41 KB
+packages/cloud build: ESM dist/chunk-X4XMFPR4.js.map 241.00 B
+packages/cloud build: ESM dist/chunk-XZVYSW6U.js.map 23.84 KB
+packages/cloud build: ESM dist/quota.js.map          71.00 B
+packages/cloud build: ESM dist/chunk-OR2GQEHG.js.map 44.04 KB
+packages/cloud build: ESM dist/chunk-AIX3AFVG.js.map 28.24 KB
+packages/cloud build: ESM dist/chunk-NSBPE2FW.js.map 71.00 B
+packages/cloud build: ESM dist/ledger.js.map         71.00 B
+packages/cloud build: ESM dist/chunk-MRJZPFVK.js.map 58.67 KB
+packages/cloud build: ESM ⚡️ Build success in 124ms
+packages/personas build: DTS Build start
+packages/agent build: DTS Build start
+packages/cloud build: DTS Build start
+packages/personas build: DTS ⚡️ Build success in 2573ms
+packages/personas build: DTS dist/index.d.ts 225.00 B
+packages/personas build: Done
+packages/agent build: DTS ⚡️ Build success in 9221ms
+packages/agent build: DTS dist/index.d.ts 19.68 KB
+packages/agent build: Done
+packages/cloud build: DTS ⚡️ Build success in 14635ms
+packages/cloud build: DTS dist/index.d.ts                 3.55 KB
+packages/cloud build: DTS dist/metering.d.ts              3.75 KB
+packages/cloud build: DTS dist/retention.d.ts             3.32 KB
+packages/cloud build: DTS dist/billing.d.ts               7.65 KB
+packages/cloud build: DTS dist/ledger.d.ts                7.32 KB
+packages/cloud build: DTS dist/queue.d.ts                 4.30 KB
+packages/cloud build: DTS dist/signup.d.ts                4.60 KB
+packages/cloud build: DTS dist/auth.d.ts                  6.05 KB
+packages/cloud build: DTS dist/quota.d.ts                 7.59 KB
+packages/cloud build: DTS dist/entitlements.d.ts          420.00 B
+packages/cloud build: DTS dist/entitlements-wHs_qkoy.d.ts 2.63 KB
+packages/cloud build: Done
+packages/adapters/antigravity build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/claude-code build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/codex build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/cursor build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/claude-code build: CLI Building entry: src/index.ts
+packages/adapters/claude-code build: CLI Using tsconfig: tsconfig.json
+packages/adapters/claude-code build: CLI tsup v8.5.1
+packages/adapters/antigravity build: CLI Building entry: src/index.ts
+packages/adapters/antigravity build: CLI Using tsconfig: tsconfig.json
+packages/adapters/antigravity build: CLI tsup v8.5.1
+packages/adapters/claude-code build: CLI Target: node20
+packages/adapters/antigravity build: CLI Target: node20
+packages/adapters/claude-code build: CLI Cleaning output folder
+packages/adapters/claude-code build: ESM Build start
+packages/adapters/antigravity build: CLI Cleaning output folder
+packages/adapters/antigravity build: ESM Build start
+packages/adapters/codex build: CLI Building entry: src/index.ts
+packages/adapters/codex build: CLI Using tsconfig: tsconfig.json
+packages/adapters/codex build: CLI tsup v8.5.1
+packages/adapters/cursor build: CLI Building entry: src/index.ts
+packages/adapters/codex build: CLI Target: node20
+packages/adapters/cursor build: CLI Using tsconfig: tsconfig.json
+packages/adapters/cursor build: CLI tsup v8.5.1
+packages/adapters/codex build: CLI Cleaning output folder
+packages/adapters/codex build: ESM Build start
+packages/adapters/claude-code build: ESM dist/index.js     8.02 KB
+packages/adapters/claude-code build: ESM dist/index.js.map 15.67 KB
+packages/adapters/claude-code build: ESM ⚡️ Build success in 254ms
+packages/adapters/cursor build: CLI Target: node20
+packages/adapters/codex build: ESM dist/index.js     8.15 KB
+packages/adapters/codex build: ESM dist/index.js.map 16.53 KB
+packages/adapters/codex build: ESM ⚡️ Build success in 62ms
+packages/adapters/antigravity build: ESM dist/index.js     7.88 KB
+packages/adapters/antigravity build: ESM dist/index.js.map 15.48 KB
+packages/adapters/antigravity build: ESM ⚡️ Build success in 267ms
+packages/adapters/cursor build: CLI Cleaning output folder
+packages/adapters/cursor build: ESM Build start
+packages/adapters/cursor build: ESM dist/index.js     7.73 KB
+packages/adapters/cursor build: ESM dist/index.js.map 15.33 KB
+packages/adapters/cursor build: ESM ⚡️ Build success in 83ms
+packages/adapters/claude-code build: DTS Build start
+packages/adapters/antigravity build: DTS Build start
+packages/adapters/cursor build: DTS Build start
+packages/adapters/codex build: DTS Build start
+packages/adapters/claude-code build: DTS ⚡️ Build success in 16121ms
+packages/adapters/claude-code build: DTS dist/index.d.ts 2.65 KB
+packages/adapters/claude-code build: Done
+packages/adapters/opencode build$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/antigravity build: DTS ⚡️ Build success in 16355ms
+packages/adapters/antigravity build: DTS dist/index.d.ts 2.67 KB
+packages/adapters/cursor build: DTS ⚡️ Build success in 16310ms
+packages/adapters/cursor build: DTS dist/index.d.ts 2.54 KB
+packages/adapters/codex build: DTS ⚡️ Build success in 16248ms
+packages/adapters/codex build: DTS dist/index.d.ts 3.03 KB
+packages/adapters/antigravity build: Done
+packages/cli build$ tsup src/index.ts src/cli.ts --format esm --dts --clean --sourcemap --target node20
+packages/adapters/cursor build: Done
+packages/adapters/codex build: Done
+packages/adapters/opencode build: CLI Building entry: src/index.ts
+packages/adapters/opencode build: CLI Using tsconfig: tsconfig.json
+packages/adapters/opencode build: CLI tsup v8.5.1
+packages/adapters/opencode build: CLI Target: node20
+packages/adapters/opencode build: CLI Cleaning output folder
+packages/adapters/opencode build: ESM Build start
+packages/adapters/opencode build: ESM dist/index.js     7.95 KB
+packages/adapters/opencode build: ESM dist/index.js.map 15.81 KB
+packages/adapters/opencode build: ESM ⚡️ Build success in 53ms
+packages/cli build: CLI Building entry: src/cli.ts, src/index.ts
+packages/cli build: CLI Using tsconfig: tsconfig.json
+packages/cli build: CLI tsup v8.5.1
+packages/cli build: CLI Target: node20
+packages/cli build: CLI Cleaning output folder
+packages/cli build: ESM Build start
+packages/cli build: ESM dist/cli.js                293.00 B
+packages/cli build: ESM dist/index.js              606.00 B
+packages/cli build: ESM dist/chunk-UXLSV6BE.js     33.36 KB
+packages/cli build: ESM dist/cli.js.map            533.00 B
+packages/cli build: ESM dist/index.js.map          71.00 B
+packages/cli build: ESM dist/chunk-UXLSV6BE.js.map 63.59 KB
+packages/cli build: ESM ⚡️ Build success in 137ms
+packages/adapters/opencode build: DTS Build start
+packages/cli build: DTS Build start
+packages/adapters/opencode build: DTS ⚡️ Build success in 10117ms
+packages/adapters/opencode build: DTS dist/index.d.ts 2.59 KB
+packages/adapters/opencode build: Done
+packages/cli build: DTS ⚡️ Build success in 11453ms
+packages/cli build: DTS dist/cli.d.ts   20.00 B
+packages/cli build: DTS dist/index.d.ts 2.40 KB
+packages/cli build: Done

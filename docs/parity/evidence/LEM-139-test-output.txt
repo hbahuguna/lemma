@@ -1,0 +1,942 @@
+$ vitest run
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ❯ packages/core/test/schemas/schemas.test.ts (5 tests | 4 failed) 152ms
+   ✓ LEM-004 schemas and contracts > defines zod schemas for all required contracts 4ms
+   × LEM-004 schemas and contracts > accepts completed, halted, and failed assay reports after volatile normalization 24ms
+     → [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "object",
+    "path": [
+      "confidence",
+      "coverage"
+    ],
+    "message": "Expected number, received object"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "penalties"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "breakdown"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "contract_failures"
+    ],
+    "message": "Expected object, received array"
+  }
+]
+   × LEM-004 schemas and contracts > generates JSON Schemas into schemas/ and matches committed files 115ms
+     → expected { …(8) } to deeply equal { …(6) }
+   × LEM-004 schemas and contracts > rejects removed or typed-wrong fields and allows additive optional fields 5ms
+     → expected false to be true // Object.is equality
+   × LEM-004 schemas and contracts > infers public types from schemas 1ms
+     → [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "object",
+    "path": [
+      "confidence",
+      "coverage"
+    ],
+    "message": "Expected number, received object"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "penalties"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "breakdown"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "contract_failures"
+    ],
+    "message": "Expected object, received array"
+  }
+]
+ ❯ packages/core/test/policy/policy.test.ts (4 tests | 1 failed) 477ms
+   × LEM-019 versioned policy files and gate evaluation > loads default advisory-v1 policy file and reproduces advisory scoring behavior 13ms
+     → ENOENT: no such file or directory, open '/Users/skaparwan/policies/advisory-v1.json'
+   ✓ LEM-019 versioned policy files and gate evaluation > accepts partial/relaxed versioned policies with defaults 128ms
+   ✓ LEM-019 versioned policy files and gate evaluation > rejects invalid policies (unknown fields, invalid values, unsafe ordering)  328ms
+   ✓ LEM-019 versioned policy files and gate evaluation > evaluates gates per loaded custom policy (thresholds and critical/high settings) 4ms
+ ✓ packages/core/test/state/state.test.ts (5 tests) 3133ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > corrupt JSON raises a typed error and preserves the last good/corrupt file on disk  330ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > advisory file lock is exclusive across processes and released on crash  1883ms
+   ✓ LEM-010 atomic state, JSON, and file-lock primitives > kill file written from another process is observed between checks  605ms
+ ❯ packages/agent/test/context-flow.test.ts (3 tests | 1 failed) 5034ms
+   ✓ LEM-091 context protocol and question flow > parses and detects tagged/freeform context replies with redaction-safe fields 14ms
+   ✓ LEM-091 context protocol and question flow > formats requests and applies need_context -> need_method -> resolved/skip transitions 5ms
+   × LEM-091 context protocol and question flow > integrates with loop: need_user_context pauses/resumes via userInput and interactive wait 5012ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/agent/test/agent-loop-prompt-contract.test.ts (3 tests | 1 failed) 5047ms
+   ✓ LEM-096 agent-loop and prompt-contract tests > prompt contract preserves context protocol invariants and browser prompt embedding 9ms
+   ✓ LEM-096 agent-loop and prompt-contract tests > agent-loop contract: decision parsing, allowlist, args/signatures, dedupe and cap 20ms
+   × LEM-096 agent-loop and prompt-contract tests > agent-loop contract: need-context pause/resume, interactive wait, min runs, and final narrative hooks 5016ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/core/test/invalid-findings/invalid-findings.test.ts (7 tests | 1 failed) 9607ms
+   × LEM-045 invalid-finding quarantine and degraded streaks > quarantines invalid findings without scoring, linking, or killing the run 5016ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > resets the consecutive streak on a valid finding while keeping the failure total  4579ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > de-duplicates valid findings by fingerprint and merges evidence 3ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > extracts raw draft payloads without inventing fields or throwing 1ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > redacts quarantined errors and payloads before persistence 2ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > rebuilds contract health after resume prunes invalid records 2ms
+   ✓ LEM-045 invalid-finding quarantine and degraded streaks > skips validation when no persona contract is supplied, matching assay 1ms
+ ❯ packages/core/test/performance-scale/performance-scale-budgets.test.ts (3 tests | 1 failed) 9774ms
+   ✓ LEM-131 performance and scale budgets > scores and builds a schema-valid report for large synthetic state (>=1000 checks, >=400 findings) 216ms
+   × LEM-131 performance and scale budgets > records, finalizes, and verifies many evidence artifacts (>=250) correctly 5011ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+   ✓ LEM-131 performance and scale budgets > enforces orchestrator maxChecks budget at synthetic planning scale  4544ms
+ ✓ packages/core/test/conformance/orchestrator-conformance.test.ts (3 tests) 12135ms
+   ✓ LEM-026 orchestrator conformance suite > runs full deterministic flow with phase/budget/persistence invariants and produces verified evidence + schema-valid report  4101ms
+   ✓ LEM-026 orchestrator conformance suite > halts on kill/handler trigger, skips remaining phases/checks, and report/confidence reflect hold semantics without auto-resume  3745ms
+   ✓ LEM-026 orchestrator conformance suite > resumes after simulated crash, reruns only unfinished checks, preserves completed evidence/findings, and finalizes valid report  4286ms
+ ✓ packages/core/test/blockers/blockers.test.ts (6 tests) 12193ms
+   ✓ LEM-046 structured blocker and refusal records > records one structured blocker for a blocked outcome and discards findings  3675ms
+   ✓ LEM-046 structured blocker and refusal records > forces a passed outcome with a blocker to blocked and records one blocker  4478ms
+   ✓ LEM-046 structured blocker and refusal records > redacts blocker text and blocked metadata before persistence  4027ms
+ ✓ packages/core/test/resume/resume.test.ts (3 tests) 13010ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > records registry fingerprint and resumes unchanged without mutating completed run identity  4231ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > resumes after simulated crash, rerunning only unfinished checks and preserving completed evidence/findings  4216ms
+   ✓ LEM-021 resume, crash safety, and registry fingerprint > rejects target mismatch and registry fingerprint change without mutating saved state/evidence  4559ms
+ ✓ packages/cloud/test/retention.test.ts (5 tests) 8711ms
+   ✓ LEM-120 tenant retention, export, and deletion > exposes explicit default policy and supports set retention  650ms
+   ✓ LEM-120 tenant retention, export, and deletion > exports signed manifest with tenant/central records and no cross-tenant paths, and verifies  2589ms
+   ✓ LEM-120 tenant retention, export, and deletion > rejects tampered or invalid exports  2017ms
+   ✓ LEM-120 tenant retention, export, and deletion > soft-deletes with grace/idempotency and hard-deletes after grace or force  822ms
+   ✓ LEM-120 tenant retention, export, and deletion > hard delete removes tenant root, queue jobs, cached exports, tenant signup state and preserves audit without touching other tenants  2629ms
+ ❯ packages/cli/test/cli-commands-extended.test.ts (5 tests | 1 failed) 13238ms
+   ✓ LEM-085 extended CLI commands > personas scaffold and lint work on a temp personas dir  325ms
+   × LEM-085 extended CLI commands > sarif, junit, sign-report, and verify-report operate on latest report 7185ms
+     → expected 1 to be +0 // Object.is equality
+   ✓ LEM-085 extended CLI commands > suppress add/list/remove works  839ms
+   ✓ LEM-085 extended CLI commands > calibrate runs fixtures and writes/emits report 220ms
+   ✓ LEM-085 extended CLI commands > verify-evidence resolves latest run and emits result  4665ms
+ ✓ packages/core/test/failure-injection/failure-injection.test.ts (5 tests) 12656ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > corrupt progress produces typed error and preserves file for recovery  951ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > failed evidence write does not produce a passing/ship report  4083ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > kill during evidence collection writes halted hold report semantics  3776ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > kill switch failure is fail-closed (halted hold with capped confidence)  3260ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > partial manifest is rejected by evidence verify as tampered  581ms
+ ✓ packages/cloud/test/billing-regression.test.ts (5 tests) 11796ms
+   ✓ LEM-121 billing and entitlement regression coverage > issues and verifies signed entitlements for every plan and rejects tampering  3558ms
+   ✓ LEM-121 billing and entitlement regression coverage > supports upgrade/downgrade plan selection and rejects downgrade below current usage  2476ms
+   ✓ LEM-121 billing and entitlement regression coverage > handles subscription cancellation idempotently and payment failure degradation without provider invoice side effects  2159ms
+   ✓ LEM-121 billing and entitlement regression coverage > makes no provider calls when feature flag is off and degrades on unexpected provider call  1936ms
+   ✓ LEM-121 billing and entitlement regression coverage > rejects entitlement scope/expiry mismatches and supports module-level verification  1664ms
+ ✓ packages/cloud/test/quota.test.ts (7 tests) 8253ms
+   ✓ LEM-115 per-action quota enforcement > warns once per resource per period, rolls over, and isolates workspaces  1690ms
+   ✓ LEM-115 per-action quota enforcement > enforces hard limits with 429 details/headers and preserves prior usage  1040ms
+   ✓ LEM-115 per-action quota enforcement > supports auth-context binding, consumeFor/snapshotFor, and opaque mismatches  990ms
+   ✓ LEM-115 per-action quota enforcement > maps metering events, supports peek/record, fractional/large units, and headers  713ms
+   ✓ LEM-115 per-action quota enforcement > handles unlimited local/explicit enforcement/plan opt-in and snapshot/reset  1682ms
+   ✓ LEM-115 per-action quota enforcement > prevents overspend under concurrent consumption from multiple store instances  1910ms
+ ✓ packages/cli/test/cli-commands.test.ts (4 tests) 4793ms
+   ✓ LEM-084 core CLI commands > run emits JSON report to stdout, can write --output, and status/report/abort/prune operate on state  4566ms
+ ✓ packages/cloud/test/auth.test.ts (7 tests) 5636ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > returns key secret once and persists only hash/salt metadata (never secret)  1044ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > returns distinct typed failures without leaking workspace identifiers  1208ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > enforces opaque cross-workspace/run authorization and claim conflicts  1378ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > rotates keys atomically, revokes old key, audits lifecycle, and blocks reuse  838ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > validates scopes, supports admin coverage, and persists across instances  736ms
+   ✓ LEM-114 workspace auth, hashed scoped keys, and audit > provides redacted AuthContext and workspace/key public views  406ms
+ ✓ packages/core/test/state/state-store.test.ts (5 tests) 4281ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > manages .lemma paths and uses shared atomic primitives for progress save/load  762ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > appendEvent writes JSONL with timestamps and never crashes state operations  666ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > records versioned history, sorts deterministically, and upserts by run id  860ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > prune supports keepRuns/olderThanDays/dryRun, protects required runs, and safely removes evidence  1217ms
+   ✓ LEM-011 StateStore: progress, events, history, retention, kill file > kill-file store semantics support request/read/clear and cross-process observation  768ms
+ ✓ packages/core/test/category-checks/category-checks.test.ts (5 tests) 3888ms
+   ✓ LEM-033 baseline category checks > records test category scope with assay-compatible payload, actual, and metadata  604ms
+   ✓ LEM-033 baseline category checks > records functionality and browser category scopes with assay-compatible outputs  688ms
+   ✓ LEM-033 baseline category checks > records issues category with deterministic marker counts/files and metadata  564ms
+   ✓ LEM-033 baseline category checks > records demo category inventory, entrypoints, quickstart docs, and limitation metadata  711ms
+   ✓ LEM-033 baseline category checks > records more category extended surfaces with deterministic counts and sorted payloads  1316ms
+ ❯ packages/core/test/seeded-resume/seeded-resume.test.ts (3 tests | 1 failed) 14376ms
+   ✓ LEM-022 seeded resume and id-sequence continuity > persists determinism and id sequence in progress/options  4603ms
+   ✓ LEM-022 seeded resume and id-sequence continuity > restores saved determinism options and continues id sequence on resume  4754ms
+   × LEM-022 seeded resume and id-sequence continuity > produces same seeded IDs as uninterrupted run and keeps completed-run ids stable on resume 5012ms
+     → Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ✓ packages/agent/test/agent-state.test.ts (3 tests) 2850ms
+   ✓ LEM-087 agent state persistence and in-session resume > derives deterministic state path/key and safely handles missing/corrupt/incompatible state  713ms
+   ✓ LEM-087 agent state persistence and in-session resume > persists and resumes progress without rerunning executed steps  1293ms
+   ✓ LEM-087 agent state persistence and in-session resume > redacts secrets from persisted agent state  840ms
+ ✓ packages/cloud/test/queue.test.ts (5 tests) 5091ms
+   ✓ LEM-119 tenant queue and isolation > submits jobs and enforces owner-only polling without leaking tenant roots  383ms
+   ✓ LEM-119 tenant queue and isolation > isolates tenant roots and jobs across workspaces  382ms
+   ✓ LEM-119 tenant queue and isolation > cancels queued jobs and writes tenant kill signal for running jobs  1010ms
+   ✓ LEM-119 tenant queue and isolation > recovers running jobs and supports requeue-on-failure then terminal outcome  2485ms
+   ✓ LEM-119 tenant queue and isolation > reports metrics and deletes workspace jobs  827ms
+ ✓ packages/adapters/opencode/test/opencode-e2e-parity.test.ts (3 tests) 7627ms
+   ✓ LEM-109 OpenCode end-to-end parity suite > installs OpenCode assets with packaging/template parity  3488ms
+   ✓ LEM-109 OpenCode end-to-end parity suite > runs deterministic CLI assessment and preserves status/report parity  4123ms
+ ✓ packages/adapters/claude-code/test/claude-code-e2e.test.ts (3 tests) 7507ms
+   ✓ LEM-110 Claude Code end-to-end suite > installs Claude Code assets with packaging/template parity  3578ms
+   ✓ LEM-110 Claude Code end-to-end suite > runs deterministic CLI assessment and preserves status/report parity  3909ms
+ ✓ packages/cloud/test/billing.test.ts (4 tests) 6263ms
+   ✓ LEM-118 feature-gated metered billing and kill switch > does not create provider records when feature flag is off or workspace is not allow-listed  998ms
+   ✓ LEM-118 feature-gated metered billing and kill switch > reconciles sandbox invoices and makes customer/subscription idempotent  2279ms
+   ✓ LEM-118 feature-gated metered billing and kill switch > retries transient failures, degrades on exhaustion, and preserves state  2104ms
+   ✓ LEM-118 feature-gated metered billing and kill switch > honors kill switch, idempotent invoice sync, secret non-persistence, and status  879ms
+ ✓ packages/core/test/orchestrator/orchestrator.test.ts (4 tests) 10001ms
+   ✓ LEM-015 five-phase orchestrator and budget > runs phases in fixed workflow order with state transitions and persistence  3001ms
+   ✓ LEM-015 five-phase orchestrator and budget > enforces budget/options validation and passes maxChecks to handlers  2310ms
+   ✓ LEM-015 five-phase orchestrator and budget > halts on kill request, skips remaining phases/checks, persists halted state, and does not auto-resume  3637ms
+   ✓ LEM-015 five-phase orchestrator and budget > supports injectable handlers and records failed runs on handler error  1047ms
+ ✓ packages/cli/test/cli-install.test.ts (3 tests) 8328ms
+   ✓ LEM-107 install command > installs deterministic host assets for opencode and reports JSON result  4598ms
+   ✓ LEM-107 install command > supports dry-run and skip/force overwrite behavior  3687ms
+ ✓ packages/core/test/state/cross-platform-state.test.ts (5 tests) 5185ms
+   ✓ LEM-127 cross-platform atomic writes and locks > atomically replaces existing targets over repeated writes with complete readable content  3702ms
+   ✓ LEM-127 cross-platform atomic writes and locks > serializes access with withFileLock and enforces contention timeout  455ms
+   ✓ LEM-127 cross-platform atomic writes and locks > recovers stale lock records (dead/crashed holder metadata) across processes  682ms
+ ✓ packages/cloud/test/signup.test.ts (5 tests) 2642ms
+   ✓ LEM-117 self-serve signup and signed entitlements > creates one workspace, owner key, and entitlement; replay is idempotent  438ms
+   ✓ LEM-117 self-serve signup and signed entitlements > exposes allowance/usage from first request and isolates unknown workspaces  601ms
+   ✓ LEM-117 self-serve signup and signed entitlements > records plan selection effective date/period and rejects downgrades below usage  950ms
+   ✓ LEM-117 self-serve signup and signed entitlements > issues and verifies signed entitlements; rejects tamper/expiry/wrong workspace/period  637ms
+ ✓ packages/cloud/test/ledger.test.ts (5 tests) 2434ms
+   ✓ LEM-116 append-only ledger and invoice export > appends immutable hash-chained usage entries with idempotency and detects tampering  347ms
+   ✓ LEM-116 append-only ledger and invoice export > records corrections referencing originals and computes invoice/CSV/reconciliation  588ms
+   ✓ LEM-116 append-only ledger and invoice export > reconciles duplicate, late, and corrected events and enforces auth-context workspace binding  1255ms
+ ✓ packages/browser/test/browser-evidence-linkage.test.ts (1 test) 6558ms
+   ✓ LEM-061 browser evidence, manifest, and report linkage > links captured browser artifacts through manifest, check outcomes/state, and report  6554ms
+ ✓ packages/core/test/plugins/plugin-resume-registry.test.ts (3 tests) 5463ms
+   ✓ LEM-081 resume protection against a changed plugin registry > records plugin registry fingerprint and allows resume when unchanged  1647ms
+   ✓ LEM-081 resume protection against a changed plugin registry > rejects resume on changed plugin registry without mutating progress or evidence  1614ms
+   ✓ LEM-081 resume protection against a changed plugin registry > rejects resume when plugin trust state changes fingerprint (e.g. rotated trust key)  2192ms
+ ✓ packages/core/test/secret-scan/secret-scan.test.ts (5 tests) 2121ms
+   ✓ LEM-031 secret scanning and precision rules > passes with redacted evidence payload when no credential-like values are found  465ms
+   ✓ LEM-031 secret scanning and precision rules > reports real-looking secrets with redaction and grouped findings  481ms
+   ✓ LEM-031 secret scanning and precision rules > ignores placeholders and obvious synthetic test credentials while counting ignored fixtures  486ms
+   ✓ LEM-031 secret scanning and precision rules > redacts private key headers, downgrades severity in test paths, and preserves rule metadata  380ms
+   ✓ LEM-031 secret scanning and precision rules > detects provider tokens with redacted excerpts  303ms
+ ✓ packages/core/test/evidence/verify-evidence.test.ts (4 tests) 2129ms
+   ✓ LEM-071 verify-evidence and hold-on-tamper behavior > verifies clean signed evidence offline and reports ok without hold/cap  649ms
+   ✓ LEM-071 verify-evidence and hold-on-tamper behavior > detects artifact tamper and enforces hold-on-tamper  526ms
+   ✓ LEM-071 verify-evidence and hold-on-tamper behavior > detects missing artifacts and manifest/signature tamper  405ms
+   ✓ LEM-071 verify-evidence and hold-on-tamper behavior > resolves run id from progress or newest evidence dir and errors when none found  538ms
+ ✓ packages/core/test/resume/halted-run-no-resume.test.ts (3 tests) 3124ms
+   ✓ LEM-129 no path resumes a halted run > rejects Orchestrator.resume() for halted runs without mutating progress  433ms
+   ✓ LEM-129 no path resumes a halted run > rejects Orchestrator.run({ resume: true }) for halted runs without mutating progress  387ms
+   ✓ LEM-129 no path resumes a halted run > starting a new non-resume run creates a distinct run and does not continue halted state  2301ms
+ ✓ packages/core/test/evidence/evidence.test.ts (4 tests) 2199ms
+   ✓ LEM-016 hashed evidence store and checkpoint manifest > stores artifacts with portable paths, hashes, metadata, dedupe, and stable naming  793ms
+   ✓ LEM-016 hashed evidence store and checkpoint manifest > supports screenshot/log helpers and checkpoint manifest atomically  481ms
+   ✓ LEM-016 hashed evidence store and checkpoint manifest > reconciles rerun checks and recovers completed-check artifacts missing from manifest  542ms
+   ✓ LEM-016 hashed evidence store and checkpoint manifest > finalizes manifest with metadata/hash and enforces path safety  378ms
+ ✓ packages/core/test/history/history.test.ts (3 tests) 1632ms
+   ✓ LEM-023 run history, retention, and prune > records enriched versioned history, sorted newest-first with upsert by run id  846ms
+   ✓ LEM-023 run history, retention, and prune > prunes by keepRuns/olderThanDays with protections and writes index before evidence removal  620ms
+ ✓ packages/adapters/codex/test/codex-smoke.test.ts (2 tests) 968ms
+   ✓ LEM-111 Codex smoke suite > installs Codex assets matching packaging manifest  958ms
+ ✓ packages/core/test/ci-root-scoping/ci-root-scoping.test.ts (3 tests) 3825ms
+   ✓ LEM-035 CI root-scoping precision > counts only root-scoped CI config filenames and root workflows, excluding nested copies  798ms
+   ✓ LEM-035 CI root-scoping precision > reports no CI when only nested CI-name configs exist  638ms
+   ✓ LEM-035 CI root-scoping precision > preserves git-aware tracked-file precision for root-scoped CI files  2385ms
+ ✓ packages/core/test/evidence/evidence-signing.test.ts (3 tests) 466ms
+ ✓ packages/core/test/unsafe-scan/unsafe-scan.test.ts (4 tests) 627ms
+ ✓ packages/core/test/static-precision-recall-corpus/static-precision-recall.test.ts (1 test) 729ms
+   ✓ LEM-039 static precision and recall corpus > executes labeled corpus cases with deterministic expected outcomes  726ms
+ ✓ packages/core/test/workflows/workflows.test.ts (5 tests) 225ms
+ ✓ packages/adapters/cursor/test/cursor-smoke.test.ts (2 tests) 607ms
+   ✓ LEM-111 Cursor smoke suite > installs Cursor assets matching packaging manifest  482ms
+ ✓ packages/adapters/antigravity/test/antigravity-smoke.test.ts (2 tests) 436ms
+   ✓ LEM-111 Antigravity smoke suite > installs Antigravity assets matching packaging manifest  422ms
+ ✓ packages/core/test/suppression/suppression.test.ts (4 tests) 397ms
+ ✓ packages/cloud/test/metering.test.ts (8 tests) 428ms
+ ✓ packages/core/test/persona-lint/persona-lint.test.ts (4 tests) 334ms
+ ✓ packages/core/test/evidence/path-traversal-audit.test.ts (3 tests) 434ms
+ ✓ packages/core/test/persona-scaffold/persona-scaffold.test.ts (4 tests) 609ms
+   ✓ LEM-048 personas scaffold > writes a starter contract that loads and lints unchanged with a placeholder warning  401ms
+ ✓ packages/core/test/harnessignore/harnessignore.test.ts (4 tests) 759ms
+ ✓ packages/agent/test/mcp-secret-ref.test.ts (4 tests) 430ms
+ ✓ packages/core/test/plugins/plugin-context.test.ts (5 tests) 290ms
+ ✓ packages/core/test/evidence/evidence-tamper-regression.test.ts (5 tests) 619ms
+ ✓ packages/core/test/persona-contracts/persona-contracts.test.ts (7 tests) 309ms
+ ✓ packages/core/test/inventory/inventory.test.ts (3 tests) 1149ms
+   ✓ LEM-027 source inventory and git-aware tracked/ignored scanning > discovers files deterministically with classification, skipped dirs, and summary flags  335ms
+   ✓ LEM-027 source inventory and git-aware tracked/ignored scanning > records git-aware tracked/ignored env and tracked-only CI when repository is tracked  685ms
+ ✓ packages/core/test/static-checks/static-checks.test.ts (6 tests) 1539ms
+   ✓ LEM-029 inventory, tests, CI, and dependency checks > runs static.dependencies with git-aware tracked/ignored env reporting  808ms
+ ✓ packages/core/test/category-coverage/category-coverage.test.ts (3 tests) 771ms
+   ✓ LEM-037 category command coverage and documented no-ops > plans an owned deterministic scope check for every assay category intent (intent-gated)  347ms
+ ✓ packages/core/test/ownership/ownership.test.ts (10 tests) 450ms
+ ✓ packages/core/test/static-linkage-totals/static-linkage-totals.test.ts (1 test) 557ms
+   ✓ LEM-040 static finding-to-evidence linkage and report totals > links static findings to hashed evidence artifacts and produces consistent report totals  554ms
+ ✓ packages/core/test/plugins/plugin-conformance.test.ts (6 tests) 449ms
+ ✓ packages/agent/test/jira-context.test.ts (4 tests) 589ms
+   ✓ LEM-092 Jira context, ADF, and redaction > collects and fetches Jira context via injectable APIs with token-safe errors  505ms
+ ✓ packages/core/test/plugins/plugins-registry.test.ts (4 tests) 166ms
+ ✓ packages/core/test/plugins/plugin-authoring-api.test.ts (3 tests) 193ms
+ ✓ packages/core/test/persona-conformance/persona-conformance.test.ts (5 tests) 254ms
+ ✓ packages/core/test/parity.test.ts (3 tests) 1819ms
+   ✓ parity manifest > passes parity:check  1092ms
+   ✓ parity manifest > fails when an owner task is removed from the manifest  702ms
+ ✓ packages/browser/test/browser-storage-state.test.ts (6 tests) 38ms
+ ✓ packages/core/test/accessibility-scan/accessibility-scan.test.ts (3 tests) 438ms
+ ✓ packages/core/test/calibration/calibration.test.ts (3 tests) 346ms
+ ✓ packages/core/test/plugins/plugin-trust-store.test.ts (3 tests) 319ms
+   ✓ LEM-079 HMAC trust store and signing helper > resolves default trust file and round-trips keys via save/load  302ms
+ ✓ packages/core/test/report/report.test.ts (3 tests) 581ms
+   ✓ LEM-020 report builder and schema validation > builds quality-harness.report/v1 with assay-compatible structure and semantics  378ms
+ ✓ packages/core/test/risk/risk.test.ts (3 tests) 73ms
+ ✓ packages/cloud/test/package-boundaries.test.ts (2 tests) 229ms
+ ✓ packages/core/test/redaction/redaction.test.ts (5 tests) 253ms
+ ✓ packages/agent/test/command-catalog-parity.test.ts (5 tests) 336ms
+ ✓ packages/core/test/ssrf/ssrf.test.ts (8 tests) 380ms
+ ✓ packages/browser/test/browser-capture-artifacts.test.ts (4 tests) 201ms
+ ✓ packages/browser/test/browser-regression-suite.test.ts (7 tests) 141ms
+ ✓ packages/core/test/personas/personas.test.ts (7 tests) 64ms
+ ✓ packages/agent/test/templates.test.ts (3 tests) 161ms
+ ✓ packages/browser/test/browser-checks.test.ts (8 tests) 142ms
+ ✓ packages/browser/test/browser-runtime.test.ts (3 tests) 200ms
+ ✓ packages/adapters/antigravity/test/antigravity-adapter.test.ts (4 tests) 151ms
+ ✓ packages/core/test/exports/junit.test.ts (2 tests) 234ms
+ ✓ packages/core/test/full-assessment/full-assessment.test.ts (1 test) 187ms
+ ✓ packages/browser/test/browser-viewport-metadata.test.ts (4 tests) 100ms
+ ✓ packages/browser/test/browser-scenarios.test.ts (5 tests) 257ms
+ ✓ packages/adapters/claude-code/test/claude-code-adapter.test.ts (4 tests) 187ms
+ ✓ packages/cli/test/cli-shell.test.ts (6 tests) 318ms
+ ✓ packages/browser/test/browser-security.test.ts (6 tests) 94ms
+ ✓ packages/browser/test/browser-defaults.test.ts (5 tests) 110ms
+ ✓ packages/agent/test/agent-loop.test.ts (5 tests) 200ms
+ ✓ packages/adapters/opencode/test/opencode-adapter.test.ts (4 tests) 199ms
+ ✓ packages/agent/test/command-args.test.ts (5 tests) 305ms
+ ✓ packages/browser/test/browser-crawl.test.ts (5 tests) 126ms
+ ✓ packages/agent/test/catalog.test.ts (4 tests) 29ms
+ ✓ packages/core/test/report/report-contract.test.ts (2 tests) 480ms
+   ✓ LEM-073 report-schema compatibility and contract tests > validates built reports across key statuses and enforces additive compatibility  456ms
+ ✓ packages/adapters/codex/test/codex-adapter.test.ts (4 tests) 133ms
+ ✓ packages/browser/test/browser-mobile-pack.test.ts (6 tests) 23ms
+ ✓ packages/cli/test/cli-migrate-state.test.ts (3 tests) 224ms
+ ✓ packages/core/test/dependency-direction.test.ts (1 test) 86ms
+ ✓ packages/adapters/sdk/test/adapter-conformance-kit.test.ts (3 tests) 146ms
+ ✓ packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts (3 tests) 257ms
+ ✓ packages/adapters/sdk/test/packaging-manifest.test.ts (2 tests) 174ms
+ ✓ packages/core/test/plugins/sample-plugin-example.test.ts (2 tests) 59ms
+ ✓ packages/adapters/cursor/test/cursor-adapter.test.ts (4 tests) 79ms
+ ✓ packages/core/test/errors/errors.test.ts (4 tests) 164ms
+ ✓ packages/core/test/persona-schema/persona-schema-validation.test.ts (8 tests) 144ms
+ ✓ packages/core/test/workspace.test.ts (14 tests) 48ms
+ ✓ packages/core/test/determinism/determinism.test.ts (5 tests) 65ms
+ ✓ packages/core/test/checks/checks.test.ts (4 tests) 248ms
+ ✓ packages/core/test/steps/steps.test.ts (3 tests) 165ms
+ ✓ packages/core/test/metering/metering-summary.test.ts (3 tests) 209ms
+ ✓ packages/core/test/exports/sarif.test.ts (3 tests) 194ms
+ ✓ packages/core/test/models/models.test.ts (4 tests) 147ms
+ ✓ packages/agent/test/progress-narrative.test.ts (4 tests) 222ms
+ ✓ packages/core/test/risk-tracked-parity/risk-tracked-parity.test.ts (3 tests) 85ms
+ ✓ packages/core/test/scoring/scoring.test.ts (4 tests) 95ms
+ ✓ packages/browser/test/browser-blocked-leg.test.ts (2 tests) 133ms
+ ✓ packages/core/test/trends/trend.test.ts (3 tests) 12ms
+ ✓ packages/browser/test/browser-accessibility.test.ts (5 tests) 299ms
+ ✓ packages/adapters/sdk/test/capability-negotiation.test.ts (4 tests) 122ms
+ ✓ packages/agent/test/browser-agent-prompt.test.ts (4 tests) 82ms
+ ✓ packages/adapters/sdk/test/agent-host-sdk.test.ts (2 tests) 16ms
+ ✓ packages/core/test/exports/report-signing.test.ts (3 tests) 11ms
+ ✓ packages/browser/test/browser-smoke-leg.test.ts (1 test) 11741ms
+   ✓ LEM-060 browser smoke leg (local demo-web fixture) > serves demo-web locally and produces non-blocked browser.load with captured evidence  11738ms
+ ✓ packages/core/test/plugins/plugin-ownership.test.ts (4 tests) 45ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/agent/test/agent-loop-prompt-contract.test.ts > LEM-096 agent-loop and prompt-contract tests > agent-loop contract: need-context pause/resume, interactive wait, min runs, and final narrative hooks
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/agent/test/agent-loop-prompt-contract.test.ts:149:3
+    147|   });
+    148| 
+    149|   it("agent-loop contract: need-context pause/resume, interactive wait…
+       |   ^
+    150|     const cwd = await mkdtemp(path.join(os.tmpdir(), "lemma-loop-promp…
+    151|     try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  packages/agent/test/context-flow.test.ts > LEM-091 context protocol and question flow > integrates with loop: need_user_context pauses/resumes via userInput and interactive wait
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/agent/test/context-flow.test.ts:85:3
+     83|   });
+     84| 
+     85|   it("integrates with loop: need_user_context pauses/resumes via userI…
+       |   ^
+     86|     const cwd = await mkdtemp(path.join(os.tmpdir(), "lemma-ctx-flow-"…
+     87|     try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  packages/cli/test/cli-commands-extended.test.ts > LEM-085 extended CLI commands > sarif, junit, sign-report, and verify-report operate on latest report
+AssertionError: expected 1 to be +0 // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- 0[39m
+[31m+ 1[39m
+
+ ❯ packages/cli/test/cli-commands-extended.test.ts:125:111
+    123|       // verify-report valid
+    124|       const verifyIo = makeIo();
+    125|       expect(await main(["verify-report", "--root", root, "--key", key…
+       |                                                                                                               ^
+    126|       expect(asObj(parseSingleJson(verifyIo.stdout)).verified).toBe(tr…
+    127| 
+ ❯ withTempDir packages/cli/test/cli-commands-extended.test.ts:13:12
+ ❯ packages/cli/test/cli-commands-extended.test.ts:83:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  packages/core/test/invalid-findings/invalid-findings.test.ts > LEM-045 invalid-finding quarantine and degraded streaks > quarantines invalid findings without scoring, linking, or killing the run
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/core/test/invalid-findings/invalid-findings.test.ts:193:3
+    191| 
+    192| describe("LEM-045 invalid-finding quarantine and degraded streaks", ()…
+    193|   it("quarantines invalid findings without scoring, linking, or killin…
+       |   ^
+    194|     await withTempDir(async (dir) => {
+    195|       const invalidDrafts = [
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  packages/core/test/performance-scale/performance-scale-budgets.test.ts > LEM-131 performance and scale budgets > records, finalizes, and verifies many evidence artifacts (>=250) correctly
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/core/test/performance-scale/performance-scale-budgets.test.ts:168:3
+    166|   });
+    167| 
+    168|   it("records, finalizes, and verifies many evidence artifacts (>=250)…
+       |   ^
+    169|     await withTempDir(async (root) => {
+    170|       const store = new EvidenceStore(root, "run-evidence-scale");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  packages/core/test/policy/policy.test.ts > LEM-019 versioned policy files and gate evaluation > loads default advisory-v1 policy file and reproduces advisory scoring behavior
+Error: ENOENT: no such file or directory, open '/Users/skaparwan/policies/advisory-v1.json'
+ ❯ packages/core/test/policy/policy.test.ts:45:28
+     43|   it("loads default advisory-v1 policy file and reproduces advisory sc…
+     44|     const policyPath = path.resolve(process.cwd(), "../../policies/adv…
+     45|     const raw = JSON.parse(await readFile(policyPath, "utf8")) as Reco…
+       |                            ^
+     46|     expect(raw.schema_version).toBe("quality-harness.policy/v1");
+     47|     expect(raw.id).toBe("advisory-v1");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  packages/core/test/seeded-resume/seeded-resume.test.ts > LEM-022 seeded resume and id-sequence continuity > produces same seeded IDs as uninterrupted run and keeps completed-run ids stable on resume
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ packages/core/test/seeded-resume/seeded-resume.test.ts:147:3
+    145|   });
+    146| 
+    147|   it("produces same seeded IDs as uninterrupted run and keeps complete…
+       |   ^
+    148|     await withTempDir(async (freshDir) => {
+    149|       await withTempDir(async (crashDir) => {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  packages/core/test/schemas/schemas.test.ts > LEM-004 schemas and contracts > accepts completed, halted, and failed assay reports after volatile normalization
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "object",
+    "path": [
+      "confidence",
+      "coverage"
+    ],
+    "message": "Expected number, received object"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "penalties"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "breakdown"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "contract_failures"
+    ],
+    "message": "Expected object, received array"
+  }
+]
+ ❯ Object.get error [as error] node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js:39:31
+ ❯ ZodObject.parse node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js:114:22
+ ❯ parseReportV1 packages/core/src/schemas/report.ts:181:25
+    179| 
+    180| export function parseReportV1(input: unknown): ReportV1 {
+    181|   return ReportV1Schema.parse(normalizeAssayReport(input));
+       |                         ^
+    182| }
+    183| 
+ ❯ packages/core/test/schemas/schemas.test.ts:122:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+ FAIL  packages/core/test/schemas/schemas.test.ts > LEM-004 schemas and contracts > generates JSON Schemas into schemas/ and matches committed files
+AssertionError: expected { …(8) } to deeply equal { …(6) }
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[33m@@ -1,61 +1,57 @@[39m
+[2m  {[22m
+[2m    "$id": "https://lemma.dev/schemas/report/report.v1.schema.json",[22m
+[32m-   "$ref": "#/definitions/ReportV1",[39m
+[32m-   "$schema": "http://json-schema.org/draft-07/schema#",[39m
+[32m-   "definitions": {[39m
+[32m-     "ReportV1": {[39m
+[31m+   "$schema": "https://json-schema.org/draft/2020-12/schema",[39m
+[2m    "additionalProperties": true,[22m
+[31m+   "description": "Stable machine-readable report emitted by lemma/quality-harness run.",[39m
+[2m    "properties": {[22m
+[2m      "blockers": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {},[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "checks": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {},[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "completed_at": {[22m
+[32m-           "$ref": "#/definitions/ReportV1/properties/generated_at",[39m
+[31m+       "type": "string",[39m
+[2m      },[22m
+[2m      "confidence": {[22m
+[2m        "additionalProperties": true,[22m
+[2m        "properties": {[22m
+[2m          "band": {[22m
+[2m            "type": "string",[22m
+[2m          },[22m
+[2m          "breakdown": {[22m
+[32m-               "additionalProperties": {},[39m
+[31m+           "additionalProperties": true,[39m
+[2m            "type": "object",[22m
+[2m          },[22m
+[2m          "coverage": {[22m
+[2m            "type": "number",[22m
+[2m          },[22m
+[2m          "domain_scores": {[22m
+[32m-               "additionalProperties": {},[39m
+[31m+           "additionalProperties": true,[39m
+[2m            "type": "object",[22m
+[2m          },[22m
+[2m          "gate": {[22m
+[32m-               "additionalProperties": {},[39m
+[31m+           "additionalProperties": true,[39m
+[2m            "type": "object",[22m
+[2m          },[22m
+[2m          "limitations": {[22m
+[2m            "items": {[22m
+[2m              "type": "string",[22m
+[2m            },[22m
+[2m            "type": "array",[22m
+[2m          },[22m
+[2m          "penalties": {[22m
+[32m-               "additionalProperties": {},[39m
+[31m+           "additionalProperties": true,[39m
+[2m            "type": "object",[22m
+[2m          },[22m
+[2m          "rationale": {[22m
+[2m            "type": "string",[22m
+[2m          },[22m
+[33m@@ -101,11 +97,75 @@[39m
+[2m          "degraded_personas",[22m
+[2m        ],[22m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "coverage": {[22m
+[32m-           "additionalProperties": {},[39m
+[31m+       "additionalProperties": true,[39m
+[31m+       "properties": {[39m
+[31m+         "blocked": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "blockers": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "blockers_by_persona": {[39m
+[31m+           "additionalProperties": {[39m
+[31m+             "type": "integer",[39m
+[31m+           },[39m
+[31m+           "type": "object",[39m
+[31m+         },[39m
+[31m+         "blockers_covered_elsewhere": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "blockers_uncovered": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "by_domain": {[39m
+[31m+           "additionalProperties": true,[39m
+[31m+           "type": "object",[39m
+[31m+         },[39m
+[31m+         "error": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "executed": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "executed_pct": {[39m
+[31m+           "type": "number",[39m
+[31m+         },[39m
+[31m+         "failed": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "passed": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "planned_not_run": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "skipped": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+         "total_checks": {[39m
+[31m+           "type": "integer",[39m
+[31m+         },[39m
+[31m+       },[39m
+[31m+       "required": [[39m
+[31m+         "total_checks",[39m
+[31m+         "executed",[39m
+[31m+         "passed",[39m
+[31m+         "failed",[39m
+[31m+         "blocked",[39m
+[31m+         "skipped",[39m
+[31m+         "error",[39m
+[31m+         "planned_not_run",[39m
+[31m+         "blockers",[39m
+[31m+         "blockers_covered_elsewhere",[39m
+[31m+         "blockers_uncovered",[39m
+[31m+         "blockers_by_persona",[39m
+[31m+         "executed_pct",[39m
+[31m+         "by_domain",[39m
+[31m+       ],[39m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "decision": {[22m
+[2m        "additionalProperties": true,[22m
+[2m        "properties": {[22m
+[33m@@ -130,17 +190,13 @@[39m
+[2m          },[22m
+[2m          "entropy": {[22m
+[2m            "type": "string",[22m
+[2m          },[22m
+[2m          "seed": {[22m
+[32m-               "anyOf": [[39m
+[32m-                 {[39m
+[32m-                   "type": "integer",[39m
+[32m-                 },[39m
+[32m-                 {[39m
+[32m-                   "type": "null",[39m
+[32m-                 },[39m
+[31m+           "type": [[39m
+[31m+             "integer",[39m
+[31m+             "null",[39m
+[2m            ],[22m
+[2m          },[22m
+[2m        },[22m
+[2m        "required": [[22m
+[2m          "seed",[22m
+[33m@@ -157,11 +213,12 @@[39m
+[2m        "properties": {[22m
+[2m          "directory": {[22m
+[2m            "type": "string",[22m
+[2m          },[22m
+[2m          "summary": {[22m
+[32m-               "$ref": "#/definitions/ReportV1/properties/inventory",[39m
+[31m+           "additionalProperties": true,[39m
+[31m+           "type": "object",[39m
+[2m          },[22m
+[2m        },[22m
+[2m        "required": [[22m
+[2m          "directory",[22m
+[2m          "summary",[22m
+[33m@@ -175,30 +232,15 @@[39m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "findings": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {[39m
+[32m-               "check_id": {[39m
+[32m-                 "type": "string",[39m
+[32m-               },[39m
+[32m-               "id": {[39m
+[32m-                 "type": "string",[39m
+[32m-               },[39m
+[32m-               "severity": {[39m
+[32m-                 "type": "string",[39m
+[32m-               },[39m
+[32m-               "status": {[39m
+[32m-                 "type": "string",[39m
+[32m-               },[39m
+[32m-             },[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "generated_at": {[22m
+[32m-           "minLength": 1,[39m
+[2m        "type": "string",[22m
+[2m      },[22m
+[2m      "halted_reason": {[22m
+[2m        "type": [[22m
+[2m          "string",[22m
+[33m@@ -207,15 +249,18 @@[39m
+[2m      },[22m
+[2m      "intent": {[22m
+[2m        "type": "string",[22m
+[2m      },[22m
+[2m      "invalid_findings": {[22m
+[32m-           "items": {},[39m
+[31m+       "items": {[39m
+[31m+         "additionalProperties": true,[39m
+[31m+         "type": "object",[39m
+[31m+       },[39m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "inventory": {[22m
+[32m-           "additionalProperties": {},[39m
+[31m+       "additionalProperties": true,[39m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "kill_switch": {[22m
+[2m        "additionalProperties": true,[22m
+[2m        "properties": {[22m
+[33m@@ -300,24 +345,23 @@[39m
+[2m          "event_types",[22m
+[2m        ],[22m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "options": {[22m
+[32m-           "$ref": "#/definitions/ReportV1/properties/inventory",[39m
+[31m+       "additionalProperties": true,[39m
+[31m+       "type": "object",[39m
+[2m      },[22m
+[2m      "personas": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {},[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "phases": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {},[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "policy": {[22m
+[33m@@ -337,28 +381,26 @@[39m
+[2m        "type": "object",[22m
+[2m      },[22m
+[2m      "risks": {[22m
+[2m        "items": {[22m
+[2m          "additionalProperties": true,[22m
+[32m-             "properties": {},[39m
+[2m          "type": "object",[22m
+[2m        },[22m
+[2m        "type": "array",[22m
+[2m      },[22m
+[2m      "run_id": {[22m
+[2m        "minLength": 1,[22m
+[2m        "type": "string",[22m
+[2m      },[22m
+[2m      "schema_version": {[22m
+[2m        "enum": [[22m
+[32m-             "lemma.report/v1",[39m
+[2m          "quality-harness.report/v1",[22m
+[31m+         "lemma.report/v1",[39m
+[2m        ],[22m
+[32m-           "type": "string",[39m
+[2m      },[22m
+[2m      "started_at": {[22m
+[32m-           "$ref": "#/definitions/ReportV1/properties/generated_at",[39m
+[31m+       "type": "string",[39m
+[2m      },[22m
+[2m      "status": {[22m
+[2m        "type": "string",[22m
+[2m      },[22m
+[2m      "target": {[22m
+[33m@@ -493,11 +535,8 @@[39m
+[2m      "started_at",[22m
+[2m      "completed_at",[22m
+[2m      "options",[22m
+[2m      "error",[22m
+[2m    ],[22m
+[31m+   "title": "Lemma/Quality Harness report v1",[39m
+[2m    "type": "object",[22m
+[32m-     },[39m
+[32m-   },[39m
+[32m-   "description": "Machine-readable report emitted by lemma run.",[39m
+[32m-   "title": "Lemma report v1",[39m
+[2m  }[22m
+
+ ❯ packages/core/test/schemas/schemas.test.ts:139:29
+    137|     for (const rel of files) {
+    138|       const committedJson = readJson(rel);
+    139|       expect(committedJson).toEqual(generated[rel]);
+       |                             ^
+    140|     }
+    141|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/11]⎯
+
+ FAIL  packages/core/test/schemas/schemas.test.ts > LEM-004 schemas and contracts > rejects removed or typed-wrong fields and allows additive optional fields
+AssertionError: expected false to be true // Object.is equality
+
+[32m- Expected[39m
+[31m+ Received[39m
+
+[32m- true[39m
+[31m+ false[39m
+
+ ❯ packages/core/test/schemas/schemas.test.ts:153:56
+    151| 
+    152|     const additive = { ...good, new_optional_field: { hello: "world" }…
+    153|     expect(ReportV1Schema.safeParse(additive).success).toBe(true);
+       |                                                        ^
+    154| 
+    155|     const evidenceMissing = { ...good, evidence: { directory: ".harnes…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/11]⎯
+
+ FAIL  packages/core/test/schemas/schemas.test.ts > LEM-004 schemas and contracts > infers public types from schemas
+ZodError: [
+  {
+    "code": "invalid_type",
+    "expected": "number",
+    "received": "object",
+    "path": [
+      "confidence",
+      "coverage"
+    ],
+    "message": "Expected number, received object"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "penalties"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "confidence",
+      "breakdown"
+    ],
+    "message": "Expected object, received array"
+  },
+  {
+    "code": "invalid_type",
+    "expected": "object",
+    "received": "array",
+    "path": [
+      "contract_failures"
+    ],
+    "message": "Expected object, received array"
+  }
+]
+ ❯ Object.get error [as error] node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js:39:31
+ ❯ ZodObject.parse node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js:114:22
+ ❯ parseReportV1 packages/core/src/schemas/report.ts:181:25
+    179| 
+    180| export function parseReportV1(input: unknown): ReportV1 {
+    181|   return ReportV1Schema.parse(normalizeAssayReport(input));
+       |                         ^
+    182| }
+    183| 
+ ❯ packages/core/test/schemas/schemas.test.ts:165:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/11]⎯
+
+
+ Test Files  8 failed | 119 passed (127)
+      Tests  11 failed | 513 passed (524)
+   Start at  18:37:54
+   Duration  71.04s (transform 6.86s, setup 0ms, collect 156.02s, tests 282.08s, environment 99ms, prepare 112.96s)
+
+[ELIFECYCLE] Test failed. See above for more details.

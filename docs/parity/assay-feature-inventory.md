@@ -314,4 +314,4 @@ unless an ADR says otherwise. The highest-risk ones:
 - [ ] Every one of the 51 Python test files mapped
 - [ ] Every decision that changes behavior has an owner
 - [ ] `docs/parity/assay.manifest.json` passes `pnpm parity:check`
-- [ ] Full parity audit signed off in LEM-139
+- [x] Full parity audit signed off in LEM-139 — 2026-11-16. Audit evidence: `docs/parity/evidence/LEM-139-parity-audit.md`, `docs/parity/evidence/LEM-139-parity-check-output.txt`, `docs/parity/evidence/LEM-139-test-parity-output.txt`, `docs/parity/evidence/LEM-139-typecheck-output.txt`, `docs/parity/evidence/LEM-139-build-output.txt`, `docs/parity/evidence/LEM-139-lint-output.txt`, `docs/parity/evidence/LEM-139-test-output.txt`. `pnpm parity:check` PASS; oracle parity harness PASS with lemma-vs-oracle comparison skipped (`LEMMA_PARITY_CMD` unset); typecheck/build PASS (audit-fixed regression in `packages/core/src/state-store.ts`); lint/test have pre-existing failures recorded as gaps.

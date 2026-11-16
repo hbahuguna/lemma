@@ -1,0 +1,21 @@
+$ node scripts/parity/harness.mjs --test
+
+== completed ==
+oracle vs baseline: OK
+seeded/frozen pair zero-diff: OK
+lemma run: SKIPPED (set LEMMA_PARITY_CMD when lemma runner is available)
+
+== halted ==
+oracle vs baseline: OK
+seeded/frozen pair zero-diff: OK
+lemma run: SKIPPED (set LEMMA_PARITY_CMD when lemma runner is available)
+
+== browser-blocked ==
+oracle vs baseline: OK
+seeded/frozen pair zero-diff: OK
+lemma run: SKIPPED (set LEMMA_PARITY_CMD when lemma runner is available)
+
+diff engine self-check: detected 1 injected difference(s)
+normalization protection check: OK so far
+
+parity harness: PASS

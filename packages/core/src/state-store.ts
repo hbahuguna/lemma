@@ -176,12 +176,10 @@ export class StateStore {
 
   async loadProgress<T = RunState>(): Promise<T> {
     const paths = [this.progressPath, ...(this.legacyProgressPath ? [this.legacyProgressPath] : [])];
-    let lastErr: unknown;
     for (const pth of paths) {
       try {
         return await readJsonFile<T>(pth);
       } catch (err) {
-        lastErr = err;
         if (err instanceof CorruptStateError) throw err;
         if (err instanceof StateError) {
           const details = err.details;
@@ -230,7 +228,6 @@ export class StateStore {
 
   async loadHistory(): Promise<History> {
     const paths = [this.historyPath, ...(this.legacyHistoryPath ? [this.legacyHistoryPath] : [])];
-    let sawMissing = false;
     for (const pth of paths) {
       try {
         const data = await readJsonFile<unknown>(pth);
@@ -245,7 +242,6 @@ export class StateStore {
           const details = err.details;
           const reason = isRecord(details) ? asString(details.reason) : undefined;
           if (reason === "ENOENT" || err.message.includes("not found")) {
-            sawMissing = true;
             continue;
           }
         }

@@ -1,0 +1,26 @@
+$ pnpm -r --if-present typecheck
+Scope: 12 of 13 workspace projects
+packages/adapters/sdk typecheck$ tsc --noEmit
+packages/adapters/sdk typecheck: Done
+packages/browser typecheck$ tsc --noEmit
+packages/core typecheck$ tsc --noEmit
+packages/browser typecheck: Done
+packages/core typecheck: Done
+packages/cloud typecheck$ tsc --noEmit
+packages/agent typecheck$ tsc --noEmit
+packages/personas typecheck$ tsc --noEmit
+packages/personas typecheck: Done
+packages/agent typecheck: Done
+packages/cloud typecheck: Done
+packages/adapters/antigravity typecheck$ tsc --noEmit
+packages/adapters/claude-code typecheck$ tsc --noEmit
+packages/adapters/cursor typecheck$ tsc --noEmit
+packages/adapters/codex typecheck$ tsc --noEmit
+packages/adapters/antigravity typecheck: Done
+packages/adapters/opencode typecheck$ tsc --noEmit
+packages/adapters/cursor typecheck: Done
+packages/cli typecheck$ tsc --noEmit
+packages/adapters/codex typecheck: Done
+packages/adapters/claude-code typecheck: Done
+packages/adapters/opencode typecheck: Done
+packages/cli typecheck: Done

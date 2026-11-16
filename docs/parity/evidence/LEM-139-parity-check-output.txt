@@ -1,0 +1,14 @@
+$ node scripts/parity/check.mjs
+manifest coverage summary by asset kind:
+  - check_id: 24
+  - cli_command: 44
+  - fixture: 28
+  - module: 35
+  - persona: 4
+  - plugin_command: 65
+  - plugin_module: 8
+  - release_asset: 9
+  - schema: 9
+  - test_file: 55
+  total: 281
+parity:check PASS
