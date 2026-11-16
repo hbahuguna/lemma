@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/review/review.test.ts (3 tests) 925ms
+   ✓ LEM-179 independent evidence review workflow > produces schema-valid ReviewReport with stable review_id, disagreements per finding, weakened evidence, unsupported assumptions, and contested evidence-backed notes  370ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  01:15:42
+   Duration  3.29s (transform 941ms, setup 0ms, collect 1.34s, tests 925ms, environment 0ms, prepare 301ms)
+

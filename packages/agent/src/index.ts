@@ -891,6 +891,24 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaReview = (d as any).lemma_review === true;
+    if (lemmaReview) {
+      try {
+        const { runReview } = await import("@lemma/core");
+        const runId = (d as any).review_run_id || String(state.runSummaries[state.runSummaries.length - 1] || "");
+        const reviewer = (d as any).review_reviewer || "independent-reviewer";
+        const result = await runReview({ runId, reviewer, root: cwd || process.cwd() } as any);
+        state.runSummaries.push(`Review ${result.review_id} completed`);
+        await sendFinal(`Review ${result.review_id} completed (${result.disagreements?.length || 0} contested).${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaUpgrade = (d as any).lemma_upgrade === true;
     if (lemmaUpgrade) {
       try {

@@ -390,6 +390,46 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaReview = (d as any).lemma_review === true;
+      if (lemmaReview) {
+        this.state.status = "running";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running independent evidence review (/lemma-review).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent },
+        } as any);
+        try {
+          const { runReview } = await import("@lemma/core");
+          const runId = (d as any).review_run_id || String(this.state.run_ids[this.state.run_ids.length - 1] || "");
+          const reviewer = (d as any).review_reviewer || "independent-reviewer";
+          const result = await runReview({ runId, reviewer, root: this.options.cwd } as any);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Review ${result.review_id} completed (${result.disagreements?.length || 0} contested).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+            details: { review: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaUpgrade = (d as any).lemma_upgrade === true;
       if (lemmaUpgrade) {
         this.state.status = "running";

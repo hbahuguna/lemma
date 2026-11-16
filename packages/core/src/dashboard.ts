@@ -93,7 +93,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
   }
 
   if (!progress || typeof progress !== "object") {
-    return { ...safeNoopLiveView(), evidence, report_summary: report ? summarizeReport(report) : null };
+    const r: any = report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return { ...safeNoopLiveView(), evidence, report_summary: report ? summarizeReport(report) : null, review_notes: notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")) };
   }
 
   const phases = Array.isArray(progress.phases) ? progress.phases : [];
@@ -159,6 +159,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
       in_flight_evidence_refs,
       completed_checks,
       report_summary: report ? summarizeReport(report) : summarizeReport(progress.report ?? null),
+    review_notes: (() => { const r: any = report ?? (progress as any).report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")); })(),
     },
     evidence,
   };
@@ -169,12 +170,16 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
   const r = report as any;
   const decision = r.decision && typeof r.decision === "object" ? r.decision : {};
   const confidence = r.confidence && typeof r.confidence === "object" ? r.confidence : {};
+  const reviewNotes = Array.isArray(r.review_notes) ? r.review_notes : [];
+  const contested = reviewNotes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note"));
   return {
     run_id: r.run_id ?? null,
     status: r.status ?? null,
     decision: decision.decision ?? r.decision ?? null,
     confidence_score: confidence.score ?? null,
     coverage: r.coverage ?? null,
+    review_notes_count: reviewNotes.length,
+    contested_count: contested.length,
   };
 }
 
@@ -211,6 +216,7 @@ function htmlPage(): string {
     <div class="card"><h2>Report summary</h2><pre id="report">(none)</pre></div>
   </div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
+  <div class="card" style="margin-top:1rem"><h2>Review notes (contested)</h2><pre id="reviews">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Completed checks</h2><div id="checks" class="muted">(none)</div></div>
   <div id="shotPanel" class="panel"><button class="close" id="shotClose">Close</button><img id="shotImg" alt="Screenshot evidence"/></div>
 <script>

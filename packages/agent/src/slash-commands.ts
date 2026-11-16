@@ -199,6 +199,26 @@ export function parseTestsSlash(raw: string): { action?: string; format?: string
 }
 
 
+
+export function parseReviewSlash(raw: string): { runId?: string | undefined; reviewer?: string | undefined } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-review") return null;
+  const parts = rest.filter(Boolean);
+  const runIdArg = parts[0] && !parts[0].startsWith("--") ? parts[0] : undefined;
+  const reviewerArg = parts[1] && !parts[1].startsWith("--") ? parts[1] : undefined;
+  const revM = s.match(/(?:^|\s)--reviewer\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const runM = s.match(/(?:^|\s)--run(?:-id)?\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const out: { runId?: string | undefined; reviewer?: string | undefined } = {};
+  const rid = runM ? (runM[1] || runM[2] || runM[3]) : runIdArg;
+  const rev = revM ? (revM[1] || revM[2] || revM[3]) : reviewerArg;
+  if (rid) out.runId = rid;
+  if (rev) out.reviewer = rev;
+  return out;
+}
+
 export function parseUpgradeSlash(raw: string): { kind?: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -420,6 +440,7 @@ export function routeSlashCommand(
   const generate = parseGenerateSlash(raw);
   const tests = parseTestsSlash(raw);
   const upgrade = parseUpgradeSlash(raw);
+  const review = parseReviewSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
@@ -429,6 +450,7 @@ export function routeSlashCommand(
   const isGenerate = generate !== null || spec.command === "/lemma-generate";
   const isTests = tests !== null || spec.command === "/lemma-tests";
   const isUpgrade = upgrade !== null || spec.command === "/lemma-upgrade";
+  const isReview = review !== null || spec.command === "/lemma-review";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -507,6 +529,13 @@ export function routeSlashCommand(
       ? {
           lemma_upgrade: true,
           ...(upgrade?.kind ? { upgrade_kind: upgrade.kind } : {}),
+        }
+      : {}),
+    ...(isReview
+      ? {
+          lemma_review: true,
+          ...(review?.runId ? { review_run_id: review.runId } : {}),
+          ...(review?.reviewer ? { review_reviewer: review.reviewer } : {}),
         }
       : {}),
   };

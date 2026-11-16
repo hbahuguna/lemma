@@ -12,6 +12,7 @@ import {
   runHumanContext,
   runGenerate,
   manageTests,
+  runReview,
   runUpgrade,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
@@ -1448,6 +1449,18 @@ export const upgradeCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const reviewCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const runId = getString(flags, "run-id", "run", "runId") ?? positionals[0];
+  const reviewer = getString(flags, "reviewer", "by") ?? positionals[1];
+  if (!runId) throw new CliUsageError("review requires --run-id <run_id>");
+  if (!reviewer) throw new CliUsageError("review requires --reviewer <persona>");
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const report = await runReview({ runId, reviewer, root } as any);
+  return { stdoutJson: report };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1460,6 +1473,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "generate", description: "Generate prioritized, planned browser.steps-compatible test intents (no execution).", handler: generateCommand },
     { name: "tests", description: "Manage durable test intents (create/import/convert/repair/bake/list/delete).", handler: testsCommand },
     { name: "upgrade", description: "Upgrade test frameworks into lemma-native intents (dry-run first, approval-gated apply).", handler: upgradeCommand },
+    { name: "review", description: "Run independent evidence review for a run (owner-distinct reviewer).", handler: reviewCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

@@ -301,7 +301,22 @@ export async function buildHtmlReport(
   ${renderSection("Confidence / Coverage Details", `<pre class="json">${fmtJson({ confidence: confidenceObj, coverage: r.coverage })}</pre>`)}
   ${renderSection("Findings", findingsHtml)}
   ${renderSection("Blockers", blockersHtml)}
-  ${renderSection("Invalid / Quarantined Findings", invalidHtml)}
+
+  ${renderSection("Review Notes (Contested)", (() => {
+    const reviews = Array.isArray(r.reviews) ? r.reviews : [];
+    const notes = Array.isArray(r.review_notes) ? r.review_notes : [];
+    const contested = notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note"));
+    if (!reviews.length && !contested.length) return `<p class="empty">No independent review notes.</p>`;
+    const parts: string[] = [];
+    if (reviews.length) parts.push(`<h3>Reviews</h3><pre class="json">${fmtJson(reviews)}</pre>`);
+    if (contested.length) {
+      const rows = contested.map((n: any) => `<tr><td><code>${escapeHtml(redactStr(n.review_id))}</code></td><td><code>${escapeHtml(redactStr(n.finding_id))}</code></td><td>${escapeHtml(redactStr(n.status || "contested"))}</td><td>${escapeHtml(redactStr(n.reason))}</td><td class="ev">${escapeHtml(Array.isArray(n.challenged_evidence)?n.challenged_evidence.join(", "):"")}</td><td class="ev">${escapeHtml(Array.isArray(n.offered_evidence)?n.offered_evidence.join(", "):"")}</td></tr>`).join("");
+      parts.push(`<h3>Contested disagreements</h3><table><thead><tr><th>Review</th><th>Finding</th><th>Status</th><th>Reason</th><th>Challenged evidence</th><th>Offered evidence</th></tr></thead><tbody>${rows}</tbody></table>`);
+    }
+    return parts.join("");
+  })())}
+
+${renderSection("Invalid / Quarantined Findings", invalidHtml)}
   ${renderSection("Contract Health", contractHealthHtml)}
   ${renderSection("Limitations", limitationsHtml)}
   ${renderSection("Evidence", evidenceHtml)}

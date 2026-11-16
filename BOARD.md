@@ -476,8 +476,8 @@ pass.
 | LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Done |
 | LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Done |
-| LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | In Progress |
-| LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Done |
+| LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-180 | Build the explicit release-decision workflow (`/lemma-release`) | P2 | 5 | LEM-019, LEM-089 | Backlog |
 | LEM-181 | Build the AI-incident containment workflow | P3 | 5 | LEM-020, LEM-089 | Backlog |
 | LEM-182 | Build the continuous testing workflow (`/lemma-forever`) | P3 | 8 | LEM-084, LEM-089 | Backlog |
@@ -2494,29 +2494,29 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-089
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing i18n/localization review workflow (schema/core/evidence/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed i18n/localization review workflow (schema/core/evidence/tests) with passing acceptance tests.
 - **Description:** Add an i18n/localization review workflow: requirements
   matrix, implementation gaps, runtime evidence, contextual translation review
   with RTL/plurals/formats. Report distinguishes observed gaps from
   uninspected locales.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runIntl({ target, locales, requirements? })`
+  - [x] `@lemma/core` exposes `runIntl({ target, locales, requirements? })`
     returning an `IntlReport` validated against
     `schemas/intl/report.v1.json`.
-  - The workflow produces: a requirements matrix (RTL, plurals, date/number
+  - [x] The workflow produces: a requirements matrix (RTL, plurals, date/number
     formats, text expansion), implementation gaps (hardcoded strings, missing
     translations), and runtime evidence (rendered pages per locale with
     redaction).
-  - Contextual translation review runs only where a reviewer (human or
+  - [x] Contextual translation review runs only where a reviewer (human or
     approved model) is available; otherwise the report marks those locales
     `unreviewed`, never `pass`.
-  - Locales not inspected are reported explicitly as `unreviewed` with a
+  - [x] Locales not inspected are reported explicitly as `unreviewed` with a
     reason; no locale is silently skipped.
-  - Tests cover requirements-matrix construction, implementation-gap detection,
+  - [x] Tests cover requirements-matrix construction, implementation-gap detection,
     runtime evidence, `unreviewed` reporting, and report schema.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- intl`
-- **Evidence (planned/in progress):** `packages/core/src/intl.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- intl` (pass, 3/3) — `docs/parity/evidence/LEM-178-intl-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/intl.ts`,
   `schemas/intl/report.v1.schema.json`,
   `packages/core/test/intl/*`,
   `docs/parity/evidence/LEM-178-intl-test-output.txt`
@@ -2527,30 +2527,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-020, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed independent evidence review workflow (core/schema/integration/tests) with passing acceptance tests.
 - **Description:** Add an independent evidence-review workflow that challenges
   code, behavior, assumptions, interactions, and evidence. The reviewer is a
   distinct persona from the one who produced the findings; disagreement is
   recorded, not hidden.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runReview({ runId, reviewer })` where `reviewer` is
+  - [x] `@lemma/core` exposes `runReview({ runId, reviewer })` where `reviewer` is
     a persona distinct from the originating check's owner (per LEM-044); the
     workflow refuses with a typed `PersonaError` if the reviewer is the same
     owner.
-  - The review produces a `ReviewReport` validated against
+  - [x] The review produces a `ReviewReport` validated against
     `schemas/review/report.v1.json` that records: disagreements per finding,
     weakened evidence, unsupported assumptions, and a stable `review_id`.
-  - Disagreements do not auto-override the run's decision; they are attached
+  - [x] Disagreements do not auto-override the run's decision; they are attached
     to the report as explicit review notes with `status: "contested"` and are
     surfaced in the dashboard (LEM-143) and HTML report (LEM-142).
-  - The review itself is evidence-backed: every disagreement cites the
+  - [x] The review itself is evidence-backed: every disagreement cites the
     evidence it challenges and the evidence it offers.
-  - Tests cover owner-distinct enforcement, disagreement recording,
+  - [x] Tests cover owner-distinct enforcement, disagreement recording,
     "contested" status propagation, dashboard/HTML surfacing, and report
     schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- review`
-- **Evidence (planned):** `packages/core/src/review.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- review` (pass, 3/3) — `docs/parity/evidence/LEM-179-review-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass); `pnpm --filter @lemma/agent build` (pass)
+- **Evidence:** `packages/core/src/review.ts`,
   `schemas/review/report.v1.schema.json`,
   `packages/core/test/review/*`,
   `docs/parity/evidence/LEM-179-review-test-output.txt`

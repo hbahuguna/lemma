@@ -457,6 +457,30 @@
         "approval_required",
         "validation_failed"
       ]
+    },
+    {
+      "command": "/lemma-review",
+      "target": "catalog",
+      "description": "Run independent evidence review for a run (owner-distinct reviewer).",
+      "intent": "run",
+      "catalog_intent": "Assay review assessment",
+      "arguments": [
+        {
+          "name": "run_id",
+          "required": false,
+          "description": "Run id to review."
+        },
+        {
+          "name": "reviewer",
+          "required": false,
+          "description": "Reviewer persona (must be distinct from originating owner)."
+        }
+      ],
+      "errors": [
+        "persona_error",
+        "run_not_found",
+        "validation_failed"
+      ]
     }
   ]
 }

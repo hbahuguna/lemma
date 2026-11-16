@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/review/report.v1.schema.json",
+  "title": "Lemma Independent Evidence Review Report v1",
+  "type": "object",
+  "required": ["schema_version", "review_id", "run_id", "reviewer", "status", "disagreements", "weakened_evidence", "unsupported_assumptions", "notes"],
+  "properties": {
+    "schema_version": { "const": "lemma.review_report/v1" },
+    "review_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "reviewer": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["completed"] },
+    "disagreements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["finding_id", "status", "challenged_evidence", "offered_evidence", "reason"],
+        "properties": {
+          "finding_id": { "type": "string" },
+          "status": { "const": "contested" },
+          "challenged_evidence": { "type": "array", "items": { "type": "string" } },
+          "offered_evidence": { "type": "array", "items": { "type": "string" } },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "weakened_evidence": { "type": "array", "items": { "type": "object" } },
+    "unsupported_assumptions": { "type": "array", "items": { "type": "object" } },
+    "notes": { "type": "array", "items": { "type": "object" } }
+  },
+  "additionalProperties": true
+}
