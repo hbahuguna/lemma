@@ -650,6 +650,99 @@ export const verifyEvidenceCommand: CliCommandHandler = async (argv) => {
 };
 
 
+async function copyDirRecursive(src: string, dest: string): Promise<void> {
+  await fs.mkdir(dest, { recursive: true });
+  const entries = await fs.readdir(src, { withFileTypes: true });
+  for (const entry of entries) {
+    const s = path.join(src, entry.name);
+    const d = path.join(dest, entry.name);
+    if (entry.isDirectory()) {
+      await copyDirRecursive(s, d);
+    } else if (entry.isSymbolicLink()) {
+      const target = await fs.readlink(s);
+      await fs.symlink(target, d);
+    } else {
+      await fs.mkdir(path.dirname(d), { recursive: true });
+      await fs.copyFile(s, d);
+    }
+  }
+}
+
+export const migrateStateCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const fromName = getString(flags, "from") ?? ".harness";
+  const toName = getString(flags, "to") ?? ".lemma";
+  const dryRun = getBool(flags, "dry-run");
+  const force = getBool(flags, "force");
+
+  if (!fromName || !toName || fromName === toName) {
+    throw new CliUsageError("migrate-state requires distinct --from and --to state directory names", {
+      from: fromName,
+      to: toName,
+    });
+  }
+
+  const fromDir = path.join(root, fromName);
+  const toDir = path.join(root, toName);
+
+  let fromStat: Awaited<ReturnType<typeof fs.stat>> | null = null;
+  try {
+    fromStat = await fs.stat(fromDir);
+  } catch {
+    fromStat = null;
+  }
+  if (!fromStat || !fromStat.isDirectory()) {
+    throw new StateError(`Legacy state directory not found: ${fromDir}`, { details: { from: fromDir } });
+  }
+
+  let toExists = false;
+  try {
+    await fs.access(toDir);
+    toExists = true;
+  } catch {
+    toExists = false;
+  }
+
+  if (toExists && !force) {
+    return {
+      stdoutJson: {
+        schema_version: REPORT_SCHEMA,
+        status: "exists",
+        command: "migrate-state",
+        root,
+        from: fromDir,
+        to: toDir,
+        dry_run: dryRun,
+        migrated: false,
+        message: "Destination state directory already exists; use --force to overwrite.",
+      },
+    };
+  }
+
+  if (!dryRun) {
+    if (toExists && force) {
+      await fs.rm(toDir, { recursive: true, force: true });
+    }
+    await copyDirRecursive(fromDir, toDir);
+  }
+
+  return {
+    stdoutJson: {
+      schema_version: REPORT_SCHEMA,
+      status: dryRun ? "dry_run" : "migrated",
+      command: "migrate-state",
+      root,
+      from: fromDir,
+      to: toDir,
+      dry_run: dryRun,
+      force,
+      migrated: !dryRun,
+    },
+  };
+};
+
+
 const SUPPORTED_INSTALL_HOSTS = HOST_IDS;
 type InstallHost = HostId;
 
@@ -756,5 +849,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "calibrate", description: "Run calibration fixtures and emit a report.", handler: calibrateCommand },
     { name: "verify-evidence", description: "Verify evidence manifest and artifacts for a run.", handler: verifyEvidenceCommand },
     { name: "install", description: "Install lemma host integration assets for a target host.", handler: installCommand },
+    { name: "migrate-state", description: "Migrate legacy .harness state to .lemma with a safe copy shim.", handler: migrateStateCommand },
   ];
 }

@@ -348,7 +348,7 @@ every supported host with visible supply-chain evidence.
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Done |
 | LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Done |
 | LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Done |
-| LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Backlog |
+| LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Done |
 | LEM-139 | Run the full parity audit and sign off | P0 | 8 | LEM-112, LEM-115, LEM-121, LEM-126, LEM-131, LEM-133, LEM-134, LEM-135, LEM-136, LEM-137, LEM-138 | Backlog |
 | LEM-140 | Point assay at lemma and publish the deprecation notice | P2 | 2 | LEM-139 | Backlog |
 
@@ -4734,6 +4734,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-138 — Publish the assay→lemma migration guide and state shim
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-137
+- **Status:** Done
+- **Claimed:** 2026-11-16 — published migration guide and implemented legacy state read shim + `migrate-state` command.
+- **Description:** Publish migration documentation and provide an explicit state
+  shim/migration path for existing assay `.harness/` state so users can move to
+  lemma's `.lemma/` state root safely.
+- **Acceptance Criteria:**
+  - `docs/migration-assay-to-lemma.md` exists and documents assay→lemma migration
+    guidance, including state-root changes (`.harness/` → `.lemma/`), ignore-file
+    compatibility notes, and practical migration steps/caveats consistent with
+    current implementation.
+  - An explicit state shim is implemented for legacy `.harness/` state:
+    core/state read compatibility allows lemma to read legacy `.harness/`
+    progress/history/kill state when `.lemma/` is absent (read shim), and the
+    CLI provides a `migrate-state` command to copy legacy `.harness/` state into
+    `.lemma/` with deterministic JSON output and safe dry-run/force behavior.
+  - Automated tests verify read-shim and migration command behavior
+    (legacy detection/read, dry-run non-mutation, copy/migration to `.lemma/`,
+    and no-overwrite/force semantics as applicable), and `BOARD.md` +
+    `docs/parity/assay-feature-inventory.md` are updated with LEM-138 completion
+    details/evidence.
+- **Verification:** `test -f docs/migration-assay-to-lemma.md && rg -n "^# Assay to lemma migration guide$|^## State migration$|^## State shim$|^## Migration command$|\\.harness|\\.lemma" docs/migration-assay-to-lemma.md` and `pnpm exec vitest run packages/cli/test/cli-migrate-state.test.ts`.
+- **Evidence:** `docs/migration-assay-to-lemma.md`, `packages/core/src/state-store.ts`, `packages/cli/src/commands.ts`, `packages/cli/test/cli-migrate-state.test.ts`, `docs/parity/evidence/LEM-138-migration-guide-markers.txt`, `docs/parity/evidence/LEM-138-migrate-state-test-output.txt`, updated `BOARD.md` and `docs/parity/assay-feature-inventory.md`.
 
 
 ### LEM-137 — Reach README and user-doc parity with assay

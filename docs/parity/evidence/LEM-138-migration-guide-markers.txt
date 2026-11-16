@@ -1,0 +1,25 @@
+1:# Assay to lemma migration guide
+4:and how to move existing local state from `.harness/` to `.lemma/`.
+15:- **State root:** lemma stores run state/evidence under **`.lemma/`** (not
+16:  `.harness/`).
+17:- **Ignore files:** source scoping supports canonical **`.lemmaignore`** and also
+18:  accepts legacy **`.harnessignore`** for compatibility.
+27:## State migration
+33:- `.harness/progress.json`
+34:- `.harness/history.json`
+35:- `.harness/events.jsonl`
+36:- `.harness/KILL` (if present)
+37:- `.harness/evidence/<run_id>/...`
+40:In lemma, equivalent state lives under `.lemma/`.
+46:- When `.lemma/` progress/history/kill state is absent, lemma can read legacy
+47:  `.harness/` state for compatible read operations (e.g. `status`, `report`,
+49:- New writes continue to target `.lemma/`.
+52:state to `.lemma/` for normal operation.
+54:## Migration command
+56:Use the CLI migration command to copy legacy state into `.lemma/`:
+62:# Migrate legacy .harness/ -> .lemma/
+65:# Overwrite existing .lemma/ state if needed (use with care)
+70:- Source defaults to `.harness/`, destination to `.lemma/` under `--root`.
+80:cp -R .harness .lemma
+95:- If both `.lemma/` and `.harness/` exist, lemma prefers `.lemma/` for reads and
+97:  `.lemma/` contents.

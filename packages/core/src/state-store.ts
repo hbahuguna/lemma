@@ -100,8 +100,13 @@ export class StateStore {
   readonly historyPath: string;
   readonly killPath: string;
   readonly evidenceRoot: string;
+  readonly legacyDir: string | null;
+  readonly legacyProgressPath: string | null;
+  readonly legacyEventsPath: string | null;
+  readonly legacyHistoryPath: string | null;
+  readonly legacyKillPath: string | null;
 
-  constructor(root: string, options?: { stateDirName?: string }) {
+  constructor(root: string, options?: { stateDirName?: string; legacyStateDirName?: string | null }) {
     this.root = path.resolve(root);
     const dirName = options?.stateDirName ?? ".lemma";
     this.lemmaDir = path.join(this.root, dirName);
@@ -110,6 +115,32 @@ export class StateStore {
     this.historyPath = path.join(this.lemmaDir, "history.json");
     this.killPath = path.join(this.lemmaDir, "KILL");
     this.evidenceRoot = path.join(this.lemmaDir, "evidence");
+
+    const legacyName = options && Object.prototype.hasOwnProperty.call(options, "legacyStateDirName")
+      ? options.legacyStateDirName
+      : ".harness";
+    if (legacyName && legacyName !== dirName) {
+      this.legacyDir = path.join(this.root, legacyName);
+      this.legacyProgressPath = path.join(this.legacyDir, "progress.json");
+      this.legacyEventsPath = path.join(this.legacyDir, "events.jsonl");
+      this.legacyHistoryPath = path.join(this.legacyDir, "history.json");
+      this.legacyKillPath = path.join(this.legacyDir, "KILL");
+    } else {
+      this.legacyDir = null;
+      this.legacyProgressPath = null;
+      this.legacyEventsPath = null;
+      this.legacyHistoryPath = null;
+      this.legacyKillPath = null;
+    }
+  }
+
+  private async pathExists(p: string): Promise<boolean> {
+    try {
+      await fs.access(p);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async ensure(): Promise<void> {
@@ -124,12 +155,14 @@ export class StateStore {
   }
 
   async exists(): Promise<boolean> {
-    try {
-      await fs.access(this.progressPath);
-      return true;
-    } catch {
-      return false;
-    }
+    if (await this.pathExists(this.progressPath)) return true;
+    if (this.legacyProgressPath && await this.pathExists(this.legacyProgressPath)) return true;
+    return false;
+  }
+
+  async usingLegacyState(): Promise<boolean> {
+    if (await this.pathExists(this.progressPath)) return false;
+    return Boolean(this.legacyProgressPath && await this.pathExists(this.legacyProgressPath));
   }
 
   async saveProgress(state: RunState | Record<string, unknown>): Promise<void> {
@@ -142,21 +175,30 @@ export class StateStore {
   }
 
   async loadProgress<T = RunState>(): Promise<T> {
-    try {
-      return await readJsonFile<T>(this.progressPath);
-    } catch (err) {
-      if (err instanceof CorruptStateError) throw err;
-      if (err instanceof StateError) {
-        const details = err.details;
-        const reason = isRecord(details) ? asString(details.reason) : undefined;
-        if (reason === "ENOENT" || err.message.includes("not found")) {
-          throw new StateError(`No progress state found at ${this.progressPath}`, {
-            details: { path: this.progressPath },
-          });
+    const paths = [this.progressPath, ...(this.legacyProgressPath ? [this.legacyProgressPath] : [])];
+    let lastErr: unknown;
+    for (const pth of paths) {
+      try {
+        return await readJsonFile<T>(pth);
+      } catch (err) {
+        lastErr = err;
+        if (err instanceof CorruptStateError) throw err;
+        if (err instanceof StateError) {
+          const details = err.details;
+          const reason = isRecord(details) ? asString(details.reason) : undefined;
+          if (reason === "ENOENT" || err.message.includes("not found")) {
+            continue;
+          }
         }
+        throw err;
       }
-      throw err;
     }
+    throw new StateError(
+      this.legacyProgressPath
+        ? `No progress state found at ${this.progressPath} (or legacy ${this.legacyProgressPath})`
+        : `No progress state found at ${this.progressPath}`,
+      { details: { path: this.progressPath, legacy_path: this.legacyProgressPath ?? null } },
+    );
   }
 
   async clearProgress(): Promise<void> {
@@ -187,25 +229,30 @@ export class StateStore {
   }
 
   async loadHistory(): Promise<History> {
-    try {
-      const data = await readJsonFile<unknown>(this.historyPath);
-      return normalizeHistory(data);
-    } catch (err) {
-      if (err instanceof CorruptStateError) {
-        throw new StateError(`history.json is not valid JSON: ${err.message}`, {
-          details: { path: this.historyPath },
-        });
-      }
-      if (err instanceof StateError) {
-        const details = err.details;
-        const reason = isRecord(details) ? asString(details.reason) : undefined;
-        if (reason === "ENOENT" || err.message.includes("not found")) {
-          return { schema_version: HISTORY_SCHEMA_VERSION, runs: [] };
+    const paths = [this.historyPath, ...(this.legacyHistoryPath ? [this.legacyHistoryPath] : [])];
+    let sawMissing = false;
+    for (const pth of paths) {
+      try {
+        const data = await readJsonFile<unknown>(pth);
+        return normalizeHistory(data);
+      } catch (err) {
+        if (err instanceof CorruptStateError) {
+          throw new StateError(`history.json is not valid JSON: ${err.message}`, {
+            details: { path: pth },
+          });
+        }
+        if (err instanceof StateError) {
+          const details = err.details;
+          const reason = isRecord(details) ? asString(details.reason) : undefined;
+          if (reason === "ENOENT" || err.message.includes("not found")) {
+            sawMissing = true;
+            continue;
+          }
         }
         throw err;
       }
-      throw err;
     }
+    return { schema_version: HISTORY_SCHEMA_VERSION, runs: [] };
   }
 
   async saveHistory(history: History): Promise<void> {
@@ -401,25 +448,29 @@ export class StateStore {
   }
 
   async killRequest(): Promise<string | null> {
-    try {
-      const raw = await fs.readFile(this.killPath, "utf8");
-      const trimmed = raw.trim();
-      if (!trimmed) return "Manual kill requested";
+    const paths = [this.killPath, ...(this.legacyKillPath ? [this.legacyKillPath] : [])];
+    for (const pth of paths) {
       try {
-        const data = JSON.parse(trimmed) as unknown;
-        if (isRecord(data)) {
-          const reason = asString(data.reason);
-          return reason && reason.length > 0 ? reason : "Manual kill requested";
+        const raw = await fs.readFile(pth, "utf8");
+        const trimmed = raw.trim();
+        if (!trimmed) return "Manual kill requested";
+        try {
+          const data = JSON.parse(trimmed) as unknown;
+          if (isRecord(data)) {
+            const reason = asString(data.reason);
+            return reason && reason.length > 0 ? reason : "Manual kill requested";
+          }
+          return "Manual kill requested";
+        } catch {
+          return trimmed;
         }
-        return "Manual kill requested";
-      } catch {
-        return trimmed;
+      } catch (err) {
+        const code = (err as NodeJS.ErrnoException).code;
+        if (code === "ENOENT") continue;
+        return "Kill file exists but could not be read";
       }
-    } catch (err) {
-      const code = (err as NodeJS.ErrnoException).code;
-      if (code === "ENOENT") return null;
-      return "Kill file exists but could not be read";
     }
+    return null;
   }
 
   async clearKill(): Promise<void> {
