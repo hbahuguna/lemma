@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/settings/settings.test.ts (3 tests) 324ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  21:06:40
+   Duration  1.98s (transform 517ms, setup 0ms, collect 730ms, tests 324ms, environment 0ms, prepare 286ms)
+

@@ -2,10 +2,11 @@ import http from "node:http";
 import { randomBytes } from "node:crypto";
 import { URL } from "node:url";
 
-import { HarnessError } from "./errors.js";
+import { HarnessError, StateError } from "./errors.js";
 import type { StateStore } from "./state-store.js";
 import type { EvidenceStore } from "./evidence.js";
 import { buildReleaseBrief } from "./release-brief.js";
+import { loadSettings, saveSettings } from "./settings.js";
 
 export interface DashboardHandle {
   url: string;
@@ -217,6 +218,8 @@ function htmlPage(): string {
   const token = params.get('token') || '';
   const brief = document.getElementById('briefLink');
   if (brief) brief.href = '/brief?token=' + encodeURIComponent(token);
+  const settings = document.getElementById('settingsLink');
+  if (settings) settings.href = '/settings?token=' + encodeURIComponent(token);
   const headers = token ? {'x-lemma-dashboard-token': token} : {};
   async function tick(){
     try{
@@ -271,6 +274,120 @@ function htmlPage(): string {
 </html>`;
 }
 
+
+function isAllowedOrigin(origin: string | undefined, host: string): boolean {
+  if (!origin) return true; // non-browser/non-CORS clients may omit; token still required
+  try {
+    const u = new URL(origin);
+    const h = u.hostname;
+    return h === host || h === "127.0.0.1" || h === "localhost" || h === "::1";
+  } catch {
+    return false;
+  }
+}
+
+function settingsPageHtml(): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Lemma Settings</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:1.5rem;line-height:1.4}
+    .card{border:1px solid #ccc;border-radius:8px;padding:1rem;margin:.75rem 0;max-width:720px}
+    label{display:block;margin:.5rem 0 .2rem}
+    input[type=text],input[type=number]{width:100%;max-width:420px;padding:.35rem}
+    .row{margin:.35rem 0}
+    .muted{color:#555}
+    .error{color:#a00}
+    .ok{color:#060}
+    button{margin-top:.75rem;padding:.4rem .75rem}
+  </style>
+</head>
+<body>
+  <h1>Settings</h1>
+  <p class="muted">Protected dashboard settings. Changes apply to future runs.</p>
+  <div class="card">
+    <form id="settingsForm">
+      <h2>Budget</h2>
+      <label>Minutes <input id="budgetMinutes" type="number" min="0" step="1"/></label>
+      <label>Max checks <input id="budgetMaxChecks" type="number" min="0" step="1"/></label>
+      <h2>Focus</h2>
+      <label>Project <input id="focusProject" type="text" placeholder="(null/empty)"/></label>
+      <label>URL <input id="focusUrl" type="text" placeholder="(null/empty)"/></label>
+      <h2>Analytics</h2>
+      <label><input id="analyticsEnabled" type="checkbox"/> Enabled</label>
+      <label>Endpoint <input id="analyticsEndpoint" type="text" placeholder="(null/empty)"/></label>
+      <button type="submit">Save settings</button>
+      <div id="msg" class="muted"></div>
+    </form>
+  </div>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('token') || '';
+  const msg = document.getElementById('msg');
+  function setMsg(text, cls){ msg.className = cls || 'muted'; msg.textContent = text; }
+  async function load() {
+    const res = await fetch('/settings?token=' + encodeURIComponent(token) + '&format=json', { headers: { 'x-lemma-dashboard-token': token } });
+    const data = await res.json();
+    if (!res.ok) { setMsg((data && data.message) || 'Failed to load settings', 'error'); return; }
+    const s = data.settings || data;
+    document.getElementById('budgetMinutes').value = s.budget?.minutes ?? 0;
+    document.getElementById('budgetMaxChecks').value = s.budget?.maxChecks ?? 0;
+    document.getElementById('focusProject').value = s.focus?.project ?? '';
+    document.getElementById('focusUrl').value = s.focus?.url ?? '';
+    document.getElementById('analyticsEnabled').checked = !!(s.analytics && s.analytics.enabled);
+    document.getElementById('analyticsEndpoint').value = s.analytics?.endpoint ?? '';
+    setMsg('Loaded.', 'muted');
+  }
+  document.getElementById('settingsForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const toNullable = (v) => { const t = String(v || '').trim(); return t === '' ? null : t; };
+    const payload = {
+      schema_version: 'lemma.settings/v1',
+      budget: {
+        minutes: Number(document.getElementById('budgetMinutes').value),
+        maxChecks: Number(document.getElementById('budgetMaxChecks').value),
+      },
+      focus: {
+        project: toNullable(document.getElementById('focusProject').value),
+        url: toNullable(document.getElementById('focusUrl').value),
+      },
+      analytics: {
+        enabled: !!document.getElementById('analyticsEnabled').checked,
+        endpoint: toNullable(document.getElementById('analyticsEndpoint').value),
+      }
+    };
+    const res = await fetch('/settings?token=' + encodeURIComponent(token), {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-lemma-dashboard-token': token },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) { setMsg((data && data.message) || JSON.stringify(data), 'error'); return; }
+    setMsg('Saved. Applies to future runs.', 'ok');
+  });
+  await load();
+})();
+</script>
+</body>
+</html>`;
+}
+
+async function readJsonBody(req: http.IncomingMessage): Promise<unknown> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString("utf8").trim();
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    throw new StateError("Invalid JSON body", { code: "state_error", details: { reason: "invalid_json" } });
+  }
+}
+
 export async function startDashboard(options: StartDashboardOptions): Promise<DashboardHandle> {
   const host = options.host ?? "127.0.0.1";
   if (!isLoopback127(host)) {
@@ -317,6 +434,63 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
       if (method === "GET" && reqUrl.pathname === "/api/live") {
         const view = await readLiveView(options);
         json(res, 200, view);
+        return;
+      }
+
+      if (reqUrl.pathname === "/settings") {
+        const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+        if (!isAllowedOrigin(origin, host)) {
+          json(res, 403, { ok: false, error: "forbidden", message: "Disallowed origin." });
+          return;
+        }
+        if (method === "GET") {
+          const format = (reqUrl.searchParams.get("format") || "html").toLowerCase();
+          try {
+            const settings = await loadSettings(options.stateStore);
+            if (format === "json") {
+              json(res, 200, { ok: true, settings });
+              return;
+            }
+            res.statusCode = 200;
+            res.setHeader("content-type", "text/html; charset=utf-8");
+            res.setHeader("cache-control", "no-store");
+            res.end(settingsPageHtml());
+            return;
+          } catch (err) {
+            if (err instanceof StateError) {
+              json(res, 500, { ok: false, error: "state_error", message: err.message, details: err.details ?? {} });
+              return;
+            }
+            throw err;
+          }
+        }
+        if (method === "POST") {
+          try {
+            const body = await readJsonBody(req);
+            let candidate: unknown = body;
+            if (body && typeof body === "object" && !Array.isArray(body) && "settings" in (body as any)) {
+              candidate = (body as any).settings;
+            }
+            const saved = await saveSettings(options.stateStore, candidate, { source: "dashboard" });
+            json(res, 200, { ok: true, settings: saved });
+            return;
+          } catch (err) {
+            if (err instanceof StateError) {
+              const msg = err.message || "Invalid settings";
+              const isCorrupt = /Corrupt|unreadable/i.test(msg);
+              json(res, isCorrupt ? 500 : 400, {
+                ok: false,
+                error: "state_error",
+                message: msg,
+                details: (err as any).details ?? {},
+              });
+              return;
+            }
+            json(res, 400, { ok: false, error: "invalid_request", message: err instanceof Error ? err.message : String(err) });
+            return;
+          }
+        }
+        json(res, 405, { ok: false, error: "method_not_allowed" });
         return;
       }
 

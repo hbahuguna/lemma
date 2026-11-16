@@ -26,6 +26,9 @@ import {
   verifyEvidence,
   verifyReportSignature,
   writeCalibrationReport,
+  loadSettings,
+  saveSettings,
+  validateSettings,
   type RunStateDomain,
 } from "@lemma/core";
 
@@ -923,6 +926,82 @@ export const huntCommand: CliCommandHandler = async (argv) => {
 };
 
 
+export const settingsCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? ".");
+  const store = new StateStore(root);
+  await store.ensure();
+  const setJson = getString(flags, "set-json", "set");
+  const reset = getBool(flags, "reset");
+
+  if (reset) {
+    const saved = await saveSettings(store, {
+      schema_version: "lemma.settings/v1",
+      budget: { minutes: 10, maxChecks: 20 },
+      focus: { project: null, url: null },
+      analytics: { enabled: false, endpoint: null },
+    }, { source: "cli" });
+    return { stdoutJson: { ok: true, command: "settings", settings: saved, path: ".lemma/settings.json" } };
+  }
+
+  if (setJson !== undefined) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(setJson);
+    } catch {
+      throw new CliUsageError("Invalid JSON for --set-json/--set", { flag: "set-json" });
+    }
+    // allow partial merge if object provided without schema_version? AC expects schema-validated writes; merge onto current for convenience
+    let candidate: unknown = parsed;
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      const cur = await loadSettings(store);
+      const p = parsed as Record<string, unknown>;
+      if (!("schema_version" in p)) {
+        candidate = {
+          schema_version: "lemma.settings/v1",
+          budget: { ...cur.budget, ...(isRecord(p.budget) ? p.budget : {}) },
+          focus: { ...cur.focus, ...(isRecord(p.focus) ? p.focus : {}) },
+          analytics: { ...cur.analytics, ...(isRecord(p.analytics) ? p.analytics : {}) },
+        };
+      }
+    }
+    const saved = await saveSettings(store, candidate, { source: "cli" });
+    return { stdoutJson: { ok: true, command: "settings", settings: saved, path: ".lemma/settings.json" } };
+  }
+
+  // flag-based updates
+  const hasUpdates = [
+    "budget-minutes", "budget-max-checks", "focus-project", "focus-url", "analytics-enabled", "analytics-endpoint"
+  ].some((k) => getFlag(flags, k) !== undefined);
+  if (hasUpdates) {
+    const cur = await loadSettings(store);
+    const next = {
+      schema_version: "lemma.settings/v1",
+      budget: { ...cur.budget },
+      focus: { ...cur.focus },
+      analytics: { ...cur.analytics },
+    } as any;
+    const bm = getString(flags, "budget-minutes");
+    const bmc = getString(flags, "budget-max-checks");
+    const fp = getString(flags, "focus-project");
+    const fu = getString(flags, "focus-url");
+    const ae = getFlag(flags, "analytics-enabled");
+    const aep = getString(flags, "analytics-endpoint");
+    if (bm !== undefined) next.budget.minutes = Number(bm);
+    if (bmc !== undefined) next.budget.maxChecks = Number(bmc);
+    if (fp !== undefined) next.focus.project = fp === "" || fp === "null" ? null : fp;
+    if (fu !== undefined) next.focus.url = fu === "" || fu === "null" ? null : fu;
+    if (ae !== undefined) next.analytics.enabled = ae === true || ae === "true" || ae === "1" || ae === "yes";
+    if (aep !== undefined) next.analytics.endpoint = aep === "" || aep === "null" ? null : aep;
+    const saved = await saveSettings(store, validateSettings(next), { source: "cli" });
+    return { stdoutJson: { ok: true, command: "settings", settings: saved, path: ".lemma/settings.json" } };
+  }
+
+  const settings = await loadSettings(store);
+  return { stdoutJson: { ok: true, command: "settings", settings, path: ".lemma/settings.json" } };
+};
+
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -942,6 +1021,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "install", description: "Install lemma host integration assets for a target host.", handler: installCommand },
     { name: "migrate-state", description: "Migrate legacy .harness state to .lemma with a safe copy shim.", handler: migrateStateCommand },
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
+    { name: "settings", description: "View or update lemma settings.", handler: settingsCommand },
     { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
   ];
 }

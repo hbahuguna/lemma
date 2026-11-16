@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/settings/settings.v1.schema.json",
+  "title": "Lemma Settings v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "budget", "focus", "analytics"],
+  "properties": {
+    "schema_version": { "const": "lemma.settings/v1" },
+    "budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minutes", "maxChecks"],
+      "properties": {
+        "minutes": { "type": "integer", "minimum": 0 },
+        "maxChecks": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "focus": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["project", "url"],
+      "properties": {
+        "project": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"] }
+      }
+    },
+    "analytics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["enabled", "endpoint"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "endpoint": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

@@ -46,3 +46,4 @@ export * from "./html-report.js";
 export * from "./dashboard.js";
 
 export * from "./release-brief.js";
+export * from "./settings.js";

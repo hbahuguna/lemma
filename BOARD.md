@@ -379,7 +379,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Done |
 | LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Done |
 | LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Done |
-| LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Backlog |
+| LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Done |
 | LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Backlog |
 | LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Backlog |
 | LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Backlog |
@@ -1102,8 +1102,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-020, LEM-143
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented deterministic release brief builder/schema, dashboard `/brief` route, and tests.
 - **Description:** Generate a concise stakeholder-facing Release Brief from a
   completed report: decision, confidence, top findings, blocked coverage, and
   explicit next steps. Served as a dashboard panel and exportable as a portable
@@ -1119,15 +1119,20 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     next-step lines derived deterministically (no LLM-only wording).
   - Served as a dedicated dashboard route (`/brief`) with the same token policy
     as LEM-143, and exportable via a documented `@lemma/core` helper
-    (`lemma report --brief` CLI wiring follows once LEM-085 surface is present).
-  - Redaction applied before brief generation and before persistence.
-  - Tests cover schema validation, deterministic output, top-N behavior, blocker
-    inclusion, dashboard rendering, and redaction.
-- **Verification (planned):** `pnpm --filter @lemma/core test -- release-brief`
-- **Evidence (planned):** `packages/core/src/release-brief.ts`,
+    (`lemma report --brief` CLI wiring follows once LEM-085 lands).
+  - All user-visible text is redacted via existing redaction policy; output is
+    deterministic for the same report.
+  - Tests: generation from a fixed report, schema validity, determinism,
+    redaction, and rendering of a report with no blockers/findings.
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/release-brief/release-brief.test.ts` (pass; 3/3).
+- **Evidence:** `packages/core/src/release-brief.ts`,
   `schemas/release_brief/release_brief.v1.schema.json`,
-  `packages/core/test/release-brief/*`,
-  `docs/parity/evidence/LEM-145-release-brief-test-output.txt`
+  `packages/core/src/schemas/index.ts`, `packages/core/src/index.ts`,
+  `packages/core/src/dashboard.ts`,
+  `packages/core/test/release-brief/release-brief.test.ts`,
+  `docs/parity/evidence/LEM-145-release-brief-test-output.txt`.
+
 
 ### LEM-146 — Add interactive settings UI to the dashboard
 
