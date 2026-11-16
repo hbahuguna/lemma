@@ -442,7 +442,7 @@ without the same opt-out posture as the core.
 | LEM-161 | Build the Jira/Xray integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Done |
 | LEM-162 | Build the TestRail integration flow | P2 | 5 | LEM-020, LEM-083, LEM-156 | Done |
 | LEM-163 | Build the AI model evaluation workflow | P2 | 8 | LEM-020, LEM-089, LEM-141, LEM-156 | Done |
-| LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Backlog |
+| LEM-164 | Build evidence revision and comparison infrastructure | P2 | 5 | LEM-016, LEM-163 | Done |
 
 ### E20: Additional Core Workflows (Free Tier Parity)
 
@@ -1961,8 +1961,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-016, LEM-163
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented eval evidence revisions/compare, schema, CLI, and tests.
 - **Description:** Allow the same evaluation suite to be compared across model
   versions and runs. Save separate evidence revisions for human-reviewed
   cases so expectations can be revised without losing the history of why
@@ -1987,12 +1987,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
   - Tests cover revision immutability, review gating, diff schema,
     transition mapping, CLI JSON output, and unlicensed refusal.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- revision-compare && pnpm test --filter @lemma/cli -- pro-revisions`
-- **Evidence (planned):** `packages/pro/src/revisions.ts`,
-  `schemas/pro/revision_diff.v1.schema.json`,
-  `packages/pro/test/revision-compare/*`,
-  `packages/cli/test/pro-revisions/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/revision-compare/revision-compare.test.ts` PASS (3/3) and
+  `pnpm exec vitest run packages/cli/test/pro-revisions/pro-revisions.test.ts` PASS (2/2).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/revisions.ts`,
+  `schemas/pro/revision_diff.v1.json`, `schemas/pro/revision_diff.v1.schema.json`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/revision-compare/revision-compare.test.ts`,
+  `packages/cli/src/commands.ts`,
+  `packages/cli/test/pro-revisions/pro-revisions.test.ts`,
   `docs/parity/evidence/LEM-164-revision-compare-test-output.txt`
+
 
 ### LEM-165 — Build the "continue deferred checks" workflow (`/lemma-more`)
 

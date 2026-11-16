@@ -1,0 +1,21 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/revision-compare/revision-compare.test.ts (3 tests) 449ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  23:14:44
+   Duration  2.84s (transform 858ms, setup 0ms, collect 1.17s, tests 449ms, environment 0ms, prepare 183ms)
+
+---CLI---
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/pro-revisions/pro-revisions.test.ts (2 tests) 223ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  23:14:48
+   Duration  2.69s (transform 970ms, setup 0ms, collect 1.40s, tests 223ms, environment 0ms, prepare 256ms)
+

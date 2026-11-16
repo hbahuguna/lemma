@@ -25,3 +25,5 @@ export * from "./quality-history.js";
 export * from "./integrations/jira-xray.js";
 export * from "./integrations/testrail.js";
 export * from "./model-eval.js";
+export * as evidence from "./revisions.js";
+export { saveRevision, compareRevisions, listRevisions, validateRevisionDiff } from "./revisions.js";

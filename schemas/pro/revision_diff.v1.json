@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/revision_diff.v1.json",
+  "title": "Lemma Pro Eval Revision Diff v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "case_id",
+    "from_revision",
+    "to_revision",
+    "diff_id",
+    "outcome_counts",
+    "case_transitions",
+    "evidence_fingerprint_changes"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.revision_diff/v1" },
+    "case_id": { "type": "string", "minLength": 1 },
+    "from_revision": { "type": "string", "minLength": 1 },
+    "to_revision": { "type": "string", "minLength": 1 },
+    "diff_id": { "type": "string", "minLength": 1 },
+    "outcome_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["PASS", "FAIL", "REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED"],
+      "properties": {
+        "PASS": { "type": "integer", "minimum": 0 },
+        "FAIL": { "type": "integer", "minimum": 0 },
+        "REGRESSION": { "type": "integer", "minimum": 0 },
+        "IMPROVEMENT": { "type": "integer", "minimum": 0 },
+        "UNCHANGED": { "type": "integer", "minimum": 0 },
+        "UNEVALUATED": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "case_transitions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "from_outcome", "to_outcome", "transition"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "from_outcome": { "enum": ["PASS", "FAIL", "REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED"] },
+          "to_outcome": { "enum": ["PASS", "FAIL", "REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED"] },
+          "transition": { "enum": ["REGRESSION", "IMPROVEMENT", "UNCHANGED", "UNEVALUATED"] }
+        }
+      }
+    },
+    "evidence_fingerprint_changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case_id", "from_fingerprint", "to_fingerprint", "changed"],
+        "properties": {
+          "case_id": { "type": "string" },
+          "from_fingerprint": { "type": ["string", "null"] },
+          "to_fingerprint": { "type": ["string", "null"] },
+          "changed": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

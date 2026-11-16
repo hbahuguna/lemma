@@ -43,10 +43,12 @@ import {
 } from "@lemma/agent";
 import {
   ProUnavailableError,
+  compareRevisions,
   getSpecialistCommand,
   historyRead,
   inventoryListCheck,
   inventoryRead,
+  listRevisions,
   runModelEval,
   runPropertyProof,
   runSpecialistCommand,
@@ -1114,7 +1116,27 @@ export const proCommand: CliCommandHandler = async (argv) => {
   }
 
   if (sub === "eval") {
-    const cases = getString(flags, "cases", "cases-dir") ?? positionals[1];
+    const action = positionals[1];
+    if (action === "revisions") {
+      const caseId = getString(flags, "case", "case-id");
+      if (!caseId) throw new CliUsageError("Missing required --case for `lemma pro eval revisions`", { flag: "case" });
+      const runId = getString(flags, "run-id", "run");
+      const result = await listRevisions({ caseId, projectRoot: root, license, ...(runId ? { runId } : {}) } as any);
+      return { stdoutJson: result };
+    }
+    if (action === "compare") {
+      const caseId = getString(flags, "case", "case-id");
+      const from = getString(flags, "from");
+      const to = getString(flags, "to");
+      if (!caseId) throw new CliUsageError("Missing required --case for `lemma pro eval compare`", { flag: "case" });
+      if (!from) throw new CliUsageError("Missing required --from for `lemma pro eval compare`", { flag: "from" });
+      if (!to) throw new CliUsageError("Missing required --to for `lemma pro eval compare`", { flag: "to" });
+      const runId = getString(flags, "run-id", "run");
+      const result = await compareRevisions({ caseId, from, to, projectRoot: root, license, ...(runId ? { runId } : {}) } as any);
+      return { stdoutJson: result };
+    }
+
+    const cases = getString(flags, "cases", "cases-dir") ?? (action && !action.startsWith("-") ? action : positionals[2]);
     const baselinePath = getString(flags, "baseline", "baseline-path");
     const endpoint = getString(flags, "endpoint");
     const seedStr = getString(flags, "seed");
@@ -1123,12 +1145,10 @@ export const proCommand: CliCommandHandler = async (argv) => {
     const modelConfig: any = {};
     if (baselinePath) modelConfig.baselinePath = path.isAbsolute(baselinePath) ? baselinePath : path.resolve(process.cwd(), baselinePath);
     if (endpoint === "none" || endpoint === "unconfigured") modelConfig.endpoint = null;
-    // if explicitly configured stub endpoint requested
     if (endpoint === "stub") {
       modelConfig.stub = true;
       modelConfig.endpoint = { invoke: ({ case: c }: any) => ({ output: { stub: true, id: c.id }, pass: true, rationale: "stub pass" }) };
     }
-    // allow JSON endpoint config stub marker? not required
     const result = await runModelEval({
       ...(cases ? { cases } : {}),
       modelConfig: Object.keys(modelConfig).length ? modelConfig : null,
