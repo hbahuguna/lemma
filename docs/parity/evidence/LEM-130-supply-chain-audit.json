@@ -1,0 +1,98 @@
+{
+  "schema": "lemma.supply-chain-audit/v1",
+  "task": "LEM-130",
+  "generated_at": "2026-11-16T11:38:26.290Z",
+  "ok": true,
+  "summary": {
+    "checks": 12,
+    "passed": 12,
+    "failed": 0,
+    "risks": 1
+  },
+  "checks": [
+    {
+      "id": "lockfile.committed",
+      "status": "pass",
+      "path": "pnpm-lock.yaml",
+      "detail": "pnpm-lock.yaml is committed"
+    },
+    {
+      "id": "root.packageManager.pinned",
+      "status": "pass",
+      "value": "pnpm@11.15.1"
+    },
+    {
+      "id": "root.engines.node",
+      "status": "pass",
+      "value": {
+        "node": ">=20"
+      }
+    },
+    {
+      "id": "npmrc.present",
+      "status": "pass",
+      "path": ".npmrc",
+      "detail": [
+        "engine-strict=true",
+        "prefer-workspace-packages=true"
+      ]
+    },
+    {
+      "id": "ci.frozen-lockfile",
+      "status": "pass",
+      "path": ".github/workflows/ci.yml"
+    },
+    {
+      "id": "release-dry-run.frozen-lockfile",
+      "status": "pass",
+      "path": ".github/workflows/release-dry-run.yml"
+    },
+    {
+      "id": "release-dry-run.provenance",
+      "status": "pass",
+      "path": ".github/workflows/release-dry-run.yml"
+    },
+    {
+      "id": "manifests.no-git-or-tarball-deps",
+      "status": "pass",
+      "count": 0,
+      "issues": []
+    },
+    {
+      "id": "publishable.metadata-provenance",
+      "status": "pass",
+      "publishableCount": 12,
+      "issueCount": 0,
+      "issues": []
+    },
+    {
+      "id": "core.runtime-deps-constrained",
+      "status": "pass",
+      "dependencies": [
+        "zod"
+      ],
+      "forbidden": [],
+      "policy": "runtime dependencies limited to schema/parsing primitives; no host SDKs (zod allowed)"
+    },
+    {
+      "id": "core.no-host-sdk-runtime-deps",
+      "status": "pass",
+      "dependencies": [
+        "zod"
+      ]
+    },
+    {
+      "id": "lockfile.no-git-tarball-protocols",
+      "status": "pass",
+      "detail": "scanned for git+ssh/git+https/github:/tarball: tokens"
+    }
+  ],
+  "risks": [
+    {
+      "id": "ci.workflow.structure",
+      "severity": "medium",
+      "detail": "CI workflow appears structurally malformed/duplicated (multiple steps blocks observed around verify/state-primitives jobs); frozen-lockfile checks passed textually but workflow execution should be validated by CI repair task (LEM-132 scope).",
+      "path": ".github/workflows/ci.yml"
+    }
+  ]
+}

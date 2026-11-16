@@ -332,7 +332,7 @@ artifacts cannot produce a false release signal.
 | LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Done |
 | LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Done |
 | LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Done |
-| LEM-130 | Audit dependency and supply-chain posture | P1 | 3 | LEM-009 | Backlog |
+| LEM-130 | Audit dependency and supply-chain posture | P1 | 3 | LEM-009 | Done |
 | LEM-131 | Set and test performance/scale budgets | P2 | 3 | LEM-026 | Backlog |
 
 ### E12: CI, Packaging, Release, and Docs
@@ -4705,6 +4705,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-130 — Audit dependency and supply-chain posture
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-009
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `node scripts/audit/supply-chain.mjs --write docs/parity/evidence/LEM-130-supply-chain-audit.json --report docs/parity/evidence/LEM-130-supply-chain-audit.md`.
+- **Description:** Audit workspace dependency and supply-chain posture: lockfile
+  and package-manager pinning, frozen installs in CI/release workflows, publish
+  provenance metadata, dependency-source hygiene (no git/http/tarball specs),
+  core runtime dependency constraints, and record risks/findings with evidence.
+- **Acceptance Criteria:**
+  - `scripts/audit/supply-chain.mjs` performs deterministic checks over the repo
+    and reports pass/fail with details for: committed `pnpm-lock.yaml` and
+    pinned root `packageManager`/`engines.node`, `.npmrc` supply-chain-relevant
+    settings present, CI/release workflows use `--frozen-lockfile` for installs,
+    publishable `@lemma/*` packages declare `publishConfig.access=public` and
+    `publishConfig.provenance=true` with repository metadata, workspace manifests
+    contain no git/http/https/tarball dependency specs, and `@lemma/core` runtime
+    dependencies remain constrained (no host SDKs; runtime deps limited to
+    allowed primitives, currently `zod`).
+  - Audit artifacts are committed: machine-readable JSON and human-readable
+    markdown report under `docs/parity/evidence/` summarizing controls, check
+    results, and residual risks/gaps (malformed/duplicated CI workflow structure
+    observed during audit is documented without weakening checks).
+  - `node scripts/audit/supply-chain.mjs --write docs/parity/evidence/LEM-130-supply-chain-audit.json --report docs/parity/evidence/LEM-130-supply-chain-audit.md`
+    exits 0 in this environment and records evidence consistent with repo state.
+- **Verification:** `node scripts/audit/supply-chain.mjs --write docs/parity/evidence/LEM-130-supply-chain-audit.json --report docs/parity/evidence/LEM-130-supply-chain-audit.md` (PASS, 12/12 checks, 1 documented risk: `.github/workflows/ci.yml` structural duplication/malformed steps) on 2026-11-16.
+- **Evidence to record:** `scripts/audit/supply-chain.mjs`,
+  `docs/parity/evidence/LEM-130-supply-chain-audit.json`,
+  `docs/parity/evidence/LEM-130-supply-chain-audit.md`, and updated `BOARD.md`
+  (no additional parity inventory row ownership identified for LEM-130).
+
 
 ### LEM-129 — Audit that no path resumes a halted run
 
