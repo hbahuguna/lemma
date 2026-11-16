@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/confidence-workspace/confidence-workspace.test.ts (3 tests) 839ms
+   ✓ LEM-183 confidence-engineering workspace > regenerates manifest atomically with stable ids and fingerprints for artifacts  372ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:07:35
+   Duration  3.85s (transform 987ms, setup 0ms, collect 1.41s, tests 839ms, environment 0ms, prepare 211ms)
+

@@ -491,7 +491,7 @@ fabricate a pass.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-183 | Build the confidence-engineering workspace (`.confidence/`) | P3 | 8 | LEM-020, LEM-089 | Backlog |
+| LEM-183 | Build the confidence-engineering workspace (`.confidence/`) | P3 | 8 | LEM-020, LEM-089 | Done |
 | LEM-184 | Build the AI evaluation design and review workflows | P3 | 8 | LEM-163, LEM-183 | Backlog |
 | LEM-185 | Build the specialized review workflows (security, skeptical, statistical, release) | P3 | 8 | LEM-179, LEM-183 | Backlog |
 
@@ -2660,28 +2660,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-020, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed confidence-engineering workspace .confidence/ (core/schema/cli/catalog/tests) with passing acceptance tests.
 - **Description:** Create a durable `.confidence/` workspace for risks, claims,
   evals, traces, and release decisions for AI systems (prompts, models, RAG,
   ranking, agents). The workspace is versioned, atomic, redacted, and
   resumable.
 - **Acceptance Criteria:**
-  - `.confidence/` contains documented subdirectories: `risks/`, `claims/`,
+  - [x] `.confidence/` contains documented subdirectories: `risks/`, `claims/`,
     `evals/`, `traces/`, `decisions/`, `reviews/`; every read/write goes
     through `@lemma/core/state` atomic writes; corrupt reads raise
     `StateError`.
-  - A versioned workspace manifest (`schemas/confidence/workspace.v1.json`)
+  - [x] A versioned workspace manifest (`schemas/confidence/workspace.v1.json`)
     lists every artifact with a stable id and fingerprint; the manifest is
     regenerated atomically and never partially written.
-  - The workspace is created by `lemma confidence init`; the command is
+  - [x] The workspace is created by `lemma confidence init`; the command is
     registered in the catalog (LEM-089); it refuses to overwrite an existing
     workspace without `--force`.
-  - Redaction is applied before persistence across every subdirectory.
-  - Tests cover init, manifest regeneration, corrupt-read error, atomic write,
+  - [x] Redaction is applied before persistence across every subdirectory.
+  - [x] Tests cover init, manifest regeneration, corrupt-read error, atomic write,
     `--force` refusal, and redaction.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- confidence-workspace`
-- **Evidence (planned):** `packages/core/src/confidence.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/confidence-workspace/confidence-workspace.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- confidence-workspace` — `docs/parity/evidence/LEM-183-confidence-workspace-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass)
+- **Evidence:** `packages/core/src/confidence-workspace.ts`,
   `schemas/confidence/workspace.v1.schema.json`,
   `packages/core/test/confidence/*`,
   `docs/parity/evidence/LEM-183-confidence-workspace-test-output.txt`

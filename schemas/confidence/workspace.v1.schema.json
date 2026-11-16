@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/confidence/workspace.v1.schema.json",
+  "title": "Lemma Confidence Workspace Manifest v1",
+  "type": "object",
+  "required": ["schema_version", "workspace", "generated_at", "artifacts"],
+  "properties": {
+    "schema_version": { "const": "lemma.confidence.workspace/v1" },
+    "workspace": { "const": ".confidence" },
+    "generated_at": { "type": "string" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "path", "subdir", "fingerprint", "size"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "subdir": { "type": "string", "enum": ["risks", "claims", "evals", "traces", "decisions", "reviews"] },
+          "fingerprint": { "type": "string", "minLength": 1 },
+          "size": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

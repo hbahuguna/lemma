@@ -9,6 +9,7 @@ import {
   runMore,
   runAutoLoop,
   runForever,
+  initConfidenceWorkspace,
   runBrowserInspection,
   runHumanContext,
   runGenerate,
@@ -1495,6 +1496,19 @@ export const foreverCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result.mission, exitCode: result.status === "failed" ? 1 : 0 };
 };
 
+
+export const confidenceCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const sub = (positionals[0] || "").toLowerCase();
+  if (sub !== "init") {
+    throw new CliUsageError("Unknown confidence subcommand. Usage: lemma confidence init [--force] [--root <dir>]", { command: "confidence", subcommand: sub || null, allowed: ["init"] });
+  }
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const force = getBool(flags, "force") === true;
+  const result = await initConfidenceWorkspace({ root, force });
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1502,6 +1516,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "forever", description: "Run continuous testing workflow (/lemma-forever) with durable checkpoints and live mission report.", handler: foreverCommand },
+    { name: "confidence", description: "Manage confidence-engineering workspace (.confidence/). Subcommands: init.", handler: confidenceCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
     { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },
