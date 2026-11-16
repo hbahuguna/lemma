@@ -382,7 +382,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Done |
 | LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Done |
 | LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Done |
-| LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Backlog |
+| LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Done |
 
 ### E15: MCP Tool Server
 
@@ -1271,8 +1271,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-053, LEM-055
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — extended `browser.accessibility` evaluation for keyboard traversal, contrast, and screen-reader hints with tests/evidence.
 - **Description:** Extend the browser accessibility check beyond structural
   markup: verify keyboard traversal order for interactive elements, evaluate
   live contrast ratios against WCAG AA thresholds in the rendered DOM, and
@@ -1301,11 +1301,13 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover keyboard traversal scenarios (happy path, trap, unreachable),
     contrast scenarios (pass, fail-AA, fail-large-text), screen-reader hint
     coverage, blocked-runtime behavior, and determinism.
-- **Verification (planned):**
-  `pnpm --filter @lemma/browser test -- accessibility-dynamic`
-- **Evidence (planned):** `packages/browser/src/checks.ts` (extended a11y
-  evaluators), `packages/browser/test/accessibility-dynamic/*`,
-  `docs/parity/evidence/LEM-149-dynamic-a11y-test-output.txt`
+- **Verification:**
+  `pnpm exec vitest run packages/browser/test/accessibility-dynamic/accessibility-dynamic.test.ts` (pass; 5/5).
+  Regression: `pnpm exec vitest run packages/browser/test/browser-accessibility.test.ts` (pass; 5/5).
+- **Evidence:** `packages/browser/src/checks.ts` (extended a11y evaluators),
+  `packages/browser/test/accessibility-dynamic/accessibility-dynamic.test.ts`,
+  `docs/parity/evidence/LEM-149-dynamic-a11y-test-output.txt`.
+
 
 ### LEM-150 — Build the background quick-check supervisor
 
