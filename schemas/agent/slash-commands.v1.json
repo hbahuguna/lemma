@@ -414,6 +414,30 @@
         "invalid_source",
         "invalid_scope"
       ]
+    },
+    {
+      "command": "/lemma-tests",
+      "target": "catalog",
+      "description": "Manage durable test intents (create/import/convert/repair/bake/list/delete).",
+      "intent": "run",
+      "catalog_intent": "Assay tests assessment",
+      "arguments": [
+        {
+          "name": "action",
+          "required": false,
+          "description": "create|import|convert|repair|bake|list|delete"
+        },
+        {
+          "name": "format",
+          "required": false,
+          "description": "testrail|xray|xml|xlsx|docx|lemma-native"
+        }
+      ],
+      "errors": [
+        "invalid_action",
+        "invalid_format",
+        "validation_failed"
+      ]
     }
   ]
 }

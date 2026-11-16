@@ -11,6 +11,7 @@ import {
   runBrowserInspection,
   runHumanContext,
   runGenerate,
+  manageTests,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1386,6 +1387,33 @@ export const generateCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const testsCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const action = (getString(flags, "action") ?? positionals[0] ?? "list") as any;
+  const format = getString(flags, "format") as any;
+  const input = getString(flags, "input", "i", "file") ?? positionals[1];
+  const output = getString(flags, "output", "o");
+  const suite = getString(flags, "suite");
+  const id = getString(flags, "id");
+  const force = getBool(flags, "force");
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const maxTestsStr = getString(flags, "max-tests", "maxTests");
+
+  const result = await manageTests({
+    action,
+    ...(format ? { format } : {}),
+    ...(input !== undefined ? { input } : {}),
+    ...(output !== undefined ? { output } : {}),
+    ...(suite ? { suite } : {}),
+    ...(id ? { id } : {}),
+    ...(force ? { force: true } : {}),
+    root,
+    ...(maxTestsStr !== undefined ? { maxTests: toInt(maxTestsStr, "--max-tests") } : {}),
+  } as any);
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1396,6 +1424,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
     { name: "feedback", description: "Manage private feedback loop (explicitly enable self-hosted review service via `feedback serve`).", handler: feedbackCommand },
     { name: "generate", description: "Generate prioritized, planned browser.steps-compatible test intents (no execution).", handler: generateCommand },
+    { name: "tests", description: "Manage durable test intents (create/import/convert/repair/bake/list/delete).", handler: testsCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },

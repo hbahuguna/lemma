@@ -459,7 +459,7 @@ workflow and produces durable `.lemma/` artifacts.
 | LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Done |
 | LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Done |
-| LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Backlog |
+| LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Done |
 | LEM-172 | Build the test-framework upgrade workflow (`/lemma-upgrade`) | P3 | 5 | LEM-171 | Backlog |
 
 ### E21: Advanced Quality Workflows
@@ -2273,31 +2273,31 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-014, LEM-020
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed durable test-intent management workflow (core/CLI/slash) with passing acceptance tests.
 - **Description:** Add a `/lemma-tests` (and `lemma tests`) workflow that
   creates, imports, converts, repairs, bakes, and manages durable local test
   intent. Imports TestRail, Xray, XML, XLSX, DOCX, and code-defined tests into
   the same scenario format; exports back to the same formats.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `manageTests({ action, format, input?, output? })`
+  - [x] `@lemma/core` exposes `manageTests({ action, format, input?, output? })`
     with actions `create`, `import`, `convert`, `repair`, `bake`, `list`,
     `delete`, and formats `testrail`, `xray`, `xml`, `xlsx`, `docx`,
     `lemma-native`.
-  - Every imported test is validated against the scenario schema (LEM-058);
+  - [x] Every imported test is validated against the scenario schema (LEM-058);
     invalid imports raise a typed error and do not partially write; the
     overflow/rejection is recorded explicitly.
-  - Baking generates the local `.lemma/tests/<suite>/` tree and a
+  - [x] Baking generates the local `.lemma/tests/<suite>/` tree and a
     reproducible manifest; `list` returns the current tests, `delete` refuses
     to remove `reviewed: true` tests without an explicit `--force`.
-  - Round-trip tests assert that `import → bake → export` preserves stable ids
+  - [x] Round-trip tests assert that `import → bake → export` preserves stable ids
     and semantics for each supported format.
-  - Redaction applies to imported content (any secret-shaped string is stripped
+  - [x] Redaction applies to imported content (any secret-shaped string is stripped
     or flagged, never persisted raw).
-  - Tests cover each action/format combination, schema validation, overflow,
+  - [x] Tests cover each action/format combination, schema validation, overflow,
     round-trip stability, delete refusal, and redaction.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- test-intent`
-- **Evidence (planned):** `packages/core/src/test-intent.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- test-intent` (pass, 9/9) — `docs/parity/evidence/LEM-171-test-intent-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass); `pnpm --filter @lemma/agent build` (pass)
+- **Evidence:** `packages/core/src/test-intent.ts`,
   `packages/core/src/test-intent/parsers/*`,
   `packages/core/test/test-intent/*`,
   `docs/parity/evidence/LEM-171-test-intent-test-output.txt`
