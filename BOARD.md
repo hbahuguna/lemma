@@ -473,7 +473,7 @@ pass.
 | --- | --- | --- | --- | --- | --- |
 | LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Done |
 | LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Done |
-| LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Backlog |
+| LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Done |
 | LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
 | LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
 | LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
@@ -2403,30 +2403,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed bounded/deterministic state-hunting workflow (core/schema/tests) with passing acceptance tests.
 - **Description:** Add a state-hunting workflow that actively hunts lost,
   stale, or inconsistent state: multi-tab/API event sequences, save/reload,
   export/reimport, and malformed stored data. Bounded and evidence-backed; no
   fabricated bug.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runStateHunt({ target, sequences, maxSteps, seed })`
+  - [x] `@lemma/core` exposes `runStateHunt({ target, sequences, maxSteps, seed })`
     returning a `StateHuntReport` validated against
     `schemas/state/state_hunt_report.v1.json`.
-  - Sequences are driven by a documented, bounded planner (multi-tab, reload,
+  - [x] Sequences are driven by a documented, bounded planner (multi-tab, reload,
     export/import, malformed-data); each step records evidence (screenshots,
     storage/state snapshots via LEM-016) with redaction applied.
-  - `maxSteps` and wall-clock caps are enforced; exceeding either halts
+  - [x] `maxSteps` and wall-clock caps are enforced; exceeding either halts
     cleanly with `halted` status.
-  - Findings are only emitted when a state transition is observed to violate a
+  - [x] Findings are only emitted when a state transition is observed to violate a
     documented invariant; "no bug found" is never reported as a pass — the run
     reports `UNCHANGED` coverage with the sequences it exercised.
-  - Determinism: same seed + frozen clock + same target → same findings and
+  - [x] Determinism: same seed + frozen clock + same target → same findings and
     evidence fingerprints (modulo documented volatile fields).
-  - Tests cover sequence planning, cap enforcement, invariant checks,
+  - [x] Tests cover sequence planning, cap enforcement, invariant checks,
     evidence linkage, determinism, and "no-bug" honest reporting.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- state-hunt`
-- **Evidence (planned):** `packages/core/src/state-hunt.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- state-hunt` (pass, 4/4) — `docs/parity/evidence/LEM-175-state-hunt-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/state-hunt.ts`,
   `schemas/state/state_hunt_report.v1.schema.json`,
   `packages/core/test/state-hunt/*`,
   `docs/parity/evidence/LEM-175-state-hunt-test-output.txt`
