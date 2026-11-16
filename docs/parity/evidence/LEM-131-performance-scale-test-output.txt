@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/performance-scale/performance-scale-budgets.test.ts (3 tests) 1551ms
+   ✓ LEM-131 performance and scale budgets > records, finalizes, and verifies many evidence artifacts (>=250) correctly  638ms
+   ✓ LEM-131 performance and scale budgets > enforces orchestrator maxChecks budget at synthetic planning scale  786ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  17:17:12
+   Duration  3.73s (transform 657ms, setup 0ms, collect 914ms, tests 1.55s, environment 0ms, prepare 367ms)
+

@@ -333,7 +333,7 @@ artifacts cannot produce a false release signal.
 | LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Done |
 | LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Done |
 | LEM-130 | Audit dependency and supply-chain posture | P1 | 3 | LEM-009 | Done |
-| LEM-131 | Set and test performance/scale budgets | P2 | 3 | LEM-026 | Backlog |
+| LEM-131 | Set and test performance/scale budgets | P2 | 3 | LEM-026 | Done |
 
 ### E12: CI, Packaging, Release, and Docs
 
@@ -4705,6 +4705,41 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-131 — Set and test performance/scale budgets
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-026
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/performance-scale/performance-scale-budgets.test.ts`.
+- **Description:** Define and enforce deterministic performance/scale budgets for
+  core run artifacts and processing paths (scoring/reporting, evidence
+  storage/verification, and bounded check execution), with regression tests and
+  documented budget targets.
+- **Acceptance Criteria:**
+  - `docs/performance-scale-budgets.md` documents the initial core budgets and
+    rationale (deterministic, environment-agnostic where possible), covering at
+    minimum: max-check/budget enforcement expectations, synthetic scoring/report
+    scale target, evidence artifact/manifest scale target, and non-functional
+    constraints (no wall-clock-flaky assertions in unit tests).
+  - `packages/core/test/performance-scale/performance-scale-budgets.test.ts`
+    provides deterministic regression coverage proving: scoring + report
+    generation remain correct for a synthetic large state (>= 1,000 checks and
+    hundreds of findings) and produce a schema-valid report/decision; evidence
+    store can record, checkpoint/finalize, and verify a synthetic set of many
+    artifacts (>= 250) with correct manifest/verification results; orchestrator
+    budget behavior remains enforced at scale (planned work respects `maxChecks`
+    and run completes with bounded checks).
+  - `pnpm --filter @lemma/core test -- packages/core/test/performance-scale/performance-scale-budgets.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/performance-scale/performance-scale-budgets.test.ts` (pass, 3/3 tests) on 2026-11-16.
+- **Evidence to record:** `docs/performance-scale-budgets.md`,
+  `packages/core/test/performance-scale/performance-scale-budgets.test.ts`,
+  `docs/parity/evidence/LEM-131-performance-scale-test-output.txt`, and updated
+  `BOARD.md` (no additional parity inventory row ownership identified for LEM-131).
+
 
 ### LEM-130 — Audit dependency and supply-chain posture
 
