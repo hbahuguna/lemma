@@ -1,0 +1,30 @@
+$ pnpm --filter @lemma/cloud typecheck
+$ tsc --noEmit
+
+$ pnpm --filter @lemma/cloud build
+$ tsup src/index.ts --format esm --dts --clean --sourcemap --target node20
+CLI Building entry: src/index.ts
+CLI Using tsconfig: tsconfig.json
+CLI tsup v8.5.1
+CLI Target: node20
+CLI Cleaning output folder
+ESM Build start
+ESM dist/index.js     62.45 KB
+ESM dist/index.js.map 121.60 KB
+ESM ⚡️ Build success in 105ms
+DTS Build start
+DTS ⚡️ Build success in 3901ms
+DTS dist/index.d.ts 17.53 KB
+
+$ pnpm exec vitest run packages/cloud/test/quota.test.ts
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/quota.test.ts (7 tests) 1244ms
+   ✓ LEM-115 per-action quota enforcement > prevents overspend under concurrent consumption from multiple store instances  451ms
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  13:16:05
+   Duration  3.21s (transform 576ms, setup 0ms, collect 823ms, tests 1.24s, environment 0ms, prepare 277ms)
+

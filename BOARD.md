@@ -309,7 +309,7 @@ retention contracts.
 | --- | --- | --- | --- | --- | --- |
 | LEM-113 | Port the frozen metering event contract and local sink | P1 | 5 | LEM-013, LEM-020 | Done |
 | LEM-114 | Port workspace auth, hashed scoped keys, and audit | P1 | 8 | LEM-013 | Done |
-| LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Backlog |
+| LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Done |
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Backlog |
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Backlog |
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Backlog |
@@ -4705,6 +4705,56 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-115 — Port per-action quota enforcement
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-113, LEM-114
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/quota.test.ts`.
+- **Completed:** 2026-11-16 — all acceptance criteria pass.
+- **Description:** Port monthly per-action quota enforcement to `@lemma/cloud`:
+  quota plans/limits, period usage state, soft/hard limit decisions and
+  429-style hard-limit errors, quota headers/reset metadata, metering-event to
+  quota-resource mapping, workspace/auth-context binding, durable `.lemma/quota`
+  storage/events, and process-safe consumption semantics.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports quota APIs in `src/quota.ts` (and package entry):
+    resource/constants and normalization/validation, `QuotaPlan`/`QuotaLimit`
+    parsing/loading, `quotaPeriod`, `QuotaDecision`/`QuotaExceeded` (429 with
+    limit/used/requested/reset and headers/payload semantics), and `QuotaStore`
+    (configurable plan/workspace/enforce/store/events/lock paths, `fromAuthContext`/
+    workspace binding) supporting `consume`/`record`/`tryConsume`/`peek`(`check`),
+    `consumeFor`/`snapshotFor`, metering event consumption/mapping, `snapshot`/
+    `summary`/`usage`/`remaining`/`warnings`/`events`/`reset`.
+  - Enforcement semantics: per-action consumption (no usage increment on denied
+    hard-limit request), soft-limit warning emitted once per resource per billing
+    period/workspace, hard limit raises 429 `QuotaExceeded` with exact
+    limit/used/requested/remaining/reset and quota headers; unlimited/local mode
+    (no plan or explicit local without enforcement) allows without creating quota
+    state; explicit enforcement and plan opt-in behave as expected; monthly UTC
+    period rollover resets usage/warnings.
+  - Isolation and durability: workspace usage/warnings isolated; tenant resolved
+    from authenticated context for `fromAuthContext`/`consumeFor`/`snapshotFor`
+    (reject mismatched store/context); quota store/events persisted under
+    `.lemma/quota/` with atomic/durable writes and process-safe locking for
+    consumption/peek/snapshot/reset; quota warning/hard-limit events recorded
+    without rolling back usage/denial state.
+  - `packages/cloud/test/quota.test.ts` ports/verifies core quota behavior:
+    plan parsing/validation, soft-warning once-per-period and rollover,
+    workspace isolation and auth-context binding, hard-limit 429 details/headers
+    with preserved prior usage, try/peek/record/metering-event mapping, unlimited
+    local mode/no-state, explicit enforcement/plan opt-in, snapshot/reset/reporting
+    fields, and concurrent consumption safety against overspend.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/quota.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/quota.test.ts` (pass; output recorded).
+- **Evidence:** `packages/cloud/src/quota.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/quota.test.ts`, `docs/parity/evidence/LEM-115-quota-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. CLI `lemma quota ...` command wiring remains follow-on (tracked in parity inventory).
+
 
 ### LEM-114 — Port workspace auth, hashed scoped keys, and audit
 
