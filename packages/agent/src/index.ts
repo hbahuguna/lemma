@@ -891,6 +891,38 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const lemmaHuman = (d as any).lemma_human === true;
+    if (lemmaHuman) {
+      const runId = (d as any).human_run_id || (state.runIds.length ? state.runIds[state.runIds.length - 1] : "");
+      try {
+        if (!runId) throw new Error("Missing run id for /lemma-human.");
+        const qArg = (d as any).human_questions;
+        const aArg = (d as any).human_answers;
+        if (!qArg) throw new Error("Missing --questions catalog for /lemma-human.");
+        const fsMod = await import("node:fs/promises");
+        const pathMod = await import("node:path");
+        const loadJson = async (v: string) => {
+          const s = String(v || "").trim();
+          if (s.startsWith("{") || s.startsWith("[")) return JSON.parse(s);
+          const pth = pathMod.isAbsolute(s) ? s : pathMod.resolve(cwd || process.cwd(), s);
+          return JSON.parse(await fsMod.readFile(pth, "utf8"));
+        };
+        const questions = await loadJson(qArg);
+        const answers = aArg ? await loadJson(aArg) : {};
+        const { StateStore, runHumanContext } = await import("@lemma/core");
+        const store = new StateStore(cwd || process.cwd());
+        const result = await runHumanContext({ runId, questions, answers, root: cwd || process.cwd(), ...(await store.exists() ? { stateStore: store } : {}) } as any);
+        state.runSummaries.push(`Human context ${result.decision}: ${result.run_id}`);
+        await sendFinal(`Human decision context ${result.decision} for run ${result.run_id} (unanswered material: ${result.unanswered_material_question_ids.join(", ") || "none"}).${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const lemmaBrowser = (d as any).lemma_browser === true;
     if (lemmaBrowser) {
       const target = (d as any).browser_target || "";

@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/human/decision-context.v1.schema.json",
+  "title": "Lemma Human Decision Context v1",
+  "type": "object",
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "lemma.human.decision_context/v1"
+    },
+    "catalog_version": { "type": "string" },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "prompt", "materiality"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^HUM-[A-Z0-9_-]+$" },
+          "prompt": { "type": "string" },
+          "materiality": {
+            "type": "object",
+            "required": ["affects", "reason"],
+            "properties": {
+              "affects": {
+                "type": "array",
+                "items": { "type": "string", "enum": ["confidence", "risk", "release_readiness", "decision"] },
+                "minItems": 1
+              },
+              "reason": { "type": "string" },
+              "material": { "type": "boolean" }
+            },
+            "additionalProperties": true
+          },
+          "allows_freeform": { "type": "boolean" },
+          "required_for_decision": { "type": "boolean" },
+          "answer_type": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "required": ["schema_version", "questions"],
+  "additionalProperties": true
+}

@@ -179,6 +179,23 @@ export type ProSpecialistId = "confidence" | "security" | "performance" | "priva
 
 
 
+
+export function parseHumanSlash(raw: string): { runId?: string; questions?: string; answers?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-human") return null;
+  const argText = rest.join(" ").trim();
+  const runM = argText.match(/(?:^|\s)--run(?:-id)?\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const qM = argText.match(/(?:^|\s)--questions\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const aM = argText.match(/(?:^|\s)--answers\s+(?:"([^"]+)"|'([^']+)'|(\S+))/i);
+  const runId = runM ? (runM[1] || runM[2] || runM[3] || "").trim() || undefined : undefined;
+  const questions = qM ? (qM[1] || qM[2] || qM[3] || "").trim() || undefined : undefined;
+  const answers = aM ? (aM[1] || aM[2] || aM[3] || "").trim() || undefined : undefined;
+  return { ...(runId ? { runId } : {}), ...(questions ? { questions } : {}), ...(answers ? { answers } : {}) };
+}
+
 export function parseBrowserSlash(raw: string): { url?: string; checks?: string[] } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -349,11 +366,13 @@ export function routeSlashCommand(
   const more = parseMoreSlash(raw);
   const auto = parseAutoSlash(raw);
   const browser = parseBrowserSlash(raw);
+  const human = parseHumanSlash(raw);
   const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const isModelEval = spec.intent === "pro.model_eval" || modelEval !== null || spec.command === "/lemma-eval";
   const isMore = more !== null || spec.command === "/lemma-more";
   const isAuto = auto !== null || spec.command === "/lemma-auto";
   const isBrowser = browser !== null || spec.command === "/lemma-browser";
+  const isHuman = human !== null || spec.command === "/lemma-human";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -402,6 +421,14 @@ export function routeSlashCommand(
           lemma_browser: true,
           ...(browser?.url ? { browser_target: browser.url } : {}),
           ...(browser?.checks ? { browser_checks: browser.checks } : {}),
+        }
+      : {}),
+    ...(isHuman
+      ? {
+          lemma_human: true,
+          ...(human?.runId ? { human_run_id: human.runId } : {}),
+          ...(human?.questions ? { human_questions: human.questions } : {}),
+          ...(human?.answers ? { human_answers: human.answers } : {}),
         }
       : {}),
   };

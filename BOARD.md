@@ -456,7 +456,7 @@ workflow and produces durable `.lemma/` artifacts.
 | LEM-165 | Build the "continue deferred checks" workflow (`/lemma-more`) | P2 | 3 | LEM-015, LEM-089 | Done |
 | LEM-166 | Build the bounded auto test-fix-retest loop (`/lemma-auto`) | P2 | 8 | LEM-015, LEM-083 | Done |
 | LEM-167 | Build the dedicated browser inspection command (`/lemma-browser`) | P2 | 5 | LEM-051, LEM-089 | Done |
-| LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
+| LEM-168 | Build the human decision-context workflow (`/lemma-human`) | P2 | 5 | LEM-020, LEM-089 | Done |
 | LEM-169 | Build the private feedback loop with self-hosted review service | P2 | 8 | LEM-020, LEM-083 | Backlog |
 | LEM-170 | Build the test generation workflow (`/lemma-generate`) | P2 | 8 | LEM-014, LEM-058 | Backlog |
 | LEM-171 | Build the durable test-intent management workflow (`/lemma-tests`) | P2 | 8 | LEM-014, LEM-020 | Backlog |
@@ -2140,8 +2140,9 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-020, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented human decision-context catalog/state, hold escalation, CLI/slash wiring, and tests.
+- **Completed:** 2026-11-16
 - **Description:** Add a `/lemma-human` (and `lemma human`) workflow that asks,
   retains, and records only the human context that materially changes
   confidence, risk, or release readiness. Questions are pre-defined, versioned,
@@ -2164,10 +2165,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     a question explicitly requests it, and even then redaction runs first.
   - Tests cover question catalog integrity, materiality gating, unanswered →
     `hold`, atomic write, corrupt-read error, redaction, and resumability.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- human-context`
-- **Evidence (planned):** `packages/core/src/human-context.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- human-context` (6/6 passed); `pnpm --filter @lemma/core build`; `pnpm --filter @lemma/cli build`.
+- **Evidence:** `packages/core/src/human-context.ts`,
   `schemas/human/decision-context.v1.schema.json`,
-  `packages/core/test/human-context/*`,
+  `packages/core/test/human-context/human-context.test.ts`,
+  `packages/core/src/index.ts`,
+  `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`,
+  `packages/agent/src/manager-session.ts`,
+  `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
   `docs/parity/evidence/LEM-168-human-context-test-output.txt`
 
 ### LEM-169 — Build the private feedback loop with self-hosted review service

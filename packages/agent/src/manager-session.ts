@@ -390,6 +390,60 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const lemmaHuman = (d as any).lemma_human === true;
+      if (lemmaHuman) {
+        this.state.status = "running";
+        const runId = (d as any).human_run_id || (this.state.run_ids.length ? this.state.run_ids[this.state.run_ids.length - 1] : "");
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Recording human decision context (/lemma-human).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent, ...(runId ? { run_id: runId } : {}) },
+        } as any);
+        try {
+          if (!runId) throw new Error("Missing run id for /lemma-human.");
+          const qArg = (d as any).human_questions;
+          const aArg = (d as any).human_answers;
+          if (!qArg) throw new Error("Missing --questions catalog for /lemma-human.");
+          const fsMod = await import("node:fs/promises");
+          const pathMod = await import("node:path");
+          const loadJson = async (v: string) => {
+            const s = String(v || "").trim();
+            if (s.startsWith("{") || s.startsWith("[")) return JSON.parse(s);
+            const pth = pathMod.isAbsolute(s) ? s : pathMod.resolve(this.options.cwd, s);
+            return JSON.parse(await fsMod.readFile(pth, "utf8"));
+          };
+          const questions = await loadJson(qArg);
+          const answers = aArg ? await loadJson(aArg) : {};
+          const { StateStore, runHumanContext } = await import("@lemma/core");
+          const store = new StateStore(this.options.cwd);
+          const result = await runHumanContext({ runId, questions, answers, root: this.options.cwd, ...(await store.exists() ? { stateStore: store } : {}) } as any);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Human decision context ${result.decision} for run ${result.run_id} (unanswered material: ${result.unanswered_material_question_ids.join(", ") || "none"}).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+            details: { human_context: result },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const lemmaBrowser = (d as any).lemma_browser === true;
       if (lemmaBrowser) {
         this.state.status = "running";

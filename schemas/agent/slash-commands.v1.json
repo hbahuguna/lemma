@@ -368,6 +368,29 @@
         "browser_unavailable",
         "invalid_target"
       ]
+    },
+    {
+      "command": "/lemma-human",
+      "target": "catalog",
+      "description": "Record human decision context; unanswered material questions hold the decision.",
+      "intent": "run",
+      "catalog_intent": "Assay human assessment",
+      "arguments": [
+        {
+          "name": "run_id",
+          "required": false,
+          "description": "Run id to associate context with."
+        },
+        {
+          "name": "questions",
+          "required": false,
+          "description": "Questions catalog path/json."
+        }
+      ],
+      "errors": [
+        "invalid_catalog",
+        "material_unanswered_hold"
+      ]
     }
   ]
 }

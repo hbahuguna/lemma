@@ -9,6 +9,7 @@ import {
   runMore,
   runAutoLoop,
   runBrowserInspection,
+  runHumanContext,
   RELEASE_CONFIDENCE,
   REPORT_SCHEMA,
   RunStatus,
@@ -1276,6 +1277,51 @@ export const browserCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+export const humanCommand: CliCommandHandler = async (argv) => {
+  const { flags, positionals } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const runId = getString(flags, "run-id", "run") ?? positionals[0] ?? "";
+  if (!runId) throw new CliUsageError("Missing run id for `lemma human`", { command: "human" });
+  const questionsArg = getString(flags, "questions", "catalog", "questions-file") ?? positionals[1];
+  if (!questionsArg) throw new CliUsageError("Missing questions catalog for `lemma human` (use --questions <path|json>)", { command: "human" });
+  let questions: any;
+  try {
+    if (questionsArg.trim().startsWith("{") || questionsArg.trim().startsWith("[")) {
+      questions = JSON.parse(questionsArg);
+    } else {
+      const pth = path.isAbsolute(questionsArg) ? questionsArg : path.resolve(process.cwd(), questionsArg);
+      questions = JSON.parse(await fs.readFile(pth, "utf8"));
+    }
+  } catch (err: any) {
+    throw new CliUsageError(`Failed to load questions catalog: ${err?.message || String(err)}`, { command: "human" });
+  }
+
+  let answers: any = {};
+  const answersArg = getString(flags, "answers", "answers-file");
+  if (answersArg) {
+    try {
+      if (answersArg.trim().startsWith("{")) answers = JSON.parse(answersArg);
+      else {
+        const pth = path.isAbsolute(answersArg) ? answersArg : path.resolve(process.cwd(), answersArg);
+        answers = JSON.parse(await fs.readFile(pth, "utf8"));
+      }
+    } catch (err: any) {
+      throw new CliUsageError(`Failed to load answers: ${err?.message || String(err)}`, { command: "human" });
+    }
+  }
+
+  const store = new StateStore(root);
+  const result = await runHumanContext({
+    runId,
+    questions,
+    answers,
+    root,
+    ...(await store.exists() ? { stateStore: store } : {}),
+  } as any);
+  return { stdoutJson: result };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1283,6 +1329,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
+    { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },
     { name: "report", description: "Print the latest saved report.", handler: reportCommand },
     { name: "abort", description: "Request a manual kill of the current run.", handler: abortCommand },
     { name: "prune", description: "Prune historical runs and evidence.", handler: pruneCommand },
