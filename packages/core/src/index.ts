@@ -50,3 +50,4 @@ export * from "./settings.js";
 export * from "./journey-map.js";
 
 export * from "./mcp/index.js";
+export * from "./analytics.js";
