@@ -6,7 +6,6 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import {
   MCP_PROTOCOL_REVISION,
-  MCP_TOOL_HANDLERS,
   getMcpToolDefinitions,
   handleMcpRequest,
   toolLemmaDemo,
