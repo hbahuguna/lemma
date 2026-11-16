@@ -73,3 +73,39 @@ jobs:
         run: ln -s "$GITHUB_WORKSPACE/_assay" ../assay
       - name: Parity tests
         run: pnpm test:parity
+
+  browser-blocked:
+    name: browser blocked-degradation (ubuntu-latest, node 22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Browser blocked-degradation leg
+        run: pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts
+
+  browser-enabled:
+    name: browser-enabled smoke (ubuntu-latest, node 22)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Install Playwright Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Browser smoke leg
+        run: pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts

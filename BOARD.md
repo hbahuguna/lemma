@@ -343,7 +343,7 @@ every supported host with visible supply-chain evidence.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-132 | Build the CI matrix (Node 20/22, macOS/Linux/Windows) | P0 | 3 | LEM-001, LEM-026 | Done |
-| LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Backlog |
+| LEM-133 | Add browser-enabled and blocked-degradation CI legs | P1 | 3 | LEM-060, LEM-132 | Done |
 | LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Backlog |
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Backlog |
 | LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Backlog |
@@ -4705,6 +4705,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-133 — Add browser-enabled and blocked-degradation CI legs
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-060, LEM-132
+- **Status:** Done
+- **Claimed:** 2026-11-16 — added browser blocked/enabled CI legs with evidence.
+- **Description:** Add CI legs for browser-enabled smoke execution and
+  blocked-degradation behavior so browser parity is exercised in CI and missing
+  browser runtime is reported as blocked coverage (never a false pass).
+- **Acceptance Criteria:**
+  - `.github/workflows/ci.yml` defines a **browser-enabled** CI job/leg that
+    checks out, sets up pnpm/node, installs with `--frozen-lockfile`, builds as
+    needed, installs Playwright Chromium with system dependencies in CI, and runs
+    the browser smoke leg test(s) (`packages/browser/test/browser-smoke-leg.test.ts`)
+    so the enabled path executes in CI (non-skipped when browser runtime is installed).
+  - `.github/workflows/ci.yml` defines a **browser blocked-degradation** CI job/leg
+    that runs browser blocked-degradation tests
+    (`packages/browser/test/browser-blocked-leg.test.ts`) to prove browser checks
+    are reported `BLOCKED` with no false pass/findings when runtime is
+    disabled/unavailable.
+  - Workflow YAML remains structurally valid and core verify/parity jobs remain
+    intact; local verification includes marker/YAML checks and
+    `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` passes
+    (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
+- **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
+- **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-132 — Build the CI matrix (Node 20/22, macOS/Linux/Windows)
 
