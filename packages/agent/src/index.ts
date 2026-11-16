@@ -891,6 +891,33 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       await maybePersist(cwd, state);
       return state;
     }
+    const proProof = (d as any).pro_proof === true;
+    if (proProof) {
+      const property = String((d as any).proof_property || "").trim();
+      const targetArg = String((d as any).proof_target || d.parsed?.named?.["target_or_args"] || d.args.join(" ") || ".").trim() || ".";
+      try {
+        if (!property) throw new Error('Missing required property for proof workflow. Use /lemma-proof --property "<property>" --target "<path|url>".');
+        const { runPropertyProof } = await import("@lemma/pro");
+        const result = await runPropertyProof({
+          property,
+          target: targetArg,
+          cwd: cwd || process.cwd(),
+          root: cwd || process.cwd(),
+          license: null,
+        } as any);
+        if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
+        state.runSummaries.push(`Pro proof: ${property}\\n${JSON.stringify({ proof_id: result.proof_id, status: result.status, run_id: result.run_id })}`);
+        state.currentReport = JSON.stringify(result, null, 2);
+        await sendFinal(`Pro proof ${result.status}.${buildExecutionSummary(state)}`);
+      } catch (err: any) {
+        const msg = err && typeof err.message === "string" ? err.message : String(err);
+        await sendFinal(`${msg}${buildExecutionSummary(state)}`);
+      }
+      state.step = Math.max(state.step, 1);
+      await maybePersist(cwd, state);
+      return state;
+    }
+
     const proSpecialist = (d as any).pro_specialist as string | undefined;
     if (proSpecialist) {
       const targetArg = String((d as any).pro_target || d.parsed?.named?.["target_or_args"] || d.args.join(" ") || ".").trim() || ".";

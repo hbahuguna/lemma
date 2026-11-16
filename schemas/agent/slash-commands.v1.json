@@ -258,6 +258,28 @@
         "invalid_target",
         "specialist_unavailable"
       ]
+    },
+    {
+      "command": "/lemma-proof",
+      "aliases": [
+        "/proof"
+      ],
+      "target": "catalog",
+      "description": "Run the Pro property proof workflow (entitlement-gated).",
+      "intent": "pro.proof",
+      "arguments": [
+        {
+          "name": "property_and_target",
+          "required": false,
+          "description": "Optional property/target text (CLI form: lemma pro proof --property ... --target ...)."
+        }
+      ],
+      "errors": [
+        "entitlement_required",
+        "invalid_property",
+        "invalid_target",
+        "proof_unavailable"
+      ]
     }
   ]
 }

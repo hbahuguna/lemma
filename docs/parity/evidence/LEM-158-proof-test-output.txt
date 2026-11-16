@@ -1,0 +1,24 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/proof/proof.test.ts (6 tests) 1380ms
+   ✓ LEM-158 property proof workflow > produces PROVED and COUNTEREXAMPLE statuses via pluggable backends and records evidence linked from report  344ms
+   ✓ LEM-158 property proof workflow > detects STALE when target/scope hash changes (documented mechanism) and marks result STALE on recompute  335ms
+   ✓ LEM-158 property proof workflow > redacts transcript secrets before persistence and supports backend-unavailable degradation note  361ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  22:22:05
+   Duration  3.50s (transform 798ms, setup 0ms, collect 1.01s, tests 1.38s, environment 0ms, prepare 358ms)
+
+---AGENT---
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/agent/test/proof-routing/proof-routing.test.ts (1 test) 10ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  22:22:11
+   Duration  3.57s (transform 1.03s, setup 0ms, collect 1.68s, tests 10ms, environment 0ms, prepare 515ms)
+

@@ -390,6 +390,56 @@ export class ManagerSession {
         await persistManagerState(this.state);
         return this.getState();
       }
+      const proProof = (d as any).pro_proof === true;
+      if (proProof) {
+        this.state.status = "running";
+        const property = String((d as any).proof_property || "").trim();
+        const target = String((d as any).proof_target || d.parsed?.named?.["target_or_args"] || d.args.join(" ") || ".").trim() || ".";
+        await emitAndRecord(this.state, this.options.sink, {
+          type: "progress",
+          text: "Running Pro property proof workflow (entitlement-gated).",
+          generated_at: deterministicNow(),
+          step: this.state.step,
+          details: { command: d.command, intent: d.intent },
+        } as any);
+        try {
+          if (!property) {
+            throw new Error("Missing required property for proof workflow. Use /lemma-proof --property \"<property>\" --target \"<path|url>\" or `lemma pro proof --property ... --target ...`.");
+          }
+          const { runPropertyProof } = await import("@lemma/pro");
+          const result = await runPropertyProof({
+            property,
+            target,
+            license: null,
+            cwd: this.options.cwd,
+            root: this.options.cwd,
+          } as any);
+          this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: `Pro proof ${result.status} (proof ${result.proof_id}, run ${result.run_id}).`,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            run_ids: [...this.state.run_ids],
+            details: { proof_id: result.proof_id, run_id: result.run_id, status: result.status, report: result.report, evidence_refs: result.evidence_refs },
+          } as any);
+        } catch (err: any) {
+          const msg = err && typeof err.message === "string" ? err.message : String(err);
+          this.state.status = "completed";
+          await emitAndRecord(this.state, this.options.sink, {
+            type: "summary",
+            text: msg,
+            generated_at: deterministicNow(),
+            step: this.state.step,
+            details: { error: { type: err?.name || "Error", code: err?.errorCode, message: msg } },
+            ...(this.state.run_ids.length ? { run_ids: [...this.state.run_ids] } : {}),
+          } as any);
+        }
+        await persistManagerState(this.state);
+        return this.getState();
+      }
+
       const proSpecialist = (d as any).pro_specialist as string | undefined;
       if (proSpecialist) {
         this.state.status = "running";

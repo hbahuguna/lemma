@@ -19,6 +19,14 @@
     "./commands/specialists": {
       "types": "./dist/commands/specialists.d.ts",
       "import": "./dist/commands/specialists.js"
+    },
+    "./proof": {
+      "types": "./dist/proof.d.ts",
+      "import": "./dist/proof.js"
+    },
+    "./proof/backends": {
+      "types": "./dist/proof/backends/index.d.ts",
+      "import": "./dist/proof/backends/index.js"
     }
   },
   "main": "./dist/index.js",
@@ -27,7 +35,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/entitlement.ts src/commands/specialists.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/entitlement.ts src/commands/specialists.ts src/proof.ts src/proof/backends/index.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --config vitest.config.ts",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""

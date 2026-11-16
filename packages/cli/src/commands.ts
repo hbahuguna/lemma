@@ -44,6 +44,7 @@ import {
 import {
   ProUnavailableError,
   getSpecialistCommand,
+  runPropertyProof,
   runSpecialistCommand,
 } from "@lemma/pro";
 
@@ -1010,27 +1011,14 @@ export const settingsCommand: CliCommandHandler = async (argv) => {
 
 export const proCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
-  const specialist = positionals[0] ?? "";
-  if (!specialist) {
-    throw new CliUsageError("Missing specialist. Usage: lemma pro <confidence|security|performance|privacy> --target <path|url>", { command: "pro" });
-  }
-  const spec = getSpecialistCommand(specialist);
-  if (!spec) {
-    throw new CliUsageError(`Unknown pro specialist: ${specialist}`, { specialist, allowed: ["confidence", "security", "performance", "privacy"] });
+  const sub = positionals[0] ?? "";
+  if (!sub) {
+    throw new CliUsageError("Missing subcommand. Usage: lemma pro <confidence|security|performance|privacy|proof> [options]", { command: "pro" });
   }
 
-  const targetRaw = getString(flags, "target", "t") ?? ".";
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
-  const personasDir = getString(flags, "personas-dir");
-  const maxChecksStr = getString(flags, "max-checks");
-  const wallClockStr = getString(flags, "wall-clock-budget-ms", "wall-clock-ms");
-  const seedStr = getString(flags, "seed");
-  const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
-  const frozenClock = getString(flags, "frozen-clock");
-  const noBrowser = getBool(flags, "no-browser");
 
   // License resolution reusing LEM-114/LEM-117 contract-shaped inputs (no parallel auth).
-  // Provide entitlement/verification material via env JSON or file for licensed contexts/tests.
   let license: any = null;
   const entitlementJson = getString(flags, "entitlement-json") ?? process.env.LEMMA_PRO_ENTITLEMENT_JSON;
   const entitlementFile = getString(flags, "entitlement-file") ?? process.env.LEMMA_PRO_ENTITLEMENT_FILE;
@@ -1055,9 +1043,54 @@ export const proCommand: CliCommandHandler = async (argv) => {
       }
     }
   } catch {
-    // malformed license material -> treat as unlicensed (typed refusal below)
     license = null;
   }
+
+  if (sub === "proof") {
+    const property = getString(flags, "property");
+    const targetRaw = getString(flags, "target", "t") ?? positionals[1];
+    if (!property) throw new CliUsageError("Missing required --property for `lemma pro proof`", { flag: "property" });
+    if (!targetRaw) throw new CliUsageError("Missing required --target for `lemma pro proof`", { flag: "target" });
+    let scope: any = undefined;
+    let assumptions: any = undefined;
+    const scopeJson = getString(flags, "scope-json");
+    const assumptionsJson = getString(flags, "assumptions-json");
+    if (scopeJson) { try { scope = JSON.parse(scopeJson); } catch { throw new CliUsageError("Invalid JSON for --scope-json", { flag: "scope-json" }); } }
+    if (assumptionsJson) { try { assumptions = JSON.parse(assumptionsJson); } catch { throw new CliUsageError("Invalid JSON for --assumptions-json", { flag: "assumptions-json" }); } }
+    const backend = getString(flags, "backend");
+    const recomputeStaleness = getBool(flags, "recompute-staleness") || getBool(flags, "check-staleness");
+    try {
+      const result = await runPropertyProof({
+        property,
+        target: String(targetRaw),
+        ...(scope !== undefined ? { scope } : {}),
+        ...(assumptions !== undefined ? { assumptions } : {}),
+        backend: backend ?? null,
+        license,
+        root,
+        cwd: root,
+        recomputeStaleness,
+      });
+      return { stdoutJson: result };
+    } catch (err) {
+      if (err instanceof ProUnavailableError) throw err;
+      throw err;
+    }
+  }
+
+  const spec = getSpecialistCommand(sub);
+  if (!spec) {
+    throw new CliUsageError(`Unknown pro subcommand/specialist: ${sub}`, { subcommand: sub, allowed: ["confidence", "security", "performance", "privacy", "proof"] });
+  }
+
+  const targetRaw = getString(flags, "target", "t") ?? ".";
+  const personasDir = getString(flags, "personas-dir");
+  const maxChecksStr = getString(flags, "max-checks");
+  const wallClockStr = getString(flags, "wall-clock-budget-ms", "wall-clock-ms");
+  const seedStr = getString(flags, "seed");
+  const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
+  const frozenClock = getString(flags, "frozen-clock");
+  const noBrowser = getBool(flags, "no-browser");
 
   try {
     const result = await runSpecialistCommand({
@@ -1074,13 +1107,9 @@ export const proCommand: CliCommandHandler = async (argv) => {
       ...(noBrowser ? { noBrowser: true } : {}),
       intent: spec.intent,
     });
-    // stdout JSON report/result (machine-first); includes findings/blockers and evidence refs via report
     return { stdoutJson: result.report && Object.keys(result.report).length ? result.report : (result as any) };
   } catch (err) {
-    if (err instanceof ProUnavailableError) {
-      // typed, documented refusal; no partial execution/fabricated pass/crash
-      throw err;
-    }
+    if (err instanceof ProUnavailableError) throw err;
     throw err;
   }
 };
@@ -1107,6 +1136,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
     { name: "settings", description: "View or update lemma settings.", handler: settingsCommand },
     { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
-    { name: "pro", description: "Run entitlement-gated Pro specialist investigations (confidence, security, performance, privacy).", handler: proCommand },
+    { name: "pro", description: "Run entitlement-gated Pro workflows (specialists: confidence|security|performance|privacy, proof).", handler: proCommand },
   ];
 }

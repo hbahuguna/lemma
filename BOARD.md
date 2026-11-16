@@ -426,7 +426,7 @@ unlicensed; never a fabricated pass, never a crash.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Done |
-| LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Backlog |
+| LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Done |
 | LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Backlog |
 | LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Backlog |
 
@@ -1690,8 +1690,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-089, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented pluggable proof workflow, evidence/staleness/blocker semantics, CLI/slash routing, and tests.
 - **Description:** Add a `/proof` (and `lemma pro proof`) workflow that
   formally verifies a specific code property against a documented target.
   Distinguish `PROVED`, `COUNTEREXAMPLE`, `UNPROVED`, and `STALE`. Scope
@@ -1722,12 +1722,18 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover the four statuses, evidence recording, staleness detection,
     blocker surfacing for `COUNTEREXAMPLE`, unlicensed refusal, and
     backend-missing degradation.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- proof && pnpm test --filter @lemma/agent -- proof-routing`
-- **Evidence (planned):** `packages/pro/src/proof.ts`,
-  `packages/pro/src/proof/backends/*`,
-  `packages/pro/test/proof/*`,
-  `packages/agent/test/proof-routing/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/proof/proof.test.ts` PASS (6/6) and
+  `pnpm exec vitest run packages/agent/test/proof-routing/proof-routing.test.ts` PASS (1/1).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/agent build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/proof.ts`, `packages/pro/src/proof/backends/index.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/proof/proof.test.ts`,
+  `packages/cli/src/commands.ts`,
+  `packages/agent/src/slash-commands.ts`, `packages/agent/src/manager-session.ts`, `packages/agent/src/index.ts`,
+  `schemas/agent/slash-commands.v1.json`,
+  `packages/agent/test/proof-routing/proof-routing.test.ts`,
   `docs/parity/evidence/LEM-158-proof-test-output.txt`
+
 
 ### LEM-159 — Build the project-level test inventory
 

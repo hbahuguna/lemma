@@ -171,6 +171,30 @@ function parseNamedArgs(spec: SlashCommandSpec, positional: string[]): Record<st
 
 export type ProSpecialistId = "confidence" | "security" | "performance" | "privacy";
 
+
+
+export function parseProofSlash(raw: string): { property?: string; target?: string } | null {
+  const s = redactSafeText(String(raw || "")).trim();
+  if (!s.startsWith("/")) return null;
+  const [cmd, ...rest] = s.split(/\s+/);
+  const c = (cmd || "").toLowerCase();
+  if (c !== "/lemma-proof" && c !== "/proof") return null;
+  const argText = rest.join(" ").trim();
+  const get = (name: string): string | undefined => {
+    const re = new RegExp(`(?:^|\\s)--${name}\\s+(?:"([^"]+)"|'([^']+)'|(\\S+))`, "i");
+    const m = argText.match(re);
+    if (!m) return undefined;
+    const v = (m[1] || m[2] || m[3] || "").trim();
+    return v || undefined;
+  };
+  const property = get("property");
+  const target = get("target") || (argText && !argText.startsWith("--") ? argText : undefined);
+  return {
+    ...(property ? { property } : {}),
+    ...(target ? { target } : {}),
+  };
+}
+
 export function parseProSpecialistSlash(raw: string): { specialist: ProSpecialistId; target: string } | null {
   const s = redactSafeText(String(raw || "")).trim();
   if (!s.startsWith("/")) return null;
@@ -256,6 +280,8 @@ export function routeSlashCommand(
 
   const positional = args;
   const proSpecialist = parseProSpecialistSlash(raw);
+  const proof = parseProofSlash(raw);
+  const isProof = spec.intent === "pro.proof" || proof !== null || spec.command === "/lemma-proof";
   const decision: any = {
     kind: "known",
     target: spec.target,
@@ -272,6 +298,13 @@ export function routeSlashCommand(
       positional,
     },
     ...(proSpecialist ? { pro_specialist: proSpecialist.specialist, pro_target: proSpecialist.target } : {}),
+    ...(isProof
+      ? {
+          pro_proof: true,
+          ...(proof?.property ? { proof_property: proof.property } : {}),
+          ...(proof?.target ? { proof_target: proof.target } : {}),
+        }
+      : {}),
   };
   let message: string | undefined;
   if ((spec.command === "/lemma-pro" || spec.intent === "dashboard.pro") && !proSpecialist) {
