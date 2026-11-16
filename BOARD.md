@@ -380,7 +380,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Done |
 | LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Done |
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Done |
-| LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Backlog |
+| LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Done |
 | LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Backlog |
 | LEM-149 | Extend dynamic accessibility testing (keyboard traversal, live contrast, screen-reader hints) | P2 | 5 | LEM-053, LEM-055 | Backlog |
 
@@ -1140,8 +1140,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-143
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented settings schema/state/audit, dashboard settings UI/API, CLI `lemma settings`, and tests.
 - **Description:** Add a protected settings page to the dashboard to view and
   adjust budget (`maxChecks`, time budget), project focus (folder/URL), and
   analytics preference. Writes go through the same state primitives and the same
@@ -1165,11 +1165,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     tests assert round-trip consistency.
   - Tests: schema validation, dashboard POST/invalid → 400 typed JSON, atomic
     write, audit event emission, CLI/dashboard parity of the state file.
-- **Verification (planned):** `pnpm --filter @lemma/core test -- settings`
-- **Evidence (planned):** `packages/core/src/settings.ts`,
-  `packages/core/src/dashboard.ts` (settings route),
-  `schemas/settings/settings.v1.schema.json`, `packages/core/test/settings/*`,
-  `docs/parity/evidence/LEM-146-settings-test-output.txt`
+- **Verification:**
+  `pnpm --filter @lemma/core exec vitest run test/settings/settings.test.ts` (pass; 3/3).
+- **Evidence:** `packages/core/src/settings.ts`,
+  `packages/core/src/index.ts`, `packages/core/src/schemas/index.ts`,
+  `packages/core/src/dashboard.ts`,
+  `packages/cli/src/commands.ts`,
+  `schemas/settings/settings.v1.schema.json`,
+  `packages/core/test/settings/settings.test.ts`,
+  `docs/parity/evidence/LEM-146-settings-test-output.txt`.
+
 
 ### LEM-147 — Build journey map visualization
 
