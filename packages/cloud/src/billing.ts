@@ -354,10 +354,11 @@ export class BillingStore {
     data.workspaces ??= {};
     let state = data.workspaces[workspaceId];
     if (!isRecord(state)) {
-      state = { workspace_id: workspaceId, customer_id: null, subscription_id: null, plan_id: null, invoices: {}, attempts: 0, last_status: "not_started", last_error: "", updated_at: "" };
+      state = { workspace_id: workspaceId, customer_id: null, subscription_id: null, subscription_status: null, plan_id: null, invoices: {}, cancellations: {}, attempts: 0, last_status: "not_started", last_error: "", updated_at: "" };
       data.workspaces[workspaceId] = state;
     }
     if (!isRecord(state.invoices)) state.invoices = {};
+    if (!isRecord(state.cancellations)) state.cancellations = {};
     return state;
   }
 
@@ -527,6 +528,81 @@ export class BillingStore {
   sync_invoice(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
   reconcilePeriod(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
   reconcile_period(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
+
+  cancelSubscription(workspaceId: string, opts: { reason?: string; secret_ref?: string; secretRef?: string } = {}): any {
+    const key = safeText(workspaceId);
+    if (!this.billingEnabled(key)) return this.disabledResult(key, "cancel_subscription");
+    const data = this.load();
+    const state = this.workspaceState(data, key);
+    const subscriptionId = safeText(state.subscription_id);
+    if (!subscriptionId) {
+      state.last_status = "degraded";
+      state.last_error = "No subscription is available to cancel.";
+      state.updated_at = now();
+      this.save(data);
+      return this.degradedResult(key, "cancel_subscription", new BillingError("No subscription is available to cancel."), this.idempotencyKey("cancel", key, subscriptionId || "none", ""));
+    }
+    const idempotencyKey = this.idempotencyKey("cancel", key, subscriptionId, "");
+    if (state.subscription_status === "cancelled" || isRecord(state.cancellations[idempotencyKey])) {
+      const prior = state.cancellations[idempotencyKey] ?? { status: "cancelled", subscription_id: subscriptionId };
+      state.last_status = "cancelled";
+      state.last_error = "";
+      state.updated_at = now();
+      this.save(data);
+      return { schema_version: BILLING_SCHEMA_VERSION, status: "already_cancelled", workspace_id: key, subscription_id: subscriptionId, billing: prior, idempotency_key: idempotencyKey, billing_enabled: true };
+    }
+    try {
+      const secret = this.secret(opts.secret_ref ?? opts.secretRef);
+      const providerResult = this.retry(() => (this.provider as any).cancelSubscription
+        ? (this.provider as any).cancelSubscription({ workspace_id: key, subscription_id: subscriptionId, idempotency_key: idempotencyKey, secret, reason: opts.reason })
+        : (this.provider as any).cancel_subscription({ workspace_id: key, subscription_id: subscriptionId, idempotency_key: idempotencyKey, secret, reason: opts.reason }));
+      state.subscription_status = "cancelled";
+      state.cancellations[idempotencyKey] = providerResult;
+      state.last_status = "cancelled";
+      state.last_error = "";
+      state.updated_at = now();
+      this.save(data);
+      return { schema_version: BILLING_SCHEMA_VERSION, status: "cancelled", workspace_id: key, subscription_id: subscriptionId, billing: providerResult, idempotency_key: idempotencyKey, billing_enabled: true };
+    } catch (err) {
+      const d = this.load();
+      const s = this.workspaceState(d, key);
+      s.last_status = "degraded";
+      s.last_error = safeText(err instanceof Error ? err.message : String(err), 500);
+      s.updated_at = now();
+      this.save(d);
+      return this.degradedResult(key, "cancel_subscription", err, idempotencyKey);
+    }
+  }
+  cancel_subscription(workspaceId: string, opts: any = {}) { return this.cancelSubscription(workspaceId, opts); }
+
+  recordPaymentFailure(workspaceId: string, opts: { reason?: string; amount?: number; invoice_id?: string; invoiceId?: string } = {}): any {
+    const key = safeText(workspaceId);
+    if (!this.billingEnabled(key)) return this.disabledResult(key, "record_payment_failure");
+    const data = this.load();
+    const state = this.workspaceState(data, key);
+    const reason = safeText(opts.reason ?? "payment failed", 500);
+    state.last_status = "payment_failed";
+    state.last_error = reason;
+    state.updated_at = now();
+    state.last_payment_failure = {
+      reason,
+      amount: opts.amount ?? null,
+      invoice_id: opts.invoice_id ?? opts.invoiceId ?? null,
+      recorded_at: now(),
+    };
+    this.save(data);
+    return {
+      schema_version: BILLING_SCHEMA_VERSION,
+      status: "payment_failed",
+      workspace_id: key,
+      billing_enabled: true,
+      reason,
+      amount: opts.amount ?? null,
+      invoice_id: opts.invoice_id ?? opts.invoiceId ?? null,
+      message: "Payment failure recorded; quota state preserved.",
+    };
+  }
+  record_payment_failure(workspaceId: string, opts: any = {}) { return this.recordPaymentFailure(workspaceId, opts); }
 
   deleteWorkspace(workspaceId: string): boolean {
     const key = safeText(workspaceId);

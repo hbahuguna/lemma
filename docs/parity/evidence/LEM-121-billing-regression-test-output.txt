@@ -1,0 +1,12 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/billing-regression.test.ts (5 tests) 1338ms
+   ✓ LEM-121 billing and entitlement regression coverage > issues and verifies signed entitlements for every plan and rejects tampering  371ms
+   ✓ LEM-121 billing and entitlement regression coverage > rejects entitlement scope/expiry mismatches and supports module-level verification  312ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  14:27:15
+   Duration  3.63s (transform 815ms, setup 0ms, collect 1.21s, tests 1.34s, environment 0ms, prepare 407ms)
+

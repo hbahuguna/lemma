@@ -315,7 +315,7 @@ retention contracts.
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Done |
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Done |
 | LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Done |
-| LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Backlog |
+| LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Done |
 | LEM-122 | Enforce cloud package boundaries and optional extras | P1 | 3 | LEM-113–LEM-120 | Backlog |
 
 ### E11: Hardening, Privacy, and Reliability
@@ -4705,6 +4705,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-121 — Port billing and entitlement regression coverage
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-118
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/billing-regression.test.ts`.
+- **Description:** Port billing and entitlement regression coverage from assay to
+  lemma cloud APIs (adapted to TypeScript), closing gaps needed for regressions:
+  table-driven entitlement signing/verification across plans, plan
+  upgrade/downgrade and usage-exceeded downgrade rejection, entitlement scope/
+  expiry verification, subscription cancellation/idempotency, payment-failure
+  degradation without provider invoice side effects, feature-flag-off no-provider-
+  call guarantees, and unexpected-provider-call degradation handling.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` billing APIs support regression scenarios: `BillingStore`
+    provides `cancelSubscription`/`cancel_subscription` (disabled when gated,
+    provider-backed when enabled with idempotent repeat returning
+    `already_cancelled`, status reflects cancellation) and
+    `recordPaymentFailure`/`record_payment_failure` (records degraded/payment-
+    failed state and error without creating provider invoice records).
+  - Entitlement/signup regression semantics are satisfied: signed entitlements
+    include required plan/workspace/period/limits metadata and reject tampering,
+    `selectPlan` allows valid upgrade/downgrade and rejects downgrade below
+    current usage, verification enforces signature/workspace/period/expiry scope,
+    and module-level `verifyEntitlement`/`verify_entitlement` works with signing
+    key material.
+  - `packages/cloud/test/billing-regression.test.ts` ports/adapts assay
+    `test_billing_regression.py` coverage for plan-table entitlements, upgrade/
+    downgrade and usage-exceeded downgrade rejection, subscription cancellation
+    idempotency, payment-failure degradation/state preservation, feature-flag-off
+    no-provider-calls, unexpected-provider-call degradation, entitlement
+    scope/expiry rejection, and module-level entitlement verification.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/billing-regression.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/billing-regression.test.ts` (pass, 5/5 tests) on 2026-11-16.
+- **Evidence to record:** `packages/cloud/src/billing.ts`, `packages/cloud/test/billing-regression.test.ts`, `docs/parity/evidence/LEM-121-billing-regression-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`. CI billing-coverage workflow port remains pending if required.
+
 
 ### LEM-120 — Port tenant retention, export, and deletion
 
