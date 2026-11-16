@@ -220,7 +220,7 @@ with rationale.
 | `test_resume.py`, `test_resume_registry.py`, `test_seeded_resume.py` | LEM-021, LEM-022 (core crash-safe resume/rerun-preservation and registry-fingerprint/target guards covered by `packages/core/test/resume/resume.test.ts`; seeded determinism/id-sequence persistence, restore-precedence, and crash-resume continuity/stability covered by `packages/core/test/seeded-resume/seeded-resume.test.ts`, output `docs/parity/evidence/LEM-022-seeded-resume-test-output.txt`; CLI behavior and plugin-registry removal cases continue in follow-on tasks) | LEM-021, LEM-022 |
 | `test_determinism.py` | LEM-006 |
 | `test_history.py` | LEM-023 (core history recording/enrichment/sorting/upsert and retention/prune protections/dry-run/safe evidence removal covered by `packages/core/test/history/history.test.ts` and `packages/core/test/state/state-store.test.ts`; CLI `status --all`/`prune` command behavior continues in LEM-084) | LEM-023 |
-| `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 |
+| `test_evidence_state.py`, `test_evidence_signing.py` | LEM-016, LEM-017, LEM-124 (`packages/core/test/evidence/evidence-tamper-regression.test.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `packages/core/test/evidence/verify-evidence.test.ts`, `docs/parity/evidence/LEM-124-evidence-tamper-test-output.txt`) |
 | `test_scoring.py` | LEM-018 |
 | `test_policy.py` | LEM-019, LEM-074 (core policy contract/gate behavior covered by `packages/core/test/policy/policy.test.ts`; policy/calibration regression coverage in `packages/core/test/policy-calibration-regression/policy-calibration-regression.test.ts`, output `docs/parity/evidence/LEM-074-policy-calibration-regression-test-output.txt`; CLI/report integration continues in later tasks) |
 | `test_report_schema.py` | LEM-020, LEM-073 (core report builder/schema validation behavior covered by `packages/core/test/report/report.test.ts`; published-schema/index + compatibility/contract behavior covered by `packages/core/test/report/report-contract.test.ts`, output `docs/parity/evidence/LEM-073-report-contract-test-output.txt`; CLI-produced report schema/contract parity continues in later CLI tasks) |
@@ -269,7 +269,7 @@ unless an ADR says otherwise. The highest-risk ones:
 | D2 | Missing browser blocks checks, never fails the run (LEM-050: unavailable/disabled Playwright runtime degrades planned browser checks to blocked outcomes with actionable blockers and no findings via `@lemma/browser` runtime; evidence `docs/parity/evidence/LEM-050-browser-runtime-test-output.txt`) | LEM-050 |
 | D3 | Score is `weighted-coverage-v1`, not a model probability | LEM-018 |
 | D4 | CLI/JSON-first, no UI in OSS core | LEM-083 |
-| D8 | Redaction before persistence | LEM-008, LEM-123 |
+| D8 | Redaction before persistence | LEM-008, LEM-123 (`docs/parity/evidence/LEM-123-redaction-artifact-scan.json`) |
 | D12 | Evidence checkpoint before progress write | LEM-016 |
 | D13 | Signed plugins; load failure is a blocked check | LEM-075, LEM-076 |
 | D16 | Persona frontmatter is the only ownership source (LEM-044 ports `checkOwnership`/`validateOwnership` and extends the functional frontmatter with lemma-only `static.category.*` scope markers; evidence `docs/parity/evidence/LEM-044-ownership-test-output.txt`) | LEM-044 |
@@ -281,8 +281,8 @@ unless an ADR says otherwise. The highest-risk ones:
 | D24 | Append-only hash-chained ledger | LEM-116 — `packages/cloud/src/ledger.ts`, `packages/cloud/test/ledger.test.ts`, `docs/parity/evidence/LEM-116-ledger-test-output.txt` |
 | D27 | Tenant queue and isolated roots | LEM-119 |
 | D31 | One marker-based PR comment, fork-safe | LEM-136 |
-| D33 | Redaction corpus scans every artifact | LEM-123 |
-| D34 | Signed evidence manifest; tamper forces hold | LEM-017, LEM-124 |
+| D33 | Redaction corpus scans every artifact | LEM-123 (`docs/parity/evidence/LEM-123-redaction-artifact-scan.json`, `docs/parity/evidence/LEM-123-redaction-test-output.txt`) |
+| D34 | Signed evidence manifest; tamper forces hold | LEM-017, LEM-124 (`docs/parity/evidence/LEM-124-evidence-tamper-test-output.txt`) |
 | D35 | SSRF fail-closed with explicit allowlists | LEM-059, LEM-125 |
 | D41 | `/assay-browser` requires a real URL | LEM-063, LEM-089 (catalog maps `assay-browser` to URL-required builder-backed live invocation; no static fallback) |
 | D42 | Bounded same-origin crawl, per-route evidence (LEM-054: bounded same-origin route discovery and multi-route/merged per-route check evaluation metadata in `packages/browser/src/checks.ts`, `packages/browser/src/runtime.ts`; tests `packages/browser/test/browser-crawl.test.ts`, output `docs/parity/evidence/LEM-054-browser-crawl-test-output.txt`) | LEM-054 |

@@ -326,7 +326,7 @@ artifacts cannot produce a false release signal.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-123 | Port the redaction regression corpus and artifact scan | P0 | 3 | LEM-008 | Done |
-| LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Backlog |
+| LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Done |
 | LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Backlog |
 | LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Backlog |
 | LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Backlog |
@@ -4705,6 +4705,36 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-124 — Port the evidence-tamper regression suite
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-017
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/evidence/evidence-tamper-regression.test.ts packages/core/test/evidence/evidence-signing.test.ts packages/core/test/evidence/verify-evidence.test.ts`.
+- **Description:** Port the assay evidence-tamper regression coverage: prove
+  signed manifests and offline verification detect artifact tamper, missing
+  artifacts, and manifest/signature tamper with affected path/check_id/reason
+  reporting, and that tamper forces hold semantics (confidence cap 0.0, decision
+  `hold`) in verification outputs.
+- **Acceptance Criteria:**
+  - `packages/core/test/evidence/evidence-tamper-regression.test.ts` (ported
+    regression suite) covers: artifacts are hashed and verifiable; existing
+    manifest reload works; content tamper in an artifact is detected with
+    affected `path`, `check_id`, and `reason=hash_mismatch`; missing artifacts
+    are detected with affected `reason=missing`; manifest/signature tamper is
+    detected as `signature_invalid`; checkpoint and finalized manifests are
+    signed and verify offline; verification results include tamper alert and
+    `verifyEvidence` enforces hold-on-tamper (`confidence_cap: 0.0`,
+    `decision: "hold"`) while clean runs do not hold/cap.
+  - Existing evidence signing/verify tests remain compatible and passing.
+  - `pnpm --filter @lemma/core test -- packages/core/test/evidence/evidence-tamper-regression.test.ts packages/core/test/evidence/evidence-signing.test.ts packages/core/test/evidence/verify-evidence.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/evidence/evidence-tamper-regression.test.ts test/evidence/evidence-signing.test.ts test/evidence/verify-evidence.test.ts` (pass, 12/12 tests, 3 files) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/evidence/evidence-tamper-regression.test.ts`, `packages/core/test/evidence/evidence-signing.test.ts`, `packages/core/test/evidence/verify-evidence.test.ts`, `packages/core/src/evidence.ts` (existing signed-manifest/verify implementation exercised), `docs/parity/evidence/LEM-124-evidence-tamper-test-output.txt`, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-123 — Port the redaction regression corpus and artifact scan
 
