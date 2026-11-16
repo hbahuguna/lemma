@@ -277,3 +277,38 @@ export async function registerCursorCommands(
 ): Promise<void> {
   await host.registerCommands(commands);
 }
+
+// --- Native MCP server compatibility (LEM-151) ---
+// Cursor adapter migrates MCP tool execution to lemma's native MCP server handlers
+// exposed by @lemma/core/mcp. This preserves the shared AgentHost contract while
+// allowing Cursor-hosted flows to invoke lemma tools through the canonical server.
+import { handleMcpRequest, MCP_PROTOCOL_REVISION, getMcpToolDefinitions } from "@lemma/core";
+
+export interface LemmaMcpCallResult {
+  ok: boolean;
+  result?: unknown;
+  error?: unknown;
+  raw?: unknown;
+}
+
+export function getLemmaMcpProtocolRevision(): string {
+  return MCP_PROTOCOL_REVISION;
+}
+
+export function listLemmaMcpTools() {
+  return getMcpToolDefinitions();
+}
+
+export async function callLemmaMcpTool(name: string, args: Record<string, unknown> = {}): Promise<LemmaMcpCallResult> {
+  const req = { jsonrpc: "2.0" as const, id: `cursor-mcp-${Date.now()}`, method: "tools/call", params: { name, arguments: args } };
+  const res = await handleMcpRequest(req);
+  const r = res as any;
+  if (r?.error) return { ok: false, error: r.error, raw: r };
+  const result = r?.result;
+  if (result?.isError) return { ok: false, error: result.structuredContent ?? result, result, raw: r };
+  return { ok: true, result: result?.structuredContent ?? result, raw: r };
+}
+
+export async function initializeLemmaMcpSession(): Promise<unknown> {
+  return handleMcpRequest({ jsonrpc: "2.0", id: "cursor-init", method: "initialize", params: {} });
+}

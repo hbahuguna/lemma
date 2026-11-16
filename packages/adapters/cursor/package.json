@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "@lemma/adapters-sdk": "workspace:*",
-    "@lemma/agent": "workspace:*"
+    "@lemma/agent": "workspace:*",
+    "@lemma/core": "workspace:*"
   },
   "engines": {
     "node": ">=20"

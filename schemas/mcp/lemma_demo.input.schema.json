@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_demo.input.schema.json",
+  "title": "lemma_demo input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "target_dir": { "type": "string" },
+    "force": { "type": "boolean" },
+    "yes": { "type": "boolean" },
+    "seed": { "type": "integer" }
+  }
+}

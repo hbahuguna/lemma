@@ -48,3 +48,5 @@ export * from "./dashboard.js";
 export * from "./release-brief.js";
 export * from "./settings.js";
 export * from "./journey-map.js";
+
+export * from "./mcp/index.js";

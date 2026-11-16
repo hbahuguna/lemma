@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_report.output.schema.json",
+  "title": "lemma_report output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "report"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "report": { "type": "object" }
+  }
+}

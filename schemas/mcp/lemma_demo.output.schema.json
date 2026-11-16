@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_demo.output.schema.json",
+  "title": "lemma_demo output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "targetDir", "files"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "targetDir": { "type": "string" },
+    "files": { "type": "array", "items": { "type": "string" } }
+  }
+}

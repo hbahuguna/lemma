@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_settings.output.schema.json",
+  "title": "lemma_settings output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "settings"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "settings": { "type": "object" }
+  }
+}

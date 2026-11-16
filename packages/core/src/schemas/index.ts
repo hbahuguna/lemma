@@ -36,6 +36,72 @@ export function buildJsonSchemas(): Record<string, unknown> {
   const defs = (name: string, schema: Parameters<typeof zodToJsonSchema>[0]) =>
     zodToJsonSchema(schema, name);
   return {
+    "schemas/mcp/tools.v1.json": {
+      "schema_version": "lemma.mcp.tools/v1",
+      "protocol_revision": "2025-06-18",
+      "tools": [
+            {
+                  "name": "lemma_start",
+                  "description": "Start or resume a deterministic lemma run and return its report.",
+                  "inputSchema": {
+                        "$ref": "./lemma_start.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_start.output.schema.json"
+                  }
+            },
+            {
+                  "name": "lemma_update",
+                  "description": "Get run status/progress or request abort for the current/latest run.",
+                  "inputSchema": {
+                        "$ref": "./lemma_update.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_update.output.schema.json"
+                  }
+            },
+            {
+                  "name": "lemma_report",
+                  "description": "Load the latest or specified lemma report for a project root.",
+                  "inputSchema": {
+                        "$ref": "./lemma_report.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_report.output.schema.json"
+                  }
+            },
+            {
+                  "name": "lemma_settings",
+                  "description": "Get or set lemma settings for a project root.",
+                  "inputSchema": {
+                        "$ref": "./lemma_settings.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_settings.output.schema.json"
+                  }
+            },
+            {
+                  "name": "lemma_demo",
+                  "description": "Generate a disposable, test-only demo project.",
+                  "inputSchema": {
+                        "$ref": "./lemma_demo.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_demo.output.schema.json"
+                  }
+            },
+            {
+                  "name": "lemma_knowledge",
+                  "description": "Return deterministic, redacted lemma knowledge/capability information.",
+                  "inputSchema": {
+                        "$ref": "./lemma_knowledge.input.schema.json"
+                  },
+                  "outputSchema": {
+                        "$ref": "./lemma_knowledge.output.schema.json"
+                  }
+            }
+      ]
+},
     "schemas/journey_map/journey_map.v1.schema.json": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
       "$id": "https://lemma.dev/schemas/journey_map/journey_map.v1.schema.json",

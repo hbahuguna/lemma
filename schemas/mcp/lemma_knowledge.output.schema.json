@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_knowledge.output.schema.json",
+  "title": "lemma_knowledge output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "knowledge"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "knowledge": { "type": "object" }
+  }
+}

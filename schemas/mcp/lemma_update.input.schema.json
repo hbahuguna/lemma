@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_update.input.schema.json",
+  "title": "lemma_update input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "root": { "type": "string" },
+    "action": { "type": "string", "enum": ["status", "abort"] },
+    "run_id": { "type": "string" }
+  }
+}

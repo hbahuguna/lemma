@@ -1,0 +1,24 @@
+== core mcp ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/mcp/mcp.test.ts (4 tests) 727ms
+   ✓ LEM-151 MCP server > lemma_start is deterministic with seed+clock and produces matching core artifacts  613ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  21:34:54
+   Duration  2.67s (transform 470ms, setup 0ms, collect 610ms, tests 727ms, environment 0ms, prepare 247ms)
+
+
+== cursor mcp-smoke ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/adapters/cursor/test/mcp-smoke/mcp-smoke.test.ts (1 test) 15ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  21:34:59
+   Duration  2.46s (transform 821ms, setup 0ms, collect 1.15s, tests 15ms, environment 0ms, prepare 271ms)
+

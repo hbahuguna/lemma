@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_report.input.schema.json",
+  "title": "lemma_report input",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "root": { "type": "string" },
+    "run_id": { "type": "string" },
+    "latest": { "type": "boolean" }
+  }
+}

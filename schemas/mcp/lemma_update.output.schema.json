@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_update.output.schema.json",
+  "title": "lemma_update output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "action"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "action": { "type": "string" },
+    "status": { "type": ["object", "null"] },
+    "aborted": { "type": "boolean" }
+  }
+}

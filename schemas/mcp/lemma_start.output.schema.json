@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/mcp/lemma_start.output.schema.json",
+  "title": "lemma_start output",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["ok", "run_id", "status", "report"],
+  "properties": {
+    "ok": { "type": "boolean" },
+    "run_id": { "type": "string" },
+    "status": { "type": "string" },
+    "report": { "type": "object" }
+  }
+}
