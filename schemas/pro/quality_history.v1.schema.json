@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/quality_history.v1.json",
+  "title": "Lemma Pro Quality History v1",
+  "description": "Project-level cross-run quality history and trend analysis (LEM-160).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "project_root",
+    "generated_at",
+    "window",
+    "history_cap",
+    "runs",
+    "score_trend",
+    "decision_trend",
+    "coverage_trend",
+    "findings_by_severity_trend",
+    "blocker_trend",
+    "check_status_changes"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.quality_history/v1" },
+    "project_root": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "window": { "type": "integer", "minimum": 1 },
+    "history_cap": { "type": "integer", "minimum": 1 },
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["run_id", "score", "decision", "coverage", "findings_by_severity", "blocker_count"],
+        "properties": {
+          "run_id": { "type": "string" },
+          "observed_at": { "type": ["string", "null"] },
+          "score": { "type": ["number", "null"] },
+          "decision": { "type": ["string", "null"] },
+          "coverage": { "type": ["number", "null"] },
+          "findings_by_severity": {
+            "type": "object",
+            "additionalProperties": { "type": "integer", "minimum": 0 }
+          },
+          "blocker_count": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "score_trend": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "decision_trend": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "coverage_trend": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "findings_by_severity_trend": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "blocker_trend": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "check_status_changes": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["new", "resolved", "persistent", "baseline", "previous_run_id", "current_run_id"],
+      "properties": {
+        "new": { "type": "array", "items": { "type": "string" } },
+        "resolved": { "type": "array", "items": { "type": "string" } },
+        "persistent": { "type": "array", "items": { "type": "string" } },
+        "baseline": { "type": "boolean" },
+        "previous_run_id": { "type": ["string", "null"] },
+        "current_run_id": { "type": ["string", "null"] }
+      }
+    }
+  }
+}

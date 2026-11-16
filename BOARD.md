@@ -428,7 +428,7 @@ unlicensed; never a fabricated pass, never a crash.
 | LEM-157 | Build the advanced specialist command surface (confidence, security, performance, privacy) | P2 | 8 | LEM-089, LEM-141, LEM-156 | Done |
 | LEM-158 | Build the property proof workflow (`/proof`) | P2 | 8 | LEM-058, LEM-089, LEM-156 | Done |
 | LEM-159 | Build the project-level test inventory | P2 | 5 | LEM-014, LEM-016, LEM-156 | Done |
-| LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Backlog |
+| LEM-160 | Build cross-run quality history and trend analysis | P2 | 5 | LEM-011, LEM-020, LEM-159 | Done |
 
 ### E19: Pro Tier — Integration and Model Evaluation Surface
 
@@ -1783,8 +1783,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-011, LEM-020, LEM-159
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented quality history build/persistence, schema, CLI show, and tests.
 - **Description:** Build a project-level cross-run quality history and
   trend analysis on top of the Pro inventory (LEM-159). Enables regression
   detection and quality trend views over time. This is distinct from the
@@ -1812,12 +1812,17 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover history build, schema validation, window boundaries, trend
     classification consistency with LEM-068, bounded growth, CLI JSON
     output, and unlicensed refusal.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- quality-history && pnpm test --filter @lemma/cli -- pro-history`
-- **Evidence (planned):** `packages/pro/src/quality-history.ts`,
-  `schemas/pro/quality_history.v1.schema.json`,
-  `packages/pro/test/quality-history/*`,
-  `packages/cli/test/pro-history/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/quality-history/quality-history.test.ts` PASS (4/4) and
+  `pnpm exec vitest run packages/cli/test/pro-history/pro-history.test.ts` PASS (2/2).
+  Builds: `pnpm --filter @lemma/pro build`, `pnpm --filter @lemma/cli build` PASS.
+- **Evidence:** `packages/pro/src/quality-history.ts`,
+  `schemas/pro/quality_history.v1.json`, `schemas/pro/quality_history.v1.schema.json`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/quality-history/quality-history.test.ts`,
+  `packages/cli/src/commands.ts`,
+  `packages/cli/test/pro-history/pro-history.test.ts`,
   `docs/parity/evidence/LEM-160-quality-history-test-output.txt`
+
 
 ### LEM-161 — Build the Jira/Xray integration flow
 

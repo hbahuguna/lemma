@@ -44,6 +44,7 @@ import {
 import {
   ProUnavailableError,
   getSpecialistCommand,
+  historyRead,
   inventoryListCheck,
   inventoryRead,
   runPropertyProof,
@@ -1015,7 +1016,7 @@ export const proCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
   const sub = positionals[0] ?? "";
   if (!sub) {
-    throw new CliUsageError("Missing subcommand. Usage: lemma pro <confidence|security|performance|privacy|proof|inventory> [options]", { command: "pro" });
+    throw new CliUsageError("Missing subcommand. Usage: lemma pro <confidence|security|performance|privacy|proof|inventory|history> [options]", { command: "pro" });
   }
 
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
@@ -1097,9 +1098,23 @@ export const proCommand: CliCommandHandler = async (argv) => {
     throw new CliUsageError(`Unknown pro inventory action: ${action}`, { action, allowed: ["show", "list"] });
   }
 
+  if (sub === "history") {
+    const action = positionals[1] ?? "show";
+    if (action === "show") {
+      const windowStr = getString(flags, "window", "n");
+      if (windowStr === undefined) {
+        throw new CliUsageError("Missing required --window for `lemma pro history show`", { flag: "window" });
+      }
+      const window = toInt(windowStr, "--window");
+      const hist = await historyRead({ projectRoot: root, license, window });
+      return { stdoutJson: hist };
+    }
+    throw new CliUsageError(`Unknown pro history action: ${action}`, { action, allowed: ["show"] });
+  }
+
   const spec = getSpecialistCommand(sub);
   if (!spec) {
-    throw new CliUsageError(`Unknown pro subcommand/specialist: ${sub}`, { subcommand: sub, allowed: ["confidence", "security", "performance", "privacy", "proof", "inventory"] });
+    throw new CliUsageError(`Unknown pro subcommand/specialist: ${sub}`, { subcommand: sub, allowed: ["confidence", "security", "performance", "privacy", "proof", "inventory", "history"] });
   }
 
   const targetRaw = getString(flags, "target", "t") ?? ".";
@@ -1155,6 +1170,6 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "hunt", description: "Run the bounded stateful bug-hunting workflow.", handler: huntCommand },
     { name: "settings", description: "View or update lemma settings.", handler: settingsCommand },
     { name: "demo", description: "Generate a disposable, test-only demo project for trying lemma.", handler: demoCommand },
-    { name: "pro", description: "Run entitlement-gated Pro workflows (specialists: confidence|security|performance|privacy, proof, inventory).", handler: proCommand },
+    { name: "pro", description: "Run entitlement-gated Pro workflows (specialists: confidence|security|performance|privacy, proof, inventory, history).", handler: proCommand },
   ];
 }
