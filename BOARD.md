@@ -328,7 +328,7 @@ artifacts cannot produce a false release signal.
 | LEM-123 | Port the redaction regression corpus and artifact scan | P0 | 3 | LEM-008 | Done |
 | LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Done |
 | LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Done |
-| LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Backlog |
+| LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Done |
 | LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Backlog |
 | LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Backlog |
 | LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Backlog |
@@ -4705,6 +4705,44 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-126 — Port state, evidence, and kill-switch failure injection
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P0
+- **Points:** 5
+- **Depends on:** LEM-011, LEM-016, LEM-017
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/failure-injection/failure-injection.test.ts`.
+- **Description:** Port assay failure-injection regressions for state, evidence,
+  and kill-switch handling: corrupt progress is detected as typed state error
+  while preserving corrupt bytes/artifacts, evidence write failures cannot yield
+  a passing/ship report, kill during evidence collection halts with hold
+  semantics, fail-closed kill behavior is preserved, and partial/tampered
+  evidence manifests are rejected by verification.
+- **Acceptance Criteria:**
+  - `packages/core/test/failure-injection/failure-injection.test.ts` covers:
+    - Corrupt `progress.json` causes a typed state error on load/read
+      (`CorruptStateError`) and preserves the corrupt file contents on disk (no
+      silent overwrite); restoring valid state allows load/recovery.
+    - A simulated evidence persistence/write failure during a run (handler
+      failure at evidence-collection boundary) does not produce a completed/ship
+      outcome; failed state yields hold/non-pass decision semantics.
+    - Kill triggered during evidence collection halts the run (`halted`), marks
+      remaining work skipped, records kill reason, and produces hold report
+      semantics (decision `hold`, halted reason present).
+    - Fail-closed kill behavior: a kill-triggered/halted run with severe
+      findings cannot produce a ship/pass result and confidence is capped/held
+      per halted scoring semantics (halted cap `<= 25`, hold decision).
+    - Partial/truncated manifest is rejected by evidence verification as
+      tampered with invalid/unreadable signature state.
+  - No implementation weakening required; invariants preserved (no auto-resume
+    of halted runs, no pass on evidence write failure/tamper/coverage gaps).
+  - `pnpm --filter @lemma/core test -- packages/core/test/failure-injection/failure-injection.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/failure-injection/failure-injection.test.ts` (pass, 5/5 tests) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/failure-injection/failure-injection.test.ts`, `docs/parity/evidence/LEM-126-failure-injection-test-output.txt`, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-125 — Port the SSRF regression suite
 

@@ -241,7 +241,7 @@ with rationale.
 | `test_calibration.py` | LEM-070 (`packages/core/test/calibration/calibration.test.ts`, `docs/parity/evidence/LEM-070-calibration-test-output.txt`) |
 | `test_ssrf.py` (ported regression coverage in `packages/core/test/ssrf/ssrf.test.ts`, evidence `docs/parity/evidence/LEM-125-ssrf-test-output.txt`) | LEM-059, LEM-125 |
 | `test_redaction_corpus.py` (ported/hardened corpus and artifact-scan regression: `packages/core/test/redaction/redaction.test.ts`, `packages/core/test/redaction/fixtures/redaction-corpus.json`, `docs/parity/evidence/LEM-123-redaction-artifact-scan.json`, `docs/parity/evidence/LEM-123-redaction-test-output.txt`) | LEM-008, LEM-123 |
-| `test_failure_injection.py` | LEM-126 |
+| `test_failure_injection.py` (ported to `packages/core/test/failure-injection/failure-injection.test.ts`, evidence `docs/parity/evidence/LEM-126-failure-injection-test-output.txt`) | LEM-126 |
 | `test_metering.py` | LEM-113 (frozen contract/local sink parity: `packages/cloud/test/metering.test.ts`, `docs/parity/evidence/LEM-113-metering-test-output.txt`), LEM-072 (run-scoped vs sink-wide summary semantics parity: `packages/core/test/metering/metering-summary.test.ts`, `docs/parity/evidence/LEM-072-metering-summary-test-output.txt`) |
 | `test_auth.py` | LEM-114 (core auth store/API/audit parity: `packages/cloud/test/auth.test.ts`, `docs/parity/evidence/LEM-114-auth-test-output.txt`; CLI auth command wiring remains follow-on) |
 | `test_quota.py` | LEM-115 (core quota enforcement parity: `packages/cloud/test/quota.test.ts`, `docs/parity/evidence/LEM-115-quota-test-output.txt`; CLI quota command wiring remains follow-on) |

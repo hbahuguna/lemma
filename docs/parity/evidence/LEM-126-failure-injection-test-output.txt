@@ -1,0 +1,13 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/failure-injection/failure-injection.test.ts (5 tests) 1706ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > failed evidence write does not produce a passing/ship report  590ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > kill during evidence collection writes halted hold report semantics  518ms
+   ✓ LEM-126 state, evidence, and kill-switch failure injection > kill switch failure is fail-closed (halted hold with capped confidence)  450ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  16:52:09
+   Duration  3.44s (transform 496ms, setup 0ms, collect 711ms, tests 1.71s, environment 0ms, prepare 205ms)
+
