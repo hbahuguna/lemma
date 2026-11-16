@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/load/load.test.ts (6 tests) 950ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  00:40:13
+   Duration  4.10s (transform 1.03s, setup 0ms, collect 1.52s, tests 950ms, environment 0ms, prepare 407ms)
+

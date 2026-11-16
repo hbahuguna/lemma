@@ -471,7 +471,7 @@ pass.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
+| LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Done |
 | LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
 | LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Backlog |
 | LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
@@ -2339,28 +2339,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed bounded load-readiness workflow (schema/core/evidence/tests) with passing acceptance tests.
 - **Description:** Add a bounded load-readiness workflow that replays recorded
   browser journeys and reviewed traffic against a target with hard limits,
   producing a Load report. Load is real, bounded, and opt-in; the workflow
   refuses when the environment has no safe target.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runLoad({ journeys, traffic, target, limits, approve })`
+  - [x] `@lemma/core` exposes `runLoad({ journeys, traffic, target, limits, approve })`
     returning a `LoadReport` validated against `schemas/load/load_report.v1.json`.
-  - Load must be explicitly approved by the operator (`approve` callback); a
+  - [x] Load must be explicitly approved by the operator (`approve` callback); a
     non-approved call raises `HarnessError` and does not send any traffic.
-  - Hard limits are enforced: max concurrent connections, max total requests,
+  - [x] Hard limits are enforced: max concurrent connections, max total requests,
     max wall-clock time; exceeding any limit halts cleanly with `halted`
     status.
-  - Safe-target validation reuses LEM-059's SSRF rules; non-safe targets are
+  - [x] Safe-target validation reuses LEM-059's SSRF rules; non-safe targets are
     rejected before any traffic.
-  - Every load run writes evidence under `.lemma/evidence/<run_id>/load/`
+  - [x] Every load run writes evidence under `.lemma/evidence/<run_id>/load/`
     (request/response transcripts, timing histograms) with redaction applied.
-  - Tests cover approval gate, hard-limit halts, unsafe-target rejection,
+  - [x] Tests cover approval gate, hard-limit halts, unsafe-target rejection,
     report schema, evidence persistence, and redaction.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- load`
-- **Evidence (planned):** `packages/core/src/load.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- load` (pass, 6/6) — `docs/parity/evidence/LEM-173-load-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/load.ts`,
   `schemas/load/load_report.v1.schema.json`,
   `packages/core/test/load/*`,
   `docs/parity/evidence/LEM-173-load-test-output.txt`
