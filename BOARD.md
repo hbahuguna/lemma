@@ -347,7 +347,7 @@ every supported host with visible supply-chain evidence.
 | LEM-134 | Publish signed npm packages with provenance | P1 | 5 | LEM-009, LEM-112 | Done |
 | LEM-135 | Build core and browser container images | P2 | 3 | LEM-134 | Done |
 | LEM-136 | Ship the GitHub Action and one marker-based PR comment | P1 | 5 | LEM-020, LEM-084 | Done |
-| LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Backlog |
+| LEM-137 | Reach README and user-doc parity with assay | P1 | 5 | LEM-097, LEM-112 | Done |
 | LEM-138 | Publish the assay→lemma migration guide and state shim | P1 | 3 | LEM-137 | Backlog |
 | LEM-139 | Run the full parity audit and sign off | P0 | 8 | LEM-112, LEM-115, LEM-121, LEM-126, LEM-131, LEM-133, LEM-134, LEM-135, LEM-136, LEM-137, LEM-138 | Backlog |
 | LEM-140 | Point assay at lemma and publish the deprecation notice | P2 | 2 | LEM-139 | Backlog |
@@ -4734,6 +4734,42 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     (smoke leg executed locally with Chromium present and also recorded; CI installs Chromium via Playwright).
 - **Verification:** `node -e "const fs=require('fs');const y=fs.readFileSync('.github/workflows/ci.yml','utf8');['browser-enabled','browser-blocked','playwright install','browser-smoke-leg','browser-blocked-leg','--frozen-lockfile'].forEach(s=>{if(!y.includes(s))throw new Error('missing '+s)});console.log('ci-browser-legs-markers-ok')"` and `python3 -c "import yaml,sys;yaml.safe_load(open('.github/workflows/ci.yml'));print('yaml-ok')"` and `pnpm vitest run packages/browser/test/browser-blocked-leg.test.ts` and `pnpm vitest run packages/browser/test/browser-smoke-leg.test.ts`.
 - **Evidence:** `.github/workflows/ci.yml`, `docs/parity/evidence/LEM-133-ci-markers.txt`, `docs/parity/evidence/LEM-133-browser-blocked-leg-test-output.txt`, `docs/parity/evidence/LEM-133-browser-smoke-leg-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
+### LEM-137 — Reach README and user-doc parity with assay
+
+- **Epic:** E12 CI, Packaging, Release, and Docs
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-097, LEM-112
+- **Status:** Done
+- **Claimed:** 2026-11-16 — updated README and added getting-started user docs with acceptance verification.
+- **Description:** Bring README and user-facing documentation to parity-level
+  coverage for implemented lemma capabilities (capability-honest), providing
+  clear install/usage guidance and pointers to detailed CLI/agent and adapter docs.
+- **Acceptance Criteria:**
+  - `README.md` is updated as an accurate, user-facing entrypoint (no stale
+    "no runtime yet" claim): includes project overview and core invariants,
+    prerequisites/quick start (build and/or run CLI), CLI usage overview with
+    key commands/examples consistent with implemented behavior (`run`, `status`,
+    `report`, `abort`, `prune`, `install`, and pointers for exports/verify/
+    calibration/persona/suppression surfaces), `.lemma/` state/evidence/report
+    semantics (JSON stdout, stderr progress, hashed evidence, coverage gaps/
+    halted-hold behavior), host adapter install and compatibility/status pointer
+    (`docs/adapters.md`), CI/GitHub Action PR-comment pointer, container image
+    usage pointer, and links to `docs/cli-and-agent.md`, `docs/adapters.md`,
+    `docs/architecture.md`, and `CONTRIBUTING.md`.
+  - `docs/getting-started.md` exists as practical user documentation with
+    prerequisites, quick-start assessment workflow (`lemma run`/`status`/
+    `report` or equivalent), host install example, and notes on outputs/state
+    consistent with current CLI behavior and invariants.
+  - Documentation is capability-honest and consistent with implemented/provisional
+    status (no invented host/runtime guarantees; provisional/unverified adapters
+    noted), and `BOARD.md` + `docs/parity/assay-feature-inventory.md` are updated
+    with LEM-137 completion details/evidence.
+  - Acceptance test command above passes in this environment.
+- **Verification:** `test -f README.md && test -f docs/getting-started.md && rg -n "^# lemma$|^## Quick start$|^## CLI usage$|^## State, evidence, and reports$|^## Host adapters$|^## CI and automation$|^## Container images$|^## Documentation$" README.md && rg -n "lemma run|lemma status|lemma report|lemma install|\\.lemma/|docs/cli-and-agent.md|docs/adapters.md" README.md docs/getting-started.md && rg -n "^# Getting started$|^## Prerequisites$|^## Run an assessment$|^## Inspect results$" docs/getting-started.md`
+- **Evidence:** `README.md`, `docs/getting-started.md`, `docs/parity/evidence/LEM-137-readme-user-docs-test-output.txt`, updated `BOARD.md` and `docs/parity/assay-feature-inventory.md`.
 
 
 ### LEM-136 — Ship the GitHub Action and one marker-based PR comment
