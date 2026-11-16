@@ -327,7 +327,7 @@ artifacts cannot produce a false release signal.
 | --- | --- | --- | --- | --- | --- |
 | LEM-123 | Port the redaction regression corpus and artifact scan | P0 | 3 | LEM-008 | Done |
 | LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Done |
-| LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Backlog |
+| LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Done |
 | LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Backlog |
 | LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Backlog |
 | LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Backlog |
@@ -4705,6 +4705,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-125 — Port the SSRF regression suite
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-059
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`.
+- **Description:** Port the assay SSRF regression suite into lemma core tests,
+  preserving fail-closed behavior for private/metadata targets, no-leak error
+  messages, allowlist semantics (env/file/CIDR), DNS rebinding checks, redirect
+  chain revalidation, and compatibility helpers, with committed test output
+  evidence.
+- **Acceptance Criteria:**
+  - `packages/core/test/ssrf/ssrf.test.ts` covers (ported-equivalent cases):
+    rejecting private/loopback/link-local/metadata targets with errors that do
+    not leak resolved internal addresses (e.g. `127.0.0.1`, `169.254`); allowing
+    public targets via injected resolver; localhost/loopback requires explicit
+    allowlist (env/file/CIDR as applicable) and remains blocked without it;
+    CIDR allowlist overrides private ranges; DNS rebinding is detected across
+    repeated validations; redirect chains are revalidated and reject unsafe hops;
+    `loadAllowlist` reads environment configuration; `isSafeUrl`/aliases behave
+    correctly.
+  - `packages/core/src/ssrf.ts`/exports remain fail-closed (no weakening of
+    blocked ranges or allowlist behavior); tests unchanged except prior LEM-059
+    ported coverage already meeting parity requirements.
+  - `pnpm --filter @lemma/core test -- packages/core/test/ssrf/ssrf.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/ssrf/ssrf.test.ts` (pass, 8/8 tests) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/ssrf/ssrf.test.ts`, `packages/core/src/ssrf.ts`, `docs/parity/evidence/LEM-125-ssrf-test-output.txt`, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-124 — Port the evidence-tamper regression suite
 

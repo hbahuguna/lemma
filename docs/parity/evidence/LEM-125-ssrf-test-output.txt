@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/ssrf/ssrf.test.ts (8 tests) 22ms
+
+ Test Files  1 passed (1)
+      Tests  8 passed (8)
+   Start at  16:45:50
+   Duration  962ms (transform 94ms, setup 0ms, collect 91ms, tests 22ms, environment 0ms, prepare 259ms)
+
