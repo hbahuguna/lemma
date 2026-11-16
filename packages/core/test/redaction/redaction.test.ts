@@ -150,10 +150,17 @@ describe("LEM-008 redaction engine and synthetic corpus", () => {
       leaked_ids: corpus.entries.filter((e) => serialized.includes(e.value)).map((e) => e.id),
       redaction_markers_present: containsRedactionMarker(serialized),
     };
-    // write scan output as evidence artifact (not committed secret values)
-    const outDir = path.join(__dirname, "..", "..", "..", "..", ".lemma", "evidence", "LEM-008");
-    fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, "artifact-scan-output.json"), JSON.stringify(scanReport, null, 2));
+    // write scan output as evidence artifacts (not committed secret values)
+    const runtimeOutDir = path.join(__dirname, "..", "..", "..", "..", ".lemma", "evidence", "LEM-008");
+    fs.mkdirSync(runtimeOutDir, { recursive: true });
+    fs.writeFileSync(path.join(runtimeOutDir, "artifact-scan-output.json"), JSON.stringify(scanReport, null, 2));
+
+    const committedOutDir = path.join(__dirname, "..", "..", "..", "..", "docs", "parity", "evidence");
+    fs.mkdirSync(committedOutDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(committedOutDir, "LEM-123-redaction-artifact-scan.json"),
+      JSON.stringify(scanReport, null, 2) + "\n",
+    );
 
     expect(scanReport.leaked_count).toBe(0);
     expect(scanReport.redaction_markers_present).toBe(true);

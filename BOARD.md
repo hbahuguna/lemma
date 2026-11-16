@@ -325,7 +325,7 @@ artifacts cannot produce a false release signal.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-123 | Port the redaction regression corpus and artifact scan | P0 | 3 | LEM-008 | Backlog |
+| LEM-123 | Port the redaction regression corpus and artifact scan | P0 | 3 | LEM-008 | Done |
 | LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Backlog |
 | LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Backlog |
 | LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Backlog |
@@ -4705,6 +4705,37 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-123 — Port the redaction regression corpus and artifact scan
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P0
+- **Points:** 3
+- **Depends on:** LEM-008
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/redaction/redaction.test.ts`.
+- **Description:** Port and harden redaction regression coverage: maintain a
+  synthetic credential corpus (covering assay shapes plus Jira/storage-state
+  cases) and artifact-scan regression that proves secrets do not leak into
+  serialized state/evidence/log/stdout/report outputs, while broken-redaction
+  detection fails safely without printing secret values.
+- **Acceptance Criteria:**
+  - Redaction corpus fixtures include the assay credential shapes and remain
+    synthetic (no real secrets), with sufficient coverage for hardening (current
+    lemma corpus superset incl. Jira/storage-state entries is acceptable).
+  - `packages/core/test/redaction/redaction.test.ts` verifies: corpus values are
+    redacted, broken/no-op redaction would leak (test fails conceptually/guards
+    without printing original values), redaction is idempotent and preserves
+    non-secret content, URL/nested payload redaction works for pre-persistence
+    artifacts, and an artifact scan over serialized state/evidence/log/stdout/
+    report outputs finds zero corpus leaks and records redaction markers.
+  - Artifact-scan evidence is produced in a committed, non-secret form for this
+    task (scan report with counts/ids/marker presence only; no raw corpus values).
+  - `pnpm --filter @lemma/core test -- packages/core/test/redaction/redaction.test.ts`
+    passes in this environment.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/redaction/redaction.test.ts` (pass, 5/5 tests) on 2026-11-16.
+- **Evidence to record:** `packages/core/test/redaction/fixtures/redaction-corpus.json` (assay-shape superset), `packages/core/test/redaction/redaction.test.ts`, `docs/parity/evidence/LEM-123-redaction-artifact-scan.json`, `docs/parity/evidence/LEM-123-redaction-test-output.txt`, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-122 — Enforce cloud package boundaries and optional extras
 
