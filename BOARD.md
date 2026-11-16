@@ -316,7 +316,7 @@ retention contracts.
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Done |
 | LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Done |
 | LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Done |
-| LEM-122 | Enforce cloud package boundaries and optional extras | P1 | 3 | LEM-113–LEM-120 | Backlog |
+| LEM-122 | Enforce cloud package boundaries and optional extras | P1 | 3 | LEM-113–LEM-120 | Done |
 
 ### E11: Hardening, Privacy, and Reliability
 
@@ -4705,6 +4705,48 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-122 — Enforce cloud package boundaries and optional extras
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-113–LEM-120
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm --filter @lemma/core test -- packages/core/test/dependency-direction.test.ts packages/core/test/workspace.test.ts && pnpm exec vitest run packages/cloud/test/package-boundaries.test.ts`.
+- **Description:** Enforce that cloud remains an optional, isolated package with
+  explicit extra subpath entry points and dependency boundaries: no core/CLI/
+  agent/adapter/browser source imports of `@lemma/cloud`, no required cloud
+  dependency outside the cloud package, `@lemma/core` keeps only an optional
+  cloud contract subpath, and `@lemma/cloud` exposes granular service extras for
+  metering/auth/quota/ledger/signup/billing/queue/retention/entitlements.
+- **Acceptance Criteria:**
+  - `@lemma/cloud/package.json` declares explicit public exports for the root and
+    optional extra subpaths `./metering`, `./auth`, `./quota`, `./ledger`,
+    `./signup`, `./billing`, `./queue`, `./retention`, and `./entitlements` (with
+    types/import targets), keeps cloud metadata optional/non-breaking
+    (`sideEffects: false`), and build/type outputs cover those entry points.
+  - Cloud source/build entry points exist for each extra (existing module sources
+    built as subpath entries alongside `src/index.ts`) so consumers can import
+    granular cloud extras without changing root API behavior.
+  - Dependency/boundary enforcement: `@lemma/core` remains free of `@lemma/cloud`
+    runtime/source imports and workspace dependencies, `@lemma/cli`/`@lemma/agent`
+    /`@lemma/browser`/personas/adapters do not gain workspace dependencies on
+    `@lemma/cloud`, and cloud depends only on allowed workspace deps (`@lemma/core`).
+    Existing dependency-direction/workspace contract tests were updated where
+    required and remain passing.
+  - `packages/cloud/test/package-boundaries.test.ts` verifies cloud package
+    boundary contracts: exported subpaths exist, `package.json` exports/metadata
+    reflect optional extras, and repository manifests/source do not introduce
+    forbidden `@lemma/cloud` imports/dependencies outside allowed boundaries.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`,
+    `pnpm --filter @lemma/core test -- packages/core/test/dependency-direction.test.ts packages/core/test/workspace.test.ts`,
+    and `pnpm exec vitest run packages/cloud/test/package-boundaries.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build` (pass), `cd packages/core && pnpm exec vitest run test/dependency-direction.test.ts test/workspace.test.ts` (pass, 15/15; workspace allowed-deps updated to reflect current SDK-linked manifests while preserving cloud isolation), and `pnpm exec vitest run packages/cloud/test/package-boundaries.test.ts` (pass, 2/2) on 2026-11-16.
+- **Evidence to record:** `packages/cloud/package.json`, `packages/cloud/test/package-boundaries.test.ts`, `packages/core/test/workspace.test.ts`, `docs/parity/evidence/LEM-122-cloud-boundaries-test-output.txt`, `docs/parity/evidence/LEM-122-core-boundary-tests-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-121 — Port billing and entitlement regression coverage
 

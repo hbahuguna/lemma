@@ -74,12 +74,13 @@ describe("workspace skeleton", () => {
       "@lemma/browser": ["@lemma/core"],
       "@lemma/cloud": ["@lemma/core"],
       "@lemma/personas": ["@lemma/core"],
-      "@lemma/cli": ["@lemma/agent", "@lemma/core"],
-      "@lemma/adapters-opencode": ["@lemma/agent"],
-      "@lemma/adapters-claude-code": ["@lemma/agent"],
-      "@lemma/adapters-codex": ["@lemma/agent"],
-      "@lemma/adapters-antigravity": ["@lemma/agent"],
-      "@lemma/adapters-cursor": ["@lemma/agent"],
+      "@lemma/cli": ["@lemma/adapters-sdk", "@lemma/agent", "@lemma/core"],
+      "@lemma/adapters-sdk": ["@lemma/agent", "@lemma/core"],
+      "@lemma/adapters-opencode": ["@lemma/adapters-sdk", "@lemma/agent"],
+      "@lemma/adapters-claude-code": ["@lemma/adapters-sdk", "@lemma/agent"],
+      "@lemma/adapters-codex": ["@lemma/adapters-sdk", "@lemma/agent"],
+      "@lemma/adapters-antigravity": ["@lemma/adapters-sdk", "@lemma/agent"],
+      "@lemma/adapters-cursor": ["@lemma/adapters-sdk", "@lemma/agent"],
     };
 
     for (const { dir, name } of workspacePackages) {

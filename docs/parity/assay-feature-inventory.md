@@ -196,6 +196,7 @@ Static check ids to preserve: `static.full_assessment`, `static.test_category`,
 | `Dockerfile` | Core container | LEM-135 |
 | `Dockerfile.browser` | Browser container | LEM-135 |
 | `pyproject.toml` | Package metadata and console script (npm/TS equivalent contracts: `@lemma/*` manifests, `lemma` bin, exports/optional subpaths, Changesets/provenance release dry-run — ADR 0002, package manifests, `.github/workflows/release-dry-run.yml`) | LEM-009, LEM-134 |
+| Cloud package boundaries and optional extras | `@lemma/cloud` optional/isolated package with granular service subpath exports and enforced dependency boundaries | LEM-122 (`packages/cloud/package.json` sideEffects/explicit root+`./metering|auth|quota|ledger|signup|billing|queue|retention|entitlements` exports and multi-entry build; boundary enforcement/tests in `packages/cloud/test/package-boundaries.test.ts`, `packages/core/test/dependency-direction.test.ts`, `packages/core/test/workspace.test.ts`; evidence `docs/parity/evidence/LEM-122-cloud-boundaries-test-output.txt`, `docs/parity/evidence/LEM-122-core-boundary-tests-output.txt`) |
 | `requirements.txt` | Dependency declaration (replaced by pnpm workspace manifests and committed `pnpm-lock.yaml`) | LEM-001 | LEM-001 |
 | `.github/workflows/ci.yml` | Test + browser matrix | LEM-132, LEM-133 |
 | `.github/workflows/release.yml` | Signed release and publish | LEM-134 |

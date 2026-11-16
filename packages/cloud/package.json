@@ -3,12 +3,49 @@
   "version": "0.0.0",
   "private": false,
   "type": "module",
-  "description": "Optional cloud-tier services (metering, quota, billing).",
+  "description": "Optional cloud-tier services (metering, quota, billing, queue, retention).",
   "license": "MIT",
+  "sideEffects": false,
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./metering": {
+      "types": "./dist/metering.d.ts",
+      "import": "./dist/metering.js"
+    },
+    "./auth": {
+      "types": "./dist/auth.d.ts",
+      "import": "./dist/auth.js"
+    },
+    "./quota": {
+      "types": "./dist/quota.d.ts",
+      "import": "./dist/quota.js"
+    },
+    "./ledger": {
+      "types": "./dist/ledger.d.ts",
+      "import": "./dist/ledger.js"
+    },
+    "./signup": {
+      "types": "./dist/signup.d.ts",
+      "import": "./dist/signup.js"
+    },
+    "./billing": {
+      "types": "./dist/billing.d.ts",
+      "import": "./dist/billing.js"
+    },
+    "./queue": {
+      "types": "./dist/queue.d.ts",
+      "import": "./dist/queue.js"
+    },
+    "./retention": {
+      "types": "./dist/retention.d.ts",
+      "import": "./dist/retention.js"
+    },
+    "./entitlements": {
+      "types": "./dist/entitlements.d.ts",
+      "import": "./dist/entitlements.js"
     },
     "./package.json": "./package.json"
   },
@@ -18,7 +55,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format esm --dts --clean --sourcemap --target node20",
+    "build": "tsup src/index.ts src/metering.ts src/auth.ts src/quota.ts src/ledger.ts src/signup.ts src/billing.ts src/queue.ts src/retention.ts src/entitlements.ts --format esm --dts --clean --sourcemap --target node20",
     "typecheck": "tsc --noEmit",
     "clean": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\""
   },
