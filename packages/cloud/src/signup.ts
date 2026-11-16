@@ -251,6 +251,8 @@ export class SignupStore {
   private save(data: SignupStoreData): void {
     atomicWrite(this.storePath, JSON.stringify(data, null, 2) + "\n");
   }
+  // Exposed for cloud control-plane integrations (retention/export/deletion).
+  _save(data: SignupStoreData): void { this.save(data); }
 
   private usageSnapshot(workspaceId: string, plan: QuotaPlan, nowValue: unknown): any {
     const quota = new QuotaStore(this.root, plan, { workspace: workspaceId, enforce: true });

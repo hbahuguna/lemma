@@ -314,7 +314,7 @@ retention contracts.
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Done |
 | LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Done |
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Done |
-| LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Backlog |
+| LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Done |
 | LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Backlog |
 | LEM-122 | Enforce cloud package boundaries and optional extras | P1 | 3 | LEM-113–LEM-120 | Backlog |
 
@@ -4705,6 +4705,51 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-120 — Port tenant retention, export, and deletion
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P1
+- **Points:** 5
+- **Depends on:** LEM-119
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/retention.test.ts`.
+- **Description:** Port tenant retention, signed export, and deletion controls to
+  `@lemma/cloud` with lemma `.lemma/` conventions: explicit per-workspace retention
+  policy, ZIP exports with signed manifests covering tenant state/evidence and
+  filtered central records (no cross-tenant paths/data), export verification,
+  soft delete with grace period, and hard delete that removes tenant roots, queue
+  jobs, cached exports, and tenant cloud state while leaving an append-only audit
+  record.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports retention APIs in `src/retention.ts` (and package
+    entry): `RetentionStore` (and aliases) with schema-versioned behavior, HMAC
+    signing key management, `policy`/`setRetention` with explicit defaults/grace,
+    `export` producing a ZIP archive + signed manifest (`sha256`, size, safe
+    relative paths) including tenant-root artifacts and workspace-filtered central
+    records, and `verifyExport` detecting missing/tampered/unsafe content.
+  - Deletion semantics: `softDelete` marks the workspace deleted with actor/
+    timestamps and `hard_delete_after` grace (idempotent when already soft-
+    deleted) and is audited; `hardDelete`/`delete` enforces grace unless forced,
+    removes tenant root, cached exports, queue jobs, and tenant-scoped cloud state
+    (signup/billing/quota/auth as available) without affecting other tenants, and
+    appends a surviving deletion audit record; `auditLog` exposes audit history.
+  - Isolation/safety guarantees: exports contain no cross-tenant paths/data and
+    verification rejects unsafe archive paths/tampering; deletion of one tenant
+    does not remove another tenant's root/data.
+  - `packages/cloud/test/retention.test.ts` verifies core contract: explicit
+    default/set retention policy, signed export/manifest verification and
+    cross-tenant-safe archive paths, tamper rejection, soft-delete grace/idempotent
+    behavior and hard-delete-after-grace/force, hard delete removes tenant
+    root/queue jobs/cached exports and preserves audit, and deletion isolation
+    across tenants.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/retention.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/retention.test.ts` (pass, 5/5 tests) on 2026-11-16.
+- **Evidence to record:** `packages/cloud/src/retention.ts`, `packages/cloud/src/index.ts`, `packages/cloud/src/billing.ts`, `packages/cloud/src/quota.ts`, `packages/cloud/src/signup.ts`, `packages/cloud/test/retention.test.ts`, `docs/parity/evidence/LEM-120-retention-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-119 — Port the tenant queue and isolation
 

@@ -892,6 +892,20 @@ export class QuotaStore {
       return this.snapshot(now);
     });
   }
+
+  deleteWorkspace(workspaceId: string): boolean {
+    const key = String(workspaceId ?? "").trim();
+    if (!key) return false;
+    return withLock(this.lockPath, () => {
+      const data = this.load();
+      if (isRecord((data as any).workspaces) && key in (data as any).workspaces) {
+        delete (data as any).workspaces[key];
+        this.save(data);
+        return true;
+      }
+      return false;
+    });
+  }
 }
 
 export { _WORKSPACE_UNSET as QUOTA_WORKSPACE_UNSET };

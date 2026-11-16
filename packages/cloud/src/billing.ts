@@ -527,4 +527,16 @@ export class BillingStore {
   sync_invoice(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
   reconcilePeriod(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
   reconcile_period(workspaceId: string, period: string, opts: any = {}) { return this.syncInvoice(workspaceId, period, opts); }
+
+  deleteWorkspace(workspaceId: string): boolean {
+    const key = safeText(workspaceId);
+    if (!key) return false;
+    const data = fs.existsSync(this.statePath) ? this.load() : this.empty();
+    if (isRecord(data.workspaces) && key in data.workspaces) {
+      delete data.workspaces[key];
+      this.save(data);
+      return true;
+    }
+    return false;
+  }
 }
