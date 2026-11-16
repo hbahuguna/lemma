@@ -111,14 +111,23 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
   const completedStatuses = new Set(["passed", "failed", "blocked", "skipped", "error", "completed"]);
   const completed_checks = checks
     .filter((c: any) => c && typeof c === "object" && completedStatuses.has(String(c.status)))
-    .map((c: any) => ({
-      id: c.id ?? null,
-      title: c.title ?? null,
-      owner: c.persona ?? c.owner ?? null,
-      status: c.status ?? null,
-      evidence: Array.isArray(c.evidence) ? c.evidence : [],
-      actual: typeof c.actual === "string" ? c.actual : "",
-    }));
+    .map((c: any) => {
+      const evidenceRefs = Array.isArray(c.evidence) ? c.evidence.filter((x: any) => typeof x === "string") : [];
+      const screenshot_ref = evidenceRefs.find((r: string) => /screenshot|\.png$|\.jpg$|\.jpeg$|\.webp$/i.test(r)) ?? null;
+      const redaction_note = (c.metadata && typeof c.metadata === "object" && (c.metadata.screenshot_redacted || c.metadata.redaction_note))
+        ? (c.metadata.redaction_note || "Screenshot redacted/unavailable due to redaction policy.")
+        : null;
+      return {
+        id: c.id ?? null,
+        title: c.title ?? null,
+        owner: c.persona ?? c.owner ?? null,
+        status: c.status ?? null,
+        evidence: evidenceRefs,
+        screenshot_ref,
+        redaction_note,
+        actual: typeof c.actual === "string" ? c.actual : "",
+      };
+    });
 
   // in-flight evidence refs: from current check or recent evidence entries if available
   let in_flight_evidence_refs: string[] = [];
@@ -181,6 +190,12 @@ function htmlPage(): string {
   pre{white-space:pre-wrap;word-break:break-word;background:#f6f6f6;padding:.5rem;border-radius:4px;max-height:40vh;overflow:auto}
   table{border-collapse:collapse;width:100%;font-size:.9rem} th,td{border:1px solid #ddd;padding:.35rem .5rem;text-align:left;vertical-align:top}
   .muted{color:#666}
+  .thumb{max-width:160px;max-height:120px;border:1px solid #ddd;border-radius:4px;cursor:pointer;display:block;margin:.25rem 0}
+  .placeholder{display:inline-block;padding:.5rem .75rem;border:1px dashed #c33;color:#a00;background:#fff5f5;border-radius:4px;font-size:.85rem}
+  .panel{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;padding:1rem;z-index:10}
+  .panel.open{display:flex}
+  .panel img{max-width:95vw;max-height:90vh;background:#fff;border-radius:6px}
+  .panel .close{position:absolute;top:1rem;right:1rem;background:#fff;border:1px solid #ccc;border-radius:4px;padding:.25rem .5rem;cursor:pointer}
 </style>
 </head>
 <body>
@@ -194,6 +209,7 @@ function htmlPage(): string {
   </div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Completed checks</h2><div id="checks" class="muted">(none)</div></div>
+  <div id="shotPanel" class="panel"><button class="close" id="shotClose">Close</button><img id="shotImg" alt="Screenshot evidence"/></div>
 <script>
 (async function(){
   const params = new URLSearchParams(location.search);
@@ -214,12 +230,36 @@ function htmlPage(): string {
       const checks = live.completed_checks || [];
       if(!checks.length){ document.getElementById('checks').innerHTML = '<span class="muted">(none)</span>'; }
       else {
-        const rows = checks.map(c => '<tr><td>'+esc(c.id)+'</td><td>'+esc(c.status)+'</td><td>'+esc(c.owner)+'</td><td>'+esc(c.title)+'</td><td>'+esc((c.evidence||[]).join(', '))+'</td></tr>').join('');
+        const rows = checks.map(c => {
+          const shot = c.screenshot_ref;
+          let shotHtml = '<span class="muted">(none)</span>';
+          if (c.redaction_note) {
+            shotHtml = '<span class="placeholder">'+esc(c.redaction_note)+'</span>';
+          } else if (shot) {
+            const src = '/api/evidence?path=' + encodeURIComponent(shot) + (token ? ('&token=' + encodeURIComponent(token)) : '');
+            shotHtml = '<img class="thumb" data-shot="'+esc(src)+'" src="'+esc(src)+'" alt="Screenshot thumbnail" onerror="this.outerHTML=\'<span class=\\'placeholder\\'>evidence unavailable</span>\'"/>';
+          }
+          const refs = esc((c.evidence||[]).join(', '));
+          return '<tr><td>'+esc(c.id)+'</td><td>'+esc(c.status)+'</td><td>'+esc(c.owner)+'</td><td>'+esc(c.title)+'</td><td>'+shotHtml+'<div class="muted">'+refs+'</div></td></tr>';
+        }).join('');
         document.getElementById('checks').innerHTML = '<table><thead><tr><th>ID</th><th>Status</th><th>Owner</th><th>Title</th><th>Evidence refs</th></tr></thead><tbody>'+rows+'</tbody></table>';
       }
     } catch(e){ document.getElementById('status').textContent = 'Error loading live view'; }
   }
   function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
+  document.addEventListener('click', (e) => {
+    const t = e.target;
+    if (t && t.classList && t.classList.contains('thumb') && t.dataset && t.dataset.shot) {
+      const panel = document.getElementById('shotPanel');
+      const img = document.getElementById('shotImg');
+      img.src = t.dataset.shot;
+      panel.classList.add('open');
+    }
+    if (t && t.id === 'shotClose') {
+      document.getElementById('shotPanel').classList.remove('open');
+      document.getElementById('shotImg').removeAttribute('src');
+    }
+  });
   await tick();
   setInterval(tick, 1000);
 })();
@@ -275,6 +315,29 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
         const view = await readLiveView(options);
         json(res, 200, view);
         return;
+      }
+
+      if (method === "GET" && reqUrl.pathname === "/api/evidence") {
+        const relPath = reqUrl.searchParams.get("path") || "";
+        if (!options.evidenceStore || !relPath) {
+          json(res, 404, { ok: false, error: "not_found", message: "Evidence unavailable." });
+          return;
+        }
+        try {
+          const out = await options.evidenceStore.readEvidenceArtifact(relPath);
+          if (!out) {
+            json(res, 404, { ok: false, error: "not_found", message: "evidence unavailable" });
+            return;
+          }
+          res.statusCode = 200;
+          res.setHeader("content-type", out.contentType || "application/octet-stream");
+          res.setHeader("cache-control", "no-store");
+          res.end(out.data);
+          return;
+        } catch {
+          json(res, 404, { ok: false, error: "not_found", message: "evidence unavailable" });
+          return;
+        }
       }
 
       // No write endpoints in this task

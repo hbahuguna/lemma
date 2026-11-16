@@ -207,11 +207,12 @@ export class EvidenceStore {
     return rel.split(path.sep).join("/");
   }
 
-  private async target(name: string, defaultSuffix = ""): Promise<string> {
-    await ensureDir(this.runDir);
+  private async target(name: string, defaultSuffix = "", subdir = ""): Promise<string> {
+    const dir = subdir ? path.join(this.runDir, subdir) : this.runDir;
+    await ensureDir(dir);
     let safe = slug(name);
     if (defaultSuffix && !safe.endsWith(defaultSuffix)) safe += defaultSuffix;
-    const candidate = path.join(this.runDir, safe);
+    const candidate = path.join(dir, safe);
     try {
       await fs.access(candidate);
     } catch {
@@ -221,7 +222,7 @@ export class EvidenceStore {
     const stem = ext ? safe.slice(0, -ext.length) : safe;
     let index = 2;
     for (;;) {
-      const alt = path.join(this.runDir, `${stem}-${index}${ext}`);
+      const alt = path.join(dir, `${stem}-${index}${ext}`);
       try {
         await fs.access(alt);
       } catch {
@@ -307,6 +308,23 @@ export class EvidenceStore {
       suffix = ".jpg";
     } else if (b.length >= 12 && b.subarray(0, 4).toString("ascii") === "RIFF" && b.subarray(8, 12).toString("ascii") === "WEBP") {
       suffix = ".webp";
+    }
+    if (checkId) {
+      const subdir = slug(checkId);
+      await ensureDir(path.join(this.runDir, subdir));
+      // next screenshot-<n> index in check dir
+      let index = 1;
+      for (;;) {
+        const candidateName = `screenshot-${index}${suffix}`;
+        const candidatePath = path.join(this.runDir, subdir, candidateName);
+        try {
+          await fs.access(candidatePath);
+          index += 1;
+        } catch {
+          await fs.writeFile(candidatePath, data);
+          return this.record(candidatePath, "screenshot", description, checkId);
+        }
+      }
     }
     return this.saveBytes(name, data, "screenshot", description, checkId, suffix);
   }
@@ -429,6 +447,24 @@ export class EvidenceStore {
     await this.checkpoint();
   }
 
+
+
+  /** Read-only: read an evidence artifact by relative path (within evidence store root). */
+  async readEvidenceArtifact(relPath: string): Promise<{ data: Buffer; contentType: string } | null> {
+    if (typeof relPath !== "string" || !relPath) return null;
+    if (path.isAbsolute(relPath) || relPath.split(/[\\/]+/).includes("..")) return null;
+    try {
+      const abs = path.join(this.root, relPath.replaceAll("/", path.sep));
+      const resolvedRoot = path.resolve(this.root);
+      const resolvedAbs = path.resolve(abs);
+      const rel = path.relative(resolvedRoot, resolvedAbs);
+      if (rel.startsWith("..") || path.isAbsolute(rel)) return null;
+      const data = await fs.readFile(resolvedAbs);
+      return { data, contentType: guessContentType(resolvedAbs) };
+    } catch {
+      return null;
+    }
+  }
 
   /** Read-only: return manifest summary/metadata if available (no writes). */
   async readManifestSummary(): Promise<Record<string, unknown> | null> {

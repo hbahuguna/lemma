@@ -184,12 +184,15 @@ export async function buildHtmlReport(
       continue;
     }
     const resolved = await resolveEvidenceHref(ref, evidenceStore);
+    const isImageRef = /\.(png|jpg|jpeg|webp)(?:$|[?#])/i.test(ref) || /screenshot/i.test(ref);
     if (resolved.href.startsWith("data:image/")) {
-      evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code><br/><img class="thumb" alt="evidence" src="${resolved.href}"/></li>`);
+      evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code><br/><img class="thumb" alt="evidence screenshot" src="${resolved.href}"/></li>`);
     } else if (resolved.href.startsWith("data:")) {
       evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code> <a href="${resolved.href}">view embedded</a>${resolved.note ? ` <span class="note">${escapeHtml(resolved.note)}</span>` : ""}</li>`);
+    } else if (isImageRef && /unreadable|missing|unavailable|refused/i.test(resolved.note || "")) {
+      evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code> <span class="note">evidence unavailable</span></li>`);
     } else {
-      evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code> <a href="${resolved.href}">${resolved.note ?? "link"}</a></li>`);
+      evidenceLinksHtmlParts.push(`<li><code>${escapeHtml(ref)}</code> <a href="${resolved.href}">${resolved.note ?? "link"}</a>${isImageRef && resolved.note ? ` <span class="note">${escapeHtml(resolved.note)}</span>` : ""}</li>`);
     }
   }
 

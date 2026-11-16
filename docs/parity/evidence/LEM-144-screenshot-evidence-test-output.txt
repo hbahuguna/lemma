@@ -1,0 +1,27 @@
+== browser screenshot ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/screenshot.test.ts (2 tests) 582ms
+   ✓ LEM-144 browser screenshot capture behavior > attaches per-check screenshot refs under check evidence directory when runtime provides captured screenshot  577ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:51:19
+   Duration  3.00s (transform 709ms, setup 0ms, collect 1.01s, tests 582ms, environment 0ms, prepare 233ms)
+
+
+== core screenshot-linkage ==
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/screenshot-linkage/screenshot-linkage.test.ts (2 tests) 251ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  20:51:24
+   Duration  2.27s (transform 625ms, setup 0ms, collect 876ms, tests 251ms, environment 0ms, prepare 272ms)
+
+
+== redaction policy (LEM-144) ==
+Browser screenshot capture redaction policy (best-effort, defense-in-depth): when runtime/browser evidence indicates associated page artifacts (snapshot/console/network/navigation/headers) contain known secret-like values (e.g. private key blocks, cloud/provider tokens, bearer credentials, common API key patterns), per-check screenshot duplication/capture is withheld for that check and the outcome is marked with metadata (screenshot_redacted/redaction_note). Dashboard/HTML surfaces display a redaction/unavailable note instead of embedding a screenshot. Blocked/unavailable browser runs never fabricate screenshots. This policy is documented for deterministic handling; pixel-level secret OCR/detection is out of scope.

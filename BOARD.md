@@ -378,7 +378,7 @@ portable. Dynamic accessibility checks cover keyboard and live contrast.
 | --- | --- | --- | --- | --- | --- |
 | LEM-142 | Build portable self-contained HTML report export | P1 | 5 | LEM-020 | Done |
 | LEM-143 | Build the local visual evidence dashboard (shell + live investigation view) | P1 | 5 | LEM-016, LEM-020, LEM-061 | Done |
-| LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Backlog |
+| LEM-144 | Capture and display screenshots for browser check evidence | P1 | 3 | LEM-051, LEM-143 | Done |
 | LEM-145 | Add Release Brief stakeholder summary to the dashboard | P2 | 3 | LEM-020, LEM-143 | Backlog |
 | LEM-146 | Add interactive settings UI to the dashboard | P2 | 3 | LEM-143 | Backlog |
 | LEM-147 | Build journey map visualization | P1 | 5 | LEM-058, LEM-143 | Backlog |
@@ -1060,8 +1060,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P1
 - **Points:** 3
 - **Depends on:** LEM-051, LEM-143
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-16 — implemented per-check browser screenshot persistence/linkage, dashboard/HTML rendering, redaction handling, and tests.
 - **Description:** Ensure every browser check that can capture a screenshot does
   so, saves it to the evidence store under the check's evidence directory, and
   surfaces the screenshot in the dashboard and HTML report linked to the exact
@@ -1086,12 +1086,15 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     dashboard/report shows a redaction note; policy documented in evidence.
   - Tests cover capture path, blocked-run behavior, dashboard rendering refs,
     HTML report refs, and missing-evidence fallback.
-- **Verification (planned):**
-  `pnpm --filter @lemma/browser test -- screenshot && pnpm --filter @lemma/core test -- screenshot-linkage`
-- **Evidence (planned):** `packages/browser/src/checks.ts` (screenshot capture),
-  `packages/core/src/dashboard.ts` (rendering),
-  `packages/core/src/html-report.ts` (embedding),
-  `docs/parity/evidence/LEM-144-screenshot-evidence-test-output.txt`
+- **Verification:**
+  `pnpm exec vitest run packages/browser/test/screenshot.test.ts && pnpm --filter @lemma/core exec vitest run test/screenshot-linkage/screenshot-linkage.test.ts` (pass; 2/2 browser, 2/2 core).
+- **Evidence:** `packages/browser/src/runtime.ts`,
+  `packages/core/src/evidence.ts`, `packages/core/src/dashboard.ts`,
+  `packages/core/src/html-report.ts`,
+  `packages/browser/test/screenshot.test.ts`,
+  `packages/core/test/screenshot-linkage/screenshot-linkage.test.ts`,
+  `docs/parity/evidence/LEM-144-screenshot-evidence-test-output.txt` (includes redaction policy).
+
 
 ### LEM-145 — Add Release Brief stakeholder summary
 

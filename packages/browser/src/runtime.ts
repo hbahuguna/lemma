@@ -1108,6 +1108,60 @@ export async function runBrowserChecks(
     stepsOutcome = await resolveBrowserStepsOutcome(input, true);
   }
 
+  const findSourceScreenshotRef = (): string | null => {
+    for (const v of views ?? []) {
+      const ref = v?.evidenceRefs?.screenshot;
+      if (typeof ref === "string" && ref) return ref;
+    }
+    return null;
+  };
+  const ensurePerCheckScreenshot = async (check: Check, outcome: CheckOutcome): Promise<void> => {
+    if (!evidence || typeof (evidence as any).saveScreenshot !== "function") return;
+    if (outcome.status === CheckStatus.BLOCKED) return;
+    // if already has a screenshot in check-specific path, keep it
+    const hasCheckScreenshot = (outcome.evidence ?? []).some((r) => typeof r === "string" && r.includes(`/${check.id}/screenshot-`));
+    if (hasCheckScreenshot) return;
+    const srcRef = findSourceScreenshotRef();
+    if (!srcRef) return;
+    const store: any = evidence as any;
+    if (typeof store.readEvidenceArtifact !== "function") return;
+    try {
+      const art = await store.readEvidenceArtifact(srcRef);
+      if (!art || !art.data) return;
+      // Redaction policy (LEM-144): if associated captured text evidence for this check indicates known secret values,
+      // do not capture/duplicate screenshot for the check and mark redaction note instead of fabricating/embedding.
+      let redacted = false;
+      const textRefKeys = ["snapshot", "console", "network", "navigation", "headers"];
+      for (const v of views ?? []) {
+        for (const k of textRefKeys) {
+          const ref = (v.evidenceRefs ?? {})[k];
+          if (typeof ref !== "string" || !ref) continue;
+          try {
+            const t = await store.readEvidenceArtifact(ref);
+            if (!t?.data) continue;
+            const txt = t.data.toString("utf8");
+            // known secret markers/pattern hints (best-effort; core redaction corpus patterns)
+            if (/(AKIA[0-9A-Z]{16}|-----BEGIN [A-Z ]*PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9_]{20,}|xox[baprs]-|Bearer\s+[A-Za-z0-9._~+\-\/]+=*|sk_(live|test)_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z\-_]{35})/.test(txt)) {
+              redacted = true;
+              break;
+            }
+          } catch { /* ignore */ }
+        }
+        if (redacted) break;
+      }
+      if (redacted) {
+        outcome.metadata = { ...(outcome.metadata ?? {}), screenshot_redacted: true, redaction_note: "Screenshot withheld by redaction policy (associated evidence contained secret-like values)." };
+        return;
+      }
+      const checkRef = await store.saveScreenshot(`screenshot-${check.id}`, art.data, `Full-page screenshot for ${check.id}`, check.id);
+      if (typeof checkRef === "string" && checkRef) {
+        outcome.evidence = [...(outcome.evidence ?? []), checkRef];
+      }
+    } catch {
+      // best-effort; do not fail check
+    }
+  };
+
   for (const check of checks) {
     try {
       if (check.id === "browser.steps") {
@@ -1124,6 +1178,7 @@ export async function runBrowserChecks(
       const outcome = multi
         ? evaluateBrowserCheckAcrossViews(check, views)
         : evaluateBrowserCheckForCheck(check, views[0]!);
+      await ensurePerCheckScreenshot(check, outcome);
       await emit(check, outcome);
     } catch (error) {
       const reason = error instanceof Error ? error.message : String(error);
