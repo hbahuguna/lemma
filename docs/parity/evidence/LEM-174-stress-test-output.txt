@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/stress/stress.test.ts (5 tests) 1102ms
+   ✓ LEM-174 stress-risk review workflow > static-only mode: reads code/config for risk patterns and records findings with stable ids; no bounded loop without approve  617ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  00:44:59
+   Duration  5.48s (transform 1.25s, setup 0ms, collect 1.75s, tests 1.10s, environment 0ms, prepare 494ms)
+

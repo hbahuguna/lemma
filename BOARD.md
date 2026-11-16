@@ -472,7 +472,7 @@ pass.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Done |
-| LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Backlog |
 | LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
 | LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
@@ -2371,28 +2371,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed stress-risk review workflow (static/bounded/recovery, schema/core/tests) with passing acceptance tests.
 - **Description:** Add a stress-risk review workflow that (a) reads code/config
   to identify stress risks, (b) optionally runs bounded local tight loops, and
   (c) records approved stress/recovery experiments. Never runs a stress test
   without explicit approval; always records results as evidence, not claims.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runStressReview({ root, target, approve })`
+  - [x] `@lemma/core` exposes `runStressReview({ root, target, approve })`
     returning a `StressReport` validated against
     `schemas/stress/stress_report.v1.json`.
-  - Static phase: reads code/config for documented risk patterns (unbounded
+  - [x] Static phase: reads code/config for documented risk patterns (unbounded
     loops, missing limits, retries without backoff) and records them as
     findings with stable ids.
-  - Bounded-loop phase: runs only when `approve` is provided; hard caps on
+  - [x] Bounded-loop phase: runs only when `approve` is provided; hard caps on
     concurrency and duration are enforced; exceeding any cap halts cleanly.
-  - Recovery phase: optional, requires explicit approval per experiment and
+  - [x] Recovery phase: optional, requires explicit approval per experiment and
     records recovery times as evidence; cannot be run without a labelled
     recovery scenario.
-  - Tests cover static-only mode, bounded-loop approval, hard caps, recovery
+  - [x] Tests cover static-only mode, bounded-loop approval, hard caps, recovery
     approval, report schema, and evidence persistence.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- stress`
-- **Evidence (planned):** `packages/core/src/stress.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- stress` (pass, 5/5) — `docs/parity/evidence/LEM-174-stress-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/stress.ts`,
   `schemas/stress/stress_report.v1.schema.json`,
   `packages/core/test/stress/*`,
   `docs/parity/evidence/LEM-174-stress-test-output.txt`
