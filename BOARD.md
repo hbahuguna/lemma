@@ -474,7 +474,7 @@ pass.
 | LEM-173 | Build the load-readiness assessment workflow | P3 | 8 | LEM-058, LEM-089 | Done |
 | LEM-174 | Build the stress-risk review workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-175 | Build the state-hunting workflow | P2 | 8 | LEM-058, LEM-089 | Done |
-| LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
+| LEM-176 | Build the agent-readiness testing workflow | P3 | 5 | LEM-058, LEM-089 | Done |
 | LEM-177 | Build the AI-search SEO / GEO evaluation workflow | P3 | 5 | LEM-058, LEM-089 | Backlog |
 | LEM-178 | Build the internationalization and localization review workflow | P3 | 8 | LEM-058, LEM-089 | Backlog |
 | LEM-179 | Build the independent evidence review workflow (`/lemma-review`) | P2 | 5 | LEM-020, LEM-089 | Backlog |
@@ -2437,25 +2437,25 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-058, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed agent-readiness workflow (schema/core/evidence/tests) with passing acceptance tests.
 - **Description:** Test whether an agent can discover, understand, and safely
   use a website/API/tool. Produces an Agent Readiness report covering
   discovery, semantics, safety, and observability.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runAgentReadiness({ target, capabilities })`
+  - [x] `@lemma/core` exposes `runAgentReadiness({ target, capabilities })`
     returning an `AgentReadinessReport` validated against
     `schemas/agent_readiness/report.v1.json`.
-  - Checks cover: discoverability (robots/sitemap/well-known, OpenAPI,
+  - [x] Checks cover: discoverability (robots/sitemap/well-known, OpenAPI,
     structured data), semantics (labels, stable ids, meaningful URLs),
     safety (destructive actions gated, approval flows), and observability
     (error shapes, logs, trace ids).
-  - The report cites evidence for every check; unchecked items are reported
+  - [x] The report cites evidence for every check; unchecked items are reported
     as `unknown`, never as a pass.
-  - Tests cover each dimension, evidence linkage, `unknown` reporting, and
+  - [x] Tests cover each dimension, evidence linkage, `unknown` reporting, and
     report schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- agent-readiness`
-- **Evidence (planned):** `packages/core/src/agent-readiness.ts`,
+- **Verification:** `pnpm test --filter @lemma/core -- agent-readiness` (pass, 3/3) — `docs/parity/evidence/LEM-176-agent-readiness-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/agent-readiness.ts`,
   `schemas/agent_readiness/report.v1.schema.json`,
   `packages/core/test/agent-readiness/*`,
   `docs/parity/evidence/LEM-176-agent-readiness-test-output.txt`

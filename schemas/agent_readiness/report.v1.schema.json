@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/agent_readiness/report.v1.schema.json",
+  "title": "Lemma Agent Readiness Report v1",
+  "type": "object",
+  "required": ["schema_version", "run_id", "target", "checks", "summary", "evidence"],
+  "properties": {
+    "schema_version": { "const": "lemma.agent_readiness_report/v1" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "target": { "type": "string" },
+    "capabilities": { "type": "object", "additionalProperties": true },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "dimension", "title", "status", "evidence"],
+        "properties": {
+          "id": { "type": "string" },
+          "dimension": { "type": "string", "enum": ["discoverability", "semantics", "safety", "observability"] },
+          "title": { "type": "string" },
+          "status": { "type": "string", "enum": ["pass", "fail", "unknown"] },
+          "evidence": { "type": "array", "items": { "type": "string" } },
+          "details": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "pass", "fail", "unknown"],
+      "properties": {
+        "total": { "type": "integer", "minimum": 0 },
+        "pass": { "type": "integer", "minimum": 0 },
+        "fail": { "type": "integer", "minimum": 0 },
+        "unknown": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["directory", "manifest", "artifacts"],
+      "properties": {
+        "directory": { "type": "string" },
+        "manifest": { "type": "string" },
+        "artifacts": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

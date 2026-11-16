@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/agent-readiness/agent-readiness.test.ts (3 tests) 657ms
+   ✓ LEM-176 agent-readiness workflow > returns schema-valid report and cites evidence for every check; unchecked items reported as unknown (never pass)  308ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  00:58:03
+   Duration  5.01s (transform 1.60s, setup 0ms, collect 2.26s, tests 657ms, environment 0ms, prepare 704ms)
+
