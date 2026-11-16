@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/confidence/eval_design.v1.schema.json",
+  "title": "Lemma Confidence Eval Design v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "eval_id",
+    "workspace",
+    "checklist",
+    "status",
+    "reviewed",
+    "recorded_at"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.confidence.eval_design/v1" },
+    "eval_id": { "type": "string", "minLength": 1 },
+    "workspace": { "type": "string" },
+    "status": { "type": "string", "enum": ["approved", "refused"] },
+    "reviewed": { "type": "boolean" },
+    "recorded_at": { "type": "string" },
+    "checklist": {
+      "type": "object",
+      "required": ["populations", "cases", "repetitions", "oracles", "dependence", "blockers"],
+      "properties": {
+        "populations": { "$ref": "#/$defs/item" },
+        "cases": { "$ref": "#/$defs/item" },
+        "repetitions": { "$ref": "#/$defs/item" },
+        "oracles": { "$ref": "#/$defs/item" },
+        "dependence": { "$ref": "#/$defs/item" },
+        "blockers": { "$ref": "#/$defs/item" }
+      },
+      "additionalProperties": true
+    },
+    "risks": { "type": "array" },
+    "claims": { "type": "array" },
+    "refusal": {
+      "type": ["object", "null"],
+      "properties": {
+        "refused": { "type": "boolean" },
+        "reason": { "type": "string" },
+        "failed_items": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "item": {
+      "type": "object",
+      "required": ["reviewed", "ok", "notes"],
+      "properties": {
+        "reviewed": { "type": "boolean" },
+        "ok": { "type": "boolean" },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

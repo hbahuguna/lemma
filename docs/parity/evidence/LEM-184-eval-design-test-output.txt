@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/eval-design/eval-design.test.ts (3 tests) 814ms
+   ✓ LEM-184 AI evaluation design and review workflows > runEvalDesign produces documented checklist and schema-valid design; refuses when checklist fails review and records refusal  307ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  02:14:40
+   Duration  4.98s (transform 1.86s, setup 0ms, collect 2.66s, tests 814ms, environment 8ms, prepare 468ms)
+

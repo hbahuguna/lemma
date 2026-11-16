@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/confidence/eval_run.v1.schema.json",
+  "title": "Lemma Confidence Eval Run v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "eval_id",
+    "workspace",
+    "design_reviewed",
+    "status",
+    "model_eval",
+    "analysis",
+    "recorded_at",
+    "paths"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.confidence.eval_run/v1" },
+    "eval_id": { "type": "string", "minLength": 1 },
+    "workspace": { "type": "string" },
+    "design_reviewed": { "type": "boolean" },
+    "status": { "type": "string" },
+    "model_eval": { "type": "object" },
+    "analysis": {
+      "type": "object",
+      "required": ["per_outcome_counts", "per_case_transitions", "blocked_cases", "statistical_significance_claimed"],
+      "properties": {
+        "per_outcome_counts": { "type": "object" },
+        "per_case_transitions": { "type": "array" },
+        "blocked_cases": { "type": "array" },
+        "statistical_significance_claimed": { "const": false },
+        "note": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "recorded_at": { "type": "string" },
+    "paths": { "type": "object" }
+  },
+  "additionalProperties": true
+}

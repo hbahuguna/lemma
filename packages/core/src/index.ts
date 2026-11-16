@@ -70,3 +70,4 @@ export * from "./release-decision.js";
 export * from "./incident.js";
 export * from "./forever.js";
 export * from "./confidence-workspace.js";
+export * from "./eval-design.js";

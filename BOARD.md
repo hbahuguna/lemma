@@ -492,7 +492,7 @@ fabricate a pass.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-183 | Build the confidence-engineering workspace (`.confidence/`) | P3 | 8 | LEM-020, LEM-089 | Done |
-| LEM-184 | Build the AI evaluation design and review workflows | P3 | 8 | LEM-163, LEM-183 | Backlog |
+| LEM-184 | Build the AI evaluation design and review workflows | P3 | 8 | LEM-163, LEM-183 | Done |
 | LEM-185 | Build the specialized review workflows (security, skeptical, statistical, release) | P3 | 8 | LEM-179, LEM-183 | Backlog |
 
 ### E23: Execution Model, Evidence Discipline, and Browser Adapters
@@ -2692,29 +2692,29 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-163, LEM-183
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed eval design/review workflows (core/schema/tests) with passing acceptance tests.
 - **Description:** Add `carbon_eval`-equivalent workflows: design, implement,
   run, and analyze sampled evaluations against a model endpoint. Includes a
   design review step (populations, cases, repetitions, oracles, dependence,
   blockers) before any run.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runEvalDesign({ workspace, risks, claims })` and
+  - [x] `@lemma/core` exposes `runEvalDesign({ workspace, risks, claims })` and
     `runEvalExecute({ design, modelConfig })` returning typed results validated
     against `schemas/confidence/eval_design.v1.json` and
     `schemas/confidence/eval_run.v1.json`.
-  - Design review produces a documented checklist (populations, cases,
+  - [x] Design review produces a documented checklist (populations, cases,
     repetitions, oracles, dependence, blockers) and refuses to execute a run
     whose design fails the review; refusal is recorded, not silently skipped.
-  - Execution reuses LEM-163's `runModelEval` under the hood; the workspace
+  - [x] Execution reuses LEM-163's `runModelEval` under the hood; the workspace
     receives the results under `.confidence/evals/<eval_id>/`.
-  - Analysis reports per-outcome counts, per-case transitions, and blocked
+  - [x] Analysis reports per-outcome counts, per-case transitions, and blocked
     cases; the workflow never claims statistical significance without the
     statistical review (LEM-185).
-  - Tests cover design checklist enforcement, execution wiring to LEM-163,
+  - [x] Tests cover design checklist enforcement, execution wiring to LEM-163,
     workspace persistence, analysis reporting, and refusal paths.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- eval-design`
-- **Evidence (planned):** `packages/core/src/eval-design.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/eval-design/eval-design.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- eval-design` — `docs/parity/evidence/LEM-184-eval-design-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/eval-design.ts`,
   `schemas/confidence/eval_design.v1.schema.json`,
   `schemas/confidence/eval_run.v1.schema.json`,
   `packages/core/test/eval-design/*`,
