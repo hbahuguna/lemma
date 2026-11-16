@@ -105,10 +105,15 @@ function guessContentType(filePath: string): string {
 }
 
 function ensureSafeRelative(root: string, target: string): string {
+  if (path.isAbsolute(target)) {
+    throw new StateError(`Refusing to access path outside evidence root: ${target}`, {
+      details: { path: target, reason: "absolute_path" },
+    });
+  }
   const resolvedRoot = path.resolve(root);
   const resolvedTarget = path.resolve(root, target);
   const rel = path.relative(resolvedRoot, resolvedTarget);
-  if (rel.startsWith("..") || path.isAbsolute(rel)) {
+  if (rel.length === 0 || rel.startsWith("..") || path.isAbsolute(rel)) {
     throw new StateError(`Refusing to access path outside evidence root: ${target}`, {
       details: { path: target },
     });

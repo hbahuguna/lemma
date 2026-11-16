@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/evidence/path-traversal-audit.test.ts (3 tests) 280ms
+ ✓ test/evidence/evidence.test.ts (4 tests) 370ms
+
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+   Start at  16:59:14
+   Duration  2.18s (transform 538ms, setup 0ms, collect 1.45s, tests 650ms, environment 0ms, prepare 355ms)
+

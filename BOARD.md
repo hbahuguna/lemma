@@ -329,8 +329,8 @@ artifacts cannot produce a false release signal.
 | LEM-124 | Port the evidence-tamper regression suite | P1 | 3 | LEM-017 | Done |
 | LEM-125 | Port the SSRF regression suite | P0 | 3 | LEM-059 | Done |
 | LEM-126 | Port state, evidence, and kill-switch failure injection | P0 | 5 | LEM-011, LEM-016, LEM-017 | Done |
-| LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | In Progress |
-| LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | Backlog |
+| LEM-127 | Prove atomic writes and locks cross-platform | P1 | 5 | LEM-010 | Done |
+| LEM-128 | Audit untrusted evidence paths and path traversal | P1 | 3 | LEM-016 | In Progress |
 | LEM-129 | Audit that no path resumes a halted run | P0 | 3 | LEM-015 | Backlog |
 | LEM-130 | Audit dependency and supply-chain posture | P1 | 3 | LEM-009 | Backlog |
 | LEM-131 | Set and test performance/scale budgets | P2 | 3 | LEM-026 | Backlog |
@@ -4706,13 +4706,43 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
 
+### LEM-128 — Audit untrusted evidence paths and path traversal
+
+- **Epic:** E11 Hardening, Privacy, and Reliability
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-016
+- **Status:** In Progress
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/evidence/path-traversal-audit.test.ts packages/core/test/evidence/evidence.test.ts`.
+- **Description:** Audit and regress-test untrusted evidence path handling to
+  ensure traversal/escape attempts (manifest entries, reconcile inputs, and
+  verification paths) cannot read, recover, or record artifacts outside the
+  evidence root.
+- **Acceptance Criteria:**
+  - `packages/core/test/evidence/path-traversal-audit.test.ts` proves evidence
+    path safety for untrusted inputs including traversal (`../`, nested escapes),
+    absolute paths, and paths resolving outside the root: `EvidenceStore.verify`
+    and reconciliation/recovery do not access outside-root files and report such
+    entries as missing/affected (tamper-safe) rather than reading them; poisoned
+    manifest evidence entries cannot exfiltrate or validate outside-root content.
+  - Existing evidence store behavior remains correct for valid in-root artifacts
+    (`packages/core/test/evidence/evidence.test.ts` continues to pass); any
+    minimal fixes required to close traversal gaps are covered by tests.
+  - `pnpm --filter @lemma/core test -- packages/core/test/evidence/path-traversal-audit.test.ts packages/core/test/evidence/evidence.test.ts`
+    passes in this environment and committed test output evidence is recorded.
+- **Verification:** (planned) acceptance test command above.
+- **Evidence to record:** path-traversal audit test file, any minimal
+  `packages/core/src/evidence.ts` hardening, test output evidence file, and
+  updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+
 ### LEM-127 — Prove atomic writes and locks cross-platform
 
 - **Epic:** E11 Hardening, Privacy, and Reliability
 - **Priority:** P1
 - **Points:** 5
 - **Depends on:** LEM-010
-- **Status:** In Progress
+- **Status:** Done
 - **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/core test -- packages/core/test/state/state.test.ts packages/core/test/state/state-store.test.ts packages/core/test/state/cross-platform-state.test.ts`.
 - **Description:** Prove atomic write, lock, and kill-file primitives are
   portable and correct across supported platforms by strengthening deterministic
@@ -4723,20 +4753,16 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - `packages/core/test/state/cross-platform-state.test.ts` adds deterministic
     regressions proving: atomic JSON/file writes replace existing targets with
     complete readable content (no partial/corrupt reads on failure paths),
-    repeated overwrite cycles leave no stray target temp files, `withFileLock`
-    serializes access and enforces timeout on contention, stale lock recovery
-    allows progress after holder crash/expiry conditions representable in tests,
-    and kill-file write/read/clear works via shared primitives across nested
-    paths.
+    repeated overwrite cycles leave no stray target temp files, `withFileLock`/
+    lock acquisition serializes access and enforces timeout on contention, stale
+    lock recovery allows progress after a crashed holder, and kill-file
+    write/read/clear works via shared primitives across nested paths.
   - Existing state primitive/store tests remain passing (`state.test.ts`,
-    `state-store.test.ts`); any minimal implementation adjustments needed for
-    portability are covered by tests and do not weaken atomicity or lock safety.
+    `state-store.test.ts`); no implementation weakening required.
   - `pnpm --filter @lemma/core test -- packages/core/test/state/state.test.ts packages/core/test/state/state-store.test.ts packages/core/test/state/cross-platform-state.test.ts`
     passes in this environment and committed test output evidence is recorded.
-- **Verification:** (planned) acceptance test command above.
-- **Evidence to record:** cross-platform state regression test file(s), any
-  minimal `packages/core/src/state.ts` portability fixes, test output evidence
-  file, and updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+- **Verification:** `cd packages/core && pnpm exec vitest run test/state/state.test.ts test/state/state-store.test.ts test/state/cross-platform-state.test.ts` (pass, 15/15 tests, 3 files) on 2026-11-16 (darwin).
+- **Evidence to record:** `packages/core/test/state/cross-platform-state.test.ts`, `packages/core/src/state.ts` (existing shared primitives exercised), `docs/parity/evidence/LEM-127-cross-platform-state-test-output.txt`, and updated `BOARD.md` (no additional parity inventory row ownership identified for LEM-127).
 
 
 ### LEM-126 — Port state, evidence, and kill-switch failure injection
