@@ -244,7 +244,14 @@ export function routeSlashCommand(
       positional,
     },
   };
-  return { decision };
+  let message: string | undefined;
+  if (spec.command === "/lemma-pro" || spec.intent === "dashboard.pro") {
+    // default to static summary (dashboard-off/agent-only); callers can override with dashboard-running context
+    message = renderLemmaProSummary({ dashboardRunning: false, route: spec.dashboard_route ?? "/pro" });
+  } else if (spec.command === "/lemma-help" || spec.intent === "manager.help") {
+    message = formatHelpMessage(catalog);
+  }
+  return message ? { decision, message } : { decision };
 }
 
 export function isSlashCommand(message: string): boolean {
@@ -262,4 +269,27 @@ export function resolveDashboardUrl(route: string, opts?: { baseUrl?: string; to
   const base = (opts?.baseUrl ?? "").replace(/\/+$/, "");
   const pathPart = route.startsWith("/") ? route : `/${route}`;
   return redactSafeText(`${base}${pathPart}` || pathPart);
+}
+
+
+export const LEMMA_PRO_LEARN_MORE_URL = "https://lemma.dev/pro" as const;
+
+export function renderLemmaProSummary(opts?: { dashboardRunning?: boolean; dashboardBaseUrl?: string; route?: string }): string {
+  const route = opts?.route ?? "/pro";
+  const running = opts?.dashboardRunning === true;
+  const base = (opts?.dashboardBaseUrl ?? "").replace(/\/+$/, "");
+  const link = running ? `${base}${route.startsWith("/") ? route : `/${route}`}` || route : "";
+  const lines = [
+    "Lemma Pro (informational)",
+    "- This is informational only: it does not start a checkout, does not collect data, and does not require an account.",
+    "- Pro edition features (summary): team/release workflows, advanced reporting and review experiences, and hosted/support options where available.",
+    "- Pricing summary: to be announced; see the learn-more link for current details.",
+    `- Learn more: ${LEMMA_PRO_LEARN_MORE_URL}`,
+  ];
+  if (running && link) {
+    lines.splice(1, 0, `- Dashboard (running): open ${link} (token-protected; token handled out-of-band).`);
+  } else {
+    lines.splice(1, 0, "- Dashboard is off: showing static summary (CLI/agent-only context).");
+  }
+  return redactSafeText(lines.join("\n"));
 }

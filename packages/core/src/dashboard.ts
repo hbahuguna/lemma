@@ -223,6 +223,8 @@ function htmlPage(): string {
   if (journey) journey.href = '/journey?token=' + encodeURIComponent(token);
   const settings = document.getElementById('settingsLink');
   if (settings) settings.href = '/settings?token=' + encodeURIComponent(token);
+  const pro = document.getElementById('proLink');
+  if (pro) pro.href = '/pro?token=' + encodeURIComponent(token);
   const headers = token ? {'x-lemma-dashboard-token': token} : {};
   async function tick(){
     try{
@@ -521,6 +523,62 @@ async function journeyMapPageHtml(options: StartDashboardOptions, token: string)
 </html>`;
 }
 
+
+function proPageHtml(): string {
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Lemma Pro (Informational)</title>
+  <style>
+    body{font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:1.5rem;line-height:1.5;color:#111;max-width:860px}
+    .card{border:1px solid #d0d7de;border-radius:10px;padding:1rem 1.1rem;margin:1rem 0;background:#fff}
+    .muted{color:#555}
+    .badge{display:inline-block;padding:.15rem .5rem;border:1px solid #999;border-radius:999px;font-size:.85rem}
+    ul{margin:.4rem 0 .2rem 1.2rem}
+    a{color:#0b5fff}
+    .notice{background:#f6f8fa}
+  </style>
+</head>
+<body>
+  <h1>Lemma Pro <span class="badge">Informational</span></h1>
+  <p class="muted">This page is informational only. It does not start a checkout, does not collect data, and does not require an account.</p>
+
+  <div class="card">
+    <h2>Pro edition features (summary)</h2>
+    <ul>
+      <li>Team-oriented release confidence workflows and collaboration features (planned/optional tier).</li>
+      <li>Advanced reporting, policy, and evidence review experiences for larger organizations.</li>
+      <li>Hosted management and support options where available, while the open-source core remains fully usable.</li>
+      <li>Commercial entitlements and packaging are defined separately; no Pro capability is enabled by viewing this page.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Pricing summary</h2>
+    <p><strong>Pricing:</strong> To be announced. Contact/sales details and plan options will be provided via the official learn-more link when available.</p>
+    <p class="muted">No billing, purchase flow, or subscription changes occur in this local dashboard.</p>
+  </div>
+
+  <div class="card notice">
+    <h2>Learn more</h2>
+    <p>Learn more about Lemma Pro: <a href="https://lemma.dev/pro">https://lemma.dev/pro</a></p>
+    <p class="muted">This is a navigation/information link only. Opening it is your choice; this page makes no external calls by itself.</p>
+  </div>
+
+  <div class="card">
+    <h2>Privacy and behavior</h2>
+    <ul>
+      <li>No external scripts, stylesheets, fonts, or images are loaded by this page.</li>
+      <li>No checkout flow is started and no account is required.</li>
+      <li>No telemetry or additional data collection is performed by this page beyond the existing localhost dashboard token protection.</li>
+    </ul>
+  </div>
+</body>
+</html>`;
+}
+
 export async function startDashboard(options: StartDashboardOptions): Promise<DashboardHandle> {
   const host = options.host ?? "127.0.0.1";
   if (!isLoopback127(host)) {
@@ -624,6 +682,14 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
           }
         }
         json(res, 405, { ok: false, error: "method_not_allowed" });
+        return;
+      }
+
+      if (method === "GET" && (reqUrl.pathname === "/pro" || reqUrl.pathname === "/dashboard/pro")) {
+        res.statusCode = 200;
+        res.setHeader("content-type", "text/html; charset=utf-8");
+        res.setHeader("cache-control", "no-store");
+        res.end(proPageHtml());
         return;
       }
 

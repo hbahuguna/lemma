@@ -1104,3 +1104,5 @@ export type {
   SlashCommandTarget,
   SlashCommandUnknownDecision,
 } from "./slash-commands.js";
+
+export * from "./slash-commands.js";

@@ -393,13 +393,16 @@ export class ManagerSession {
       if (d.target === "dashboard") {
         const route = d.dashboard_route || "/";
         this.state.status = "completed";
+        const textMsg = routed.message && (d.command === "/lemma-pro" || d.intent === "dashboard.pro")
+          ? routed.message
+          : [
+              `Dashboard requested via ${d.command}.`,
+              `Route: ${route}`,
+              "A token-protected URL is provided via the manager/host UI channel (token never shown in transcript).",
+            ].join("\n");
         await emitAndRecord(this.state, this.options.sink, {
           type: "summary",
-          text: [
-            `Dashboard requested via ${d.command}.`,
-            `Route: ${route}`,
-            "A token-protected URL is provided via the manager/host UI channel (token never shown in transcript).",
-          ].join("\n"),
+          text: textMsg,
           generated_at: deterministicNow(),
           step: this.state.step,
           details: { dashboard_route: route, command: d.command, intent: d.intent },
