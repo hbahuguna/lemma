@@ -46,7 +46,7 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `harness/ledger.py` | Append-only hash-chained ledger, periods, invoices | `@lemma/cloud/ledger` | LEM-116 (`packages/cloud/src/ledger.ts`, exports via `packages/cloud/src/index.ts`: period helpers, `PriceBook`, hash-chained `LedgerStore` with ingest/idempotency+closed-period rules, corrections/late adjustments, close, invoice JSON/CSV, verify/reconcile, context-bound helpers; tests `packages/cloud/test/ledger.test.ts`, output `docs/parity/evidence/LEM-116-ledger-test-output.txt`) |
 | `harness/signup.py` | Self-serve signup, free allowance, plan selection | `@lemma/cloud/signup` | LEM-117 (`packages/cloud/src/signup.ts`, exports via `packages/cloud/src/index.ts`: `SignupStore` idempotent signup/replay, usage/allowance, plan selection with effective date/downgrade guard, signed entitlement issue/verify and auth/quota integration; tests `packages/cloud/test/signup.test.ts`, output `docs/parity/evidence/LEM-117-signup-test-output.txt`) |
 | `harness/entitlements.py` | Signed entitlement compatibility surface | `@lemma/cloud/signup` | LEM-117 (`packages/cloud/src/entitlements.ts` compatibility exports via signup/index; tests/evidence `docs/parity/evidence/LEM-117-signup-test-output.txt`) |
-| `harness/billing.py` | Feature-gated metered billing, sandbox provider, kill switch | `@lemma/cloud/billing` | LEM-118, LEM-121 |
+| `harness/billing.py` | Feature-gated metered billing, sandbox provider, kill switch | `@lemma/cloud/billing` | LEM-118 (`packages/cloud/src/billing.ts`, exports via `packages/cloud/src/index.ts`: `BillingFeatureFlag` off-by-default+allowlist+sandbox, secret-reference managers, sandbox provider with idempotent customer/subscription/invoice ops and transient-failure simulation/retries, `BillingStore` state/status/gating, customer/subscription setup, ledger-invoice sync/reconcile with idempotent+degraded handling, and operator/global kill-switch disable/enable without persisting secrets; tests `packages/cloud/test/billing.test.ts`, output `docs/parity/evidence/LEM-118-billing-test-output.txt`), LEM-121 |
 | `harness/queue.py` | Durable tenant queue, polling, cancel, recovery, metrics | `@lemma/cloud/queue` | LEM-119 |
 | `harness/retention.py` | Retention policy, signed export, soft/hard delete | `@lemma/cloud/retention` | LEM-120 |
 | `harness/py.typed` | Typed package marker (replaced by TS declaration emit in package builds) | Replaced by TS declaration output | LEM-001 |
@@ -94,10 +94,10 @@ Legend: `Pri` = priority, `Pts` = estimate. Task numbers use `LEM-###`.
 | `lemma signup select-plan` | Effective-date plan change | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
 | `lemma signup usage` | Usage against allowance | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
 | `lemma signup verify` | Offline entitlement verification | LEM-117  (cloud signup/entitlement API/store ported in LEM-117; CLI command wiring pending) |
-| `lemma billing status` | Feature flag, sandbox, degradation | LEM-118 |
-| `lemma billing sync` | Ledger invoice → provider | LEM-118 |
-| `lemma billing disable` | Operator kill switch | LEM-118 |
-| `lemma billing enable` | Clear kill switch | LEM-118 |
+| `lemma billing status` | Feature flag, sandbox, degradation | LEM-118 (cloud billing API/store ported in LEM-118; CLI command wiring pending) |
+| `lemma billing sync` | Ledger invoice → provider | LEM-118 (cloud billing API/store ported in LEM-118; CLI command wiring pending) |
+| `lemma billing disable` | Operator kill switch | LEM-118 (cloud billing API/store ported in LEM-118; CLI command wiring pending) |
+| `lemma billing enable` | Clear kill switch | LEM-118 (cloud billing API/store ported in LEM-118; CLI command wiring pending) |
 | `lemma calibrate` | Run labeled fixtures | LEM-070, LEM-085 (CLI wired to `writeCalibrationReport` with `--fixtures-dir`/`--output` resolution, emits calibration report JSON; `packages/cli/src/commands.ts`, tests/output as above) |
 
 Exit codes to preserve: `0` pass, `1` policy threshold failed, `2` harness error

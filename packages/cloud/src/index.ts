@@ -10,4 +10,5 @@ export * from "./auth.js";
 export * from "./quota.js";
 export * from "./ledger.js";
 export * from "./signup.js";
+export * from "./billing.js";
 export * as entitlements from "./entitlements.js";

@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cloud/test/billing.test.ts (4 tests) 954ms
+   ✓ LEM-118 feature-gated metered billing and kill switch > reconciles sandbox invoices and makes customer/subscription idempotent  341ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  13:44:52
+   Duration  3.63s (transform 870ms, setup 0ms, collect 1.34s, tests 954ms, environment 0ms, prepare 393ms)
+

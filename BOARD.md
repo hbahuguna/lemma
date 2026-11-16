@@ -312,7 +312,7 @@ retention contracts.
 | LEM-115 | Port per-action quota enforcement | P1 | 8 | LEM-113, LEM-114 | Done |
 | LEM-116 | Port the append-only ledger and invoice export | P1 | 8 | LEM-113, LEM-115 | Done |
 | LEM-117 | Port self-serve signup and signed entitlements | P1 | 5 | LEM-114, LEM-115 | Done |
-| LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Backlog |
+| LEM-118 | Port feature-gated metered billing and kill switch | P2 | 8 | LEM-116, LEM-117 | Done |
 | LEM-119 | Port the tenant queue and isolation | P1 | 8 | LEM-015, LEM-114, LEM-115 | Backlog |
 | LEM-120 | Port tenant retention, export, and deletion | P1 | 5 | LEM-119 | Backlog |
 | LEM-121 | Port billing and entitlement regression coverage | P2 | 3 | LEM-118 | Backlog |
@@ -4705,6 +4705,54 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     pass in this environment.
 - **Verification:** `pnpm --filter @lemma/cli typecheck && pnpm --filter @lemma/cli build && pnpm exec vitest run packages/cli/test/cli-install.test.ts` (pass, 3 tests).
 - **Evidence:** `packages/cli/src/commands.ts`, `packages/cli/test/cli-install.test.ts`, `docs/parity/evidence/LEM-107-install-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
+### LEM-118 — Port feature-gated metered billing and kill switch
+
+- **Epic:** E10 Commercial Parity
+- **Priority:** P2
+- **Points:** 8
+- **Depends on:** LEM-116, LEM-117
+- **Status:** Done
+- **Claimed:** 2026-11-16 — created acceptance criteria (board card); acceptance test: `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/billing.test.ts`.
+- **Description:** Port feature-gated metered billing orchestration to
+  `@lemma/cloud`: off-by-default workspace-scoped feature flag and sandbox mode,
+  secret-reference resolution (no raw secrets persisted), sandbox billing
+  provider with idempotent operations and transient-failure simulation, billing
+  store state/status, customer/subscription setup, ledger-invoice sync/
+  reconciliation with retries/degraded handling, and operator/billing kill-switch
+  controls that disable billing writes without blocking core runs.
+- **Acceptance Criteria:**
+  - `@lemma/cloud` exports billing APIs in `src/billing.ts` (and package entry):
+    `BillingFeatureFlag` (enabled+sandbox+workspace allowlist, env/dict loading),
+    secret managers (`EnvSecretManager`, `InMemorySecretManager`,
+    `FileSecretManager`) resolving references without persisting secret values,
+    sandbox provider with idempotent customer/subscription/invoice operations and
+    configurable transient failures, and `BillingStore` with durable state, status,
+    feature-gate/kill-switch checks, ensure customer/subscription, sync/reconcile
+    invoice against ledger, disable/enable kill switch, and degraded/disabled
+    result handling.
+  - Gating and safety semantics: billing is disabled by default and only enabled
+    for allow-listed workspaces in sandbox mode when kill switches
+    (`.lemma/billing/KILL`, global `.lemma/KILL`) are inactive;
+    disabled/kill-switched operations produce disabled results and create no
+    provider records; secrets are resolved by reference and never written to
+    billing/provider state files.
+  - Reliability/idempotency semantics: provider calls use idempotency keys;
+    transient failures retry and can succeed, while exhausted failures degrade
+    without blocking preserved state; invoice sync is idempotent
+    (reconcile/already-reconciled) and status reflects last state/invoices.
+  - `packages/cloud/test/billing.test.ts` ports/verifies core billing contract
+    behavior: feature-flag off/no provider records, workspace scoping, sandbox
+    reconciliation, idempotent customer/subscription/invoice sync, transient
+    retry then degraded preservation, kill-switch disable/enable, secret
+    non-persistence, and status reporting.
+  - `pnpm --filter @lemma/cloud typecheck`,
+    `pnpm --filter @lemma/cloud build`, and
+    `pnpm exec vitest run packages/cloud/test/billing.test.ts`
+    pass in this environment.
+- **Verification:** `pnpm --filter @lemma/cloud typecheck && pnpm --filter @lemma/cloud build && pnpm exec vitest run packages/cloud/test/billing.test.ts` (pass, 4/4 tests) on 2026-11-16.
+- **Evidence to record:** `packages/cloud/src/billing.ts`, `packages/cloud/src/index.ts`, `packages/cloud/test/billing.test.ts`, `docs/parity/evidence/LEM-118-billing-test-output.txt`, updated `docs/parity/assay-feature-inventory.md` and `BOARD.md`.
+
 
 ### LEM-117 — Port self-serve signup and signed entitlements
 
