@@ -528,8 +528,8 @@ land first.
 | --- | --- | --- | --- | --- | --- |
 | LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Done |
 | LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Done |
-| LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | In Progress |
-| LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Backlog |
+| LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Done |
+| LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Done |
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Backlog |
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Backlog |
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Backlog |
@@ -3159,26 +3159,27 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-044, LEM-197
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing custom persona panel (pro/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed custom persona panel (pro/tests/verification).
 - **Description:** Add custom personas and a diverse persona panel generator
   that reacts like real users. Custom personas remain data contracts, not
   prompt fragments; ownership is enforced exactly as in the free tier
   (LEM-044).
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `addPersona({ contract })` and
+  - [x] `@lemma/pro` exposes `addPersona({ contract })` and
     `generatePanel({ size, diversity })` where generated personas are valid
     persona frontmatter contracts and pass `lintPersonas` (LEM-047).
-  - Ownership rules (LEM-044) are unchanged: a custom persona must own at
+  - [x] Ownership rules (LEM-044) are unchanged: a custom persona must own at
     least one check, and check ownership remains disjoint.
-  - Panel generation is bounded (documented `maxSize`); generated personas are
+  - [x] Panel generation is bounded (documented `maxSize`); generated personas are
     persisted under `.lemma/pro/personas/` and are opt-in per run.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover contract validation, ownership enforcement, panel bounds,
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover contract validation, ownership enforcement, panel bounds,
     persistence, opt-in behavior, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- persona-panel`
-- **Evidence (planned/in progress):** `packages/pro/src/personas.ts`,
-  `packages/pro/test/persona-panel/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/persona-panel/persona-panel.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- persona-panel` — `docs/parity/evidence/LEM-198-persona-panel-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/personas.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/persona-panel/persona-panel.test.ts`,
   `docs/parity/evidence/LEM-198-persona-panel-test-output.txt`
 
 ### LEM-199 — Build the exploratory-bot configuration
@@ -3187,25 +3188,26 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-196, LEM-197
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed exploratory-bot configuration (pro/tests/verification).
 - **Description:** Choose how many agents roam and how far each goes. Bounded
   by documented caps; roving agents produce evidence, never fabricated
   findings.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `configureBots({ count, depth, scope })` persisted in
+  - [x] `@lemma/pro` exposes `configureBots({ count, depth, scope })` persisted in
     the steered plan (LEM-197); `count` and `depth` are capped per tier.
-  - Each bot writes its own evidence under `.lemma/pro/bots/<bot_id>/`; the
+  - [x] Each bot writes its own evidence under `.lemma/pro/bots/<bot_id>/`; the
     aggregate report cites per-bot evidence and distinguishes "explored but
     no finding" from "found".
-  - Bot behavior is deterministic per seed; the same plan + seed produces the
+  - [x] Bot behavior is deterministic per seed; the same plan + seed produces the
     same bot assignments.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover cap enforcement, per-bot evidence, "no finding" honesty,
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover cap enforcement, per-bot evidence, "no finding" honesty,
     determinism, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- bots`
-- **Evidence (planned):** `packages/pro/src/bots.ts`,
-  `packages/pro/test/bots/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/bots/bots.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- bots` — `docs/parity/evidence/LEM-199-bots-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/bots.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/bots/bots.test.ts`,
   `docs/parity/evidence/LEM-199-bots-test-output.txt`
 
 ### LEM-200 — Add the annotated evidence bundle

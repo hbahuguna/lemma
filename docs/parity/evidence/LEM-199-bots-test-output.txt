@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/bots/bots.test.ts (4 tests) 557ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  14:06:19
+   Duration  4.84s (transform 1.83s, setup 0ms, collect 2.56s, tests 557ms, environment 0ms, prepare 535ms)
+
