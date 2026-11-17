@@ -32,3 +32,4 @@ export * from "./steered-plan.js";
 export * from "./dashboard/plan.js";
 export * from "./personas.js";
 export * from "./bots.js";
+export * from "./evidence-bundle.js";

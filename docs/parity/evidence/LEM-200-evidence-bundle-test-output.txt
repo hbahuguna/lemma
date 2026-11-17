@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/evidence-bundle/evidence-bundle.test.ts (3 tests) 330ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  14:10:25
+   Duration  3.22s (transform 1.30s, setup 0ms, collect 1.83s, tests 330ms, environment 0ms, prepare 233ms)
+

@@ -530,7 +530,7 @@ land first.
 | LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Done |
 | LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Done |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Done |
-| LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Backlog |
+| LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | In Progress |
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Backlog |
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Backlog |
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Backlog |
@@ -3216,8 +3216,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-144, LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing annotated evidence bundle (pro/schema/tests) and verification.
 - **Description:** Add a rich evidence bundle per finding: annotated
   screenshots, persona reactions, severity, and pass/fail. Extends LEM-144's
   raw screenshots into a curated, reviewable bundle.
@@ -3234,8 +3234,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover bundle schema, annotation structure, persona-reaction
     attribution, missing-persona nullability, atomic write, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- evidence-bundle`
-- **Evidence (planned):** `packages/pro/src/evidence-bundle.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- evidence-bundle`
+- **Evidence (planned/in progress):** `packages/pro/src/evidence-bundle.ts`,
   `schemas/pro/evidence_bundle.v1.schema.json`,
   `packages/pro/test/evidence-bundle/*`,
   `docs/parity/evidence/LEM-200-evidence-bundle-test-output.txt`

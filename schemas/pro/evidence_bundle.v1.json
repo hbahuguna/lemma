@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/evidence_bundle.v1.json",
+  "title": "Lemma Pro Evidence Bundle v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "finding_id",
+    "run_id",
+    "severity",
+    "pass_fail",
+    "screenshots",
+    "persona_reaction",
+    "persona_reaction_status",
+    "evidence_fingerprint",
+    "bundle_dir"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.evidence_bundle/v1" },
+    "finding_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "severity": { "type": "string" },
+    "pass_fail": { "type": "string", "enum": ["pass", "fail"] },
+    "screenshots": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["path", "annotations"],
+        "properties": {
+          "path": { "type": "string" },
+          "annotations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true,
+              "required": ["region", "label", "note"],
+              "properties": {
+                "region": { "type": "object", "additionalProperties": true },
+                "label": { "type": "string" },
+                "note": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "persona_reaction": { "type": ["object", "null"] },
+    "persona_reaction_status": { "type": "string" },
+    "evidence_fingerprint": { "type": "string", "minLength": 1 },
+    "bundle_dir": { "type": "string", "minLength": 1 }
+  }
+}
