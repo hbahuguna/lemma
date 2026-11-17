@@ -77,3 +77,4 @@ export * from "./run-size.js";
 export * from "./evidence-level.js";
 export * from "./regression-lifecycle.js";
 export * from "./command-preview.js";
+export * from "./browser-adapter.js";

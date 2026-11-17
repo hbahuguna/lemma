@@ -6,7 +6,10 @@ import {
   CheckOutcome,
   CheckStatus,
   evaluateScenarioCheck,
+  negotiateBrowserDispatch,
   type BlockerDraft,
+  type BrowserAdapter,
+  type BrowserAdapterCapabilities,
   type Check,
   type ScenarioExecutionResult,
   type ScenarioPlan,
@@ -455,6 +458,10 @@ export interface RunBrowserChecksInput {
   scenarioPage?: BrowserScenarioPageLike;
   /** Optional viewport label ("WxH") to record on produced check outcomes. */
   viewport?: string;
+  /** Optional browser adapter for negotiation/dispatch (LEM-191). */
+  browserAdapter?: BrowserAdapter;
+  /** Declared adapter capabilities override for negotiation/testing. */
+  browserCapabilities?: Partial<BrowserAdapterCapabilities> | BrowserAdapterCapabilities;
 }
 
 /**
@@ -1075,37 +1082,91 @@ export async function runBrowserChecks(
     return;
   }
 
+  // Capability negotiation / re-plan (LEM-191): when runtime is available, missing required channels
+  // must not be silently dropped or fabricated as passes. Re-planned checks are skipped with explicit
+  // coverage notes. Blocked-runtime behavior above is preserved (LEM-050).
+  const defaultCapabilities: BrowserAdapterCapabilities = {
+    navigation: true,
+    screenshots: true,
+    console: true,
+    network: true,
+    storage: true,
+    viewport: true,
+    crawl: true,
+  };
+  const declaredCaps = input.browserCapabilities ?? (input.browserAdapter ? await Promise.resolve((input.browserAdapter as any).capabilities?.() ?? defaultCapabilities) : undefined);
+  const capabilities: BrowserAdapterCapabilities = { ...defaultCapabilities, ...(declaredCaps && typeof declaredCaps === "object" ? declaredCaps : {}) };
+  const negotiationAdapter: BrowserAdapter = (input.browserAdapter as any) ?? {
+    id: "playwright",
+    version: "1.0.0",
+    nativeVersion: null,
+    capabilities: () => capabilities,
+    dispatch: async () => ({ outcomes: new Map() }),
+  };
+  const negotiation = negotiateBrowserDispatch(negotiationAdapter, capabilities, checks, options as any);
+  const replannedIds = new Set(negotiation.replanned_checks);
+  for (const item of negotiation.plan) {
+    if (item.action !== "replan_skip") continue;
+    const check = checks.find((c) => c.id === item.check_id);
+    if (!check) continue;
+    const note = item.coverage_note || `Browser check '${check.id}' re-planned due to missing adapter channel(s).`;
+    const outcome = new CheckOutcome({
+      status: CheckStatus.SKIPPED,
+      actual: note,
+      evidence: [],
+      findings: [],
+      blocker: null,
+      metadata: {
+        limitation: note,
+        coverage_note: note,
+        replanned: true,
+        missing_channels: item.missing_channels,
+        adapter_id: negotiation.adapter.adapter_id,
+        not_a_pass: true,
+      },
+    });
+    await emit(check, outcome);
+  }
+  const dispatchChecks = checks.filter((c) => !replannedIds.has(c.id));
+  if (dispatchChecks.length === 0) return;
+
+  // If browser.steps was replanned, do not execute it; otherwise preserve injected/precomputed outcome handling.
+  const dispatchHasSteps = dispatchChecks.some((c) => c.id === "browser.steps");
+  const dispatchNonSteps = dispatchChecks.filter((c) => c.id !== "browser.steps");
+
   let views: BrowserPageView[] | null = null;
-  if (Array.isArray(input.pageViews) && input.pageViews.length > 0) {
-    views = input.pageViews.map(normalizePageView);
-  } else if (Array.isArray(input.views) && input.views.length > 0) {
-    views = input.views.map(normalizePageView);
-  } else if (input.pageView) {
-    views = [normalizePageView(input.pageView)];
-  } else {
-    try {
-      views = await captureWithPlaywright(input.url, probe.playwright, options, evidence);
-    } catch (error) {
-      const reason =
-        error instanceof BrowserUnavailableError
-          ? error.reason
-          : error instanceof Error
-            ? error.message
-            : String(error);
-      await degradeBrowserChecks(checks, reason, emit);
-      return;
+  if (dispatchNonSteps.length > 0 || (dispatchHasSteps && !stepsOutcome)) {
+    if (Array.isArray(input.pageViews) && input.pageViews.length > 0) {
+      views = input.pageViews.map(normalizePageView);
+    } else if (Array.isArray(input.views) && input.views.length > 0) {
+      views = input.views.map(normalizePageView);
+    } else if (input.pageView) {
+      views = [normalizePageView(input.pageView)];
+    } else {
+      try {
+        views = await captureWithPlaywright(input.url, probe.playwright, options, evidence);
+      } catch (error) {
+        const reason =
+          error instanceof BrowserUnavailableError
+            ? error.reason
+            : error instanceof Error
+              ? error.message
+              : String(error);
+        await degradeBrowserChecks(dispatchChecks, reason, emit);
+        return;
+      }
     }
   }
 
-  if (!views || views.length === 0) {
-    await degradeBrowserChecks(checks, "No browser page view could be captured.", emit);
+  if ((dispatchNonSteps.length > 0) && (!views || views.length === 0)) {
+    await degradeBrowserChecks(dispatchChecks, "No browser page view could be captured.", emit);
     return;
   }
 
-  const multi = views.length > 1 || (options?.crawl === true && getMaxPages(options) > 1);
+  const multi = !!views && (views.length > 1 || (options?.crawl === true && getMaxPages(options) > 1));
 
-  if (hasSteps && !stepsOutcome) {
-    stepsOutcome = await resolveBrowserStepsOutcome(input, true);
+  if (dispatchHasSteps && !stepsOutcome) {
+    stepsOutcome = await resolveBrowserStepsOutcome({ ...input, checks: dispatchChecks }, true);
   }
 
   const findSourceScreenshotRef = (): string | null => {
@@ -1162,7 +1223,7 @@ export async function runBrowserChecks(
     }
   };
 
-  for (const check of checks) {
+  for (const check of dispatchChecks) {
     try {
       if (check.id === "browser.steps") {
         await emit(
@@ -1173,6 +1234,10 @@ export async function runBrowserChecks(
       }
       if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
         await emit(check, notImplementedOutcome(check));
+        continue;
+      }
+      if (!views || views.length === 0) {
+        await emit(check, blockedBrowserOutcome(check, "No browser page view could be captured."));
         continue;
       }
       const outcome = multi

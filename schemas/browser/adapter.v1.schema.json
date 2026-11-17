@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/browser/adapter.v1.schema.json",
+  "title": "Lemma Browser Adapter Capabilities v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "adapter_id",
+    "adapter_version",
+    "capabilities"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.browser_adapter/v1" },
+    "adapter_id": { "type": "string", "minLength": 1 },
+    "adapter_version": { "type": "string", "minLength": 1 },
+    "native_version": { "type": ["string", "null"] },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["navigation", "screenshots", "console", "network", "storage", "viewport", "crawl"],
+      "properties": {
+        "navigation": { "type": "boolean" },
+        "screenshots": { "type": "boolean" },
+        "console": { "type": "boolean" },
+        "network": { "type": "boolean" },
+        "storage": { "type": "boolean" },
+        "viewport": { "type": "boolean" },
+        "crawl": { "type": "boolean" }
+      }
+    }
+  }
+}

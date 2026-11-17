@@ -510,7 +510,7 @@ auditable system.
 | LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Done |
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Done |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Done |
-| LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Backlog |
+| LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Done |
 | LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Backlog |
 | LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Backlog |
 | LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Backlog |
@@ -2927,32 +2927,34 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-050, LEM-098
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed browser adapter contract (core/schema/playwright/tests/verification).
 - **Description:** Add a formal browser adapter contract: negotiate adapter
   capabilities before dispatch, re-plan when a channel is missing, and never
   silently drop a channel. The contract is host-neutral and adapter-agnostic;
   Playwright is the reference adapter.
 - **Acceptance Criteria:**
-  - `@lemma/core` exports `BrowserAdapter` and `BrowserAdapterCapabilities`
+  - [x] `@lemma/core` exports `BrowserAdapter` and `BrowserAdapterCapabilities`
     interfaces (navigation, screenshots, console, network, storage, viewport,
     crawl) with a versioned schema (`schemas/browser/adapter.v1.json`).
-  - Adapters declare capabilities at registration time; the engine negotiates
+  - [x] Adapters declare capabilities at registration time; the engine negotiates
     before dispatch and re-plans if a required channel is missing (e.g. no
     console channel → skip console-dependent checks with an explicit coverage
     note; never a fabricated pass).
-  - Playwright (LEM-051) is refactored to implement `BrowserAdapter` and
+  - [x] Playwright (LEM-051) is refactored to implement `BrowserAdapter` and
     declare its capabilities; blocked-runtime behavior (LEM-050) is preserved
     end-to-end.
-  - Tests cover capability negotiation, re-plan on missing channel, explicit
+  - [x] Tests cover capability negotiation, re-plan on missing channel, explicit
     coverage notes, Playwright adapter conformance, and blocked-runtime
     preservation.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- browser-adapter && pnpm test --filter @lemma/browser -- adapter-conformance`
-- **Evidence (planned):** `packages/core/src/browser-adapter.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/browser-adapter/browser-adapter.test.ts` (pass, 2/2) and `pnpm exec vitest run packages/browser/test/adapter-conformance/adapter-conformance.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- browser-adapter && pnpm test --filter @lemma/browser -- adapter-conformance` — `docs/parity/evidence/LEM-191-browser-adapter-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/browser build` (pass)
+- **Evidence:** `packages/core/src/browser-adapter.ts`,
   `schemas/browser/adapter.v1.schema.json`,
   `packages/browser/src/adapter.ts`,
-  `packages/core/test/browser-adapter/*`,
-  `packages/browser/test/adapter-conformance/*`,
+  `packages/browser/src/runtime.ts`, `packages/browser/src/index.ts`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
+  `packages/core/test/browser-adapter/browser-adapter.test.ts`,
+  `packages/browser/test/adapter-conformance/adapter-conformance.test.ts`,
   `docs/parity/evidence/LEM-191-browser-adapter-test-output.txt`
 
 ### LEM-192 — Add Vibium integration (native CLI + existing tests)

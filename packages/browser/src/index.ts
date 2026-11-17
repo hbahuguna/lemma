@@ -11,3 +11,5 @@ export * from "./runtime.js";
 export * from "./scenarios.js";
 
 export * from "./inspection.js";
+
+export * from "./adapter.js";

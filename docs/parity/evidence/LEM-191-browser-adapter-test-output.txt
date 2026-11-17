@@ -1,0 +1,24 @@
+=== core browser-adapter ===
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/browser-adapter/browser-adapter.test.ts (2 tests) 8ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  13:05:03
+   Duration  2.40s (transform 1.00s, setup 0ms, collect 1.40s, tests 8ms, environment 0ms, prepare 157ms)
+
+
+=== browser adapter-conformance ===
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/adapter-conformance/adapter-conformance.test.ts (3 tests) 589ms
+   ✓ LEM-191 Playwright browser adapter conformance > re-plans on missing channel with explicit coverage notes (never fabricated pass) when runtime is available  577ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:05:07
+   Duration  2.98s (transform 993ms, setup 0ms, collect 1.41s, tests 589ms, environment 0ms, prepare 245ms)
+
