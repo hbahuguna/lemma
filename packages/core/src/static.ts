@@ -132,8 +132,8 @@ export const ENV_NAMES = new Set([".env", ".env.local", ".env.production", ".env
 export const TEST_HINTS = ["test", "spec", "__tests__", "tests", "e2e", "fixture"];
 
 export const MAX_SCAN_FILES = 2000;
-export const MAX_INVENTORY_FILES_DEFAULT = 5000;
-export const MAX_SCAN_BYTES_DEFAULT = 512 * 1024;
+export const MAX_INVENTORY_FILES_DEFAULT = 20000;
+export const MAX_SCAN_BYTES_DEFAULT = 2 * 1024 * 1024;
 
 export function getMaxInventoryFiles(): number {
   const v = Number(process.env.LEMMA_MAX_INVENTORY_FILES || "");

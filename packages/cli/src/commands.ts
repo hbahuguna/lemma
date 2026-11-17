@@ -241,8 +241,8 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
   const resume = getBool(flags, "resume");
   const quiet = getBool(flags, "quiet");
   const maxChecksStr = getString(flags, "max-checks");
-  const maxChecks = maxChecksStr !== undefined ? toInt(maxChecksStr, "--max-checks") : 20;
-  const runSize = (getString(flags, "run-size", "runSize") ?? "medium") as "quick" | "medium" | "large";
+  const maxChecks = maxChecksStr !== undefined ? toInt(maxChecksStr, "--max-checks") : 100;
+  const runSize = (getString(flags, "run-size", "runSize") ?? "large") as "quick" | "medium" | "large";
   const seedStr = getString(flags, "seed");
   const seed = seedStr !== undefined ? toInt(seedStr, "--seed") : undefined;
   const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
@@ -984,9 +984,9 @@ export const huntCommand: CliCommandHandler = async (argv) => {
   if (!targetRaw) throw new CliUsageError("Missing required --target", { flag: "target" });
   const root = path.resolve(getString(flags, "root", "cwd") ?? ".");
   const maxStepsStr = getString(flags, "max-steps");
-  const maxSteps = maxStepsStr !== undefined ? toInt(maxStepsStr, "--max-steps") : 20;
+  const maxSteps = maxStepsStr !== undefined ? toInt(maxStepsStr, "--max-steps") : 100;
   const wallClockMsStr = getString(flags, "wall-clock-ms");
-  const wallClockBudgetMs = wallClockMsStr !== undefined ? toInt(wallClockMsStr, "--wall-clock-ms") : 30_000;
+  const wallClockBudgetMs = wallClockMsStr !== undefined ? toInt(wallClockMsStr, "--wall-clock-ms") : 300_000;
   const seedStr = getString(flags, "seed");
   const seed = seedStr !== undefined ? toInt(seedStr, "--seed") : undefined;
   const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
@@ -1305,6 +1305,8 @@ export const autoCommand: CliCommandHandler = async (argv) => {
   const targetRaw = getString(flags, "target", "t") ?? positionals[0] ?? root;
   const maxCyclesStr = getString(flags, "max-cycles", "maxCycles");
   const wallClockStr = getString(flags, "wall-clock-ms", "wallClockMs", "wall-clock-budget-ms");
+  const maxCycles = maxCyclesStr !== undefined ? toInt(maxCyclesStr, "--max-cycles") : 10;
+  const wallClockMs = wallClockStr !== undefined ? toInt(wallClockStr, "--wall-clock-ms") : 300_000;
   const runId = getString(flags, "run-id", "run");
   const resume = getBool(flags, "resume");
   const seedStr = getString(flags, "seed");
@@ -1316,9 +1318,9 @@ export const autoCommand: CliCommandHandler = async (argv) => {
   const result = await runAutoLoop({
     root,
     target: normalizeCliTarget(targetRaw),
-    ...(maxCyclesStr !== undefined ? { maxCycles: toInt(maxCyclesStr, "--max-cycles") } : {}),
+    maxCycles,
     stopOn: {
-      ...(wallClockStr !== undefined ? { wallClockMs: toInt(wallClockStr, "--wall-clock-ms") } : {}),
+      wallClockMs,
     },
     approveMutation: async (_proposal) => {
       if (approveMutations) return { approved: true, note: "approved by --approve-mutations" };
@@ -1346,11 +1348,11 @@ export const browserCommand: CliCommandHandler = async (argv) => {
   const noBrowser = getBool(flags, "no-browser");
   const headed = getBool(flags, "headed");
   const headless = getBool(flags, "headless");
-  const crawl = getBool(flags, "crawl");
+  const crawl = !getBool(flags, "no-crawl", "noCrawl");
   const maxPagesStr = getString(flags, "max-pages", "maxPages");
-  const maxPages = maxPagesStr !== undefined ? toInt(maxPagesStr, "--max-pages") : undefined;
+  const maxPages = maxPagesStr !== undefined ? toInt(maxPagesStr, "--max-pages") : 10;
   const timeoutMsStr = getString(flags, "timeout-ms", "timeoutMs");
-  const timeoutMs = timeoutMsStr !== undefined ? toInt(timeoutMsStr, "--timeout-ms") : undefined;
+  const timeoutMs = timeoutMsStr !== undefined ? toInt(timeoutMsStr, "--timeout-ms") : 60_000;
   const runId = getString(flags, "run-id", "run");
   const browserOptions: Record<string, unknown> = {
     ...(noBrowser ? { noBrowser: true } : {}),
@@ -1587,10 +1589,10 @@ export const foreverCommand: CliCommandHandler = async (argv) => {
   const { flags } = parseArgs(argv);
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
   const target = getString(flags, "target", "path", "url") ?? root;
-  const maxCycles = toInt(getString(flags, "max-cycles", "maxCycles") ?? "5", "--max-cycles");
+  const maxCycles = toInt(getString(flags, "max-cycles", "maxCycles") ?? "10", "--max-cycles");
   const checkpointEvery = toInt(getString(flags, "checkpoint-every", "checkpointEvery") ?? "1", "--checkpoint-every");
   const wallClockMsStr = getString(flags, "wall-clock-ms", "wallClockMs");
-  const wallClockMs = wallClockMsStr != null ? toInt(wallClockMsStr, "--wall-clock-ms") : undefined;
+  const wallClockMs = wallClockMsStr != null ? toInt(wallClockMsStr, "--wall-clock-ms") : 300_000;
   const runId = getString(flags, "run-id", "runId");
   const resume = getBool(flags, "resume") === true;
   const clock = getString(flags, "clock") === "frozen" ? "frozen" : "real";
