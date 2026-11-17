@@ -533,8 +533,8 @@ land first.
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Done |
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Done |
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Done |
-| LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | In Progress |
-| LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Backlog |
+| LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Done |
+| LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | In Progress |
 | LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Backlog |
 | LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Backlog |
 ---
@@ -3313,29 +3313,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing TAI-style fine-tuned QA model API (pro-services/tests/docs) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed TAI-style fine-tuned QA model API (pro-services/tests/docs/verification).
 - **Description:** Ship an OpenAI-compatible fine-tuned QA model API for
   lemma's Pro tier. Model training data and evaluation are documented; the
   API is OpenAI-compatible at the wire level.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes an HTTP service under `pro-services/model-api/`
+  - [x] `@lemma/pro` exposes an HTTP service under `pro-services/model-api/`
     speaking the OpenAI `chat/completions` wire format; versioned model id is
     documented.
-  - The model API is metered through the existing metering envelope
+  - [x] The model API is metered through the existing metering envelope
     (LEM-113); unauthorized requests are rejected with a typed error before
     inference.
-  - Training data provenance, evaluation results, and known limitations are
+  - [x] Training data provenance, evaluation results, and known limitations are
     documented in `pro-services/model-api/README.md`; the model never claims
     to replace human review.
-  - Wire-format conformance is validated by a repo-owned OpenAI-compatible
+  - [x] Wire-format conformance is validated by a repo-owned OpenAI-compatible
     client fixture; streaming and non-streaming are both covered.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover wire conformance, metering, auth rejection, streaming and
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover wire conformance, metering, auth rejection, streaming and
     non-streaming responses, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- model-api`
-- **Evidence (planned/in progress):** `pro-services/model-api/*`,
-  `packages/pro/test/model-api/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/model-api/model-api.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- model-api` — `docs/parity/evidence/LEM-203-model-api-test-output.txt`
+- **Evidence:** `pro-services/model-api/src/server.ts`,
+  `pro-services/model-api/src/index.ts`,
+  `pro-services/model-api/README.md`,
+  `pro-services/model-api/fixtures/openai-client.ts`,
+  `packages/pro/test/model-api/model-api.test.ts`,
   `docs/parity/evidence/LEM-203-model-api-test-output.txt`
 
 ### LEM-204 — Build the Test Reports REST API
@@ -3344,8 +3347,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-083, LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing Test Reports REST API (pro-services/schema/tests) and verification.
 - **Description:** Add a programmatic REST API for testing and report
   retrieval. `POST /api/reports` starts a run; `GET /api/reports/{id}` returns
   the report. Auth, quota, and metering use the existing Pro-tier contracts.
@@ -3362,8 +3365,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover wire conformance, auth rejection, quota enforcement, metering,
     tenant isolation, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- reports-api`
-- **Evidence (planned):** `pro-services/reports-api/*`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- reports-api`
+- **Evidence (planned/in progress):** `pro-services/reports-api/*`,
   `schemas/pro/reports_api.v1.schema.json`,
   `packages/pro/test/reports-api/*`,
   `docs/parity/evidence/LEM-204-reports-api-test-output.txt`

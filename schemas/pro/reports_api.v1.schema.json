@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/reports_api.v1.json",
+  "title": "Lemma Pro Test Reports REST API v1",
+  "description": "Request/response shapes for pro-services/reports-api (POST /api/reports, GET /api/reports/{id}). Auth uses Pro-tier scoped-key contract (LEM-114). Every request is quota-checked (LEM-115) and metered (LEM-113). Jobs are queued through LEM-119 and reports are retrievable only by the owning tenant/workspace.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "CreateReportRequest": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["target"],
+      "properties": {
+        "target": { "type": "string", "minLength": 1 },
+        "options": { "type": "object", "additionalProperties": true },
+        "source": { "type": "string" },
+        "intent": { "type": "string" }
+      }
+    },
+    "CreateReportResponse": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "status", "workspace_id", "created_at"],
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string" },
+        "workspace_id": { "type": "string" },
+        "created_at": { "type": "string" },
+        "run_id": { "type": ["string", "null"] },
+        "links": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "GetReportResponse": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "status", "workspace_id"],
+      "properties": {
+        "id": { "type": "string" },
+        "status": { "type": "string" },
+        "workspace_id": { "type": "string" },
+        "run_id": { "type": ["string", "null"] },
+        "report": { "type": ["object", "null"], "additionalProperties": true },
+        "error": { "type": ["string", "null"] },
+        "started_at": { "type": ["string", "null"] },
+        "completed_at": { "type": ["string", "null"] }
+      }
+    },
+    "ErrorResponse": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["error"],
+      "properties": {
+        "error": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" },
+            "type": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}
