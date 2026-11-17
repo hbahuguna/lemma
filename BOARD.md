@@ -532,8 +532,8 @@ land first.
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Done |
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Done |
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Done |
-| LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | In Progress |
-| LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Backlog |
+| LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Done |
+| LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | In Progress |
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Backlog |
 | LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Backlog |
 | LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Backlog |
@@ -3281,28 +3281,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing category benchmarks (pro/schema/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed category benchmarks and competitive intelligence (pro/schema/tests/verification).
 - **Description:** Show how a target compares to category peers. Benchmarks
   are sourced from documented, consented aggregates only; no target is
   benchmarked without explicit opt-in.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `computeBenchmark({ target, category, consent })`
+  - [x] `@lemma/pro` exposes `computeBenchmark({ target, category, consent })`
     validated against `schemas/pro/benchmark.v1.json`; a call without
     `consent: true` raises a typed `ConsentRequiredError`.
-  - Benchmarks are computed only from documented aggregates; no per-tenant
+  - [x] Benchmarks are computed only from documented aggregates; no per-tenant
     data is included; the schema documents exactly what is aggregated and how
     the target is ranked.
-  - The output cites the benchmark version, sample size, and last-updated
+  - [x] The output cites the benchmark version, sample size, and last-updated
     timestamp; missing data is reported as `insufficient_sample`, never
     extrapolated.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover consent gate, aggregate source, schema, insufficient-sample
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover consent gate, aggregate source, schema, insufficient-sample
     reporting, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- benchmark`
-- **Evidence (planned/in progress):** `packages/pro/src/benchmark.ts`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/benchmark/benchmark.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- benchmark` — `docs/parity/evidence/LEM-202-benchmark-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/benchmark.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `schemas/pro/benchmark.v1.json`,
   `schemas/pro/benchmark.v1.schema.json`,
-  `packages/pro/test/benchmark/*`,
+  `packages/pro/test/benchmark/benchmark.test.ts`,
   `docs/parity/evidence/LEM-202-benchmark-test-output.txt`
 
 ### LEM-203 — Build the TAI-style fine-tuned QA model API
@@ -3311,8 +3313,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing TAI-style fine-tuned QA model API (pro-services/tests/docs) and verification.
 - **Description:** Ship an OpenAI-compatible fine-tuned QA model API for
   lemma's Pro tier. Model training data and evaluation are documented; the
   API is OpenAI-compatible at the wire level.
@@ -3331,8 +3333,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover wire conformance, metering, auth rejection, streaming and
     non-streaming responses, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- model-api`
-- **Evidence (planned):** `pro-services/model-api/*`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- model-api`
+- **Evidence (planned/in progress):** `pro-services/model-api/*`,
   `packages/pro/test/model-api/*`,
   `docs/parity/evidence/LEM-203-model-api-test-output.txt`
 

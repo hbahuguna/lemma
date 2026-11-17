@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/model-api/model-api.test.ts (4 tests) 168ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  14:29:31
+   Duration  3.13s (transform 1.28s, setup 0ms, collect 1.75s, tests 168ms, environment 0ms, prepare 465ms)
+
