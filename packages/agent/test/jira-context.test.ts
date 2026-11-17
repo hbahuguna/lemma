@@ -268,8 +268,8 @@ describe("LEM-092 Jira context, ADF, and redaction", () => {
       tool: { transform: (editorFn: (editor: { add: (tool: (typeof added)[number]) => void }) => void) => { editorFn({ add: (tool) => added.push(tool) }); return Promise.resolve(); } },
     };
     expect(await registerJiraContextTool(regCtx)).toBe(true);
-    expect(added[0]?.name).toBe("assay_jira_context");
-    expect(Object.keys(added[0]!.input.properties)).toEqual(["site", "issueKey", "email", "tokenRef"]);
+    expect(added.map((t) => t.name)).toEqual(["lemma_jira_context", "assay_jira_context"]);
+    expect(Object.keys(added[0]!.input.properties)).toEqual(["site", "issueKey", "email", "tokenRef", "token"]);
     const result = await added[0]!.execute({}, { sessionID: "ses_1" });
     expect(result.content).toMatch(/Jira context cancelled/);
     expect(createdPayload?.fields.length).toBe(4);

@@ -48,10 +48,11 @@ describe("LEM-096 agent-loop and prompt-contract tests", () => {
     expect(CONTEXT_PROTOCOL).toMatch(/MCP/);
     expect(CONTEXT_PROTOCOL).toMatch(/Secure env\/secret ref/);
     expect(CONTEXT_PROTOCOL).toMatch(/Jira form/);
+    expect(CONTEXT_PROTOCOL).toMatch(/lemma_jira_context/);
     expect(CONTEXT_PROTOCOL).toMatch(/assay_jira_context/);
     expect(CONTEXT_PROTOCOL).toMatch(/site, issue key, email, API token/);
     expect(CONTEXT_PROTOCOL).toMatch(/token is consumed by the tool in memory/i);
-    expect(CONTEXT_PROTOCOL).toMatch(/do not ask the user to paste it into chat/i);
+    expect(CONTEXT_PROTOCOL).toMatch(/Do not ask for or repeat raw tokens in prose/i);
 
     const prompt = buildBrowserAgentPrompt(PROMPT_INPUT);
     expect(prompt).toMatch(/https:\/\/testradius\.dev/);

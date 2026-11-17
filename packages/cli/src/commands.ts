@@ -936,6 +936,26 @@ export const installCommand: CliCommandHandler = async (argv) => {
   }
   assets.push({ relPath: layout.skillPath, content: renderLemmaSkillTemplate(templateOpts) });
 
+  if (hostArg === "opencode") {
+    const pluginContent = `// Lemma OpenCode plugin: best-effort Jira context tool registration.
+// Registers lemma_jira_context/assay_jira_context when @lemma/agent is available.
+async function register(ctx) {
+  try {
+    const mod = await import("@lemma/agent");
+    if (mod && typeof mod.registerJiraContextTool === "function") {
+      await mod.registerJiraContextTool(ctx);
+    }
+  } catch {
+    // Best-effort: tool registration unavailable in this environment.
+  }
+}
+export default register;
+export const LemmaJiraContextPlugin = register;
+`;
+    assets.push({ relPath: path.join(".opencode", "plugin", "lemma-jira-context.mjs"), content: pluginContent });
+    assets.push({ relPath: path.join(".opencode", "plugins", "lemma-jira-context.mjs"), content: pluginContent });
+  }
+
   const written: string[] = [];
   const skipped: string[] = [];
   const planned: string[] = [];

@@ -131,33 +131,54 @@ export interface LocalServiceConfig {
 
 /**
  * Locate local OpenCode-compatible service for native Form API fallback.
- * Reads password from env/ASSAY_OPENCODE_PASSWORD or ~/.config/opencode/service.json.
- * Secret is used only for Authorization header construction.
+ * Checks env vars and common local service config files.
+ * Secrets are used only for Authorization header construction (in-memory).
  */
 export function readLocalServiceConfig(): LocalServiceConfig | null {
-  const configuredPassword = process.env.ASSAY_OPENCODE_PASSWORD || process.env.LEMMA_OPENCODE_PASSWORD || "";
-  let password = configuredPassword;
-  if (!password) {
-    try {
-      const p = join(homedir(), ".config", "opencode", "service.json");
-      const parsed = JSON.parse(readFileSync(p, "utf8")) as { password?: unknown };
-      if (typeof parsed?.password === "string") password = parsed.password;
-    } catch {
-      return null;
-    }
-  }
-  if (!password) return null;
-
-  const configuredPort = process.env.ASSAY_OPENCODE_PORT || process.env.LEMMA_OPENCODE_PORT || "";
+  const configuredPort =
+    process.env.ASSAY_OPENCODE_PORT ||
+    process.env.LEMMA_OPENCODE_PORT ||
+    process.env.OPENCODE_PORT ||
+    "";
   const baseUrl = (
     process.env.ASSAY_OPENCODE_URL ||
     process.env.LEMMA_OPENCODE_URL ||
+    process.env.OPENCODE_URL ||
     (configuredPort ? `http://127.0.0.1:${configuredPort}` : DEFAULT_OPENCODE_URL)
   ).replace(/\/+$/, "");
 
+  let password =
+    process.env.ASSAY_OPENCODE_PASSWORD ||
+    process.env.LEMMA_OPENCODE_PASSWORD ||
+    process.env.OPENCODE_SERVER_PASSWORD ||
+    process.env.OPENCODE_PASSWORD ||
+    "";
+  let username = process.env.ASSAY_OPENCODE_USERNAME || process.env.LEMMA_OPENCODE_USERNAME || process.env.OPENCODE_USERNAME || "opencode";
+
+  if (!password) {
+    const candidates = [
+      join(homedir(), ".config", "opencode", "service.json"),
+      join(homedir(), ".local", "share", "opencode", "service.json"),
+      join(homedir(), ".opencode", "service.json"),
+    ];
+    for (const p of candidates) {
+      try {
+        const parsed = JSON.parse(readFileSync(p, "utf8")) as Record<string, unknown>;
+        const pw = parsed?.password ?? parsed?.token ?? parsed?.serverPassword;
+        const user = parsed?.username ?? parsed?.user;
+        if (typeof pw === "string" && pw) password = pw;
+        if (typeof user === "string" && user) username = user;
+        if (password) break;
+      } catch {
+        // continue
+      }
+    }
+  }
+
+  if (!password) return null;
   return {
     baseUrl,
-    auth: "Basic " + Buffer.from(`opencode:${password}`).toString("base64"),
+    auth: "Basic " + Buffer.from(`${username}:${password}`).toString("base64"),
   };
 }
 
@@ -524,6 +545,115 @@ export interface JiraContextToolDefinition {
   execute: (input: JiraFormPrefill, context: JiraContextToolContext) => Promise<{ content: string }>;
 }
 
+function buildJiraContextToolDefinition(
+  ctx: unknown,
+  name: "assay_jira_context" | "lemma_jira_context",
+): JiraContextToolDefinition {
+  return {
+    name,
+    description:
+      "Collect Jira ticket context for test planning and return redacted issue details. Prefers native Jira form when available; can also fetch directly when site, issueKey, email, and tokenRef (or provided token) are supplied. Never expose raw tokens in output.",
+    input: {
+      type: "object",
+      properties: {
+        site: { type: "string", description: "Optional Jira base URL (e.g. https://yourorg.atlassian.net)." },
+        issueKey: { type: "string", description: "Optional Jira issue key or issue URL." },
+        email: { type: "string", description: "Optional Jira account email." },
+        tokenRef: {
+          type: "string",
+          description: "Optional environment variable name holding the Jira API token (preferred; avoids form token field).",
+        },
+        token: {
+          type: "string",
+          description: "Optional API token for direct fetch fallback (use only when necessary; prefer tokenRef or native form). Never echo this value.",
+        },
+      },
+      additionalProperties: false,
+    },
+    execute: async (input: JiraFormPrefill & { token?: string } = {}, context: JiraContextToolContext = {}) => {
+      const sessionID = context.sessionID;
+      const directToken = (typeof input.tokenRef === "string" && input.tokenRef)
+        ? (process.env[input.tokenRef] ?? "")
+        : (typeof input.token === "string" ? input.token : "");
+      const hasDirectFields = Boolean(
+        (typeof input.site === "string" && input.site.trim()) &&
+        (typeof input.issueKey === "string" && input.issueKey.trim()) &&
+        (typeof input.email === "string" && input.email.trim()) &&
+        directToken,
+      );
+
+      if (hasDirectFields) {
+        try {
+          const issue = await fetchJiraIssue({
+            site: String(input.site),
+            issueKey: String(input.issueKey),
+            email: String(input.email),
+            token: directToken,
+            ...(context.signal ? { signal: context.signal } : {}),
+          });
+          return { content: formatJiraContext(issue) };
+        } catch (error) {
+          return {
+            content: `Jira context unavailable: ${sanitizeError(error, [directToken])}. Verify site/issue/email/tokenRef (or token) and permissions, or provide ticket context via paste in chat.`,
+          };
+        }
+      }
+
+      if (!sessionID) {
+        return {
+          content:
+            "Jira context unavailable: no active session for native form. Provide ticket context by pasting the Jira issue details/AC in chat, or call this tool with site, issueKey, email, and tokenRef (env var) if available. Record a context gap and continue with safe unique steps.",
+        };
+      }
+
+      let api: JiraFormApi | null = null;
+      try {
+        api = getJiraFormApi(ctx);
+      } catch (error) {
+        return {
+          content:
+            `Jira form is unavailable in this runtime (${sanitizeError(error)}). Provide ticket context by pasting the Jira issue details/AC in chat, or set a Jira API token in an env var and call \`lemma_jira_context\`/\`assay_jira_context\` with site, issueKey, email, and tokenRef. How do you want to provide the ticket context?`,
+        };
+      }
+
+      let answer: Record<string, unknown> | null;
+      try {
+        answer = await collectJiraForm(api, sessionID, input || {}, context.signal);
+      } catch (error) {
+        return {
+          content: `Jira context unavailable: ${sanitizeError(error)}. Provide ticket context by pasting details in chat or using tokenRef with direct fields. Record a context gap and continue with safe unique steps.`,
+        };
+      }
+      if (!answer) {
+        return { content: "Jira context cancelled. Provide ticket context by pasting details in chat if needed, then continue with safe unique steps." };
+      }
+
+      const token = (typeof input.tokenRef === "string" && input.tokenRef)
+        ? (process.env[input.tokenRef] ?? "")
+        : (typeof answer.jira_token === "string" ? answer.jira_token : "");
+      if (!token) {
+        const ref = (typeof input.tokenRef === "string" && input.tokenRef) ? `environment variable ${input.tokenRef}` : "API token";
+        return { content: `Jira context unavailable: ${ref} is missing. Provide ticket context by pasting details in chat or retry with tokenRef. Record a context gap and continue.` };
+      }
+
+      try {
+        const issue = await fetchJiraIssue({
+          site: typeof answer.jira_site === "string" ? answer.jira_site : (typeof input.site === "string" ? input.site : ""),
+          issueKey: typeof answer.jira_issue_key === "string" ? answer.jira_issue_key : (typeof input.issueKey === "string" ? input.issueKey : ""),
+          email: typeof answer.jira_email === "string" ? answer.jira_email : (typeof input.email === "string" ? input.email : ""),
+          token,
+          ...(context.signal ? { signal: context.signal } : {}),
+        });
+        return { content: formatJiraContext(issue) };
+      } catch (error) {
+        return {
+          content: `Jira context unavailable: ${sanitizeError(error, [token])}. Provide ticket context by pasting details in chat or retry with corrected fields/tokenRef. Record a context gap and continue with safe unique steps.`,
+        };
+      }
+    },
+  };
+}
+
 export async function registerJiraContextTool(ctx: unknown): Promise<boolean> {
   const c = isRecord(ctx) ? ctx : {};
   const tool = isRecord(c.tool) ? c.tool : undefined;
@@ -532,74 +662,8 @@ export async function registerJiraContextTool(ctx: unknown): Promise<boolean> {
   }
 
   await (tool.transform as (editorFn: (editor: { add: (t: JiraContextToolDefinition) => void }) => void) => Promise<void>)((editor) => {
-    editor.add({
-      name: "assay_jira_context",
-      description:
-        "Open a native four-field Jira form (site, issue key, email, API token), fetch the issue, and return redacted Jira context for test planning. Use this for Jira context instead of asking for a token in chat.",
-      input: {
-        type: "object",
-        properties: {
-          site: { type: "string", description: "Optional Jira base URL to prefill." },
-          issueKey: { type: "string", description: "Optional issue key or URL to prefill." },
-          email: { type: "string", description: "Optional Jira email to prefill." },
-          tokenRef: {
-            type: "string",
-            description: "Optional environment variable name holding the API token. Skips the token field.",
-          },
-        },
-        additionalProperties: false,
-      },
-      execute: async (input: JiraFormPrefill = {}, context: JiraContextToolContext = {}) => {
-        const sessionID = context.sessionID;
-        if (!sessionID) {
-          return { content: "Jira context unavailable: no active session. Record a context gap and continue." };
-        }
-
-        let api: JiraFormApi;
-        try {
-          api = getJiraFormApi(ctx);
-        } catch (error) {
-          return {
-            content: `Jira context unavailable: ${sanitizeError(error)}. Record a context gap and continue with safe unique steps.`,
-          };
-        }
-
-        let answer: Record<string, unknown> | null;
-        try {
-          answer = await collectJiraForm(api, sessionID, input || {}, context.signal);
-        } catch (error) {
-          return {
-            content: `Jira context unavailable: ${sanitizeError(error)}. Record a context gap and continue with safe unique steps.`,
-          };
-        }
-        if (!answer) {
-          return { content: "Jira context cancelled. Record a context gap and continue with safe unique steps." };
-        }
-
-        const token = input.tokenRef
-          ? (process.env[input.tokenRef] ?? "")
-          : (typeof answer.jira_token === "string" ? answer.jira_token : "");
-        if (!token) {
-          const ref = input.tokenRef ? `environment variable ${input.tokenRef}` : "API token";
-          return { content: `Jira context unavailable: ${ref} is missing. Record a context gap and continue.` };
-        }
-
-        try {
-          const issue = await fetchJiraIssue({
-            site: typeof answer.jira_site === "string" ? answer.jira_site : (typeof input.site === "string" ? input.site : ""),
-            issueKey: typeof answer.jira_issue_key === "string" ? answer.jira_issue_key : (typeof input.issueKey === "string" ? input.issueKey : ""),
-            email: typeof answer.jira_email === "string" ? answer.jira_email : (typeof input.email === "string" ? input.email : ""),
-            token,
-            ...(context.signal ? { signal: context.signal } : {}),
-          });
-          return { content: formatJiraContext(issue) };
-        } catch (error) {
-          return {
-            content: `Jira context unavailable: ${sanitizeError(error, [token])}. Record a context gap and continue with safe unique steps.`,
-          };
-        }
-      },
-    });
+    editor.add(buildJiraContextToolDefinition(ctx, "lemma_jira_context"));
+    editor.add(buildJiraContextToolDefinition(ctx, "assay_jira_context"));
   });
 
   return true;
