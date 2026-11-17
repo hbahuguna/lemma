@@ -232,10 +232,40 @@ async function readKeyMaterial(value: string): Promise<string> {
   return value;
 }
 
+/**
+ * Older `/lemma-browser` implementations emitted `lemma run --target <url>
+ * --crawl --mobile --headed --active --active-interactions`. `run` never knew
+ * about those flags, so the command started a non-browser run and silently
+ * skipped the whole interaction regression. Normalize that legacy shape to a
+ * real `browser` invocation instead of letting it masquerade as browser
+ * coverage.
+ */
+export function legacyBrowserRunArgs(flags: Record<string, string | boolean | string[]>): string[] | null {
+  if (getBool(flags, "no-browser")) return null;
+  const browserIntentFlags = ["crawl", "mobile", "mobile-pack", "responsive", "active", "active-interactions", "headed"];
+  if (!browserIntentFlags.some((f) => Object.prototype.hasOwnProperty.call(flags, f))) return null;
+  const target = getString(flags, "target", "t");
+  if (!target || !/^https?:\/\//i.test(target)) return null;
+
+  const args: string[] = [target];
+  const maxPages = getString(flags, "max-pages", "maxPages");
+  if (maxPages !== undefined) args.push("--max-pages", maxPages);
+  if (getBool(flags, "no-crawl")) args.push("--no-crawl");
+  args.push("--timeout-ms", getString(flags, "timeout-ms", "timeout") ?? "120000");
+  return args;
+}
+
 export const runCommand: CliCommandHandler = async (argv, io) => {
   const { flags } = parseArgs(argv);
   const targetRaw = getString(flags, "target", "t");
   if (!targetRaw) throw new CliUsageError("Missing required --target", { flag: "target" });
+  const legacyBrowser = legacyBrowserRunArgs(flags);
+  if (legacyBrowser) {
+    io.stderr(
+      "[lemma] normalized legacy browser-intent 'run' invocation to the 'browser' subcommand (headed regression with interactions)\n",
+    );
+    return browserCommand(legacyBrowser, io);
+  }
   const root = path.resolve(getString(flags, "root") ?? ".");
   const intent = getString(flags, "intent", "i") ?? "Assess release readiness of the target.";
   const resume = getBool(flags, "resume");

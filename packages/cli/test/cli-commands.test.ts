@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import { EXIT_CODES } from "@lemma/core";
 
 import { main, type CliIO } from "../src/index.js";
+import { legacyBrowserRunArgs } from "../src/commands.js";
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
   const dir = await mkdtemp(path.join(os.tmpdir(), "lemma-cli-"));
@@ -39,6 +40,26 @@ function asObj(v: unknown): Record<string, unknown> {
 }
 
 describe("LEM-084 core CLI commands", () => {
+  it("normalizes legacy browser-intent `run` flags to a real browser invocation", () => {
+    // Exact shape emitted by older /lemma-browser implementations.
+    expect(
+      legacyBrowserRunArgs({
+        target: "https://testradius.dev",
+        "personas-dir": "personas",
+        intent: "Lemma browser assessment",
+        crawl: true,
+        "max-pages": "8",
+        mobile: true,
+        headed: true,
+        active: true,
+        "active-interactions": true,
+      }),
+    ).toEqual(["https://testradius.dev", "--max-pages", "8", "--timeout-ms", "120000"]);
+    expect(legacyBrowserRunArgs({ target: "https://example.test" })).toBeNull();
+    expect(legacyBrowserRunArgs({ target: ".", crawl: true })).toBeNull();
+    expect(legacyBrowserRunArgs({ target: "https://example.test", crawl: true, "no-browser": true })).toBeNull();
+  });
+
   it("status returns no_run when no progress exists", async () => {
     await withTempDir(async (root) => {
       const { io, stdout, stderr } = makeIo();

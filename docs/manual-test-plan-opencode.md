@@ -284,6 +284,7 @@ $LEMMA_CLI <command> [options]
 
 ### 10.2 Fixes
 - `browserInvocation` now emits `browser <URL> --crawl --max-pages 25 --timeout-ms 120000`.
+- A long-lived OpenCode session (or the stale global assay plugin) can still emit the legacy shape `lemma run --target <url> --crawl --max-pages 8 --mobile --headed --active --active-interactions`. The CLI now detects this browser-intent `run` shape, prints a normalization warning on stderr, and delegates to `browserCommand` so a headed browser and the full interaction regression actually run.
 - `commandToArgs`/`isAllowedCommand` accept `lemma-browser` (and keep `assay-browser` as a compatibility alias).
 - `scopedCheckIds` falls back to all checks when a filter matches none, so a run can never silently have zero checks/interaction evidence.
 - The installed `/lemma-browser` command now requires verification of `browser.steps` and `auto-interactions-*` artifacts before reporting success.
