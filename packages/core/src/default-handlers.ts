@@ -136,12 +136,64 @@ export function createDefaultPhaseHandlers(options: DefaultPhaseHandlersOptions 
       await evidence.init();
       const runner = new StaticCheckRunner(root, inventory, evidence);
       const findings: Finding[] = Array.isArray((ctx.state as any).findings) ? (ctx.state as any).findings : [];
+      const target = ctx.state.target as any;
+      const noBrowser = options.noBrowser ?? (ctx.options as any).noBrowser ?? target?.kind !== "url";
+
+      // Execute browser checks as a batch when possible
+      const browserIndexes: number[] = [];
+      for (let i = 0; i < ctx.state.checks.length; i++) {
+        const c = ctx.state.checks[i] as any;
+        if (String(c.kind) === "browser" || String(c.id).startsWith("browser.")) browserIndexes.push(i);
+      }
+      if (browserIndexes.length > 0) {
+        if (!noBrowser && target?.kind === "url" && typeof target.resolved === "string") {
+          try {
+            const mod = await import("@lemma/browser");
+            const browserChecks = browserIndexes.map((i) => ctx.state.checks[i] as any);
+            const byId = new Map(browserChecks.map((c: any) => [c.id, c]));
+            await mod.runBrowserChecks({
+              url: target.resolved,
+              checks: browserChecks as any,
+              evidence,
+              options: { crawl: true, maxPages: 10, headless: (ctx.options as any)?.headless ?? true, ...(ctx.options as any)?.browserOptions },
+              onOutcome: async (check: any, outcome: any) => {
+                const c = byId.get(check.id);
+                if (!c) return;
+                c.status = outcome.status ?? CheckStatus.ERROR;
+                c.actual = outcome.actual ?? c.actual;
+                if (Array.isArray(outcome.findings)) {
+                  c.finding_ids = outcome.findings.map((f: any) => f?.id).filter(Boolean);
+                  for (const f of outcome.findings) findings.push(f);
+                }
+              },
+            } as any);
+          } catch (e) {
+            const reason = e instanceof Error ? e.message : String(e);
+            for (const i of browserIndexes) {
+              const c = ctx.state.checks[i] as any;
+              c.status = CheckStatus.BLOCKED;
+              c.actual = `Browser checks could not be executed: ${reason}`;
+            }
+          }
+        } else {
+          for (const i of browserIndexes) {
+            const c = ctx.state.checks[i] as any;
+            c.status = CheckStatus.BLOCKED;
+            c.actual = noBrowser ? "Browser checks disabled (--no-browser)." : "Browser checks require a URL target.";
+          }
+        }
+      }
 
       for (let i = 0; i < ctx.state.checks.length; i++) {
         const check = ctx.state.checks[i] as any;
         if (await ctx.isKillRequested()) {
           await ctx.halt(String(await ctx.isKillRequested() || "Kill requested"), true);
           break;
+        }
+        // browser checks handled above
+        if (String(check.kind) === "browser" || String(check.id).startsWith("browser.")) {
+          ctx.state.checks[i] = check;
+          continue;
         }
         try {
           if (String(check.id).startsWith("static.")) {
@@ -152,9 +204,6 @@ export function createDefaultPhaseHandlers(options: DefaultPhaseHandlersOptions 
             if (Array.isArray((outcome as any).findings)) {
               for (const f of (outcome as any).findings) findings.push(f);
             }
-          } else if (String(check.kind) === "browser" || String(check.id).startsWith("browser.")) {
-            check.status = CheckStatus.BLOCKED;
-            check.actual = "Browser checks were not executed by default handlers in this run context.";
           } else {
             check.status = CheckStatus.SKIPPED;
             check.actual = "No execution handler available for this check type in default handlers.";

@@ -1225,10 +1225,11 @@ function isApplicable(
   const liveBrowserAvailable = target.kind === "url" && !noBrowser;
   const matchedLabel = matchedAssayCategoryLabel(textIntent);
   const categoryLabel = categoryLabelFromCheckId(definition.id);
+  const comprehensive = matchedLabel === "full" || /\b(full regression|regression|comprehensive assessment|release readiness|release confidence)\b/i.test(textIntent);
 
   // category scope checks (specialized and generic) are intent-gated
   if (categoryLabel != null) {
-    if (matchedLabel !== categoryLabel) return false;
+    if (!comprehensive && matchedLabel !== categoryLabel) return false;
     if (definition.id === "static.browser_category") {
       return !liveBrowserAvailable;
     }
