@@ -57,26 +57,45 @@ export function renderCatalogCommandTemplate(
   const intent = lemmaIntent(command.label);
 
   if (kind === "browser") {
-    const description = options.description ?? "Run Lemma live browser assessment (requires a URL)";
+    const description = options.description ?? "Run long-running comprehensive Lemma browser regression (requires a URL)";
+    const cliBin = cli === "lemma" ? "node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js" : cli;
     const body = [
-      `Run an **agent-driven, interactive** Lemma browser assessment for: $ARGUMENTS`,
+      `Run a **long-running, comprehensive, agent-driven full browser regression** for: $ARGUMENTS`,
+      "",
+      "## Default mission (apply unless user explicitly narrows scope)",
+      "- Target the provided reachable `http(s)` URL (e.g. https://testradius.dev) and **test all user-facing features**.",
+      "- Crawl all reachable same-origin pages/routes (nav, footer, docs/help, forms, modals, and key user journeys). **Do not stop at the homepage**.",
+      "- If the target source repo/workspace is available locally, inspect it first (routes, components, configs, feature flags, forms, auth/API flows, docs/tests) to build a complete feature inventory and map features to browser scenarios.",
+      "",
+      "## Test planning (before/during execution)",
+      "- Produce a comprehensive, prioritized test plan covering all discovered features (landing/content, navigation, auth/signup/login/logout/reset if present, core workflows, forms/validation, search/filter/sort/pagination, CRUD actions, uploads/downloads, settings/profile, dashboards/reports, notifications/toasts, modals/dialogs, tabs/accordions/dropdowns/toggles, responsive/mobile behavior, error/empty states, and discoverable integrations).",
+      "- For each feature/scenario include: goal, preconditions/test data, steps, expected result, and whether automatable now. Mark auth-gated/destructive/environment-dependent/not-automatable cases as explicit coverage gaps (never guess, never pass).",
+      "",
+      "## Execution (maximize automated coverage and runtime)",
+      "- Run thorough, long browser passes (headed by default unless headless requested/no display). Use crawl/multi-page coverage and repeat across key routes/viewports where useful.",
+      "- Collect evidence for every reachable page/route: navigation/load status and final URL, console/page errors, failed/4xx/5xx network requests, title/headings/content sanity, link integrity, and screenshots/DOM snapshots/manifests produced by Lemma.",
+      "- Execute all automatable interaction flows supported by available Lemma browser/scenario tooling (clicks, navigation, form fills/submits, toggles/selects where supported). For flows not fully automatable, perform deepest safe verification possible and record exact gaps/blockers.",
+      "- Use Lemma browser CLI for evidence collection from the target workspace (results in `./.lemma/`), for example:",
+      "  ```bash",
+      `  ${cliBin} browser <URL> --crawl --max-pages 25 --timeout-ms 120000`,
+      "  ```",
+      "  Run additional passes per major section/route as needed. Record command, run ID, status, and evidence paths for every run.",
+      "- Do not use real credentials or secrets. If auth/protected data is required, report blocked coverage gaps and test public/unauthenticated behavior. Use secure env/secret references only if explicitly configured.",
+      "- Continue until all discovered public features/routes are tested or explicitly recorded as gaps.",
       "",
       "## Requirements",
-      "- Require a reachable `http(s)` URL. If missing, explain that this command needs a URL and stop.",
+      "- Require a reachable `http(s)` URL in $ARGUMENTS. If missing, explain that `/lemma-browser` needs a URL and stop.",
       "- Use the shared browser agent prompt/invariants and context protocol. Continue iteratively in the same session; do not ask the user to rerun or restate the goal.",
-      "- Prefer the native question tool for context gathering; never ask for raw tokens in prose. Use secure env/secret references when needed.",
-      "",
-      "## Initial assessment",
-      "Build and run the initial live browser assessment command using the shared Lemma command builders/catalog semantics:",
-      `- CLI: \`${cli}\``,
-      `- Personas dir: \`${personasDir}\``,
-      `- Intent: \`${intent}\``,
-      "- Include comprehensive browser defaults unless explicitly overridden; preserve explicit user flags/overrides.",
+      "- Prefer the native question tool for context gathering; never ask for raw tokens in prose.",
       "",
       "## Invariants",
-      "- Deterministic harness owns execution, evidence, and scoring (fixed phases). Blocked/skipped/errored/refused are coverage gaps (never pass).",
-      "- No repeated commands; record run IDs, executed checks/evidence, limitations/gaps, and concrete fixes.",
+      "- Deterministic harness owns execution, evidence, and scoring (fixed phases). Blocked/skipped/errored/refused/unavailable are coverage gaps (never pass, never inflate confidence).",
+      "- No repeated commands; do not invent findings, scores, decisions, or evidence.",
       "- Never persist or echo secrets/credentials/tokens.",
+      "",
+      "## Reporting",
+      "- Return an evidence-backed regression report: feature inventory, executed checks/scenarios and status per page/route, findings (severity, repro, impacted feature/page, evidence paths), console/network error summary, coverage summary (tested vs blocked vs not automatable), total pages/routes checked, run IDs, and `.lemma/evidence/<run_id>/` locations.",
+      `- Personas dir (if needed): \`${personasDir}\`. Intent: \`${intent}\`.`,
     ].join("\n");
     return { name: command.name, description, markdown: frontmatter(description, body), kind: "browser" };
   }
