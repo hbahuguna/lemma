@@ -7,7 +7,6 @@ import {
   getCatalogCommandKind,
   type AssayCommand,
 } from "./catalog.js";
-import { CONTEXT_PROTOCOL } from "./browser-agent-prompt.js";
 
 export interface CommandTemplateOptions {
   /** CLI executable/command name. Defaults to "lemma". */
@@ -39,7 +38,6 @@ function shellArgs(args: string[]): string {
 
 export function renderBrowserPromptTemplateNotes(): string {
   return [
-    "Use the host-native question tool for context gathering when available.",
     "Do not ask for or persist raw secrets/tokens; prefer secure env/secret references.",
     "Deterministic harness owns execution, evidence, and scoring; coverage gaps never pass.",
   ].join("\n- ");
@@ -58,7 +56,6 @@ export function renderCatalogCommandTemplate(
 
   if (kind === "browser") {
     const description = options.description ?? "Run long-running comprehensive Lemma browser regression (requires a URL)";
-    const cliBin = cli === "lemma" ? "node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js" : cli;
     const body = [
       `Run a **long-running, comprehensive, agent-driven full browser regression** for: $ARGUMENTS`,
       "",
@@ -66,7 +63,7 @@ export function renderCatalogCommandTemplate(
       "- **Start now by executing** the Lemma browser CLI against the provided URL to open/capture the browser and collect evidence (do not only plan).",
       "- Example (adjust URL/flags as needed; headed by default, add `--headless` if no display):",
       "  ```bash",
-      `  ${cliBin} browser <URL> --crawl --max-pages 25 --timeout-ms 120000`,
+      `  ${cli} browser <URL> --crawl --max-pages 25 --timeout-ms 120000`,
       "  ```",
       "- Record and report the command, run ID, status, and `.lemma/evidence/<run_id>/` path(s). If it fails or is blocked/unavailable, report the exact error/output as a coverage gap and continue with the best safe alternative.",
       "",
@@ -89,8 +86,8 @@ export function renderCatalogCommandTemplate(
       "",
       "## Requirements",
       "- Require a reachable `http(s)` URL in $ARGUMENTS. If missing, explain that `/lemma-browser` needs a URL and stop.",
-      "- Use the shared browser agent prompt/invariants and context protocol. Continue iteratively in the same session; do not ask the user to rerun or restate the goal.",
-      "- Prefer the native question tool for context gathering; never ask for raw tokens in prose.",
+      "- Use the shared browser agent prompt/invariants. Continue iteratively in the same session; do not ask the user to rerun or restate the goal.",
+      "- Never ask for raw tokens in prose; use secure env/secret references if credentials are explicitly required.",
       "",
       "## Invariants",
       "- Deterministic harness owns execution, evidence, and scoring (fixed phases). Blocked/skipped/errored/refused/unavailable are coverage gaps (never pass, never inflate confidence).",
@@ -127,28 +124,31 @@ export function renderCatalogCommandTemplate(
   }
 
   const description = options.description ?? `Run Lemma ${command.label} assessment`;
-  const cliBin = cli === "lemma" ? "node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js" : cli;
-  const defaultPersonasDir = personasDir === "<personas-dir>" ? "/Users/skaparwan/github/lemma/packages/personas" : personasDir;
   const body = [
     `Run a Lemma **${command.label}** assessment for: $ARGUMENTS`,
     "",
     "## Goal",
-    "- Produce a useful, evidence-backed assessment for this intent. Do **not** rely on a generic `lemma run --intent \"${intent}\"` if it produces 0 checks/evidence (\"No handler registered\"/unscored); perform direct analysis and collect evidence instead, and report limitations honestly.",
+    `- Produce a useful, evidence-backed assessment for this intent. Do **not** rely on a generic \`lemma run --intent "${intent}"\` if it produces 0 checks/evidence ("No handler registered"/unscored); perform direct analysis and collect evidence instead, and report limitations honestly.`,
     "- No secrets/tokens/credentials. Coverage gaps (blocked/skipped/errored/unavailable/refused) never pass and never inflate confidence.",
     "",
     "## Steps",
     "1. **Identify target/context**: parse `$ARGUMENTS` for URL(s), paths, scope, and goals. If a reachable `http(s)` URL is provided and relevant, treat it as a live target and also inspect local source in the current workspace.",
     "2. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run",
     "   ```bash",
-    `   ${cliBin} browser <URL>`,
+    `   ${cli} browser <URL>`,
     "   ```",
     "   from the target workspace (results in `./.lemma/`, headed by default; add `--headless` if needed; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.",
-    "3. **Inspect project source/config/artifacts** relevant to **${command.label}**: use available tools to read and search code, configs, tests, CI, docs, and existing `.lemma/` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).",
-    "4. **Assess and report**: provide a structured assessment covering findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **${command.label}** intent (e.g. security, performance, accessibility, reliability, API, privacy, etc.) based on what can be observed.",
-    "5. **Optional CLI status** (if prior runs exist): `node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js status --root .` and `report` can be used to reference existing evidence; do not claim execution that did not occur.",
+    `3. **Inspect project source/config/artifacts** relevant to **${command.label}**: use available tools to read and search code, configs, tests, CI, docs, and existing \`.lemma/\` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).`,
+    `4. **Assess and report**: provide a structured assessment covering findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **${command.label}** intent based on what can be observed.`,
+    "5. **Optional CLI status** (if prior runs exist):",
+    "   ```bash",
+    `   ${cli} status --root .`,
+    `   ${cli} report --root .`,
+    "   ```",
+    "   Use these to reference existing evidence; do not claim execution that did not occur.",
     "",
     "## Notes",
-    `- Bundled personas (if needed): \`${defaultPersonasDir}\``,
+    `- Personas dir (if needed): \`${personasDir}\``,
     "- Do not invent findings, scores, decisions, or evidence. Prefer concrete, reproducible observations and clearly mark anything not executed/observable as a coverage gap.",
   ].join("\n");
   return { name: command.name, description, markdown: frontmatter(description, body), kind: "static" };
@@ -179,7 +179,7 @@ export function renderOperationalCommandTemplate(
       "",
       "- If the user asks for help/list/commands, show available Lemma command templates and usage.",
       "- For assessment goals, run through the host-neutral agent flow (bounded, deterministic-harness-owned, no invented findings/scores).",
-      "- Use shared command builders/catalog and context protocol; never request or persist raw secrets/tokens.",
+      "- Use shared command builders/catalog; never request or persist raw secrets/tokens.",
       `- CLI: \`${cli}\`, personas dir: \`${personasDir}\`, state root: \`${stateRoot}\`.`,
     ].join("\n");
     return { name: "lemma", description, markdown: frontmatter(description, body), kind: "operational" };
@@ -234,7 +234,7 @@ export function renderOperationalCommandTemplate(
 
 export function renderPromptTemplates() {
   return {
-    contextProtocol: CONTEXT_PROTOCOL,
+    contextProtocol: "",
   };
 }
 
@@ -259,9 +259,6 @@ export function renderLemmaSkillTemplate(options: CommandTemplateOptions = {}): 
     "  - `lemma-demo`: static when no URL, live browser when URL provided.",
     "  - Other catalog commands: static intent-driven runs (`Lemma <label> assessment`).",
     "- Operational commands include status/report/abort/verify-evidence and other management surfaces as available.",
-    "",
-    "## Context protocol",
-    CONTEXT_PROTOCOL,
     "",
     "## Safety and invariants",
     "- Deterministic harness owns execution, evidence, and scoring (fixed phases: Risk Analysis → Test Planning → Execution → Evidence Collection → Confidence Scoring).",

@@ -39,20 +39,8 @@ const PROMPT_INPUT = {
 };
 
 describe("LEM-096 agent-loop and prompt-contract tests", () => {
-  it("prompt contract preserves context protocol invariants and browser prompt embedding", () => {
-    expect(CONTEXT_PROTOCOL).toMatch(/native `question` tool/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Never run `echo`/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Never ask for or accept a raw token/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Skip/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Paste/);
-    expect(CONTEXT_PROTOCOL).toMatch(/MCP/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Secure env\/secret ref/);
-    expect(CONTEXT_PROTOCOL).toMatch(/Jira form/);
-    expect(CONTEXT_PROTOCOL).toMatch(/lemma_jira_context/);
-    expect(CONTEXT_PROTOCOL).toMatch(/assay_jira_context/);
-    expect(CONTEXT_PROTOCOL).toMatch(/site, issue key, email, API token/);
-    expect(CONTEXT_PROTOCOL).toMatch(/token is consumed by the tool in memory/i);
-    expect(CONTEXT_PROTOCOL).toMatch(/Do not ask for or repeat raw tokens in prose/i);
+  it("prompt contract omits context gathering and preserves core invariants", () => {
+    expect(CONTEXT_PROTOCOL).toBe("");
 
     const prompt = buildBrowserAgentPrompt(PROMPT_INPUT);
     expect(prompt).toMatch(/https:\/\/testradius\.dev/);
@@ -62,8 +50,9 @@ describe("LEM-096 agent-loop and prompt-contract tests", () => {
     expect(prompt).toMatch(/--mobile/);
     expect(prompt).toMatch(/--headed/);
     expect(prompt).toMatch(/--active/);
-    expect(prompt).toMatch(/Context gathering UX/);
-    expect(prompt).toMatch(/native `question` tool/);
+    expect(prompt).not.toMatch(/Context gathering UX/);
+    expect(prompt).not.toMatch(/Context checkpoint/i);
+    expect(prompt).not.toMatch(/gather context/i);
     expect(prompt).toMatch(/Fixed phases\/order/i);
     expect(prompt).toMatch(/Deterministic harness owns execution\/evidence\/scoring/i);
     expect(prompt).toMatch(/no repeated commands/i);
