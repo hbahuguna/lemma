@@ -511,8 +511,8 @@ auditable system.
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Done |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Done |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Done |
-| LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | In Progress |
-| LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Backlog |
+| LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Done |
+| LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | In Progress |
 | LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Backlog |
 | LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Backlog |
 
@@ -2963,27 +2963,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-191
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing Vibium browser adapter integration (adapter/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed Vibium browser adapter integration (adapter/tests/verification).
 - **Description:** Add a Vibium adapter: run native Vibium tests, preserve
   native arguments, and record adapter version and evidence handles. Vibium
   is not the reference adapter, but it must implement the same contract.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes a `VibiumAdapter` implementing `BrowserAdapter`
+  - [x] `@lemma/core` exposes a `VibiumAdapter` implementing `BrowserAdapter`
     (LEM-191) with declared capabilities; the adapter runs the native Vibium
     CLI with arguments preserved verbatim.
-  - Results are translated to lemma's `CheckOutcome` shape with evidence
+  - [x] Results are translated to lemma's `CheckOutcome` shape with evidence
     handles (screenshots, console, network where Vibium supports them);
     unsupported channels are declared missing and re-planned per LEM-191.
-  - Adapter version and the native CLI version are recorded in evidence so
+  - [x] Adapter version and the native CLI version are recorded in evidence so
     runs are reproducible.
-  - Blocked behavior when Vibium is unavailable mirrors LEM-050.
-  - Tests cover native CLI invocation, argument preservation, result
+  - [x] Blocked behavior when Vibium is unavailable mirrors LEM-050.
+  - [x] Tests cover native CLI invocation, argument preservation, result
     translation, version recording, missing-channel re-plan, and blocked
     behavior.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/browser -- vibium`
-- **Evidence (planned/in progress):** `packages/browser/src/vibium-adapter.ts`,
-  `packages/browser/test/vibium/*`,
+- **Verification:** `pnpm exec vitest run packages/browser/test/vibium/vibium.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/browser -- vibium` — `docs/parity/evidence/LEM-192-vibium-test-output.txt`; `pnpm --filter @lemma/browser build` (pass)
+- **Evidence:** `packages/browser/src/vibium-adapter.ts`,
+  `packages/browser/src/index.ts`,
+  `packages/browser/test/vibium/vibium.test.ts`,
   `docs/parity/evidence/LEM-192-vibium-test-output.txt`
 
 ### LEM-193 — Add OpenAPI-driven API coverage
@@ -2992,8 +2993,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-171
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing OpenAPI-driven API coverage (core/schema/tests) and verification.
 - **Description:** Learn from OpenAPI specs or traffic; generate positive,
   negative, boundary, auth, tenant, and idempotency API cases. Map API
   failures back to UI flows so a broken endpoint becomes an actionable
@@ -3013,8 +3014,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     non-safe targets are rejected before any request.
   - Tests cover case generation per class, cap enforcement, source citation,
     UI-flow mapping, SSRF refusal, and report schema.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- api-coverage`
-- **Evidence (planned):** `packages/core/src/api-coverage.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- api-coverage`
+- **Evidence (planned/in progress):** `packages/core/src/api-coverage.ts`,
   `schemas/api/coverage_report.v1.schema.json`,
   `packages/core/test/api-coverage/*`,
   `docs/parity/evidence/LEM-193-api-coverage-test-output.txt`

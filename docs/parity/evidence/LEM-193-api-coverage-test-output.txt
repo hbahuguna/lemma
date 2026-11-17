@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/api-coverage/api-coverage.test.ts (3 tests) 19ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:16:57
+   Duration  2.22s (transform 894ms, setup 0ms, collect 1.30s, tests 19ms, environment 0ms, prepare 276ms)
+
