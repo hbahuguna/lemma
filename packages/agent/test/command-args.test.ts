@@ -47,6 +47,13 @@ describe("LEM-088 command argument builders", () => {
     expect(invocation.args).not.toContain("--headless");
   });
 
+  it("browserInvocation forwards an explicit source checkout", () => {
+    const invocation = browserInvocation("http://localhost:3000 --source ../my-app", PERSONAS);
+    expect(invocation.args).toContain("--source");
+    expect(invocation.args[invocation.args.indexOf("--source") + 1]).toBe("../my-app");
+    expect(invocation.args[0]).toBe("browser");
+  });
+
   it("browserInvocation passes safe browser flags and never swaps the target", () => {
     const passthrough = browserInvocation(
       "http://localhost:3000 --viewport 390x844 --no-browser --target https://evil.example",

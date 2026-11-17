@@ -14,6 +14,7 @@ import {
   type Check,
   type ScenarioExecutionResult,
   type ScenarioPlan,
+  type SourceFeature,
 } from "@lemma/core";
 
 import {
@@ -58,6 +59,14 @@ export interface BrowserRuntimeOptions {
   active?: boolean;
   activeInteractions?: boolean;
   active_interactions?: boolean;
+  sourceFeatures?: SourceFeature[];
+  interactionDedupe?: Set<string>;
+  /** Repository root to scan for testable features (defaults to cwd). */
+  sourceDir?: string;
+  /** Set false to skip source scanning and use DOM heuristics only. */
+  scanSource?: boolean;
+  maxSourceFiles?: number;
+  maxSourceFileBytes?: number;
   storageState?: string | Record<string, unknown>;
   storage_state?: string | Record<string, unknown>;
   captureHar?: boolean;
@@ -598,6 +607,8 @@ async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions 
       ...(evidence ? { evidence } : {}),
       timeoutMs: Math.min(timeoutMs, 10000),
       label,
+      ...(options?.sourceFeatures?.length ? { features: options.sourceFeatures } : {}),
+      ...(options?.interactionDedupe ? { dedupe: options.interactionDedupe } : {}),
     });
     if (evidence) {
       try { await evidence.saveJson(`${label}-interaction-plan`, exec.plan, "scenario", `Auto-discovered interaction plan for ${label}`); } catch {}

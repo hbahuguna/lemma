@@ -1426,12 +1426,16 @@ export const browserCommand: CliCommandHandler = async (argv) => {
   const maxPages = maxPagesStr !== undefined ? toInt(maxPagesStr, "--max-pages") : 10;
   const timeoutMsStr = getString(flags, "timeout-ms", "timeoutMs");
   const timeoutMs = timeoutMsStr !== undefined ? toInt(timeoutMsStr, "--timeout-ms") : 60_000;
+  const sourceRaw = getString(flags, "source", "source-dir", "sourceDir");
+  const sourceDir = sourceRaw ? path.resolve(root, sourceRaw) : root;
   const runId = getString(flags, "run-id", "run");
   const browserOptions: Record<string, unknown> = {
     ...(noBrowser ? { noBrowser: true } : {}),
     ...(crawl ? { crawl: true } : {}),
     ...(maxPages !== undefined ? { maxPages } : {}),
     ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+    sourceDir,
+    ...(getBool(flags, "no-source-scan", "noSourceScan") ? { scanSource: false } : {}),
     // /lemma-browser and `lemma browser` always run in a headed/visible browser.
     headed: true,
   };

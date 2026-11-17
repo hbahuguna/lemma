@@ -235,6 +235,10 @@ export async function executeScenarioPlan(
         if (target && typeof page.getByLabel === "function") candidates.push(page.getByLabel(target, { exact: false }));
         if (target && typeof page.getByPlaceholder === "function") candidates.push(page.getByPlaceholder(target, { exact: false }));
         if (target && typeof page.locator === "function") {
+          // Source-derived plans carry a CSS selector hint; try it verbatim first.
+          if (/^[#.[a-z]/i.test(target)) {
+            try { candidates.push(page.locator(target)); } catch { /* noop */ }
+          }
           const esc = target.replace(/"/g, '\\"');
           try { candidates.push(page.locator(`input[name*="${esc}"], input[id*="${esc}"], input[aria-label*="${esc}"]`)); } catch { /* noop */ }
         }
@@ -253,8 +257,9 @@ export async function executeScenarioPlan(
       } else if (action === "select") {
         if (typeof page.locator !== "function") throw new Error("select action requires page.locator.");
         const esc = target.replace(/"/g, '\\"');
+        const direct = /^[#.[a-z]/i.test(target) ? page.locator(target) : undefined;
         const loc = page.locator(`select[name*="${esc}"], select[id*="${esc}"], select`);
-        const sel = await firstVisibleLocator([loc]);
+        const sel = await firstVisibleLocator([direct, loc]);
         if (!sel || typeof sel.selectOption !== "function") throw new Error(`Could not locate select element for target: ${JSON.stringify(target)}`);
         await sel.selectOption(value || { label: value });
       } else if (action === "assert_text") {

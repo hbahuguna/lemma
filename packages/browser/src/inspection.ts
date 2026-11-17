@@ -2,7 +2,9 @@
 import {
   CheckOutcome,
   CheckStatus,
+  discoverFeatures,
   normalizeTarget,
+  type SourceFeature,
   type Check,
   type FindingDraft,
   type Target,
@@ -275,10 +277,42 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
           url,
           ...views.map((v) => v?.navigation?.finalUrl || v?.navigation?.url || "").filter(Boolean),
         ])).slice(0, 8);
+
+        // Build one source-backed inventory for the whole run and share a
+        // dedupe set so a feature is never exercised twice across crawled pages.
+        let features: SourceFeature[] = options?.sourceFeatures ?? [];
+        let inventoryRef = "";
+        if (features.length === 0 && options?.scanSource !== false) {
+          try {
+            const root = options?.sourceDir || options?.root || process.cwd();
+            const inventory = discoverFeatures(root, {
+              ...(options?.maxSourceFiles !== undefined ? { maxFiles: options.maxSourceFiles } : {}),
+              ...(options?.maxSourceFileBytes !== undefined ? { maxFileBytes: options.maxSourceFileBytes } : {}),
+            });
+            features = inventory.features;
+            if (input.evidence?.saveJson) {
+              inventoryRef = await input.evidence.saveJson(
+                "feature-inventory",
+                inventory,
+                "feature_inventory",
+                `Source-derived testable features scanned from ${root}`,
+              );
+            }
+          } catch (error) {
+            features = [];
+            inventoryRef = `source scan unavailable: ${error instanceof Error ? error.message : String(error)}`;
+          }
+        }
+        const dedupe = new Set<string>();
+        const interactionOptions: BrowserRuntimeOptions = {
+          ...(options ?? {}),
+          sourceFeatures: features,
+          interactionDedupe: dedupe,
+        };
         const outcomes = [];
         for (let i = 0; i < targets.length; i++) {
           const t = targets[i]!;
-          outcomes.push(await runAutomaticBrowserInteractionsForUrl(t, options, input.evidence as any, `auto-interactions-${i + 1}`));
+          outcomes.push(await runAutomaticBrowserInteractionsForUrl(t, interactionOptions, input.evidence as any, `auto-interactions-${i + 1}`));
         }
         // aggregate
         const merged = outcomes[0] ?? blockedBrowserOutcome(check, "No interaction targets available.");
@@ -290,7 +324,16 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
           merged.actual = outcomes.map((o, i) => `[${targets[i]}] ${o.actual}`).join(" | ");
           merged.evidence = Array.from(new Set(outcomes.flatMap((o) => o.evidence ?? [])));
           merged.findings = outcomes.flatMap((o) => o.findings ?? []);
-          merged.metadata = { ...(merged.metadata ?? {}), interaction_targets: targets, per_target: outcomes.map((o) => ({ status: o.status, actual: o.actual })) };
+          merged.metadata = {
+            ...(merged.metadata ?? {}),
+            interaction_targets: targets,
+            per_target: outcomes.map((o) => ({ status: o.status, actual: o.actual })),
+            source_features: features.length,
+            source_feature_kinds: Array.from(new Set(features.map((f) => f.kind))),
+            feature_inventory_ref: inventoryRef,
+            deduped_steps: dedupe.size,
+            dedupe_enabled: true,
+          };
         }
         observations.push(toObservation(check, merged, primary));
       } catch (err) {

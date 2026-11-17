@@ -3,6 +3,7 @@ import { Buffer } from "node:buffer";
 import {
   type ScenarioExecutionResult,
   type ScenarioPlan,
+  type SourceFeature,
   type StepAction,
 } from "@lemma/core";
 
@@ -245,7 +246,12 @@ function buildSelectExpr(_kind: string, query: string, value: string): string {
   })()`;
 }
 
-export async function discoverInteractionPlan(page: CdpInteractionPage, baseUrl: string): Promise<ScenarioPlan> {
+export async function discoverInteractionPlan(
+  page: CdpInteractionPage,
+  baseUrl: string,
+  features: SourceFeature[] = [],
+  dedupe: Set<string> = new Set<string>(),
+): Promise<ScenarioPlan> {
   await page.refreshUrl().catch(() => {});
   const discovery = await page.evaluate<any>(`(() => {
     const isVisible = (el) => { if(!el) return false; const s=getComputedStyle(el); if(s.display==='none'||s.visibility==='hidden'||Number(s.opacity)===0) return false; const rect=el.getBoundingClientRect(); return rect.width>0 && rect.height>0 && rect.bottom>0 && rect.right>0; };
@@ -272,7 +278,19 @@ export async function discoverInteractionPlan(page: CdpInteractionPage, baseUrl:
     steps.push({ step_number: n++, options: step.options ?? {}, raw_instruction: step.raw_instruction ?? step.name, ...step });
   };
 
-  const pageUrl = safeStr(discovery?.url) || baseUrl;
+  const pageUrlValue = (): string => safeStr(discovery?.url) || baseUrl;
+  const sourceCovered = new Set(features.map((f) => f.kind));
+  const pushUnique = (
+    step: Omit<StepAction, "step_number" | "options" | "raw_instruction"> & { options?: any; raw_instruction?: string },
+    scope = "",
+  ): void => {
+    const key = `${step.action}|${step.target}|${step.value}|${scope || pageUrlValue()}`;
+    if (dedupe.has(key)) return;
+    dedupe.add(key);
+    push(step);
+  };
+
+  const pageUrl = pageUrlValue();
   push({ name: "Capture initial page state", action: "screenshot", target: "", value: "" });
   // Scroll interactions
   if (Number(discovery?.scrollHeight || 0) > Number(discovery?.innerHeight || 0) + 200) {
@@ -282,30 +300,83 @@ export async function discoverInteractionPlan(page: CdpInteractionPage, baseUrl:
     push({ name: "Scroll to top", action: "scroll", target: "", value: "top" });
   }
 
+  // Source-backed features: one unique step per discovered feature, independent
+  // of how many crawled pages mention it. This replaces repeated generic clicks.
+  const destructive = /delete|remove|pay|purchase|confirm order|subscribe now|cancel account/i;
+  const sourceRoutes = features
+    .filter((f) => f.kind === "route" && !/^\/api\//i.test(f.label) && !/[:*${]/.test(f.label))
+    .slice(0, 8);
+  for (const f of sourceRoutes) {
+    let dest = "";
+    try { dest = new URL(f.label, baseUrl).href; } catch { continue; }
+    pushUnique(
+      { name: `Source route: ${f.label} (${f.source.path}:${f.source.line})`, action: "goto", target: dest, value: "" },
+      dest,
+    );
+    pushUnique(
+      { name: `Screenshot after source route: ${f.label}`, action: "screenshot", target: "", value: "" },
+      dest,
+    );
+  }
+  for (const f of features.filter((x) => x.kind === "button").slice(0, 10)) {
+    if (destructive.test(f.label)) continue;
+    pushUnique(
+      { name: `Source button: ${f.label} (${f.source.path}:${f.source.line})`, action: "click", target: f.selector_hint || f.label, value: "" },
+      `feature:${f.id}`,
+    );
+  }
+  for (const f of features.filter((x) => x.kind === "toggle").slice(0, 6)) {
+    if (destructive.test(f.label)) continue;
+    pushUnique(
+      { name: `Source toggle: ${f.label} (${f.source.path}:${f.source.line})`, action: "click", target: f.selector_hint || f.label, value: "" },
+      `feature:${f.id}`,
+    );
+  }
+  for (const f of features.filter((x) => x.kind === "input").slice(0, 8)) {
+    const envEmail = process.env.LEMMA_TEST_EMAIL || process.env.LEMMA_LOGIN_EMAIL || process.env.TEST_EMAIL || "";
+    const envUser = process.env.LEMMA_TEST_USERNAME || process.env.LEMMA_LOGIN_USERNAME || process.env.TEST_USERNAME || "";
+    const isEmail = /email/i.test(f.label);
+    const isPassword = /password|secret|token|credential/i.test(f.label);
+    const val = isEmail ? (envEmail || "test@example.invalid") : isPassword ? "InvalidPass!123" : /user|login/i.test(f.label) && envUser ? envUser : "test value";
+    pushUnique(
+      { name: `Source input: ${f.label} (${f.source.path}:${f.source.line})`, action: "fill", target: f.selector_hint || f.label, value: val },
+      `feature:${f.id}`,
+    );
+  }
+  for (const f of features.filter((x) => x.kind === "select").slice(0, 5)) {
+    if (!f.option_hint) continue;
+    pushUnique(
+      { name: `Source select: ${f.label} (${f.source.path}:${f.source.line})`, action: "select", target: f.selector_hint || f.label, value: f.option_hint },
+      `feature:${f.id}`,
+    );
+  }
+
   const baseOrigin = (() => { try { return new URL(baseUrl).origin; } catch { return ""; } })();
   const sameOriginLinks = asArray<any>(discovery?.links).filter((l) => {
     const href = safeStr(l?.href);
     if (!href || href.startsWith("#") || href.startsWith("mailto:") || href.startsWith("tel:") || href.startsWith("javascript:")) return false;
     try { const u = new URL(href, pageUrl); return !baseOrigin || u.origin === baseOrigin; } catch { return href.startsWith("/"); }
   });
-  // Click a few in-page/nav-like non-destructive buttons
-  for (const b of asArray<any>(discovery?.buttons).slice(0, 5)) {
-    const text = safeStr(b?.text) || safeStr(b?.selector);
-    if (!text) continue;
-    if (/delete|remove|pay|purchase|confirm order|subscribe now/i.test(text)) continue;
-    push({ name: `Click button: ${text.slice(0, 40)}`, action: "click", target: text, value: "" });
-    push({ name: "Screenshot after button click", action: "screenshot", target: "", value: "" });
+  // Generic DOM fallback only fills gaps not already covered by source features.
+  if (!sourceCovered.has("button")) {
+    for (const b of asArray<any>(discovery?.buttons).slice(0, 5)) {
+      const text = safeStr(b?.text) || safeStr(b?.selector);
+      if (!text) continue;
+      if (/delete|remove|pay|purchase|confirm order|subscribe now/i.test(text)) continue;
+      pushUnique({ name: `Click button: ${text.slice(0, 40)}`, action: "click", target: text, value: "" });
+      pushUnique({ name: "Screenshot after button click", action: "screenshot", target: "", value: "" });
+    }
   }
-  // Toggle controls
-  for (const t of asArray<any>(discovery?.toggles).slice(0, 5)) {
-    const text = safeStr(t?.text) || safeStr(t?.selector) || safeStr(t?.type);
-    if (!text) continue;
-    push({ name: `Toggle control: ${text.slice(0, 40)}`, action: "click", target: text, value: "" });
+  if (!sourceCovered.has("toggle")) {
+    for (const t of asArray<any>(discovery?.toggles).slice(0, 5)) {
+      const text = safeStr(t?.text) || safeStr(t?.selector) || safeStr(t?.type);
+      if (!text) continue;
+      pushUnique({ name: `Toggle control: ${text.slice(0, 40)}`, action: "click", target: text, value: "" });
+    }
   }
   // Fill forms safely (synthetic/invalid then observe validation) - do not submit destructive actions blindly
   const inputs = asArray<any>(discovery?.inputs);
-  void inputs.length; // discovery available
-  if (inputs.length > 0) {
+  if (!sourceCovered.has("input") && inputs.length > 0) {
     for (const inp of inputs.slice(0, 6)) {
       const type = safeStr(inp?.type);
       if (["hidden", "file", "submit", "button", "image", "checkbox", "radio"].includes(type)) continue;
@@ -322,22 +393,23 @@ export async function discoverInteractionPlan(page: CdpInteractionPage, baseUrl:
         else if ((type === "text" || type === "") && envEmail && /email/i.test(target)) val = envEmail;
         else if ((type === "text" || type === "") && envUser && /user|login/i.test(target)) val = envUser;
       }
-      push({ name: `Fill input: ${target.slice(0, 40)}`, action: "fill", target, value: val });
+      pushUnique({ name: `Fill input: ${target.slice(0, 40)}`, action: "fill", target, value: val });
     }
     // try submit if a submit button exists (safe validation check)
     const submitBtn = asArray<any>(discovery?.buttons).find((b) => /submit|sign in|log in|login|continue|send/i.test(safeStr(b?.text)) || safeStr(b?.type) === "submit");
     if (submitBtn) {
       const text = safeStr(submitBtn?.text) || "submit";
-      push({ name: `Submit form/button: ${text.slice(0, 40)} (validation check)`, action: "click", target: text, value: "" });
-      push({ name: "Screenshot after submit attempt", action: "screenshot", target: "", value: "" });
-      push({ name: "Assert page remains stable after submit attempt", action: "assert_no_errors", target: "", value: "" });
+      pushUnique({ name: `Submit form/button: ${text.slice(0, 40)} (validation check)`, action: "click", target: text, value: "" });
+      pushUnique({ name: "Screenshot after submit attempt", action: "screenshot", target: "", value: "" });
+      pushUnique({ name: "Assert page remains stable after submit attempt", action: "assert_no_errors", target: "", value: "" });
     }
   }
-  // Selects
-  for (const s of asArray<any>(discovery?.selects).slice(0, 3)) {
-    const target = safeStr(s?.name) || safeStr(s?.id) || safeStr(s?.selector);
-    const opt = safeStr(asArray<any>(s?.options)[1] || asArray<any>(s?.options)[0]);
-    if (target && opt) push({ name: `Select option: ${target.slice(0, 30)}`, action: "select", target, value: opt });
+  if (!sourceCovered.has("select")) {
+    for (const s of asArray<any>(discovery?.selects).slice(0, 3)) {
+      const target = safeStr(s?.name) || safeStr(s?.id) || safeStr(s?.selector);
+      const opt = safeStr(asArray<any>(s?.options)[1] || asArray<any>(s?.options)[0]);
+      if (target && opt) pushUnique({ name: `Select option: ${target.slice(0, 30)}`, action: "select", target, value: opt });
+    }
   }
   // Same-origin link clicks (limited) for navigation flow coverage - use direct navigation for reliability
   let navClicks = 0;
@@ -353,18 +425,18 @@ export async function discoverInteractionPlan(page: CdpInteractionPage, baseUrl:
       abs = u.href;
     } catch { continue; }
     const label = text || abs;
-    push({ name: `Navigate via link: ${label.slice(0, 40)}`, action: "goto", target: abs, value: "" });
-    push({ name: "Scroll down navigated page", action: "scroll", target: "", value: "down" });
-    push({ name: "Screenshot after navigation", action: "screenshot", target: "", value: "" });
-    push({ name: "Return to base page", action: "goto", target: pageUrl, value: "" });
+    pushUnique({ name: `Navigate via link: ${label.slice(0, 40)}`, action: "goto", target: abs, value: "" }, abs);
+    pushUnique({ name: "Scroll down navigated page", action: "scroll", target: "", value: "down" }, abs);
+    pushUnique({ name: "Screenshot after navigation", action: "screenshot", target: "", value: "" }, abs);
+    pushUnique({ name: "Return to base page", action: "goto", target: pageUrl, value: "" }, abs);
     navClicks++;
   }
   push({ name: "Final screenshot", action: "screenshot", target: "", value: "" });
 
   return {
-    title: `Auto interaction regression: ${safeStr(discovery?.title) || pageUrl}`,
+    title: `${features.length ? "Source-backed" : "Auto"} interaction regression: ${safeStr(discovery?.title) || pageUrl}`,
     steps,
-    source: "auto-discovered",
+    source: features.length ? "source-backed+cdp-auto" : "auto-discovered",
     model: "cdp-auto",
     target_url: pageUrl || baseUrl,
   };
@@ -377,6 +449,8 @@ export async function runAutomaticInteractions(opts: {
   evidence?: BrowserScenarioEvidenceStoreLike;
   timeoutMs?: number;
   label?: string;
+  features?: SourceFeature[];
+  dedupe?: Set<string>;
 }): Promise<ScenarioExecutionResult & { plan: ScenarioPlan }> {
   const page = new CdpInteractionPage({
     call: opts.call,
@@ -386,7 +460,7 @@ export async function runAutomaticInteractions(opts: {
     ...(opts.label ? { label: opts.label } : {}),
   });
   await page.refreshUrl().catch(() => {});
-  const plan = await discoverInteractionPlan(page, opts.baseUrl);
+  const plan = await discoverInteractionPlan(page, opts.baseUrl, opts.features ?? [], opts.dedupe ?? new Set<string>());
   const exec = await executeScenarioPlan(page, plan, opts.evidence, {
     ...(opts.timeoutMs !== undefined ? { timeoutMs: opts.timeoutMs } : {}),
     ...(opts.label ? { label: opts.label } : {}),

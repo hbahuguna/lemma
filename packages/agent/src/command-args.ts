@@ -50,6 +50,8 @@ const BROWSER_VALUE_FLAGS = new Set([
   "--kill-on",
   "--max-checks",
   "--max-pages",
+  "--source",
+  "--source-dir",
   "--fail-on",
   "--min-score",
   "--seed",

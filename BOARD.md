@@ -537,6 +537,7 @@ land first.
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Done |
 | LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Done |
 | LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Done |
+| LEM-208 | Generate deduplicated, source-backed browser interaction plans | P1 | 8 | LEM-167, LEM-207 | Done |
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -8524,3 +8525,21 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - [x] CLI/core builds succeed with the new options wired.
 - **Verification:** `pnpm --filter @lemma/core build && pnpm --filter @lemma/cli build && pnpm --filter @lemma/agent build` (pass); `node packages/cli/dist/cli.js run --target . --no-browser --intent "assess release confidence for this repo" --max-checks 3 --run-size large` executes with default handlers and scored output (smoke verification).
 - **Evidence:** `packages/cli/src/commands.ts` (`--run-size`, browser `--crawl/--max-pages/--timeout-ms`), `packages/core/src/static.ts` (configurable scan limits), `packages/core/src/default-handlers.ts` (uses configurable inventory sizing), `packages/core/src/project-state.ts` (history layout fix), `packages/core/src/index.ts`, `packages/browser/src/runtime.ts`/`packages/browser/src/inspection.ts` (CDP browser runtime and crawl-capable capture path), `docs/manual-test-plan-opencode.md`.
+
+### LEM-208 — Generate deduplicated, source-backed browser interaction plans
+- **Epic:** E3 CLI and Agent Interface / E5 Browser Evidence
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-167, LEM-207
+- **Status:** Done
+- **Claimed:** 2026-11-18 — taken out of order because the user reported repeated, generic `/lemma-browser` steps that do not exercise repository features.
+- **Description:** Replace the per-page generic DOM interaction recipe with one deterministic feature inventory derived from the current repository, then execute one unique, source-backed interaction per feature across all crawled pages.
+- **Acceptance Criteria:**
+  - [x] `discoverFeatures(root)` scans source deterministically and emits `lemma.feature_inventory/v1` with routes, buttons, inputs, selects, toggles, forms, labels, CSS/testID hints, and file/line provenance.
+  - [x] `discoverInteractionPlan` prefers source features over generic DOM heuristics; each feature produces a named step and no destructive action is auto-submitted.
+  - [x] A shared dedupe set prevents the same feature/route/navigation step from repeating across crawled targets.
+  - [x] `lemma browser --source <dir>` selects the checkout to scan; `--no-source-scan` restores generic behavior.
+  - [x] `feature-inventory.json` is written to evidence and `browser.steps` metadata records source feature count, kinds, inventory ref, and dedupe count.
+  - [x] Deterministic unit tests cover feature extraction, stable ordering, source-backed step selection, and cross-page dedupe.
+- **Verification:** `pnpm exec vitest run packages/core/test/feature-discovery/feature-discovery.test.ts packages/browser/test/interactions-source.test.ts` — **PASS** (4/4). `pnpm exec vitest run packages/cli/test` — **PASS** (42/42). `pnpm --filter @lemma/core build && pnpm --filter @lemma/browser build` — PASS.
+- **Evidence:** `packages/core/src/feature-discovery.ts`, `packages/core/src/index.ts`, `packages/browser/src/interactions.ts`, `packages/browser/src/scenarios.ts`, `packages/browser/src/runtime.ts`, `packages/browser/src/inspection.ts`, `packages/cli/src/commands.ts`, `packages/agent/src/command-args.ts`, `packages/agent/src/templates.ts`, and the two new test files listed above.
