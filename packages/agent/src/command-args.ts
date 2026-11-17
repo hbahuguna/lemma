@@ -1,5 +1,5 @@
 /**
- * Command argument builders ported from assay command-args semantics.
+ * Command argument builders ported from Lemma command-args semantics.
  * Pure/host-neutral: URL extraction and invocation builders for agent/adapter use.
  */
 
@@ -93,7 +93,7 @@ function browserExtraArgs(text: string, url: string): string[] {
 }
 
 /**
- * Bare `/assay-browser <url>` defaults to a full browser assessment:
+ * Bare `/lemma-browser <url>` defaults to a full browser assessment:
  * crawl same-origin surface and include mobile pack. Explicit flags win.
  */
 function browserDefaults(text: string, url: string): string[] {
@@ -130,7 +130,7 @@ export function browserInvocation(text: string, personasDir: string): Invocation
     return {
       args: [],
       error:
-        "`/assay-browser` runs the live Playwright Operate checks and needs a reachable URL.\n\n" +
+        "`/lemma-browser` runs the live browser checks and needs a reachable URL.\n\n" +
         "Example:\n\n```\n/assay-browser http://localhost:3000\n```\n\n" +
         "A directory target only records static scope. If Playwright or Chromium is missing, " +
         "the browser checks are reported as `blocked` coverage gaps, never as a pass.",
@@ -144,7 +144,7 @@ export function browserInvocation(text: string, personasDir: string): Invocation
       "--personas-dir",
       personasDir,
       "--intent",
-      "Assay browser assessment",
+      "Lemma browser assessment",
       ...browserDefaults(trimmed, url),
       ...browserExtraArgs(trimmed, url),
     ],
@@ -164,7 +164,7 @@ export function demoInvocation(text: string, personasDir: string): Invocation {
         "--personas-dir",
         personasDir,
         "--intent",
-        "Assay demo assessment",
+        "Lemma demo assessment",
         ...browserDefaults(trimmed, url),
         ...browserExtraArgs(trimmed, url),
       ],
@@ -179,13 +179,13 @@ export function demoInvocation(text: string, personasDir: string): Invocation {
       "--personas-dir",
       personasDir,
       "--intent",
-      "Assay demo assessment",
+      "Lemma demo assessment",
     ],
   };
 }
 
-/** Build generic `/assay` invocation from CLI-style or free-form input. */
-export function assayInvocation(text: string, personasDir: string): Invocation {
+/** Build generic `/lemma` invocation from CLI-style or free-form input. */
+export function lemmaInvocation(text: string, personasDir: string): Invocation {
   const trimmed = (text || "").trim();
   const tokens = trimmed.split(/\s+/).filter(Boolean);
   if (tokens.length === 0) {
@@ -214,3 +214,7 @@ export function assayInvocation(text: string, personasDir: string): Invocation {
     ],
   };
 }
+
+
+/** @deprecated Use lemmaInvocation. */
+export { lemmaInvocation as assayInvocation };

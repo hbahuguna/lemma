@@ -1,12 +1,13 @@
 import {
+  LEMMA_COMMAND_CATALOG,
   ASSAY_COMMAND_CATALOG,
-  assayIntent,
+  lemmaIntent,
   buildCatalogInvocation,
-  getAssayCommand,
+  getLemmaCommand,
   getCatalogCommandKind,
   type AssayCommand,
 } from "./catalog.js";
-import { CONTEXT_PROTOCOL, buildBrowserAgentPrompt } from "./browser-agent-prompt.js";
+import { CONTEXT_PROTOCOL } from "./browser-agent-prompt.js";
 
 export interface CommandTemplateOptions {
   /** CLI executable/command name. Defaults to "lemma". */
@@ -32,7 +33,7 @@ function frontmatter(description: string, body: string): string {
 
 function shellArgs(args: string[]): string {
   return args
-    .map((a) => (/^[A-Za-z0-9._/:-]+$/.test(a) ? a : JSON.stringify(a)))
+    .map((a) => (/^[A-Za-z0-9._/:=-]+$/.test(a) ? a : JSON.stringify(a)))
     .join(" ");
 }
 
@@ -48,18 +49,17 @@ export function renderCatalogCommandTemplate(
   commandName: string,
   options: CommandTemplateOptions = {},
 ): RenderedCommandTemplate | null {
-  const command = getAssayCommand(commandName);
+  const command = getLemmaCommand(commandName);
   if (!command) return null;
   const cli = options.cli ?? "lemma";
   const personasDir = options.personasDir ?? "<personas-dir>";
   const kind = getCatalogCommandKind(command.name);
-  const intent = assayIntent(command.label);
+  const intent = lemmaIntent(command.label);
 
   if (kind === "browser") {
-    const description =
-      options.description ?? "Run quality-harness live browser assessment (requires a URL)";
+    const description = options.description ?? "Run Lemma live browser assessment (requires a URL)";
     const body = [
-      `Run an **agent-driven, interactive** lemma browser assessment for: $ARGUMENTS`,
+      `Run an **agent-driven, interactive** Lemma browser assessment for: $ARGUMENTS`,
       "",
       "## Requirements",
       "- Require a reachable `http(s)` URL. If missing, explain that this command needs a URL and stop.",
@@ -67,14 +67,13 @@ export function renderCatalogCommandTemplate(
       "- Prefer the native question tool for context gathering; never ask for raw tokens in prose. Use secure env/secret references when needed.",
       "",
       "## Initial assessment",
-      "Build and run the initial live browser assessment command using the shared lemma command builders/catalog semantics:",
+      "Build and run the initial live browser assessment command using the shared Lemma command builders/catalog semantics:",
       `- CLI: \`${cli}\``,
       `- Personas dir: \`${personasDir}\``,
       `- Intent: \`${intent}\``,
       "- Include comprehensive browser defaults unless explicitly overridden; preserve explicit user flags/overrides.",
       "",
       "## Invariants",
-      `- ${CONTEXT_PROTOCOL.split("\n").filter(Boolean)[0] ?? "Use native question tool for context gathering."}`,
       "- Deterministic harness owns execution, evidence, and scoring (fixed phases). Blocked/skipped/errored/refused are coverage gaps (never pass).",
       "- No repeated commands; record run IDs, executed checks/evidence, limitations/gaps, and concrete fixes.",
       "- Never persist or echo secrets/credentials/tokens.",
@@ -83,12 +82,11 @@ export function renderCatalogCommandTemplate(
   }
 
   if (kind === "demo") {
-    const description =
-      options.description ?? "Run quality-harness demo assessment (optional URL for live checks)";
+    const description = options.description ?? "Run Lemma demo assessment (optional URL for live checks)";
     const staticInv = buildCatalogInvocation(command.name, "", personasDir);
     const liveExample = buildCatalogInvocation(command.name, "https://example.test", personasDir);
     const body = [
-      `Run the lemma demo assessment for: $ARGUMENTS`,
+      `Run the Lemma demo assessment for: $ARGUMENTS`,
       "",
       "Behavior:",
       "- If an `http(s)` URL is provided, run a **live browser** demo assessment with comprehensive browser defaults (no `--no-browser`).",
@@ -105,27 +103,37 @@ export function renderCatalogCommandTemplate(
     return { name: command.name, description, markdown: frontmatter(description, body), kind: "demo" };
   }
 
-  const description = options.description ?? `Run quality-harness ${command.label} assessment`;
-  const inv = buildCatalogInvocation(command.name, "", personasDir);
+  const description = options.description ?? `Run Lemma ${command.label} assessment`;
+  const cliBin = cli === "lemma" ? "node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js" : cli;
+  const defaultPersonasDir = personasDir === "<personas-dir>" ? "/Users/skaparwan/github/lemma/packages/personas" : personasDir;
   const body = [
-    `Run the lemma assessment for **${command.label}**.`,
+    `Run a Lemma **${command.label}** assessment for: $ARGUMENTS`,
     "",
-    "Execute a deterministic static run unless a specific command flow requires otherwise:",
+    "## Goal",
+    "- Produce a useful, evidence-backed assessment for this intent. Do **not** rely on a generic `lemma run --intent \"${intent}\"` if it produces 0 checks/evidence (\"No handler registered\"/unscored); perform direct analysis and collect evidence instead, and report limitations honestly.",
+    "- No secrets/tokens/credentials. Coverage gaps (blocked/skipped/errored/unavailable/refused) never pass and never inflate confidence.",
     "",
-    "```bash",
-    `${cli} ${shellArgs(inv?.invocation.args ?? ["run", "--target", ".", "--no-browser", "--personas-dir", personasDir, "--intent", intent])}`,
-    "```",
+    "## Steps",
+    "1. **Identify target/context**: parse `$ARGUMENTS` for URL(s), paths, scope, and goals. If a reachable `http(s)` URL is provided and relevant, treat it as a live target and also inspect local source in the current workspace.",
+    "2. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run",
+    "   ```bash",
+    `   ${cliBin} browser <URL>`,
+    "   ```",
+    "   from the target workspace (results in `./.lemma/`, headed by default; add `--headless` if needed; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.",
+    "3. **Inspect project source/config/artifacts** relevant to **${command.label}**: use available tools to read and search code, configs, tests, CI, docs, and existing `.lemma/` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).",
+    "4. **Assess and report**: provide a structured assessment covering findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **${command.label}** intent (e.g. security, performance, accessibility, reliability, API, privacy, etc.) based on what can be observed.",
+    "5. **Optional CLI status** (if prior runs exist): `node /Users/skaparwan/github/lemma/packages/cli/dist/cli.js status --root .` and `report` can be used to reference existing evidence; do not claim execution that did not occur.",
     "",
-    "Notes:",
-    "- Use shared command catalog/builders and keep stdout/report handling machine-safe.",
-    "- Coverage gaps (blocked/skipped/errored/refused) never pass; report limitations honestly.",
+    "## Notes",
+    `- Bundled personas (if needed): \`${defaultPersonasDir}\``,
+    "- Do not invent findings, scores, decisions, or evidence. Prefer concrete, reproducible observations and clearly mark anything not executed/observable as a coverage gap.",
   ].join("\n");
   return { name: command.name, description, markdown: frontmatter(description, body), kind: "static" };
 }
 
 export function renderAllCatalogCommandTemplates(
   options: CommandTemplateOptions = {},
-  catalog: readonly AssayCommand[] = ASSAY_COMMAND_CATALOG,
+  catalog: readonly AssayCommand[] = LEMMA_COMMAND_CATALOG,
 ): RenderedCommandTemplate[] {
   return catalog
     .map((c) => renderCatalogCommandTemplate(c.name, options))
@@ -133,78 +141,77 @@ export function renderAllCatalogCommandTemplates(
 }
 
 export function renderOperationalCommandTemplate(
-  name: "assay" | "assay-status" | "assay-report" | "assay-abort" | "assay-verify-evidence",
+  name: string,
   options: CommandTemplateOptions = {},
 ): RenderedCommandTemplate {
   const cli = options.cli ?? "lemma";
   const stateRoot = options.stateRoot ?? ".lemma";
   const personasDir = options.personasDir ?? "<personas-dir>";
+  const normalized = name.replace(/^assay-/, "lemma-").replace(/^assay$/, "lemma");
 
-  if (name === "assay") {
-    const description = options.description ?? "Run lemma autonomous assessment agent";
+  if (normalized === "lemma") {
+    const description = options.description ?? "Run Lemma autonomous assessment agent";
     const body = [
-      "Run a lemma assessment for: $ARGUMENTS",
+      "Run a Lemma assessment for: $ARGUMENTS",
       "",
-      "- If the user asks for help/list/commands, show available assay command templates and usage.",
+      "- If the user asks for help/list/commands, show available Lemma command templates and usage.",
       "- For assessment goals, run through the host-neutral agent flow (bounded, deterministic-harness-owned, no invented findings/scores).",
       "- Use shared command builders/catalog and context protocol; never request or persist raw secrets/tokens.",
       `- CLI: \`${cli}\`, personas dir: \`${personasDir}\`, state root: \`${stateRoot}\`.`,
     ].join("\n");
-    return { name, description, markdown: frontmatter(description, body), kind: "operational" };
+    return { name: "lemma", description, markdown: frontmatter(description, body), kind: "operational" };
   }
 
-  if (name === "assay-status") {
-    const description = options.description ?? "Show lemma run status";
+  if (normalized === "lemma-status") {
+    const description = options.description ?? "Show Lemma run status";
     const body = [
-      "Show persisted lemma status.",
+      "Show persisted Lemma status.",
       "",
       "```bash",
       `${cli} status --root ${stateRoot}`,
       "```",
     ].join("\n");
-    return { name, description, markdown: frontmatter(description, body), kind: "operational" };
+    return { name: "lemma-status", description, markdown: frontmatter(description, body), kind: "operational" };
   }
 
-  if (name === "assay-report") {
-    const description = options.description ?? "Print the lemma report";
+  if (normalized === "lemma-report") {
+    const description = options.description ?? "Print the Lemma report";
     const body = [
-      "Print the latest (or specified) lemma report.",
+      "Print the latest (or specified) Lemma report.",
       "",
       "```bash",
       `${cli} report --root ${stateRoot}`,
       "```",
     ].join("\n");
-    return { name, description, markdown: frontmatter(description, body), kind: "operational" };
+    return { name: "lemma-report", description, markdown: frontmatter(description, body), kind: "operational" };
   }
 
-  if (name === "assay-abort") {
-    const description = options.description ?? "Request a lemma run abort/kill";
+  if (normalized === "lemma-abort") {
+    const description = options.description ?? "Request a Lemma run abort/kill";
     const body = [
-      "Request abort for the active lemma run.",
+      "Request abort for the active Lemma run.",
       "",
       "```bash",
       `${cli} abort --root ${stateRoot} --reason "operator stop"`,
       "```",
     ].join("\n");
-    return { name, description, markdown: frontmatter(description, body), kind: "operational" };
+    return { name: "lemma-abort", description, markdown: frontmatter(description, body), kind: "operational" };
   }
 
-  const description = options.description ?? "Verify lemma evidence manifest signatures and hashes";
+  const description = options.description ?? "Verify Lemma evidence manifests and hashes";
   const body = [
-    "Verify evidence manifests and hashes for a lemma run.",
+    "Verify evidence manifests and hashes for a Lemma run.",
     "",
     "```bash",
     `${cli} verify-evidence --root ${stateRoot}`,
     "```",
   ].join("\n");
-  return { name, description, markdown: frontmatter(description, body), kind: "operational" };
+  return { name: "lemma-verify-evidence", description, markdown: frontmatter(description, body), kind: "operational" };
 }
 
 export function renderPromptTemplates() {
   return {
     contextProtocol: CONTEXT_PROTOCOL,
-    browserAgentPrompt: (input: Parameters<typeof buildBrowserAgentPrompt>[0]) =>
-      buildBrowserAgentPrompt(input),
   };
 }
 
@@ -214,20 +221,20 @@ export function renderLemmaSkillTemplate(options: CommandTemplateOptions = {}): 
   return [
     "---",
     "name: lemma",
-    "description: Deterministic, evidence-backed release confidence assessments via lemma CLI/agent workflows.",
+    "description: Deterministic, evidence-backed release confidence assessments via Lemma CLI/agent workflows.",
     "---",
     "",
     "# Lemma skill",
     "",
-    "Use lemma to run deterministic, evidence-backed quality/release assessments. The harness owns phase ordering, execution, evidence, and scoring; agents/adapters must not invent findings, scores, or decisions.",
+    "Use Lemma to run deterministic, evidence-backed quality/release assessments. The harness owns phase ordering, execution, evidence, and scoring; agents/adapters must not invent findings, scores, or decisions.",
     "",
     "## Commands and modes",
     `- Primary CLI: \`${cli}\` (JSON report to stdout for \`run\`; progress/warnings to stderr).`,
     `- Personas dir (configurable): \`${personasDir}\`.`,
-    "- Catalog assessments: 60 assay-style commands.",
-    "  - `assay-browser`: live browser assessment, requires `http(s)` URL.",
-    "  - `assay-demo`: static when no URL, live browser when URL provided.",
-    "  - Other catalog commands: static intent-driven runs (`Assay <label> assessment`).",
+    "- Catalog assessments: 60 Lemma commands.",
+    "  - `lemma-browser`: live browser assessment, requires `http(s)` URL.",
+    "  - `lemma-demo`: static when no URL, live browser when URL provided.",
+    "  - Other catalog commands: static intent-driven runs (`Lemma <label> assessment`).",
     "- Operational commands include status/report/abort/verify-evidence and other management surfaces as available.",
     "",
     "## Context protocol",
@@ -242,3 +249,6 @@ export function renderLemmaSkillTemplate(options: CommandTemplateOptions = {}): 
     "",
   ].join("\n");
 }
+
+// compatibility export
+export { ASSAY_COMMAND_CATALOG };

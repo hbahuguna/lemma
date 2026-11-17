@@ -1,12 +1,15 @@
 import { ProjectState, runContinuous } from "@lemma/core";
 import { promises as fs } from "node:fs";
-import { statSync } from "node:fs";
+import { readdirSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import {
   EXIT_CODES,
   EvidenceStore,
   Orchestrator,
+  createDefaultPhaseHandlers,
   runMore,
   runAutoLoop,
   runForever,
@@ -239,6 +242,7 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
   const quiet = getBool(flags, "quiet");
   const maxChecksStr = getString(flags, "max-checks");
   const maxChecks = maxChecksStr !== undefined ? toInt(maxChecksStr, "--max-checks") : 20;
+  const runSize = (getString(flags, "run-size", "runSize") ?? "medium") as "quick" | "medium" | "large";
   const seedStr = getString(flags, "seed");
   const seed = seedStr !== undefined ? toInt(seedStr, "--seed") : undefined;
   const clockMode = getString(flags, "clock-mode") as "real" | "frozen" | undefined;
@@ -251,10 +255,25 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
   const minScore = minScoreStr !== undefined ? toInt(minScoreStr, "--min-score") : undefined;
 
   const store = new StateStore(root);
+  await store.ensure();
+  // Ensure documented .lemma layout so `doctor` doesn't report missing directories after runs.
+  try {
+    await new ProjectState({ root }).ensureLayout();
+  } catch {
+    // best-effort; run can still proceed with core state store
+  }
   const log = (msg: string) => {
     if (!quiet) io.stderr(`[lemma] ${msg}\n`);
   };
-  const orch = new Orchestrator({ store });
+  const personasDirArg = getString(flags, "personas-dir");
+  const resolvedPersonasDir = resolvePersonasDir(root, personasDirArg);
+  const orch = new Orchestrator({
+    store,
+    handlers: createDefaultPhaseHandlers({
+      personasDir: resolvedPersonasDir,
+      noBrowser: getBool(flags, "no-browser"),
+    }),
+  });
   log(resume ? "Resuming run..." : "Starting run...");
   const state = await orch.run({
     target: normalizeTarget(normalizeCliTarget(targetRaw)),
@@ -262,6 +281,9 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
     workflow: RELEASE_CONFIDENCE,
     maxChecks,
     resume,
+    runSize,
+    ...(resolvedPersonasDir ? { personasDir: resolvedPersonasDir } : {}),
+    ...(getBool(flags, "no-browser") ? { noBrowser: true } : {}),
     ...(seed !== undefined ? { seed } : {}),
     ...(clockMode ? { clockMode } : {}),
     ...(frozenClock !== undefined ? { frozenClock } : {}),
@@ -483,17 +505,67 @@ export const pruneCommand: CliCommandHandler = async (argv) => {
   };
 };
 
-function resolvePersonasDir(root: string, personasDirArg: string | undefined): string {
-  const raw = personasDirArg ?? "personas";
-  if (path.isAbsolute(raw)) return raw;
-  const cwdCandidate = path.resolve(process.cwd(), raw);
-  const rootCandidate = path.resolve(root, raw);
+function tryDir(p: string): string | null {
   try {
-    if (statSync(cwdCandidate).isDirectory()) return cwdCandidate;
+    return statSync(p).isDirectory() ? p : null;
   } catch {
-    // fall through
+    return null;
   }
-  return rootCandidate;
+}
+
+function bundledPersonasDir(): string | null {
+  // 1) Installed package resolution (production installs)
+  try {
+    const req = createRequire(import.meta.url);
+    const pkgJson = req.resolve("@lemma/personas/package.json");
+    const dir = tryDir(path.dirname(pkgJson));
+    if (dir) return dir;
+  } catch {
+    // continue
+  }
+  // 2) Monorepo/dev fallback: locate packages/personas relative to this CLI module
+  try {
+    const here = path.dirname(fileURLToPath(import.meta.url));
+    const candidates = [
+      path.resolve(here, "../../personas"),          // packages/cli/{dist,src} -> packages/personas
+      path.resolve(here, "../../../packages/personas"),
+      path.resolve(here, "../../../../packages/personas"),
+    ];
+    for (const c of candidates) {
+      const d = tryDir(c);
+      if (d && (tryDir(path.join(d, "src")) || existsPersonaMd(d))) return d;
+    }
+  } catch {
+    // continue
+  }
+  // 3) Environment override fallback
+  const envDir = process.env.LEMMA_PERSONAS_DIR;
+  if (envDir) return tryDir(path.resolve(envDir));
+  return null;
+}
+
+function existsPersonaMd(dir: string): boolean {
+  try {
+    return readdirSync(dir).some((f) => f.endsWith(".md"));
+  } catch {
+    return false;
+  }
+}
+
+function resolvePersonasDir(root: string, personasDirArg: string | undefined): string {
+  if (personasDirArg) {
+    if (path.isAbsolute(personasDirArg)) return personasDirArg;
+    return tryDir(path.resolve(process.cwd(), personasDirArg))
+      ?? tryDir(path.resolve(root, personasDirArg))
+      ?? path.resolve(root, personasDirArg);
+  }
+
+  // Default resolution: prefer local project personas, then bundled personas shipped with Lemma.
+  return tryDir(path.resolve(root, "personas"))
+    ?? tryDir(path.resolve(process.cwd(), "personas"))
+    ?? tryDir(path.resolve(root, ".lemma", "personas"))
+    ?? bundledPersonasDir()
+    ?? path.resolve(root, "personas");
 }
 
 export const personasCommand: CliCommandHandler = async (argv) => {
@@ -1272,14 +1344,35 @@ export const browserCommand: CliCommandHandler = async (argv) => {
   const checks = getStringArray(flags, "check", "checks");
   const scopePages = getStringArray(flags, "scope-page", "scope-pages", "page", "pages");
   const noBrowser = getBool(flags, "no-browser");
+  const headed = getBool(flags, "headed");
+  const headless = getBool(flags, "headless");
+  const crawl = getBool(flags, "crawl");
+  const maxPagesStr = getString(flags, "max-pages", "maxPages");
+  const maxPages = maxPagesStr !== undefined ? toInt(maxPagesStr, "--max-pages") : undefined;
+  const timeoutMsStr = getString(flags, "timeout-ms", "timeoutMs");
+  const timeoutMs = timeoutMsStr !== undefined ? toInt(timeoutMsStr, "--timeout-ms") : undefined;
   const runId = getString(flags, "run-id", "run");
+  const browserOptions: Record<string, unknown> = {
+    ...(noBrowser ? { noBrowser: true } : {}),
+    ...(crawl ? { crawl: true } : {}),
+    ...(maxPages !== undefined ? { maxPages } : {}),
+    ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+  };
+  if (headless) {
+    browserOptions.headless = true;
+  } else {
+    // Default to headed (visible browser) for focused `lemma browser` inspections unless explicitly headless.
+    browserOptions.headed = true;
+  }
+  if (headed) browserOptions.headed = true;
+
   const result = await runBrowserInspection({
     target: normalizeCliTarget(targetRaw),
     ...(checks.length ? { checks } : {}),
     ...(scopePages.length ? { scope: { pages: scopePages } } : {}),
     ...(runId ? { runId } : {}),
     root,
-    options: { ...(noBrowser ? { noBrowser: true } : {}) },
+    options: browserOptions,
   } as any);
   return { stdoutJson: result };
 };

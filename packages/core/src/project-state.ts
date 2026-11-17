@@ -137,8 +137,13 @@ export class ProjectState {
       const p = this.filePath(name);
       const st = await statSafe(p);
       if (!st) {
-        if (name.endsWith(".json")) await atomicWriteJson(p, name === "history.json" ? [] : {});
-        else await fs.writeFile(p, "", "utf8"); // events.jsonl initialized empty; append-only managed elsewhere
+        if (name === "history.json") {
+          await atomicWriteJson(p, { schema_version: "lemma.history/v1", runs: [] });
+        } else if (name.endsWith(".json")) {
+          await atomicWriteJson(p, {});
+        } else {
+          await fs.writeFile(p, "", "utf8"); // events.jsonl initialized empty; append-only managed elsewhere
+        }
         created.push(p);
       } else if (!st.isFile()) {
         throw new StateError(`Project state path exists but is not a file: ${p}`, { code: "state_error", details: { path: p, expected: "file" } });

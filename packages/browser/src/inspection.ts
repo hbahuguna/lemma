@@ -20,7 +20,6 @@ import {
   captureWithPlaywright,
   probeBrowserRuntime,
   type BrowserRuntimeOptions,
-  type PlaywrightModuleLike,
 } from "./runtime.js";
 
 export interface BrowserInspectionEvidenceStore {
@@ -191,7 +190,7 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
 
   const options = input.options ?? {};
   const probe = await probeBrowserRuntime(options);
-  if (!probe.available || !probe.playwright) {
+  if (!probe.available) {
     const reason = probe.reason ?? "Browser runtime is unavailable.";
     const observations = selected.map((check) => {
       const outcome = blockedBrowserOutcome(check, reason);
@@ -206,7 +205,7 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
       check_id: selected[0]?.id ?? "browser.load",
       reason,
       boundary: "browser_runtime",
-      unblock_evidence: ["Provide an available browser runtime (Playwright/Chromium) or run without --no-browser."],
+      unblock_evidence: ["Install or make discoverable Google Chrome/Chromium (or set LEMMA_CHROME_PATH/CHROME_PATH), then rerun."],
     };
     return {
       schema_version: "lemma.browser_inspection/v1",
@@ -230,7 +229,7 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
     views = [normalizePageView(input.pageView)];
   } else {
     try {
-      views = await captureWithPlaywright(url, probe.playwright as PlaywrightModuleLike, options, input.evidence as any);
+      views = await captureWithPlaywright(url, probe.playwright, options, input.evidence as any);
     } catch (err) {
       const reason = err instanceof BrowserUnavailableError ? err.reason : (err instanceof Error ? err.message : String(err));
       const observations = selected.map((check) => toObservation(check, blockedBrowserOutcome(check, reason), null, reason));

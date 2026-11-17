@@ -22,6 +22,7 @@ export const PACKAGE_NAME = "@lemma/agent" as const;
 export {
   SUBCOMMANDS,
   assayInvocation,
+  lemmaInvocation,
   browserInvocation,
   demoInvocation,
   extractUrl,
@@ -31,9 +32,12 @@ export type { Invocation } from "./command-args.js";
 
 export {
   ASSAY_COMMAND_CATALOG,
+  LEMMA_COMMAND_CATALOG,
   assayIntent,
+  lemmaIntent,
   buildCatalogInvocation,
   getAssayCommand,
+  getLemmaCommand,
   getCatalogCommandKind,
 } from "./catalog.js";
 export type { AssayCommand, CatalogCommandKind, CatalogInvocationResult } from "./catalog.js";

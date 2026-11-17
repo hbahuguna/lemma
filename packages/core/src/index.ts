@@ -13,6 +13,7 @@ export * from "./models.js";
 export * from "./checks.js";
 export * from "./findings.js";
 export * from "./orchestrator.js";
+export * from "./default-handlers.js";
 export * from "./outcomes.js";
 export { EvidenceStore, sha256Bytes, sha256File } from "./evidence.js";
 export type { EvidenceEntry as EvidenceArtifactEntry, EvidenceManifest as EvidenceStoreManifest, EvidenceSummary, EvidenceVerification, ReconcileCheckLike } from "./evidence.js";

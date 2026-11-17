@@ -536,7 +536,7 @@ land first.
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Done |
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Done |
 | LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Done |
-| LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | In Progress |
+| LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Done |
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -3420,28 +3420,29 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing enterprise human-expert review tier (pro/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed enterprise human-expert review tier (pro/tests/verification).
 - **Description:** Add a human-expert review tier where experts review AI
   findings and add feedback. Expert feedback is treated as durable local
   context, not a hidden override; every expert note is attributable and
   auditable.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `requestExpertReview({ runId, findings })` and
+  - [x] `@lemma/pro` exposes `requestExpertReview({ runId, findings })` and
     `ingestExpertReview({ reviewId, response })` writing to
     `.lemma/pro/expert-reviews/<review_id>/` via atomic writes.
-  - Expert reviews are attributable (named reviewer or scoped anonymous id)
+  - [x] Expert reviews are attributable (named reviewer or scoped anonymous id)
     and their notes are attached to the report as explicit review notes;
     the run's own decision is not silently overridden — it is annotated.
-  - Expert input is redacted before persistence; no raw credentials or
+  - [x] Expert input is redacted before persistence; no raw credentials or
     secrets are stored.
-  - Every expert review is metered (LEM-113) and quota-checked (LEM-115).
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover request/ingest flow, attribution, non-override semantics,
+  - [x] Every expert review is metered (LEM-113) and quota-checked (LEM-115).
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover request/ingest flow, attribution, non-override semantics,
     redaction, metering, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- expert-review`
-- **Evidence (planned/in progress):** `packages/pro/src/expert-review.ts`,
-  `packages/pro/test/expert-review/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/expert-review/expert-review.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- expert-review` — `docs/parity/evidence/LEM-206-expert-review-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/expert-review.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/expert-review/expert-review.test.ts`,
   `docs/parity/evidence/LEM-206-expert-review-test-output.txt`
 
 ---
@@ -8506,3 +8507,20 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     halt/skip behavior, and invalid option/budget errors.
 - **Verification:** `pnpm --filter @lemma/core test -- orchestrator` — **PASS** (4 tests; core suite 64/64 passed). `pnpm --filter @lemma/core typecheck` and `pnpm lint` passed (2026-11-14).
 - **Evidence:** `packages/core/src/orchestrator.ts` (`Orchestrator` with fixed five-phase sequencing over workflow/`StateStore`, run/phase/check state transitions and timestamps, budget validation + `maxChecks` context, async kill-request observation/checkpoints with halt/skip semantics and halted run recording, injectable phase handlers for extensible integration), exported from `@lemma/core`; `packages/core/test/orchestrator/orchestrator.test.ts` (phase order/persistence/transitions, budget validation and handler budget, kill-triggered halt/skip/no-auto-resume, injectable handlers and failed-run recording). Test output: `docs/parity/evidence/LEM-015-orchestrator-test-output.txt`. Commit/remote recorded in completion summary.
+
+### LEM-207 — Longer, more thorough Lemma runs (run-size, crawl, scan depth)
+- **Epic:** E3 CLI and Agent Interface / E2 Deterministic Core Engine
+- **Priority:** P2
+- **Points:** 5
+- **Depends on:** LEM-015, LEM-017, LEM-037
+- **Status:** Done
+- **Claimed:** 2026-11-17 — implemented CLI/core controls for longer and deeper assessments.
+- **Description:** Expose controls and defaults that allow longer, more extensive release-confidence and browser assessments (more checks, broader scope, multi-page crawl, deeper repo scans) with honest coverage reporting.
+- **Acceptance Criteria:**
+  - [x] `lemma run` accepts `--run-size quick|medium|large` and passes it to the orchestrator so run size/perspective metadata and scope are applied.
+  - [x] `lemma browser` accepts `--crawl`, `--max-pages`, and `--timeout-ms` and forwards them to browser inspection/runtime options for multi-page capture where supported.
+  - [x] Static scan limits are configurable for deeper repo analysis via environment variables (`LEMMA_MAX_INVENTORY_FILES`, `LEMMA_MAX_SCAN_BYTES`) and used by inventory scanning/default handlers.
+  - [x] Default release-confidence handlers remain deterministic and produce evidence-backed check execution/scoring (no fabricated passes); increased budgets/depth increase work when applicable checks exist.
+  - [x] CLI/core builds succeed with the new options wired.
+- **Verification:** `pnpm --filter @lemma/core build && pnpm --filter @lemma/cli build && pnpm --filter @lemma/agent build` (pass); `node packages/cli/dist/cli.js run --target . --no-browser --intent "assess release confidence for this repo" --max-checks 3 --run-size large` executes with default handlers and scored output (smoke verification).
+- **Evidence:** `packages/cli/src/commands.ts` (`--run-size`, browser `--crawl/--max-pages/--timeout-ms`), `packages/core/src/static.ts` (configurable scan limits), `packages/core/src/default-handlers.ts` (uses configurable inventory sizing), `packages/core/src/project-state.ts` (history layout fix), `packages/core/src/index.ts`, `packages/browser/src/runtime.ts`/`packages/browser/src/inspection.ts` (CDP browser runtime and crawl-capable capture path), `docs/manual-test-plan-opencode.md`.

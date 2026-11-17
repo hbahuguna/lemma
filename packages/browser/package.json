@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": false,
   "type": "module",
-  "description": "Optional Playwright-backed Operate layer.",
+  "description": "Optional Chrome DevTools Protocol (CDP)-backed browser inspection/runtime layer.",
   "license": "MIT",
   "exports": {
     ".": {
@@ -37,12 +37,6 @@
     "access": "public",
     "provenance": true
   },
-  "peerDependencies": {
-    "playwright": ">=1.40.0"
-  },
-  "peerDependenciesMeta": {
-    "playwright": {
-      "optional": true
-    }
-  }
+  "peerDependencies": {},
+  "peerDependenciesMeta": {}
 }

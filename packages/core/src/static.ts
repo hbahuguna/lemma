@@ -131,9 +131,24 @@ export const CI_NAMES = new Set([
 export const ENV_NAMES = new Set([".env", ".env.local", ".env.production", ".env.staging", ".env.development"]);
 export const TEST_HINTS = ["test", "spec", "__tests__", "tests", "e2e", "fixture"];
 
-export const MAX_SCAN_BYTES = 512 * 1024;
 export const MAX_SCAN_FILES = 2000;
-export const MAX_INVENTORY_FILES = 5000;
+export const MAX_INVENTORY_FILES_DEFAULT = 5000;
+export const MAX_SCAN_BYTES_DEFAULT = 512 * 1024;
+
+export function getMaxInventoryFiles(): number {
+  const v = Number(process.env.LEMMA_MAX_INVENTORY_FILES || "");
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : MAX_INVENTORY_FILES_DEFAULT;
+}
+
+export function getMaxScanBytes(): number {
+  const v = Number(process.env.LEMMA_MAX_SCAN_BYTES || "");
+  return Number.isFinite(v) && v > 0 ? Math.floor(v) : MAX_SCAN_BYTES_DEFAULT;
+}
+
+/** @deprecated use getMaxInventoryFiles() */
+export const MAX_INVENTORY_FILES = MAX_INVENTORY_FILES_DEFAULT;
+/** @deprecated use getMaxScanBytes() */
+export const MAX_SCAN_BYTES = MAX_SCAN_BYTES_DEFAULT;
 
 // Issue markers are inventoried for the issues category. Counts only are
 // persisted, so an inline note cannot leak a credential into evidence.
@@ -281,7 +296,7 @@ export class SourceInspector {
 
   constructor(root: string, options: SourceInspectorOptions = {}) {
     this.root = path.resolve(root);
-    this.maxFiles = options.maxFiles ?? MAX_INVENTORY_FILES;
+    this.maxFiles = options.maxFiles ?? getMaxInventoryFiles();
     this.excludePatterns = this.loadExcludePatterns(options.ignoreFiles);
     this.hasNegations = this.excludePatterns.some((p) => p.startsWith("!"));
   }
@@ -338,7 +353,7 @@ export class SourceInspector {
   private readManifestText(fullPath: string): string {
     try {
       const st = statSync(fullPath);
-      if (st.size > MAX_SCAN_BYTES) return "";
+      if (st.size > getMaxScanBytes()) return "";
       const buf = readFileSync(fullPath);
       if (buf.subarray(0, 2048).includes(0)) return "";
       return buf.toString("utf8");
@@ -1008,7 +1023,7 @@ export class StaticCheckRunner {
       if (path.basename(full).includes(".min.")) continue;
       try {
         const st = statSync(full);
-        if (!st.isFile() || st.size > MAX_SCAN_BYTES) continue;
+        if (!st.isFile() || st.size > getMaxScanBytes()) continue;
       } catch {
         continue;
       }
@@ -1438,7 +1453,7 @@ export class StaticCheckRunner {
     try {
       const full = path.join(this.root, rel);
       const st = statSync(full);
-      if (!st.isFile() || st.size > MAX_SCAN_BYTES) return "";
+      if (!st.isFile() || st.size > getMaxScanBytes()) return "";
       const data = readFileSync(full);
       if (data.subarray(0, 2048).includes(0)) return "";
       return data.toString("utf8");

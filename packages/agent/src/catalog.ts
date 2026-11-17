@@ -14,83 +14,101 @@ export interface CatalogInvocationResult {
   invocation: Invocation;
 }
 
-/** Canonical 60-command assay/lemma slash-command catalog (name/label), in assay order (LEM-089 baseline + LEM-148 hunt). */
-export const ASSAY_COMMAND_CATALOG: readonly AssayCommand[] = [
-  { name: "assay-manager", label: "manager" },
-  { name: "assay-full", label: "full" },
-  { name: "assay-test", label: "test" },
-  { name: "assay-functionality", label: "functionality" },
-  { name: "assay-browser", label: "browser" },
-  { name: "assay-issues", label: "issues" },
-  { name: "assay-demo", label: "demo" },
-  { name: "assay-more", label: "more" },
-  { name: "assay-help", label: "help" },
-  { name: "assay-accessibility", label: "accessibility" },
-  { name: "assay-ui", label: "ui" },
-  { name: "assay-ux", label: "ux" },
-  { name: "assay-usability", label: "usability" },
-  { name: "assay-personas", label: "personas" },
-  { name: "assay-compatibility", label: "compatibility" },
-  { name: "assay-intl", label: "intl" },
-  { name: "assay-localization", label: "localization" },
-  { name: "assay-content", label: "content" },
-  { name: "assay-geo", label: "geo" },
-  { name: "assay-security", label: "security" },
-  { name: "assay-security-review", label: "security-review" },
-  { name: "assay-privacy", label: "privacy" },
-  { name: "assay-state", label: "state" },
-  { name: "assay-reliability", label: "reliability" },
-  { name: "assay-performance", label: "performance" },
-  { name: "assay-load", label: "load" },
-  { name: "assay-stress", label: "stress" },
-  { name: "assay-networking", label: "networking" },
-  { name: "assay-api", label: "api" },
-  { name: "assay-data", label: "data" },
-  { name: "assay-failure", label: "failure" },
-  { name: "assay-proof", label: "proof" },
-  { name: "assay-confidence", label: "confidence" },
-  { name: "assay-confidence-init", label: "confidence-init" },
-  { name: "assay-confidence-plan", label: "confidence-plan" },
-  { name: "assay-review", label: "review" },
-  { name: "assay-skeptical-review", label: "skeptical-review" },
-  { name: "assay-release", label: "release" },
-  { name: "assay-release-review", label: "release-review" },
-  { name: "assay-incident", label: "incident" },
-  { name: "assay-eval", label: "eval" },
-  { name: "assay-eval-design-review", label: "eval-design-review" },
-  { name: "assay-statistical-review", label: "statistical-review" },
-  { name: "assay-agentic", label: "agentic" },
-  { name: "assay-chatbot", label: "chatbot" },
-  { name: "assay-bias", label: "bias" },
-  { name: "assay-tests", label: "tests" },
-  { name: "assay-generate", label: "generate" },
-  { name: "assay-map", label: "map" },
-  { name: "assay-full-report", label: "full-report" },
-  { name: "assay-stats", label: "stats" },
-  { name: "assay-integrations", label: "integrations" },
-  { name: "assay-ai-upgrade", label: "ai-upgrade" },
-  { name: "assay-auto", label: "auto" },
-  { name: "assay-background", label: "background" },
-  { name: "assay-forever", label: "forever" },
-  { name: "assay-settings", label: "settings" },
-  { name: "assay-human", label: "human" },
-  { name: "assay-pro", label: "pro" },
-  { name: "assay-hunt", label: "hunt" },
+/** Canonical 60-command lemma slash-command catalog (name/label). */
+export const LEMMA_COMMAND_CATALOG: readonly AssayCommand[] = [
+  { name: "lemma-manager", label: "manager" },
+  { name: "lemma-full", label: "full" },
+  { name: "lemma-test", label: "test" },
+  { name: "lemma-functionality", label: "functionality" },
+  { name: "lemma-browser", label: "browser" },
+  { name: "lemma-issues", label: "issues" },
+  { name: "lemma-demo", label: "demo" },
+  { name: "lemma-more", label: "more" },
+  { name: "lemma-help", label: "help" },
+  { name: "lemma-accessibility", label: "accessibility" },
+  { name: "lemma-ui", label: "ui" },
+  { name: "lemma-ux", label: "ux" },
+  { name: "lemma-usability", label: "usability" },
+  { name: "lemma-personas", label: "personas" },
+  { name: "lemma-compatibility", label: "compatibility" },
+  { name: "lemma-intl", label: "intl" },
+  { name: "lemma-localization", label: "localization" },
+  { name: "lemma-content", label: "content" },
+  { name: "lemma-geo", label: "geo" },
+  { name: "lemma-security", label: "security" },
+  { name: "lemma-security-review", label: "security-review" },
+  { name: "lemma-privacy", label: "privacy" },
+  { name: "lemma-state", label: "state" },
+  { name: "lemma-reliability", label: "reliability" },
+  { name: "lemma-performance", label: "performance" },
+  { name: "lemma-load", label: "load" },
+  { name: "lemma-stress", label: "stress" },
+  { name: "lemma-networking", label: "networking" },
+  { name: "lemma-api", label: "api" },
+  { name: "lemma-data", label: "data" },
+  { name: "lemma-failure", label: "failure" },
+  { name: "lemma-proof", label: "proof" },
+  { name: "lemma-confidence", label: "confidence" },
+  { name: "lemma-confidence-init", label: "confidence-init" },
+  { name: "lemma-confidence-plan", label: "confidence-plan" },
+  { name: "lemma-review", label: "review" },
+  { name: "lemma-skeptical-review", label: "skeptical-review" },
+  { name: "lemma-release", label: "release" },
+  { name: "lemma-release-review", label: "release-review" },
+  { name: "lemma-incident", label: "incident" },
+  { name: "lemma-eval", label: "eval" },
+  { name: "lemma-eval-design-review", label: "eval-design-review" },
+  { name: "lemma-statistical-review", label: "statistical-review" },
+  { name: "lemma-agentic", label: "agentic" },
+  { name: "lemma-chatbot", label: "chatbot" },
+  { name: "lemma-bias", label: "bias" },
+  { name: "lemma-tests", label: "tests" },
+  { name: "lemma-generate", label: "generate" },
+  { name: "lemma-map", label: "map" },
+  { name: "lemma-full-report", label: "full-report" },
+  { name: "lemma-stats", label: "stats" },
+  { name: "lemma-integrations", label: "integrations" },
+  { name: "lemma-ai-upgrade", label: "ai-upgrade" },
+  { name: "lemma-auto", label: "auto" },
+  { name: "lemma-background", label: "background" },
+  { name: "lemma-forever", label: "forever" },
+  { name: "lemma-settings", label: "settings" },
+  { name: "lemma-human", label: "human" },
+  { name: "lemma-pro", label: "pro" },
+  { name: "lemma-hunt", label: "hunt" },
 ] as const;
 
-const catalogByName = new Map(ASSAY_COMMAND_CATALOG.map((c) => [c.name, c]));
+/** @deprecated Use LEMMA_COMMAND_CATALOG. */
+export const ASSAY_COMMAND_CATALOG: readonly AssayCommand[] = LEMMA_COMMAND_CATALOG;
 
-export function getAssayCommand(name: string): AssayCommand | undefined {
+const catalogByName = new Map<string, AssayCommand>(LEMMA_COMMAND_CATALOG.map((c) => [c.name, c]));
+for (const c of LEMMA_COMMAND_CATALOG) {
+  catalogByName.set(c.name.replace(/^lemma-/, "assay-"), c);
+}
+
+export function getLemmaCommand(name: string): AssayCommand | undefined {
   return catalogByName.get(name);
 }
 
+/** @deprecated Use getLemmaCommand. */
+export function getAssayCommand(name: string): AssayCommand | undefined {
+  return getLemmaCommand(name);
+}
+
+export function lemmaIntent(label: string): string {
+  return `Lemma ${label} assessment`;
+}
+
+/** @deprecated Use lemmaIntent. */
 export function assayIntent(label: string): string {
-  return `Assay ${label} assessment`;
+  return lemmaIntent(label);
 }
 
 export function getCatalogCommandKind(name: string): CatalogCommandKind {
-  if (name === "assay-browser") return "browser";
-  if (name === "assay-demo") return "demo";
+  const cmd = getLemmaCommand(name);
+  if (!cmd) return "static";
+  if (cmd.label === "browser") return "browser";
+  if (cmd.label === "demo") return "demo";
   return "static";
 }
 
@@ -99,9 +117,9 @@ export function buildCatalogInvocation(
   text: string,
   personasDir: string,
 ): CatalogInvocationResult | null {
-  const command = getAssayCommand(commandName);
+  const command = getLemmaCommand(commandName);
   if (!command) return null;
-  const intent = assayIntent(command.label);
+  const intent = lemmaIntent(command.label);
   const kind = getCatalogCommandKind(command.name);
 
   if (kind === "browser") {
