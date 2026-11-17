@@ -30,3 +30,4 @@ export { saveRevision, compareRevisions, listRevisions, validateRevisionDiff } f
 export * from "./cloud-execution.js";
 export * from "./steered-plan.js";
 export * from "./dashboard/plan.js";
+export * from "./personas.js";

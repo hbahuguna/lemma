@@ -528,7 +528,7 @@ land first.
 | --- | --- | --- | --- | --- | --- |
 | LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Done |
 | LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Done |
-| LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Backlog |
+| LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | In Progress |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Backlog |
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Backlog |
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Backlog |
@@ -3159,8 +3159,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-044, LEM-197
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing custom persona panel (pro/tests) and verification.
 - **Description:** Add custom personas and a diverse persona panel generator
   that reacts like real users. Custom personas remain data contracts, not
   prompt fragments; ownership is enforced exactly as in the free tier
@@ -3176,8 +3176,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover contract validation, ownership enforcement, panel bounds,
     persistence, opt-in behavior, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- persona-panel`
-- **Evidence (planned):** `packages/pro/src/personas.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- persona-panel`
+- **Evidence (planned/in progress):** `packages/pro/src/personas.ts`,
   `packages/pro/test/persona-panel/*`,
   `docs/parity/evidence/LEM-198-persona-panel-test-output.txt`
 

@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/persona-panel/persona-panel.test.ts (4 tests) 807ms
+   ✓ LEM-198 custom persona panel > generatePanel produces valid lint-passing personas, bounded by documented maxSize, persisted and opt-in  464ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  14:02:13
+   Duration  4.79s (transform 1.85s, setup 0ms, collect 2.53s, tests 807ms, environment 0ms, prepare 581ms)
+
