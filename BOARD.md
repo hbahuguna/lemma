@@ -534,8 +534,8 @@ land first.
 | LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Done |
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Done |
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Done |
-| LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | In Progress |
-| LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Backlog |
+| LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Done |
+| LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | In Progress |
 | LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Backlog |
 ---
 
@@ -3347,28 +3347,31 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-083, LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing Test Reports REST API (pro-services/schema/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed Test Reports REST API (pro-services/schema/tests/verification).
 - **Description:** Add a programmatic REST API for testing and report
   retrieval. `POST /api/reports` starts a run; `GET /api/reports/{id}` returns
   the report. Auth, quota, and metering use the existing Pro-tier contracts.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes a REST API under `pro-services/reports-api/` with
+  - [x] `@lemma/pro` exposes a REST API under `pro-services/reports-api/` with
     `POST /api/reports` and `GET /api/reports/{id}`; request/response shapes
     are documented under `schemas/pro/reports_api.v1.json`.
-  - Auth uses the Pro-tier scoped-key contract (LEM-114); every request is
+  - [x] Auth uses the Pro-tier scoped-key contract (LEM-114); every request is
     quota-checked (LEM-115) and metered (LEM-113).
-  - Async jobs are queued through LEM-119 and expose a `status` field;
+  - [x] Async jobs are queued through LEM-119 and expose a `status` field;
     reports are retrievable only by the owning tenant.
-  - Wire conformance is validated by a repo-owned client fixture; the API
+  - [x] Wire conformance is validated by a repo-owned client fixture; the API
     never leaks cross-tenant data.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover wire conformance, auth rejection, quota enforcement, metering,
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover wire conformance, auth rejection, quota enforcement, metering,
     tenant isolation, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- reports-api`
-- **Evidence (planned/in progress):** `pro-services/reports-api/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/reports-api/reports-api.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- reports-api` — `docs/parity/evidence/LEM-204-reports-api-test-output.txt`
+- **Evidence:** `pro-services/reports-api/src/server.ts`,
+  `pro-services/reports-api/src/index.ts`,
+  `pro-services/reports-api/fixtures/client.ts`,
+  `schemas/pro/reports_api.v1.json`,
   `schemas/pro/reports_api.v1.schema.json`,
-  `packages/pro/test/reports-api/*`,
+  `packages/pro/test/reports-api/reports-api.test.ts`,
   `docs/parity/evidence/LEM-204-reports-api-test-output.txt`
 
 ### LEM-205 — Add private-cloud deployment support
@@ -3377,8 +3380,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing private-cloud deployment support (deploy assets/pro code/tests) and verification.
 - **Description:** Support running the Pro tier inside a customer's VPC,
   including tunnels/proxies for pre-production pages and advanced auth/header
   handling. Data never leaves the customer's network unless explicitly
@@ -3398,8 +3401,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover deployment dry-run, data-flow assertions (no outbound except
     documented), tunnel/proxy validation, header injection, and unsafe-target
     rejection.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- private-cloud`
-- **Evidence (planned):** `deploy/private-cloud/*`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- private-cloud`
+- **Evidence (planned/in progress):** `deploy/private-cloud/*`,
   `packages/pro/test/private-cloud/*`,
   `docs/parity/evidence/LEM-205-private-cloud-test-output.txt`
 

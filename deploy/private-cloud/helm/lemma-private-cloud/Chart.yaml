@@ -1,0 +1,6 @@
+apiVersion: v2
+name: lemma-private-cloud
+description: Helm chart for deploying lemma Pro tier in a customer VPC (private cloud)
+type: application
+version: 0.1.0
+appVersion: "0.0.0"

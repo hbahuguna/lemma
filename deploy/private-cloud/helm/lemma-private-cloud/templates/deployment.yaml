@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "lemma-private-cloud.name" . }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "lemma-private-cloud.name" . }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "lemma-private-cloud.name" . }}
+    spec:
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: LEMMA_DEPLOYMENT_MODE
+              value: "private-cloud"
+            - name: LEMMA_LICENSE_VALIDATION
+              value: {{ ternary "enabled" "disabled" .Values.licenseValidation.enabled | quote }}
+            - name: LEMMA_TUNNELS_PROXIES
+              value: {{ ternary "enabled" "disabled" .Values.tunnelsProxies.enabled | quote }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          volumeMounts:
+            - name: lemma-state
+              mountPath: {{ .Values.persistence.mountPath }}
+      volumes:
+        - name: lemma-state
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "lemma-private-cloud.name" . }}-state
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

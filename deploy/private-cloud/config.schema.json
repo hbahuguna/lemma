@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/deploy/private-cloud-config.v1.json",
+  "title": "Lemma Private Cloud Deployment Config v1",
+  "description": "Configuration schema for lemma Pro private-cloud (VPC) deployment. Data flows: all state, evidence, and reports remain inside the VPC. Only outbound traffic is (a) licence validation and (b) explicitly configured tunnels/proxies; both are documented and disable-able. Tunnels/proxies for pre-production pages are configured via Pro-tier settings schema (LEM-197) and validated; unsafe targets are rejected per LEM-059. Custom header injection supports redaction.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "const": "lemma.deploy.private_cloud_config/v1" },
+    "data_flow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "state_evidence_reports_in_vpc": { "const": true },
+        "license_validation_outbound": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "enabled": { "type": "boolean" }, "description": { "type": "string" } },
+          "required": ["enabled"]
+        },
+        "tunnels_proxies_outbound": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "enabled": { "type": "boolean" }, "description": { "type": "string" } },
+          "required": ["enabled"]
+        }
+      },
+      "required": ["state_evidence_reports_in_vpc", "license_validation_outbound", "tunnels_proxies_outbound"]
+    },
+    "tunnels_proxies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name", "type", "target"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "type": { "type": "string", "enum": ["tunnel", "proxy"] },
+          "target": { "type": "string", "minLength": 1 },
+          "enabled": { "type": "boolean" },
+          "headers": { "type": "object", "additionalProperties": { "type": "string" } }
+        }
+      }
+    },
+    "custom_headers": { "type": "object", "additionalProperties": { "type": "string" } },
+    "pro_tier_settings_ref": { "type": "string", "description": "Reference to Pro-tier settings schema (LEM-197) for tunnel/proxy configuration." }
+  }
+}

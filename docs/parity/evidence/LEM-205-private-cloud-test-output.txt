@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/private-cloud/private-cloud.test.ts (3 tests) 28ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  14:41:03
+   Duration  4.74s (transform 2.01s, setup 0ms, collect 2.87s, tests 28ms, environment 0ms, prepare 550ms)
+

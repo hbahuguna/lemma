@@ -1,0 +1,33 @@
+image:
+  repository: lemma-private-cloud
+  tag: local
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+service:
+  type: ClusterIP
+  port: 3000
+
+persistence:
+  enabled: true
+  mountPath: /app/.lemma
+  size: 10Gi
+
+# Data-flow / outbound controls (documented and disable-able)
+licenseValidation:
+  enabled: true # (a) outbound licence validation - disable to prevent outbound licence checks
+
+tunnelsProxies:
+  enabled: false # (b) explicitly configured tunnels/proxies - disabled by default
+  # Configured via Pro-tier settings schema (LEM-197) / private-cloud config; unsafe targets rejected per LEM-059
+  config: [] # list of { name, type: tunnel|proxy, target, enabled, headers? }
+
+# Advanced auth/header handling (custom header injection with redaction)
+customHeaders:
+  enabled: false
+  headers: {} # name -> value/template; sensitive values redacted in logs/state
+
+# Network policy should restrict egress to only documented endpoints when enabled.
+networkPolicy:
+  restrictEgress: true

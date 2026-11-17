@@ -1,0 +1,37 @@
+version: "3.9"
+
+# Private-cloud deployment (Compose). All state/evidence/reports remain on local/VPC volumes.
+# Outbound traffic is restricted by policy/config to:
+#   (a) licence validation (if enabled)
+#   (b) explicitly configured tunnels/proxies (if enabled)
+# Both are documented and disable-able via config/env.
+
+services:
+  lemma-private-cloud:
+    build:
+      context: ../..
+      dockerfile: deploy/private-cloud/Dockerfile
+    image: lemma-private-cloud:local
+    container_name: lemma-private-cloud
+    restart: unless-stopped
+    environment:
+      # Disable-able outbound controls
+      LEMMA_LICENSE_VALIDATION: ${LEMMA_LICENSE_VALIDATION:-enabled}
+      LEMMA_TUNNELS_PROXIES: ${LEMMA_TUNNELS_PROXIES:-disabled}
+      # Explicitly configured tunnel/proxy endpoints (JSON) - only used when enabled
+      LEMMA_TUNNELS_PROXIES_CONFIG: ${LEMMA_TUNNELS_PROXIES_CONFIG:-}
+      # Optional custom headers injection (JSON, redacted at rest/logs)
+      LEMMA_PRIVATE_CLOUD_HEADERS: ${LEMMA_PRIVATE_CLOUD_HEADERS:-}
+      # Config schema reference
+      LEMMA_PRIVATE_CLOUD_CONFIG_SCHEMA: /app/deploy/private-cloud/config.schema.json
+    volumes:
+      - lemma_state:/app/.lemma
+      - ./config:/app/deploy/private-cloud/config:ro
+    ports:
+      - "127.0.0.1:3000:3000"
+    # No egress to public internet should be assumed; enforce via network policy/firewall in VPC.
+    # This compose file documents defaults (license validation/tunnels-proxies can be disabled).
+
+volumes:
+  lemma_state:
+    driver: local
