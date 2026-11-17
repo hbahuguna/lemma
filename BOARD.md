@@ -527,7 +527,7 @@ land first.
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
 | LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Done |
-| LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Backlog |
+| LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Done |
 | LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Backlog |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Backlog |
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Backlog |
@@ -3125,29 +3125,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-143, LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed steered test-plan UI/schema/pro logic/tests/verification.
 - **Description:** Full test-plan steering: features, checks, personas, test
   cases, bots, specs/docs upload, and context/connection. Extends the free
   settings UI (LEM-146) into a Pro-only plan builder.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes a plan schema
+  - [x] `@lemma/pro` exposes a plan schema
     (`schemas/pro/steered_plan.v1.json`) covering features, checks, personas,
     test cases, bots, spec/doc uploads, and connection context.
-  - The dashboard (LEM-143) gains a Pro-only `/plan` route that renders the
+  - [x] The dashboard (LEM-143) gains a Pro-only `/plan` route that renders the
     steered plan, token-protected and license-gated; unlicensed use returns
     `ProUnavailableError`.
-  - Uploads are validated, size-bounded, and redacted; no raw credentials are
+  - [x] Uploads are validated, size-bounded, and redacted; no raw credentials are
     stored. Uploaded specs/docs are referenced by hash from the plan.
-  - The plan is persisted under `.lemma/pro/plan.json` via atomic writes;
+  - [x] The plan is persisted under `.lemma/pro/plan.json` via atomic writes;
     every change is audited (JSONL).
-  - Tests cover plan schema, dashboard route, license gate, upload validation,
+  - [x] Tests cover plan schema, dashboard route, license gate, upload validation,
     redaction, atomic persistence, and audit events.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- steered-plan`
-- **Evidence (planned):** `packages/pro/src/steered-plan.ts`,
-  `packages/pro/src/dashboard/plan.ts`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/steered-plan/steered-plan.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- steered-plan` — `docs/parity/evidence/LEM-197-steered-plan-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `schemas/pro/steered_plan.v1.json`,
   `schemas/pro/steered_plan.v1.schema.json`,
-  `packages/pro/test/steered-plan/*`,
+  `packages/pro/src/steered-plan.ts`,
+  `packages/pro/src/dashboard/plan.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/core/src/dashboard.ts`,
+  `packages/pro/test/steered-plan/steered-plan.test.ts`,
   `docs/parity/evidence/LEM-197-steered-plan-test-output.txt`
 
 ### LEM-198 — Build the custom persona panel

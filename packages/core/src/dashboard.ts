@@ -27,6 +27,8 @@ export interface StartDashboardOptions {
   report?: unknown;
   host?: string;
   port?: number;
+  /** Pro license/entitlement context for Pro-only dashboard routes (e.g. /plan). */
+  proLicense?: unknown;
   /** injectable for tests */
   now?: () => string;
 }
@@ -793,6 +795,54 @@ export async function startDashboard(options: StartDashboardOptions): Promise<Da
         }
         json(res, 405, { ok: false, error: "method_not_allowed" });
         return;
+      }
+
+      if (reqUrl.pathname === "/plan" || reqUrl.pathname === "/dashboard/plan") {
+        const origin = typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+        // POST updates only from allowed origins; GET is token-protected like all routes
+        if (method !== "GET" && !isAllowedOrigin(origin, host)) {
+          json(res, 403, { ok: false, error: "forbidden", message: "Disallowed origin." });
+          return;
+        }
+        try {
+          // Dynamic import to keep Pro optional; core does not depend on @lemma/pro.
+          const mod: any = await import("@lemma/pro");
+          const handler = mod?.handlePlanRoute;
+          if (typeof handler !== "function") {
+            const err: any = mod?.ProUnavailableError ? new mod.ProUnavailableError("steered test plan (/plan)") : null;
+            if (err && typeof err.toPayload === "function") {
+              json(res, 403, err.toPayload());
+              return;
+            }
+            json(res, 403, { ok: false, error: { type: "ProUnavailableError", code: "pro_unavailable", message: "Lemma Pro is required for steered test plan (/plan)." } });
+            return;
+          }
+          let body: unknown = undefined;
+          if (method === "POST") body = await readJsonBody(req).catch(() => ({}));
+          const out = await handler({ root: options.stateStore.root, license: (options as any).proLicense ?? null, method, pathname: reqUrl.pathname, body });
+          const status = typeof out?.status === "number" ? out.status : 200;
+          const ctype = out?.contentType || (typeof out?.body === "string" ? "text/html; charset=utf-8" : "application/json; charset=utf-8");
+          res.statusCode = status;
+          res.setHeader("content-type", ctype);
+          res.setHeader("cache-control", "no-store");
+          if (ctype.includes("application/json") && typeof out?.body !== "string") res.end(JSON.stringify(out?.body ?? {}));
+          else res.end(typeof out?.body === "string" ? out.body : JSON.stringify(out?.body ?? {}));
+          return;
+        } catch (err: any) {
+          const name = err?.name || err?.constructor?.name || "";
+          const code = err?.errorCode || err?.code || "";
+          if (name === "ProUnavailableError" || code === "pro_unavailable") {
+            const payload = typeof err?.toPayload === "function" ? err.toPayload() : { ok: false, error: { type: "ProUnavailableError", code: "pro_unavailable", message: String(err?.message || "Pro unavailable") } };
+            json(res, 403, payload);
+            return;
+          }
+          if (err instanceof StateError) {
+            json(res, 400, { ok: false, error: "state_error", message: err.message, details: (err as any).details ?? {} });
+            return;
+          }
+          json(res, 500, { ok: false, error: "internal_error", message: err instanceof Error ? err.message : String(err) });
+          return;
+        }
       }
 
       if (method === "GET" && (reqUrl.pathname === "/pro" || reqUrl.pathname === "/dashboard/pro")) {

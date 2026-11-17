@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/steered-plan/steered-plan.test.ts (4 tests) 468ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  13:56:18
+   Duration  3.78s (transform 1.45s, setup 0ms, collect 1.89s, tests 468ms, environment 0ms, prepare 379ms)
+

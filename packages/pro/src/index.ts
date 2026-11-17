@@ -28,3 +28,5 @@ export * from "./model-eval.js";
 export * as evidence from "./revisions.js";
 export { saveRevision, compareRevisions, listRevisions, validateRevisionDiff } from "./revisions.js";
 export * from "./cloud-execution.js";
+export * from "./steered-plan.js";
+export * from "./dashboard/plan.js";

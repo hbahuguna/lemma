@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/steered_plan.v1.json",
+  "title": "Lemma Pro Steered Test Plan v1",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "features", "checks", "personas", "test_cases", "bots", "uploads", "context"],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.steered_plan/v1" },
+    "features": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "checks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "personas": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "test_cases": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "bots": { "type": "object", "additionalProperties": true },
+    "uploads": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "specs": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "docs": { "type": "array", "items": { "type": "object", "additionalProperties": true } }
+      }
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "connection": { "type": "object", "additionalProperties": true }
+      }
+    }
+  }
+}
