@@ -511,7 +511,7 @@ auditable system.
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Done |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Done |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Done |
-| LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Backlog |
+| LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | In Progress |
 | LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Backlog |
 | LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Backlog |
 | LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Backlog |
@@ -2963,8 +2963,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-191
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing Vibium browser adapter integration (adapter/tests) and verification.
 - **Description:** Add a Vibium adapter: run native Vibium tests, preserve
   native arguments, and record adapter version and evidence handles. Vibium
   is not the reference adapter, but it must implement the same contract.
@@ -2981,8 +2981,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Tests cover native CLI invocation, argument preservation, result
     translation, version recording, missing-channel re-plan, and blocked
     behavior.
-- **Verification (planned):** `pnpm test --filter @lemma/browser -- vibium`
-- **Evidence (planned):** `packages/browser/src/vibium-adapter.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/browser -- vibium`
+- **Evidence (planned/in progress):** `packages/browser/src/vibium-adapter.ts`,
   `packages/browser/test/vibium/*`,
   `docs/parity/evidence/LEM-192-vibium-test-output.txt`
 

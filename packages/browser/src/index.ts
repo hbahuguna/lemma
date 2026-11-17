@@ -13,3 +13,5 @@ export * from "./scenarios.js";
 export * from "./inspection.js";
 
 export * from "./adapter.js";
+
+export * from "./vibium-adapter.js";
