@@ -68,6 +68,7 @@ export function renderCatalogCommandTemplate(
       `  ${cli} browser <URL> --crawl --max-pages 25 --timeout-ms 120000`,
       "  ```",
       "- Record and report the command, run ID, status, and `.lemma/evidence/<run_id>/` path(s). If it fails or is blocked/unavailable, report the exact error/output as a coverage gap and continue with the best safe alternative.",
+      "- **Verify the interaction regression actually ran:** inspect the run's JSON and confirm `observations` includes `browser.steps`, and that `.lemma/evidence/<run_id>/` contains `auto-interactions-*-interaction-plan.json`, `auto-interactions-*-interaction-results.json`, and per-step screenshots. If those artifacts are missing, no clicks/scrolls/form fills/toggles/navigation ran — report a coverage gap and rerun with the exact `browser` command above.",
       "",
       "## Default mission (apply unless user explicitly narrows scope)",
       "- Target the provided reachable `http(s)` URL (e.g. https://testradius.dev) and **test all user-facing features**.",

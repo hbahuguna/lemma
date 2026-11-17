@@ -271,3 +271,36 @@ $LEMMA_CLI <command> [options]
 - Never paste real secrets/tokens into prompts, files, or bug reports; use synthetic values and redact outputs.
 - If a command is Pro-gated or environment-dependent, validate the refusal/error path when unavailable and the functional path when available.
 - A "blocked/unavailable" result can be correct; correctness means it is reported honestly and does not produce a false pass.
+
+---
+
+## 10. `/lemma-browser` interaction-regression RCA and verification
+
+### 10.1 Root cause found
+`/lemma-browser` has two execution paths:
+
+1. **OpenCode command markdown** (`~/.opencode/commands/lemma-browser.md`) — already fixed to call the concrete `browser` CLI entry point.
+2. **Agent-loop/catalog path** (`buildCatalogInvocation` → `browserInvocation`) — was still emitting `run --target <url> --active --active-interactions …`. `lemma run` does not parse those flags and does not run the `browser.steps` check, so no clicks, form fills, toggles, scrolls, or navigation were executed. Some runs also recorded `scoped_checks: []` because an invalid check filter silently disabled all checks.
+
+### 10.2 Fixes
+- `browserInvocation` now emits `browser <URL> --crawl --max-pages 25 --timeout-ms 120000`.
+- `commandToArgs`/`isAllowedCommand` accept `lemma-browser` (and keep `assay-browser` as a compatibility alias).
+- `scopedCheckIds` falls back to all checks when a filter matches none, so a run can never silently have zero checks/interaction evidence.
+- The installed `/lemma-browser` command now requires verification of `browser.steps` and `auto-interactions-*` artifacts before reporting success.
+
+### 10.3 Verification steps (rerunnable)
+```bash
+# 1. Catalog/agent-loop path emits the browser subcommand
+node --input-type=module - <<'NODE'
+import { buildCatalogInvocation } from './packages/agent/dist/index.js';
+console.log(buildCatalogInvocation('lemma-browser', 'https://testradius.dev', '/personas').invocation.args[0]);
+NODE
+# expected: browser
+
+# 2. CLI executes the interaction regression
+lemma browser https://testradius.dev --max-pages 1 --timeout-ms 15000 > /tmp/lemma-browser.json 2>/dev/null
+RUN_ID=$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/lemma-browser.json','utf8')).run_id)")
+node -e "const r=JSON.parse(require('fs').readFileSync('/tmp/lemma-browser.json','utf8')); const s=r.observations.find(o=>o.check_id==='browser.steps'); console.log(s.status, s.evidence.refs.length)"
+ls .lemma/evidence/$RUN_ID | grep 'auto-interactions'
+# expected: browser.steps observation present with 30+ evidence refs; auto-interactions plan/results/step screenshots exist
+```

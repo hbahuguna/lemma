@@ -249,15 +249,21 @@ export function parseDecision(text: string): AgentDecision {
 }
 
 export function isAllowedCommand(command: string): boolean {
-  return /^(run|report|status|abort|assay-browser|assay-demo)\b/.test(command.trim());
+  return /^(run|browser|report|status|abort|lemma-browser|lemma-demo|assay-browser|assay-demo)\b/.test(command.trim());
 }
 
 export function commandToArgs(command: string, personasDir = "personas"): HarnessInvocation {
   const trimmed = command.trim();
   if (!trimmed) return { args: [], error: "Empty command" };
 
+  if (trimmed === "lemma-browser" || trimmed.startsWith("lemma-browser ")) {
+    return browserInvocation(trimmed.slice("lemma-browser".length).trim(), personasDir);
+  }
   if (trimmed === "assay-browser" || trimmed.startsWith("assay-browser ")) {
     return browserInvocation(trimmed.slice("assay-browser".length).trim(), personasDir);
+  }
+  if (trimmed === "lemma-demo" || trimmed.startsWith("lemma-demo ")) {
+    return demoInvocation(trimmed.slice("lemma-demo".length).trim(), personasDir);
   }
   if (trimmed === "assay-demo" || trimmed.startsWith("assay-demo ")) {
     return demoInvocation(trimmed.slice("assay-demo".length).trim(), personasDir);

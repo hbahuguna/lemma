@@ -85,6 +85,7 @@ describe("LEM-096 agent-loop and prompt-contract tests", () => {
     expect(isAllowedCommand("report")).toBe(true);
     expect(isAllowedCommand("status")).toBe(true);
     expect(isAllowedCommand("abort")).toBe(true);
+    expect(isAllowedCommand("lemma-browser https://example.test")).toBe(true);
     expect(isAllowedCommand("assay-browser https://example.test")).toBe(true);
     expect(isAllowedCommand("assay-demo")).toBe(true);
     expect(isAllowedCommand("rm -rf /")).toBe(false);
@@ -96,6 +97,10 @@ describe("LEM-096 agent-loop and prompt-contract tests", () => {
       "--max-checks",
       "1",
     ]);
+    const browserArgs = commandToArgs("lemma-browser http://localhost:3000", "/tmp/personas").args;
+    expect(browserArgs[0]).toBe("browser");
+    expect(browserArgs).not.toContain("run");
+    expect(browserArgs).not.toContain("--no-browser");
     expect(commandToArgs("assay-browser http://localhost:3000", "/tmp/personas").args).not.toContain("--no-browser");
     expect(commandSignature(["run", "--target", "."])).toBe("run --target .");
     expect(commandSignature(["run", "--target", "."], { QH_SSRF_ALLOWLIST: "127.0.0.0/8" })).toContain(

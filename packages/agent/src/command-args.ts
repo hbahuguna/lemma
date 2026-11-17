@@ -46,6 +46,7 @@ const BROWSER_VALUE_FLAGS = new Set([
   "--viewport",
   "--mobile-viewport",
   "--timeout",
+  "--timeout-ms",
   "--kill-on",
   "--max-checks",
   "--max-pages",
@@ -122,31 +123,34 @@ function browserDefaults(text: string, url: string): string[] {
   return defaults;
 }
 
-/** Build a live browser run; requires explicit http(s) URL and never passes --no-browser. */
-export function browserInvocation(text: string, personasDir: string): Invocation {
+/**
+ * Build a live browser regression run. `/lemma-browser` must call the `browser`
+ * subcommand: only that path executes `browser.steps`, the deterministic
+ * click/scroll/form/toggle/navigation regression with per-step evidence.
+ * A generic `run --target … --active-interactions` never runs those checks.
+ */
+export function browserInvocation(text: string, _personasDir: string): Invocation {
   const trimmed = (text || "").trim();
   const url = extractUrl(trimmed);
   if (!url) {
     return {
       args: [],
       error:
-        "`/lemma-browser` runs the live browser checks and needs a reachable URL.\n\n" +
-        "Example:\n\n```\n/assay-browser http://localhost:3000\n```\n\n" +
-        "A directory target only records static scope. If Playwright or Chromium is missing, " +
+        "`/lemma-browser` runs the live browser regression and needs a reachable URL.\n\n" +
+        "Example:\n\n```\n/lemma-browser http://localhost:3000\n```\n\n" +
+        "A directory target only records static scope. If a headed browser is unavailable, " +
         "the browser checks are reported as `blocked` coverage gaps, never as a pass.",
     };
   }
+  const extra = browserExtraArgs(trimmed, url);
   return {
     args: [
-      "run",
-      "--target",
+      "browser",
       url,
-      "--personas-dir",
-      personasDir,
-      "--intent",
-      "Lemma browser assessment",
-      ...browserDefaults(trimmed, url),
-      ...browserExtraArgs(trimmed, url),
+      ...(extra.includes("--no-crawl") ? [] : ["--crawl"]),
+      ...(extra.includes("--max-pages") ? [] : ["--max-pages", "25"]),
+      ...(extra.includes("--timeout-ms") || extra.includes("--timeout") ? [] : ["--timeout-ms", "120000"]),
+      ...extra,
     ],
   };
 }

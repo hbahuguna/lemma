@@ -115,7 +115,11 @@ function scopedCheckIds(all: Check[], checks?: string[], scope?: BrowserInspecti
     ...normalizeStringArray(scope?.only),
   ]);
   if (explicit.size === 0) return all;
-  return all.filter((c) => explicit.has(c.id));
+  const filtered = all.filter((c) => explicit.has(c.id));
+  // An invalid check filter must never silently produce a run with zero checks
+  // (and therefore no interaction evidence). Treat it as unscoped instead.
+  if (filtered.length === 0) return all;
+  return filtered;
 }
 
 function defaultBrowserChecks(url: string): Check[] {

@@ -49,6 +49,19 @@ describe("LEM-167 browser inspection (browser package)", () => {
     }
   });
 
+  it("treats an invalid check filter as unscoped so interaction coverage is not silently dropped", async () => {
+    const result = await runBrowserInspectionInBrowser({
+      target: "https://example.com",
+      checks: ["browser.does-not-exist"],
+      runId: "run-insp-invalid-filter",
+      options: { noBrowser: true, root: "/tmp" } as any,
+    } as any);
+
+    expect(result.scoped_checks).toContain("browser.steps");
+    expect(result.summary.total).toBeGreaterThan(0);
+    expect(result.status).toBe("blocked");
+  });
+
   it("blocks when browser runtime unavailable with explicit blocker and no fabricated screenshot", async () => {
     const result = await runBrowserInspectionInBrowser({
       target: "https://example.com",

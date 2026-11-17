@@ -9,14 +9,14 @@ import {
 
 describe("LEM-148 bug-hunt catalog wiring", () => {
   it("exposes assay-hunt (lemma hunt) in the catalog with intent mapping", () => {
-    const cmd = getAssayCommand("assay-hunt");
-    expect(cmd).toEqual({ name: "assay-hunt", label: "hunt" });
-    expect(ASSAY_COMMAND_CATALOG.some((c) => c.name === "assay-hunt" && c.label === "hunt")).toBe(true);
-    expect(getCatalogCommandKind("assay-hunt")).toBe("static");
+    const cmd = getAssayCommand("lemma-hunt");
+    expect(cmd).toEqual({ name: "lemma-hunt", label: "hunt" });
+    expect(ASSAY_COMMAND_CATALOG.some((c) => c.name === "lemma-hunt" && c.label === "hunt")).toBe(true);
+    expect(getCatalogCommandKind("lemma-hunt")).toBe("static");
 
-    const inv = buildCatalogInvocation("assay-hunt", "ignored", "personas");
+    const inv = buildCatalogInvocation("lemma-hunt", "ignored", "personas");
     expect(inv).not.toBeNull();
-    expect(inv?.intent).toBe("Assay hunt assessment");
+    expect(inv?.intent).toBe("Lemma hunt assessment");
     expect(inv?.kind).toBe("static");
     expect(inv?.invocation.args).toEqual([
       "run",
@@ -26,7 +26,7 @@ describe("LEM-148 bug-hunt catalog wiring", () => {
       "--personas-dir",
       "personas",
       "--intent",
-      "Assay hunt assessment",
+      "Lemma hunt assessment",
     ]);
   });
 });

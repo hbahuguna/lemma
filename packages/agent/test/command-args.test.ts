@@ -30,52 +30,34 @@ describe("LEM-088 command argument builders", () => {
     expect(dir.error).toBeTruthy();
   });
 
-  it("browserInvocation builds live run with defaults and no --no-browser", () => {
+  it("browserInvocation calls the browser subcommand with interaction defaults", () => {
     const invocation = browserInvocation("http://localhost:3000", PERSONAS);
     expect(invocation.args).toEqual([
-      "run",
-      "--target",
+      "browser",
       "http://localhost:3000",
-      "--personas-dir",
-      PERSONAS,
-      "--intent",
-      "Assay browser assessment",
       "--crawl",
       "--max-pages",
-      "8",
-      "--mobile",
-      "--headed",
-      "--active",
-      "--active-interactions",
+      "25",
+      "--timeout-ms",
+      "120000",
     ]);
+    expect(invocation.args[0]).toBe("browser");
+    expect(invocation.args).not.toContain("run");
     expect(invocation.args).not.toContain("--no-browser");
+    expect(invocation.args).not.toContain("--headless");
   });
 
-  it("browserInvocation lets explicit flags override defaults and passes safe flags", () => {
-    const overridden = browserInvocation(
-      "http://localhost:3000 --no-crawl --max-pages 3 --no-mobile --headless",
-      PERSONAS,
-    );
-    expect(overridden.args).toContain("--no-crawl");
-    expect(overridden.args[overridden.args.indexOf("--max-pages") + 1]).toBe("3");
-    expect(overridden.args).toContain("--no-mobile");
-    expect(overridden.args).toContain("--headless");
-    expect(overridden.args).not.toContain("--crawl");
-    expect(overridden.args).not.toContain("--mobile");
-    expect(overridden.args).not.toContain("--headed");
-
+  it("browserInvocation passes safe browser flags and never swaps the target", () => {
     const passthrough = browserInvocation(
-      "http://localhost:3000 --headed --mobile --viewport 390x844 --no-browser --target https://evil.example",
+      "http://localhost:3000 --viewport 390x844 --no-browser --target https://evil.example",
       PERSONAS,
     );
     expect(passthrough.args).toContain("--viewport");
     expect(passthrough.args[passthrough.args.indexOf("--viewport") + 1]).toBe("390x844");
-    expect(passthrough.args).toContain("--headed");
-    expect(passthrough.args).toContain("--mobile");
-    expect(passthrough.args).toContain("--active");
-    expect(passthrough.args).toContain("--active-interactions");
     expect(passthrough.args).not.toContain("--no-browser");
-    expect(passthrough.args.filter((arg) => arg === "--target").length).toBe(1);
+    expect(passthrough.args.filter((arg) => arg === "browser").length).toBe(1);
+    expect(passthrough.args).not.toContain("--target");
+    expect(passthrough.args).not.toContain("https://evil.example");
   });
 
   it("assayInvocation and demoInvocation follow ported semantics", () => {
@@ -102,7 +84,7 @@ describe("LEM-088 command argument builders", () => {
       "--personas-dir",
       PERSONAS,
       "--intent",
-      "Assay demo assessment",
+      "Lemma demo assessment",
     ]);
 
     const demoUrl = demoInvocation("http://localhost:3000 --no-crawl --headless", PERSONAS);
