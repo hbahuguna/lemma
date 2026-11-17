@@ -34,3 +34,4 @@ export * from "./personas.js";
 export * from "./bots.js";
 export * from "./evidence-bundle.js";
 export * from "./health-score.js";
+export * from "./benchmark.js";

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/benchmark.v1.json",
+  "title": "Lemma Pro Benchmark v1",
+  "description": "Category benchmark comparing a target to documented, consented aggregates only. No per-tenant data is included. Aggregated inputs (documented): category-level aggregate records containing only pre-aggregated counts/rates/scores (sample_size, mean_score, p50_score, p90_score, metric rates) and metadata (benchmark_version, category, last_updated_at, source). Target ranking: deterministic percentile/rank computed against aggregate distribution bands (p50/p90 and mean) from the provided aggregate; if sample_size is below minimum or required aggregate fields are missing, status is insufficient_sample and no extrapolation is performed. Changing aggregation/ranking semantics requires a new schema version.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "benchmark_version",
+    "target",
+    "category",
+    "consent",
+    "status",
+    "sample_size",
+    "last_updated_at",
+    "aggregate_source",
+    "comparison"
+  ],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.benchmark/v1" },
+    "benchmark_version": { "type": "string", "minLength": 1 },
+    "target": { "type": "object", "additionalProperties": true },
+    "category": { "type": "string", "minLength": 1 },
+    "consent": { "const": true },
+    "status": { "type": "string", "enum": ["ok", "insufficient_sample"] },
+    "sample_size": { "type": ["integer", "null"], "minimum": 0 },
+    "last_updated_at": { "type": ["string", "null"] },
+    "aggregate_source": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["type", "documented"],
+      "properties": {
+        "type": { "type": "string" },
+        "documented": { "const": true },
+        "id": { "type": "string" }
+      }
+    },
+    "comparison": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "reason": { "type": "string" }
+  }
+}

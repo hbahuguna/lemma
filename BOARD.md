@@ -531,8 +531,8 @@ land first.
 | LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Done |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Done |
 | LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Done |
-| LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | In Progress |
-| LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Backlog |
+| LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Done |
+| LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | In Progress |
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Backlog |
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Backlog |
 | LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Backlog |
@@ -3248,28 +3248,31 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-018, LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing health score and severity-ranked view (pro/core/schema/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed overall health score and severity-ranked issue view (pro/core/schema/tests/verification).
 - **Description:** Add an overall health score that rolls up every check,
   test, and persona, and a severity-ranked issue view. Health is explainable
   and reproducible; severity ranking is documented.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `computeHealthScore({ report })` validated against
+  - [x] `@lemma/pro` exposes `computeHealthScore({ report })` validated against
     `schemas/pro/health_score.v1.json`; the score is accompanied by a
     breakdown (per dimension, per check family, per persona) so it is
     explainable.
-  - Health scoring is deterministic and cites its formula in the schema
+  - [x] Health scoring is deterministic and cites its formula in the schema
     description; changing the formula requires a new schema version.
-  - The severity-ranked view sorts findings by documented severity + evidence
+  - [x] The severity-ranked view sorts findings by documented severity + evidence
     level (LEM-188) + confidence, and is surfaced in the dashboard (LEM-143)
     and HTML report (LEM-142).
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover score computation, breakdown, determinism, ranking order,
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover score computation, breakdown, determinism, ranking order,
     dashboard/HTML surfacing, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- health-score`
-- **Evidence (planned/in progress):** `packages/pro/src/health-score.ts`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/health-score/health-score.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- health-score` — `docs/parity/evidence/LEM-201-health-score-test-output.txt`; `pnpm --filter @lemma/pro build` (pass); `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/pro/src/health-score.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `schemas/pro/health_score.v1.json`,
   `schemas/pro/health_score.v1.schema.json`,
-  `packages/pro/test/health-score/*`,
+  `packages/core/src/dashboard.ts`, `packages/core/src/html-report.ts`,
+  `packages/pro/test/health-score/health-score.test.ts`,
   `docs/parity/evidence/LEM-201-health-score-test-output.txt`
 
 ### LEM-202 — Build category benchmarks and competitive intelligence
@@ -3278,8 +3281,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing category benchmarks (pro/schema/tests) and verification.
 - **Description:** Show how a target compares to category peers. Benchmarks
   are sourced from documented, consented aggregates only; no target is
   benchmarked without explicit opt-in.
@@ -3296,8 +3299,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover consent gate, aggregate source, schema, insufficient-sample
     reporting, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- benchmark`
-- **Evidence (planned):** `packages/pro/src/benchmark.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- benchmark`
+- **Evidence (planned/in progress):** `packages/pro/src/benchmark.ts`,
   `schemas/pro/benchmark.v1.schema.json`,
   `packages/pro/test/benchmark/*`,
   `docs/parity/evidence/LEM-202-benchmark-test-output.txt`
