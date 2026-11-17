@@ -1,4 +1,4 @@
-import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
+import { mkdtemp, readdir, readFile, rm, stat, symlink } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
@@ -41,8 +41,8 @@ describe("LEM-107 install command", () => {
       expect(payload.dir).toBe(path.resolve(dir));
       expect(payload.dry_run).toBe(false);
       expect(payload.force).toBe(false);
-      expect(payload.planned).toBe(68); // 60 catalog + 5 operational + 1 skill + 2 opencode plugin assets
-      expect(payload.written).toBe(68);
+      expect(payload.planned).toBe(69); // 60 catalog + 5 operational + 1 skill + 2 plugin assets + 1 launcher
+      expect(payload.written).toBe(69);
       expect(payload.skipped).toBe(0);
 
       const commandsDir = path.join(dir, ".opencode", "commands");
@@ -72,6 +72,11 @@ describe("LEM-107 install command", () => {
       expect(skill).toContain("name: lemma");
       expect(skill).toContain("60 Lemma commands");
       expect(skill).toContain("Deterministic harness owns execution, evidence, and scoring");
+
+      const launcher = await readFile(path.join(dir, ".opencode", "bin", "lemma"), "utf8");
+      expect(launcher).toContain("#!/bin/sh");
+      expect(launcher).toContain("exec ");
+      expect(launcher).toContain('"$@"');
     });
   });
 
@@ -89,6 +94,23 @@ describe("LEM-107 install command", () => {
       // Auto-detected reference must point at an executable entry point, not a bare `lemma` on PATH.
       expect(cliRef).not.toBe("lemma");
       expect(cliRef.startsWith('"') || cliRef.startsWith("'") ? cliRef.slice(1, -1) : cliRef.replace(/^node\s+/, "").replace(/^["']|["']$/g, "")).toContain(path.sep);
+      const launcher = await readFile(path.join(dir, ".opencode", "bin", "lemma"), "utf8");
+      expect(launcher).toContain(cliRef);
+    });
+  });
+
+  it("does not write through an existing launcher symlink", async () => {
+    await withTempDir(async (dir) => {
+      const target = path.join(dir, "cli-target.js");
+      await (await import("node:fs/promises")).writeFile(target, "REAL CLI\n", "utf8");
+      const binDir = path.join(dir, ".opencode", "bin");
+      await (await import("node:fs/promises")).mkdir(binDir, { recursive: true });
+      await symlink(target, path.join(binDir, "lemma"));
+      const { io } = makeIo();
+      await main(["install", "opencode", "--dir", dir, "--cli", "lemma", "--force"], io);
+      expect(await readFile(target, "utf8")).toBe("REAL CLI\n");
+      const launcher = await readFile(path.join(binDir, "lemma"), "utf8");
+      expect(launcher).toContain("#!/bin/sh");
     });
   });
 
@@ -99,7 +121,7 @@ describe("LEM-107 install command", () => {
       expect(dryCode).toBe(EXIT_CODES.pass);
       const dryPayload = parseSingleJson(dry.stdout);
       expect(dryPayload.status).toBe("dry_run");
-      expect(dryPayload.written).toBe(68);
+      expect(dryPayload.written).toBe(69);
       expect(dryPayload.skipped).toBe(0);
       await expect(stat(path.join(dir, ".opencode"))).rejects.toBeTruthy();
 
@@ -114,14 +136,14 @@ describe("LEM-107 install command", () => {
       const skipPayload = parseSingleJson(skip.stdout);
       expect(skipPayload.status).toBe("installed");
       expect(skipPayload.written).toBe(0);
-      expect(skipPayload.skipped).toBe(68);
+      expect(skipPayload.skipped).toBe(69);
       expect(await readFile(cmdPath, "utf8")).toBe(before);
 
       const forced = makeIo();
       const forcedCode = await main(["install", "opencode", "--dir", dir, "--force"], forced.io);
       expect(forcedCode).toBe(EXIT_CODES.pass);
       const forcedPayload = parseSingleJson(forced.stdout);
-      expect(forcedPayload.written).toBe(68);
+      expect(forcedPayload.written).toBe(69);
       expect(forcedPayload.skipped).toBe(0);
     });
   });

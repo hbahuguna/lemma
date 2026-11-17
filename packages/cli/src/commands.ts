@@ -1,6 +1,6 @@
 import { ProjectState, runContinuous } from "@lemma/core";
 import { promises as fs } from "node:fs";
-import { accessSync, constants as fsConstants, readdirSync, statSync } from "node:fs";
+import { accessSync, constants as fsConstants, lstatSync, readdirSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -943,7 +943,7 @@ export const installCommand: CliCommandHandler = async (argv) => {
   const layout = installLayout(hostArg);
   const templateOpts = { cli, personasDir, stateRoot };
 
-  const assets: Array<{ relPath: string; content: string }> = [];
+  const assets: Array<{ relPath: string; content: string; mode?: number }> = [];
   for (const cmd of ASSAY_COMMAND_CATALOG) {
     const rendered = renderAllCatalogCommandTemplates(templateOpts, [cmd])[0];
     if (rendered) {
@@ -974,6 +974,11 @@ export const LemmaJiraContextPlugin = register;
 `;
     assets.push({ relPath: path.join(".opencode", "plugin", "lemma-jira-context.mjs"), content: pluginContent });
     assets.push({ relPath: path.join(".opencode", "plugins", "lemma-jira-context.mjs"), content: pluginContent });
+
+    // Stable local launcher so neither shell usage nor installed commands require
+    // a global `lemma` on PATH. Commands embed this executable path directly.
+    const launcher = `#!/bin/sh\nexec ${cli} "$@"\n`;
+    assets.push({ relPath: path.join(".opencode", "bin", "lemma"), content: launcher, mode: 0o755 });
   }
 
   const written: string[] = [];
@@ -984,9 +989,11 @@ export const LemmaJiraContextPlugin = register;
     const absPath = path.join(targetDir, asset.relPath);
     planned.push(asset.relPath);
     let exists = false;
+    let isSymlink = false;
     try {
-      await fs.stat(absPath);
+      const st = lstatSync(absPath);
       exists = true;
+      isSymlink = st.isSymbolicLink();
     } catch {
       exists = false;
     }
@@ -996,7 +1003,11 @@ export const LemmaJiraContextPlugin = register;
     }
     if (!dryRun) {
       await fs.mkdir(path.dirname(absPath), { recursive: true });
+      // Never write through an existing symlink: it could overwrite an unrelated
+      // file (e.g. a real CLI dist entry when a `lemma` shim already exists).
+      if (isSymlink) await fs.unlink(absPath);
       await fs.writeFile(absPath, asset.content, "utf8");
+      if (asset.mode !== undefined) await fs.chmod(absPath, asset.mode);
     }
     written.push(asset.relPath);
   }
