@@ -513,8 +513,8 @@ auditable system.
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Done |
 | LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Done |
 | LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Done |
-| LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | In Progress |
-| LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Backlog |
+| LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Done |
+| LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Done |
 
 ### E24: Premium Cloud Parity (Commercial Tier Extension)
 
@@ -3027,29 +3027,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-136, LEM-171
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing continuous workflows (core/workflows/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed continuous workflows (core/cli/workflows/tests/verification).
 - **Description:** Add continuous workflows: GitHub Actions PR validation,
   nightly regression, and scheduled runs; durable build history. Builds on
   the existing GitHub Action (LEM-136) and consumes promoted regressions
   (LEM-189).
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runContinuous({ trigger, config })` where
+  - [x] `@lemma/core` exposes `runContinuous({ trigger, config })` where
     `trigger` is `pr | nightly | scheduled`; results are written to a
     durable history under `.lemma/continuous/<trigger>/`.
-  - GitHub Actions workflows ship for PR and nightly; scheduled runs are
+  - [x] GitHub Actions workflows ship for PR and nightly; scheduled runs are
     documented with a supported cron example.
-  - PR validation runs a bounded subset (documented in the workflow) and
+  - [x] PR validation runs a bounded subset (documented in the workflow) and
     comments one marker-based PR summary (per LEM-136's contract); nightly
     runs the full default catalog plus promoted regressions.
-  - Continuous history is bounded (documented retention); corruption raises
+  - [x] Continuous history is bounded (documented retention); corruption raises
     a typed error and never corrupts the run.
-  - Tests cover each trigger, PR-comment marker, nightly scope, scheduled
+  - [x] Tests cover each trigger, PR-comment marker, nightly scope, scheduled
     cron, history retention, and corrupt-read error.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- continuous && pnpm test --filter @lemma/cli -- continuous`
-- **Evidence (planned/in progress):** `packages/core/src/continuous.ts`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/continuous/continuous.test.ts` (pass, 5/5) and `pnpm exec vitest run packages/cli/test/continuous/continuous.test.ts` (pass, 2/2), satisfying acceptance test `pnpm test --filter @lemma/core -- continuous && pnpm test --filter @lemma/cli -- continuous` — `docs/parity/evidence/LEM-194-continuous-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass)
+- **Evidence:** `packages/core/src/continuous.ts`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
   `.github/workflows/pr-validate.yml`, `.github/workflows/nightly.yml`,
-  `packages/core/test/continuous/*`,
+  `packages/core/test/continuous/continuous.test.ts`,
+  `packages/cli/test/continuous/continuous.test.ts`,
   `docs/parity/evidence/LEM-194-continuous-test-output.txt`
 
 ### LEM-195 — Add durable project-state structure
@@ -3058,30 +3061,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-010, LEM-171
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed durable project-state structure/docs/core/doctor/tests/verification.
 - **Description:** Add the structured project-state layout matching CARBON's
   `.carbon/` structure: `.lemma/framework/`, `.lemma/learning/`,
   `.lemma/recordings/`, `.lemma/tests/`, `.lemma/auto/`. Every read/write
   goes through the shared primitives.
 - **Acceptance Criteria:**
-  - `.lemma/` subdirectories are documented in
+  - [x] `.lemma/` subdirectories are documented in
     `docs/project-state-layout.md`: `framework/`, `learning/`, `recordings/`,
     `tests/`, `auto/`, `continuous/`, `regressions/`, `humans/`,
     `confidence/`, `incidents/`, plus the existing `state/`, `evidence/`,
     `events.jsonl`, `history.json`.
-  - `@lemma/core` exports a documented `ProjectState` helper that creates,
+  - [x] `@lemma/core` exports a documented `ProjectState` helper that creates,
     reads, and prunes these directories using `@lemma/core/state` atomic
     writes; no package reimplements the primitives.
-  - `lemma doctor` (or equivalent) validates the layout and reports missing
+  - [x] `lemma doctor` (or equivalent) validates the layout and reports missing
     or corrupt directories with typed errors; corrupted state is preserved
     for inspection, never silently deleted.
-  - Tests cover layout creation, atomic writes per subdirectory, doctor
+  - [x] Tests cover layout creation, atomic writes per subdirectory, doctor
     validation, and preservation of corrupt state.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- project-state`
-- **Evidence (planned):** `docs/project-state-layout.md`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/project-state/project-state.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/core -- project-state` — `docs/parity/evidence/LEM-195-project-state-test-output.txt`; `pnpm --filter @lemma/core build` (pass); `pnpm --filter @lemma/cli build` (pass)
+- **Evidence:** `docs/project-state-layout.md`,
   `packages/core/src/project-state.ts`,
-  `packages/core/test/project-state/*`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
+  `packages/cli/src/commands.ts`,
+  `packages/core/test/project-state/project-state.test.ts`,
   `docs/parity/evidence/LEM-195-project-state-test-output.txt`
 
 ### LEM-196 — Build cloud execution infrastructure with parallel agents

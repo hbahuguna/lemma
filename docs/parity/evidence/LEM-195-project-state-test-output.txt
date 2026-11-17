@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/project-state/project-state.test.ts (4 tests) 597ms
+   ✓ LEM-195 durable project-state structure > performs atomic JSON writes/reads per subdirectory using shared primitives  342ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  13:38:36
+   Duration  3.87s (transform 1.09s, setup 0ms, collect 1.55s, tests 597ms, environment 0ms, prepare 481ms)
+

@@ -1,4 +1,4 @@
-import { runContinuous } from "@lemma/core";
+import { ProjectState, runContinuous } from "@lemma/core";
 import { promises as fs } from "node:fs";
 import { statSync } from "node:fs";
 import path from "node:path";
@@ -1535,6 +1535,25 @@ export const confidenceCommand: CliCommandHandler = async (argv) => {
   return { stdoutJson: result };
 };
 
+
+
+export const doctorCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const fix = getBool(flags, "fix", "ensure") === true;
+  const ps = new ProjectState({ root });
+  if (fix) {
+    await ps.ensureLayout();
+  }
+  const validation = await ps.validateLayout();
+  if (!validation.ok) {
+    const hasCorrupt = validation.issues.some((i) => i.kind.startsWith("corrupt"));
+    // Report missing/corrupt with typed error; corrupted state preserved for inspection.
+    throw new StateError("Project state layout invalid", { code: hasCorrupt ? "state_corrupt" : "state_error", details: validation as any });
+  }
+  return { stdoutJson: { doctor: "ok", ...validation, ok: true } };
+};
+
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
@@ -1543,6 +1562,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "forever", description: "Run continuous testing workflow (/lemma-forever) with durable checkpoints and live mission report.", handler: foreverCommand },
     { name: "continuous", description: "Run continuous confidence workflow (pr|nightly|scheduled) with durable history.", handler: continuousCommand },
+    { name: "doctor", description: "Validate .lemma/ project-state layout (reports missing/corrupt with typed errors; preserves corrupt state).", handler: doctorCommand },
     { name: "confidence", description: "Manage confidence-engineering workspace (.confidence/). Subcommands: init.", handler: confidenceCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },

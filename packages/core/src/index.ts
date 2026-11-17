@@ -80,3 +80,4 @@ export * from "./command-preview.js";
 export * from "./browser-adapter.js";
 export * from "./api-coverage.js";
 export * from "./continuous.js";
+export * from "./project-state.js";
