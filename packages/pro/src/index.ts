@@ -36,3 +36,4 @@ export * from "./evidence-bundle.js";
 export * from "./health-score.js";
 export * from "./benchmark.js";
 export * from "./private-cloud.js";
+export * from "./expert-review.js";

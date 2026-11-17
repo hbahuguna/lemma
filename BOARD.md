@@ -535,8 +535,8 @@ land first.
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Done |
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Done |
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Done |
-| LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | In Progress |
-| LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | Backlog |
+| LEM-205 | Add private-cloud deployment support | P3 | 8 | LEM-196 | Done |
+| LEM-206 | Add enterprise human-expert review tier | P3 | 5 | LEM-196 | In Progress |
 ---
 
 ## Ready / Sprint 0 — Foundation
@@ -3380,30 +3380,38 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing private-cloud deployment support (deploy assets/pro code/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed private-cloud deployment support (deploy assets/pro code/tests/verification).
 - **Description:** Support running the Pro tier inside a customer's VPC,
   including tunnels/proxies for pre-production pages and advanced auth/header
   handling. Data never leaves the customer's network unless explicitly
   configured.
 - **Acceptance Criteria:**
-  - Deployment assets ship under `deploy/private-cloud/` covering at minimum:
+  - [x] Deployment assets ship under `deploy/private-cloud/` covering at minimum:
     container image (built per LEM-135), Helm chart or Compose file,
     configuration schema, and a documented upgrade path.
-  - Data flows: all state, evidence, and reports remain inside the VPC; the
+  - [x] Data flows: all state, evidence, and reports remain inside the VPC; the
     only outbound traffic is (a) licence validation and (b) explicitly
     configured tunnels/proxies. Both are documented, and disable-able.
-  - Tunnels/proxies for pre-production pages are configured via the
+  - [x] Tunnels/proxies for pre-production pages are configured via the
     Pro-tier settings schema (LEM-197) and validated; unsafe targets are
     rejected per LEM-059.
-  - Auth/headers advanced handling is documented and supports custom header
+  - [x] Auth/headers advanced handling is documented and supports custom header
     injection with redaction.
-  - Tests cover deployment dry-run, data-flow assertions (no outbound except
+  - [x] Tests cover deployment dry-run, data-flow assertions (no outbound except
     documented), tunnel/proxy validation, header injection, and unsafe-target
     rejection.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- private-cloud`
-- **Evidence (planned/in progress):** `deploy/private-cloud/*`,
-  `packages/pro/test/private-cloud/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/private-cloud/private-cloud.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/pro -- private-cloud` — `docs/parity/evidence/LEM-205-private-cloud-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `deploy/private-cloud/Dockerfile`,
+  `deploy/private-cloud/docker-compose.yml`,
+  `deploy/private-cloud/config.schema.json`,
+  `deploy/private-cloud/README.md`,
+  `deploy/private-cloud/helm/lemma-private-cloud/Chart.yaml`,
+  `deploy/private-cloud/helm/lemma-private-cloud/values.yaml`,
+  `deploy/private-cloud/helm/lemma-private-cloud/templates/*`,
+  `packages/pro/src/private-cloud.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/private-cloud/private-cloud.test.ts`,
   `docs/parity/evidence/LEM-205-private-cloud-test-output.txt`
 
 ### LEM-206 — Add enterprise human-expert review tier
@@ -3412,8 +3420,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing enterprise human-expert review tier (pro/tests) and verification.
 - **Description:** Add a human-expert review tier where experts review AI
   findings and add feedback. Expert feedback is treated as durable local
   context, not a hidden override; every expert note is attributable and
@@ -3431,8 +3439,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover request/ingest flow, attribution, non-override semantics,
     redaction, metering, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- expert-review`
-- **Evidence (planned):** `packages/pro/src/expert-review.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- expert-review`
+- **Evidence (planned/in progress):** `packages/pro/src/expert-review.ts`,
   `packages/pro/test/expert-review/*`,
   `docs/parity/evidence/LEM-206-expert-review-test-output.txt`
 
