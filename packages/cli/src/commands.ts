@@ -1366,8 +1366,6 @@ export const browserCommand: CliCommandHandler = async (argv) => {
   const checks = getStringArray(flags, "check", "checks");
   const scopePages = getStringArray(flags, "scope-page", "scope-pages", "page", "pages");
   const noBrowser = getBool(flags, "no-browser");
-  const headed = getBool(flags, "headed");
-  const headless = getBool(flags, "headless");
   const crawl = !getBool(flags, "no-crawl", "noCrawl");
   const maxPagesStr = getString(flags, "max-pages", "maxPages");
   const maxPages = maxPagesStr !== undefined ? toInt(maxPagesStr, "--max-pages") : 10;
@@ -1379,14 +1377,9 @@ export const browserCommand: CliCommandHandler = async (argv) => {
     ...(crawl ? { crawl: true } : {}),
     ...(maxPages !== undefined ? { maxPages } : {}),
     ...(timeoutMs !== undefined ? { timeoutMs } : {}),
+    // /lemma-browser and `lemma browser` always run in a headed/visible browser.
+    headed: true,
   };
-  if (headless) {
-    browserOptions.headless = true;
-  } else {
-    // Default to headed (visible browser) for focused `lemma browser` inspections unless explicitly headless.
-    browserOptions.headed = true;
-  }
-  if (headed) browserOptions.headed = true;
 
   const result = await runBrowserInspection({
     target: normalizeCliTarget(targetRaw),

@@ -625,7 +625,7 @@ export class ManagerSession {
         try {
           if (!target) throw new Error("Missing target URL for /lemma-browser.");
           const { runBrowserInspection } = await import("@lemma/core");
-          const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: this.options.cwd } as any);
+          const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: this.options.cwd, options: { headed: true } } as any);
           this.state.run_ids = Array.from(new Set([...(this.state.run_ids ?? []), result.run_id]));
           this.state.status = "completed";
           await emitAndRecord(this.state, this.options.sink, {

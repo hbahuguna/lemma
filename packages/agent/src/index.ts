@@ -1012,7 +1012,7 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       try {
         if (!target) throw new Error("Missing target URL for /lemma-browser.");
         const { runBrowserInspection } = await import("@lemma/core");
-        const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: cwd || process.cwd() } as any);
+        const result = await runBrowserInspection({ target, ...(checks ? { checks } : {}), root: cwd || process.cwd(), options: { headed: true } } as any);
         if (!state.runIds.includes(result.run_id)) state.runIds.push(result.run_id);
         state.runSummaries.push(`Browser inspection ${result.status}: ${result.run_id}`);
         await sendFinal(`Browser inspection ${result.status} for run ${result.run_id}.${buildExecutionSummary(state)}`);
