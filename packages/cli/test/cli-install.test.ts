@@ -41,35 +41,54 @@ describe("LEM-107 install command", () => {
       expect(payload.dir).toBe(path.resolve(dir));
       expect(payload.dry_run).toBe(false);
       expect(payload.force).toBe(false);
-      expect(payload.planned).toBe(66); // 60 catalog + 5 operational + 1 skill
-      expect(payload.written).toBe(65);
+      expect(payload.planned).toBe(68); // 60 catalog + 5 operational + 1 skill + 2 opencode plugin assets
+      expect(payload.written).toBe(68);
       expect(payload.skipped).toBe(0);
 
       const commandsDir = path.join(dir, ".opencode", "commands");
       const files = await readdir(commandsDir);
-      expect(files).toContain("assay-browser.md");
-      expect(files).toContain("assay-security.md");
-      expect(files).toContain("assay-demo.md");
-      expect(files).toContain("assay.md");
-      expect(files).toContain("assay-status.md");
-      expect(files).toContain("assay-report.md");
-      expect(files).toContain("assay-abort.md");
-      expect(files).toContain("assay-verify-evidence.md");
-      expect(files.length).toBe(64);
+      expect(files).toContain("lemma-browser.md");
+      expect(files).toContain("lemma-security.md");
+      expect(files).toContain("lemma-demo.md");
+      expect(files).toContain("lemma.md");
+      expect(files).toContain("lemma-status.md");
+      expect(files).toContain("lemma-report.md");
+      expect(files).toContain("lemma-abort.md");
+      expect(files).toContain("lemma-verify-evidence.md");
+      expect(files.length).toBe(65);
 
-      const browser = await readFile(path.join(commandsDir, "assay-browser.md"), "utf8");
+      const browser = await readFile(path.join(commandsDir, "lemma-browser.md"), "utf8");
       expect(browser).toContain("Require a reachable `http(s)` URL");
+      expect(browser).toContain("lemma browser <URL>");
+      expect(browser).toContain("Do not substitute");
       expect(browser).not.toContain("/Users/");
-      const demo = await readFile(path.join(commandsDir, "assay-demo.md"), "utf8");
+      const demo = await readFile(path.join(commandsDir, "lemma-demo.md"), "utf8");
       expect(demo).toContain("static");
       expect(demo).toContain("live browser");
-      const status = await readFile(path.join(commandsDir, "assay-status.md"), "utf8");
+      const status = await readFile(path.join(commandsDir, "lemma-status.md"), "utf8");
       expect(status).toContain("lemma status --root .lemma");
 
       const skill = await readFile(path.join(dir, ".opencode", "skills", "lemma", "SKILL.md"), "utf8");
       expect(skill).toContain("name: lemma");
-      expect(skill).toContain("60 assay-style commands");
+      expect(skill).toContain("60 Lemma commands");
       expect(skill).toContain("Deterministic harness owns execution, evidence, and scoring");
+    });
+  });
+
+  it("writes an executable CLI reference into installed commands when --cli is omitted", async () => {
+    await withTempDir(async (dir) => {
+      const { io, stdout } = makeIo();
+      const code = await main(["install", "opencode", "--dir", dir], io);
+      expect(code).toBe(EXIT_CODES.pass);
+      parseSingleJson(stdout);
+      const browser = await readFile(path.join(dir, ".opencode", "commands", "lemma-browser.md"), "utf8");
+      const match = browser.match(/^\s{2}(.+?) browser <URL>/m);
+      expect(match).toBeTruthy();
+      const cliRef = (match?.[1] ?? "").trim();
+      expect(cliRef.length).toBeGreaterThan(0);
+      // Auto-detected reference must point at an executable entry point, not a bare `lemma` on PATH.
+      expect(cliRef).not.toBe("lemma");
+      expect(cliRef.startsWith('"') || cliRef.startsWith("'") ? cliRef.slice(1, -1) : cliRef.replace(/^node\s+/, "").replace(/^["']|["']$/g, "")).toContain(path.sep);
     });
   });
 
@@ -80,13 +99,13 @@ describe("LEM-107 install command", () => {
       expect(dryCode).toBe(EXIT_CODES.pass);
       const dryPayload = parseSingleJson(dry.stdout);
       expect(dryPayload.status).toBe("dry_run");
-      expect(dryPayload.written).toBe(65);
+      expect(dryPayload.written).toBe(68);
       expect(dryPayload.skipped).toBe(0);
       await expect(stat(path.join(dir, ".opencode"))).rejects.toBeTruthy();
 
       const first = makeIo();
       await main(["install", "opencode", "--dir", dir], first.io);
-      const cmdPath = path.join(dir, ".opencode", "commands", "assay.md");
+      const cmdPath = path.join(dir, ".opencode", "commands", "lemma.md");
       const before = await readFile(cmdPath, "utf8");
 
       const skip = makeIo();
@@ -95,14 +114,14 @@ describe("LEM-107 install command", () => {
       const skipPayload = parseSingleJson(skip.stdout);
       expect(skipPayload.status).toBe("installed");
       expect(skipPayload.written).toBe(0);
-      expect(skipPayload.skipped).toBe(65);
+      expect(skipPayload.skipped).toBe(68);
       expect(await readFile(cmdPath, "utf8")).toBe(before);
 
       const forced = makeIo();
       const forcedCode = await main(["install", "opencode", "--dir", dir, "--force"], forced.io);
       expect(forcedCode).toBe(EXIT_CODES.pass);
       const forcedPayload = parseSingleJson(forced.stdout);
-      expect(forcedPayload.written).toBe(65);
+      expect(forcedPayload.written).toBe(68);
       expect(forcedPayload.skipped).toBe(0);
     });
   });

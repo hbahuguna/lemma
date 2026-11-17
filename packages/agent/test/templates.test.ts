@@ -17,6 +17,8 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     const browser = renderCatalogCommandTemplate("assay-browser", { cli: "lemma", personasDir: "./personas" });
     expect(browser?.kind).toBe("browser");
     expect(browser?.markdown).toContain("Require a reachable `http(s)` URL");
+    expect(browser?.markdown).toContain("Do not substitute");
+    expect(browser?.markdown).toContain("lemma browser <URL>");
     expect(browser?.markdown).not.toContain("Context gathering");
     expect(browser?.markdown).not.toContain("context protocol");
     expect(browser?.markdown).not.toContain("/Users/");

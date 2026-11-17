@@ -1,6 +1,6 @@
 import { ProjectState, runContinuous } from "@lemma/core";
 import { promises as fs } from "node:fs";
-import { readdirSync, statSync } from "node:fs";
+import { accessSync, constants as fsConstants, readdirSync, statSync } from "node:fs";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -900,6 +900,26 @@ function installLayout(host: InstallHost): { commandsDir: string; skillPath: str
   return DEFAULT_HOST_INSTALL_LAYOUTS[host];
 }
 
+/**
+ * Resolve a CLI reference that an installed host command can actually execute.
+ *
+ * `lemma` is only usable when a global binary is on PATH. When install is run from
+ * a local checkout (the common case), write the concrete entry point into the
+ * generated command files so `/lemma-browser` does not fail with "command not found".
+ */
+function detectInstalledCliCommand(explicit?: string): string {
+  if (explicit && explicit.trim()) return explicit.trim();
+  const entry = process.argv[1];
+  if (!entry) return "lemma";
+  const abs = path.resolve(entry);
+  try {
+    accessSync(abs, fsConstants.X_OK);
+    return JSON.stringify(abs);
+  } catch {
+    return `node ${JSON.stringify(abs)}`;
+  }
+}
+
 export const installCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
   const hostArg = positionals[0];
@@ -916,7 +936,7 @@ export const installCommand: CliCommandHandler = async (argv) => {
   const targetDir = path.isAbsolute(dirArg) ? dirArg : path.resolve(process.cwd(), dirArg);
   const dryRun = getBool(flags, "dry-run");
   const force = getBool(flags, "force");
-  const cli = getString(flags, "cli") ?? "lemma";
+  const cli = detectInstalledCliCommand(getString(flags, "cli"));
   const personasDir = getString(flags, "personas-dir") ?? "personas";
   const stateRoot = getString(flags, "state-root") ?? ".lemma";
 
