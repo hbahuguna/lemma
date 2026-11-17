@@ -512,8 +512,8 @@ auditable system.
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Done |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Done |
 | LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Done |
-| LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | In Progress |
-| LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | Backlog |
+| LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Done |
+| LEM-194 | Add continuous-confidence workflows (PR, nightly, scheduled) | P2 | 5 | LEM-136, LEM-171 | In Progress |
 | LEM-195 | Add durable project-state structure (`.lemma/framework/`, `learning/`, `recordings/`, `tests/`, `auto/`) | P2 | 3 | LEM-010, LEM-171 | Backlog |
 
 ### E24: Premium Cloud Parity (Commercial Tier Extension)
@@ -2993,31 +2993,32 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 8
 - **Depends on:** LEM-058, LEM-171
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing OpenAPI-driven API coverage (core/schema/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed OpenAPI-driven API coverage (core/schema/tests/verification).
 - **Description:** Learn from OpenAPI specs or traffic; generate positive,
   negative, boundary, auth, tenant, and idempotency API cases. Map API
   failures back to UI flows so a broken endpoint becomes an actionable
   finding.
 - **Acceptance Criteria:**
-  - `@lemma/core` exposes `runApiCoverage({ spec?, traffic?, target })`
+  - [x] `@lemma/core` exposes `runApiCoverage({ spec?, traffic?, target })`
     returning an `ApiCoverageReport` validated against
     `schemas/api/coverage_report.v1.json`.
-  - Cases are generated across the six documented classes (positive,
+  - [x] Cases are generated across the six documented classes (positive,
     negative, boundary, auth, tenant, idempotency); every case cites its
     source (spec operation or observed traffic) and is capped at a documented
     `maxCases`.
-  - API failures are mapped to UI flows via a documented mapping (operation →
+  - [x] API failures are mapped to UI flows via a documented mapping (operation →
     screen → user journey) where available; unmapped failures are still
     reported but flagged `ui_flow: unknown`.
-  - Safe-target validation reuses LEM-059's SSRF rules; runs against
+  - [x] Safe-target validation reuses LEM-059's SSRF rules; runs against
     non-safe targets are rejected before any request.
-  - Tests cover case generation per class, cap enforcement, source citation,
+  - [x] Tests cover case generation per class, cap enforcement, source citation,
     UI-flow mapping, SSRF refusal, and report schema.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- api-coverage`
-- **Evidence (planned/in progress):** `packages/core/src/api-coverage.ts`,
-  `schemas/api/coverage_report.v1.schema.json`,
-  `packages/core/test/api-coverage/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/api-coverage/api-coverage.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- api-coverage` — `docs/parity/evidence/LEM-193-api-coverage-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/api-coverage.ts`,
+  `schemas/api/coverage_report.v1.json`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
+  `packages/core/test/api-coverage/api-coverage.test.ts`,
   `docs/parity/evidence/LEM-193-api-coverage-test-output.txt`
 
 ### LEM-194 — Add continuous-confidence workflows (PR, nightly, scheduled)
@@ -3026,8 +3027,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-136, LEM-171
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing continuous workflows (core/workflows/tests) and verification.
 - **Description:** Add continuous workflows: GitHub Actions PR validation,
   nightly regression, and scheduled runs; durable build history. Builds on
   the existing GitHub Action (LEM-136) and consumes promoted regressions
@@ -3045,8 +3046,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
     a typed error and never corrupts the run.
   - Tests cover each trigger, PR-comment marker, nightly scope, scheduled
     cron, history retention, and corrupt-read error.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- continuous && pnpm test --filter @lemma/cli -- continuous`
-- **Evidence (planned):** `packages/core/src/continuous.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- continuous && pnpm test --filter @lemma/cli -- continuous`
+- **Evidence (planned/in progress):** `packages/core/src/continuous.ts`,
   `.github/workflows/pr-validate.yml`, `.github/workflows/nightly.yml`,
   `packages/core/test/continuous/*`,
   `docs/parity/evidence/LEM-194-continuous-test-output.txt`

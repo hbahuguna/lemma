@@ -1,0 +1,59 @@
+name: PR Validation (lemma continuous)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: pr-validate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lemma-pr-validate:
+    name: lemma PR validation (bounded subset) + marker comment
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Record continuous PR history (bounded subset)
+        run: |
+          # PR validation runs a bounded subset (documented): static.integrity, static.security, test.functionality, static.test_integrity
+          node packages/cli/dist/cli.js continuous --trigger pr --root . --pr-subset static.integrity --pr-subset static.security --pr-subset test.functionality --pr-subset static.test_integrity
+      - name: Run lemma bounded subset and render marker-based PR comment (LEM-136)
+        id: harness
+        uses: ./.github/actions/quality-harness
+        with:
+          root: .
+          target: .
+          intent: release confidence
+          # Bounded PR subset (documented in workflow): run static/test-integrity oriented checks only
+          run-args: "--checks static.integrity,static.security,test.functionality,static.test_integrity"
+          report-path: .lemma/report.json
+          comment-body-path: .lemma/pr-comment.md
+          comment-enabled: ${{ github.event.pull_request.head.repo.full_name == github.repository && 'true' || 'false' }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          pr-number: ${{ github.event.pull_request.number }}
+      - name: Upload lemma PR artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemma-pr-validate-${{ github.event.pull_request.number || github.run_id }}
+          path: |
+            .lemma/report.json
+            .lemma/pr-comment.md
+            .lemma/continuous/pr/**
+          if-no-files-found: warn

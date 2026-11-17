@@ -1,0 +1,53 @@
+name: Nightly Regression (lemma continuous)
+
+on:
+  schedule:
+    # Supported cron example for scheduled continuous runs (nightly, UTC)
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-regression-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  lemma-nightly:
+    name: lemma nightly (full default catalog + promoted regressions)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build
+        run: pnpm build
+      - name: Record continuous nightly history (full default catalog + promoted regressions)
+        run: |
+          # Nightly runs the full default catalog plus promoted regressions (LEM-189)
+          node packages/cli/dist/cli.js continuous --trigger nightly --root .
+      - name: Run lemma nightly (full default catalog)
+        run: |
+          mkdir -p .lemma
+          # Full default catalog run; promoted regressions are included by continuous scope/history and consumed by workflows.
+          node packages/cli/dist/cli.js run --target . --intent "release confidence" --output .lemma/nightly-report.json
+      - name: Upload nightly artifacts (durable history)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lemma-nightly-${{ github.run_id }}
+          path: |
+            .lemma/nightly-report.json
+            .lemma/continuous/nightly/**
+          if-no-files-found: warn
+
+  # Scheduled runs are documented with a supported cron example above (on.schedule.cron: "0 3 * * *").
+  # The same workflow can be triggered manually (workflow_dispatch) for ad-hoc scheduled/continuous validation.

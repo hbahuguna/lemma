@@ -1,3 +1,4 @@
+import { runContinuous } from "@lemma/core";
 import { promises as fs } from "node:fs";
 import { statSync } from "node:fs";
 import path from "node:path";
@@ -1464,6 +1465,31 @@ export const reviewCommand: CliCommandHandler = async (argv) => {
 };
 
 
+
+
+export const continuousCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const triggerRaw = (getString(flags, "trigger", "type") ?? "pr").toLowerCase();
+  if (triggerRaw !== "pr" && triggerRaw !== "nightly" && triggerRaw !== "scheduled") {
+    throw new CliUsageError("continuous requires --trigger pr|nightly|scheduled");
+  }
+  const trigger = triggerRaw as "pr" | "nightly" | "scheduled";
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const retentionStr = getString(flags, "retention");
+  const retention = retentionStr != null ? toInt(retentionStr, "--retention") : undefined;
+  const subsetRaw = getStringArray(flags, "pr-subset", "prSubset", "subset");
+  const subset = subsetRaw.flatMap((v) => String(v).split(",")).map((s) => s.trim()).filter(Boolean);
+  const result = await runContinuous({
+    trigger,
+    config: {
+      root,
+      ...(retention != null ? { retention } : {}),
+      ...(subset.length ? { prSubsetChecks: subset } : {}),
+    },
+  } as any);
+  return { stdoutJson: result };
+};
+
 export const foreverCommand: CliCommandHandler = async (argv) => {
   const { flags } = parseArgs(argv);
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
@@ -1516,6 +1542,7 @@ export function coreCommandSpecs(): CliCommandSpec[] {
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },
     { name: "forever", description: "Run continuous testing workflow (/lemma-forever) with durable checkpoints and live mission report.", handler: foreverCommand },
+    { name: "continuous", description: "Run continuous confidence workflow (pr|nightly|scheduled) with durable history.", handler: continuousCommand },
     { name: "confidence", description: "Manage confidence-engineering workspace (.confidence/). Subcommands: init.", handler: confidenceCommand },
     { name: "browser", description: "Run focused browser inspection (browser intent).", handler: browserCommand },
     { name: "human", description: "Record human decision context and gate material unanswered questions (run intent).", handler: humanCommand },

@@ -1,0 +1,25 @@
+=== core continuous ===
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/continuous/continuous.test.ts (5 tests) 1369ms
+   ✓ LEM-194 continuous workflows (core) > PR validation uses bounded subset; nightly runs full default catalog plus promoted regressions  409ms
+   ✓ LEM-194 continuous workflows (core) > bounds continuous history retention (documented)  499ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  13:24:49
+   Duration  3.65s (transform 856ms, setup 0ms, collect 1.18s, tests 1.37s, environment 0ms, prepare 159ms)
+
+
+=== cli continuous ===
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/cli/test/continuous/continuous.test.ts (2 tests) 487ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed (2)
+   Start at  13:24:54
+   Duration  3.05s (transform 1.13s, setup 0ms, collect 1.58s, tests 487ms, environment 1ms, prepare 327ms)
+

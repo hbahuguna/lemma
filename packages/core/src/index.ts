@@ -79,3 +79,4 @@ export * from "./regression-lifecycle.js";
 export * from "./command-preview.js";
 export * from "./browser-adapter.js";
 export * from "./api-coverage.js";
+export * from "./continuous.js";
