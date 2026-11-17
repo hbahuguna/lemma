@@ -507,8 +507,8 @@ auditable system.
 | --- | --- | --- | --- | --- | --- |
 | LEM-186 | Add explicit execution modes (Plan / Test / Review / Focused / Learn) | P2 | 5 | LEM-015, LEM-083 | In Progress |
 | LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Done |
-| LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | In Progress |
-| LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Backlog |
+| LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Done |
+| LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Done |
 | LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Backlog |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Backlog |
 | LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Backlog |
@@ -2828,30 +2828,34 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-016, LEM-020
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing E0–E3 evidence-level classification (core/report/surfacing/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed E0–E3 evidence-level classification (core/report/surfacing/policy/tests/verification).
 - **Description:** Classify every finding with an explicit truth level: E3
   (observed live behavior + captured result), E2 (corroborated, e.g. source
   + test), E1 (inspected source only), E0 (unknown). No finding claims a
   higher level than its evidence supports.
 - **Acceptance Criteria:**
-  - `@lemma/core` exports `EvidenceLevel` (`E0 | E1 | E2 | E3`) and a
+  - [x] `@lemma/core` exports `EvidenceLevel` (`E0 | E1 | E2 | E3`) and a
     `classifyFinding(finding, evidence)` helper that returns the highest level
     the evidence supports; findings whose declared level exceeds the supported
     level are downgraded with a typed note.
-  - The classifier is strict: E3 requires executed behavior AND a captured
+  - [x] The classifier is strict: E3 requires executed behavior AND a captured
     result (e.g. screenshot, HTTP response); E2 requires corroborating
     evidence across ≥ 2 independent sources; E1 is source-only; E0 is
     unknown.
-  - The classified level is persisted in the report and surfaced in the
+  - [x] The classified level is persisted in the report and surfaced in the
     dashboard (LEM-143) and HTML report (LEM-142); policy gates (LEM-019) can
     require a minimum level for SHIP.
-  - Classification is deterministic (same finding + evidence → same level).
-  - Tests cover each level, downgrade path, policy gate interaction,
+  - [x] Classification is deterministic (same finding + evidence → same level).
+  - [x] Tests cover each level, downgrade path, policy gate interaction,
     dashboard/HTML surfacing, and determinism.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/core -- evidence-level`
-- **Evidence (planned/in progress):** `packages/core/src/evidence-level.ts`,
-  `packages/core/test/evidence-level/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/evidence-level/evidence-level.test.ts` (pass, 5/5), satisfying acceptance test `pnpm test --filter @lemma/core -- evidence-level` — `docs/parity/evidence/LEM-188-evidence-level-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/evidence-level.ts`,
+  `packages/core/test/evidence-level/evidence-level.test.ts`,
+  `packages/core/src/report.ts`, `packages/core/src/scoring.ts`,
+  `packages/core/src/html-report.ts`, `packages/core/src/dashboard.ts`,
+  `packages/core/src/release-brief.ts`, `packages/core/src/index.ts`,
+  `packages/core/package.json`,
   `docs/parity/evidence/LEM-188-evidence-level-test-output.txt`
 
 ### LEM-189 — Add the regression-promotion lifecycle
@@ -2860,28 +2864,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 5
 - **Depends on:** LEM-171, LEM-188
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed regression-promotion lifecycle (core/store/report/incident/tests/verification).
 - **Description:** Add the regression lifecycle: candidate → observed →
   repeatable → explicitly promoted regression. Promotion is a durable,
   auditable operation; no finding becomes a regression without explicit
   promotion.
 - **Acceptance Criteria:**
-  - `@lemma/core` exports `RegressionStore` with `promote({ findingId, lifecycleStep })`
+  - [x] `@lemma/core` exports `RegressionStore` with `promote({ findingId, lifecycleStep })`
     where `lifecycleStep` is `candidate | observed | repeatable | promoted`;
     each step is written atomically to `.lemma/regressions/<id>.json`.
-  - Transition rules are strict: `promoted` requires at least one `repeatable`
+  - [x] Transition rules are strict: `promoted` requires at least one `repeatable`
     observation with the same fingerprint; a skip transition raises
     `StateError`.
-  - Promoted regressions are referenced from the report and are eligible for
+  - [x] Promoted regressions are referenced from the report and are eligible for
     the continuous workflows (LEM-182, LEM-194) as first-class checks.
-  - Every transition is appended as an audit event (JSONL) with previous/new
+  - [x] Every transition is appended as an audit event (JSONL) with previous/new
     state and a stable id.
-  - Tests cover each transition, skip-transition refusal, audit event,
+  - [x] Tests cover each transition, skip-transition refusal, audit event,
     report linkage, and continuous-workflow eligibility.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- regression-lifecycle`
-- **Evidence (planned):** `packages/core/src/regression-lifecycle.ts`,
-  `packages/core/test/regression-lifecycle/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/regression-lifecycle/regression-lifecycle.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/core -- regression-lifecycle` — `docs/parity/evidence/LEM-189-regression-lifecycle-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/regression-lifecycle.ts`,
+  `packages/core/test/regression-lifecycle/regression-lifecycle.test.ts`,
+  `packages/core/src/report.ts`, `packages/core/src/incident.ts`,
+  `packages/core/src/index.ts`, `packages/core/package.json`,
   `docs/parity/evidence/LEM-189-regression-lifecycle-test-output.txt`
 
 ### LEM-190 — Add command preview and live checklist

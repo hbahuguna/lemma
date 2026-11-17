@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { applyEvidenceLevelsToFindings } from "./evidence-level.js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -124,6 +124,39 @@ function sortByRecordedAtId<T extends { recorded_at?: string; id: string }>(item
   });
 }
 
+
+function readPromotedRegressionsSync(state: RunStateDomain): Array<Record<string, unknown>> {
+  try {
+    const evidenceDir = typeof state.evidence_dir === "string" ? state.evidence_dir : "";
+    const roots: string[] = [];
+    if (evidenceDir) {
+      // .lemma/evidence/<run> -> root
+      const absEv = path.isAbsolute(evidenceDir) ? evidenceDir : path.resolve(process.cwd(), evidenceDir);
+      roots.push(path.resolve(absEv, "..", "..", ".."));
+      roots.push(path.dirname(path.dirname(absEv)));
+    }
+    const optRoot = typeof (state.options as any)?.root === "string" ? (state.options as any).root : (typeof (state.options as any)?.workspace_root === "string" ? (state.options as any).workspace_root : "");
+    if (optRoot) roots.push(path.isAbsolute(optRoot) ? optRoot : path.resolve(process.cwd(), optRoot));
+    roots.push(process.cwd());
+    for (const root of roots) {
+      const dir = path.join(root, ".lemma", "regressions");
+      if (!existsSync(dir)) continue;
+      const names = readdirSync(dir).filter((n) => n.endsWith(".json") && !n.endsWith(".events.jsonl")).sort();
+      const out: Array<Record<string, unknown>> = [];
+      for (const name of names) {
+        try {
+          const rec = JSON.parse(readFileSync(path.join(dir, name), "utf8")) as any;
+          const step = rec?.lifecycle_step ?? (Array.isArray(rec?.lifecycle_history) ? rec.lifecycle_history[rec.lifecycle_history.length - 1] : (Array.isArray(rec?.lifecycle) ? rec.lifecycle[rec.lifecycle.length - 1] : null));
+          const promoted = rec?.promoted === true || step === "promoted";
+          if (promoted) out.push(rec);
+        } catch { /* ignore */ }
+      }
+      if (out.length > 0 || existsSync(dir)) return out;
+    }
+  } catch { /* ignore */ }
+  return [];
+}
+
 export function buildReport(
   state: RunStateDomain,
   workflow: Pick<Workflow, "id" | "name" | "version" | "phases">,
@@ -235,6 +268,7 @@ export function buildReport(
   const runSize = (state as any).run_size ?? (state.options as any)?.run_size ?? "medium";
   const perspectivesCount = (state as any).perspectives_count ?? (state.options as any)?.perspectives_count ?? ({quick:2,medium:4,large:6} as any)[runSize] ?? 4;
   const coverageNotes = Array.isArray((state as any).coverage_notes) ? (state as any).coverage_notes : [];
+  const promotedRegressions = readPromotedRegressionsSync(state);
   return {
     schema_version: REPORT_SCHEMA,
     generated_at: generatedAt ?? now(),
@@ -296,6 +330,10 @@ export function buildReport(
     kill_switch: { ...state.kill_switch },
     halted_reason: state.halted_reason ? state.halted_reason : null,
     limitations,
+    regressions: {
+      promoted: promotedRegressions,
+      promoted_count: promotedRegressions.length,
+    },
     evidence: {
       directory: state.evidence_dir ?? "",
       summary: { ...evidenceSummary },

@@ -1,0 +1,11 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/core
+
+ ✓ test/regression-lifecycle/regression-lifecycle.test.ts (4 tests) 1027ms
+   ✓ LEM-189 regression-promotion lifecycle > references promoted regressions from the report and exposes them as first-class checks for continuous workflows  344ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  12:41:55
+   Duration  5.13s (transform 1.39s, setup 0ms, collect 2.02s, tests 1.03s, environment 0ms, prepare 573ms)
+

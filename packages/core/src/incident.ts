@@ -4,9 +4,9 @@ import { createHash } from "node:crypto";
 
 import { StateError } from "./errors.js";
 import { atomicWriteJson, ensureDir, readJsonFile } from "./state.js";
+import { RegressionStore, type RegressionLifecycleStep } from "./regression-lifecycle.js";
 import { redactText, redactUnknown } from "./redaction.js";
 
-export type RegressionLifecycleStep = "candidate" | "observed" | "repeatable" | "promoted";
 
 export interface IncidentTraceInput {
   trace_id?: string;
@@ -157,74 +157,22 @@ async function promoteTraceToRegression(
   preserved: PreservedTraceRecord,
 ): Promise<RegressionPromotionRecord> {
   const traceId = preserved.trace_id;
-  const regressionId = stableId("reg", incidentId, traceId, preserved.fingerprint || "nofp");
-  const regressionsDir = path.join(root, stateDirName, "regressions");
-  await ensureDir(regressionsDir);
-  const regressionPath = path.join(regressionsDir, `${regressionId}.json`);
-  const auditPath = path.join(regressionsDir, `${regressionId}.events.jsonl`);
+  const store = new RegressionStore({ root, stateDirName });
+  const linkedReport = path.posix.join(stateDirName, "incidents", incidentId, "report.json");
+  const base = { findingId: traceId, fingerprint: preserved.fingerprint, incidentId, linkedReport, root, stateDirName } as const;
 
-  let state: any = null;
-  if (await pathExists(regressionPath)) {
-    state = await readJsonFile<any>(regressionPath).catch(() => null);
-  }
-  if (!state) {
-    state = {
-      schema_version: "lemma.regression/v1",
-      regression_id: regressionId,
-      finding_id: traceId,
-      fingerprint: preserved.fingerprint,
-      lifecycle: [] as RegressionLifecycleStep[],
-      observations: 0,
-      incident_ids: [] as string[],
-      linked_reports: [] as string[],
-      promoted_at: null as string | null,
-    };
-  }
+  // step through lifecycle without skips (LEM-189)
+  await store.promote({ ...base, lifecycleStep: "candidate" });
+  await store.promote({ ...base, lifecycleStep: "observed", source: "incident-trace" });
+  await store.promote({ ...base, lifecycleStep: "repeatable", source: "incident-trace" });
+  const rec = await store.promote({ ...base, lifecycleStep: "promoted", source: "incident-trace" });
 
-  const lifecycle: RegressionLifecycleStep[] = Array.isArray(state.lifecycle) ? state.lifecycle : [];
-  const events: string[] = [];
-  const appendEvent = async (prev: string | null, next: RegressionLifecycleStep) => {
-    const event = {
-      id: stableId("regevt", regressionId, prev || "none", next, String(lifecycle.length)),
-      regression_id: regressionId,
-      previous: prev,
-      next,
-      finding_id: traceId,
-      fingerprint: preserved.fingerprint,
-    };
-    events.push(JSON.stringify(event));
-    await fs.appendFile(auditPath, JSON.stringify(event) + "\n", "utf8");
-  };
-
-  // LEM-189 lifecycle: candidate -> observed -> repeatable -> promoted
-  // "promoted requires at least one repeatable observation with the same fingerprint"
-  if (!lifecycle.includes("candidate")) { await appendEvent(lifecycle[lifecycle.length - 1] || null, "candidate"); lifecycle.push("candidate"); }
-  if (!lifecycle.includes("observed")) { await appendEvent(lifecycle[lifecycle.length - 1] || null, "observed"); lifecycle.push("observed"); state.observations = Math.max(Number(state.observations || 0), 1); }
-  if (!lifecycle.includes("repeatable")) { await appendEvent(lifecycle[lifecycle.length - 1] || null, "repeatable"); lifecycle.push("repeatable"); state.observations = Math.max(Number(state.observations || 0), 2); }
-  if (!lifecycle.includes("promoted")) {
-    if (!lifecycle.includes("repeatable") || Number(state.observations || 0) < 2) {
-      throw new StateError(`Cannot promote regression ${regressionId}: promoted requires a repeatable observation with same fingerprint`);
-    }
-    await appendEvent(lifecycle[lifecycle.length - 1] || null, "promoted"); lifecycle.push("promoted");
-    state.promoted_at = state.promoted_at || new Date().toISOString();
-  }
-
-  state.lifecycle = lifecycle;
-  const incidentIds = new Set<string>(Array.isArray(state.incident_ids) ? state.incident_ids : []);
-  incidentIds.add(incidentId);
-  state.incident_ids = Array.from(incidentIds);
-  const linkedReports = new Set<string>(Array.isArray(state.linked_reports) ? state.linked_reports : []);
-  linkedReports.add(path.posix.join(".lemma", "incidents", incidentId, "report.json"));
-  state.linked_reports = Array.from(linkedReports);
-
-  await atomicWriteJson(regressionPath, redactUnknown(state));
-
-  const relRegressionPath = path.posix.join(stateDirName, "regressions", `${regressionId}.json`);
+  const relRegressionPath = path.posix.join(stateDirName, "regressions", `${rec.regression_id}.json`);
   return {
     trace_id: traceId,
-    regression_id: regressionId,
+    regression_id: rec.regression_id,
     regression_path: relRegressionPath,
-    lifecycle: [...lifecycle],
+    lifecycle: [...rec.lifecycle_history],
     status: "promoted",
     linked: true,
   };
