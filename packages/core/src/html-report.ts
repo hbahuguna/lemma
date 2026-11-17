@@ -321,6 +321,21 @@ export async function buildHtmlReport(
 
 ${renderSection("Invalid / Quarantined Findings", invalidHtml)}
   ${renderSection("Contract Health", contractHealthHtml)}
+  ${(() => {
+    const preview = (r as any).command_preview;
+    if (!preview) return "";
+    const summary = escapeHtml(redactStr(preview.summary || "Lemma will:"));
+    const steps = Array.isArray(preview.steps) ? preview.steps : [];
+    const rows = steps.map((s: any) => `<tr><td>${escapeHtml(redactStr(s.id))}</td><td>${escapeHtml(redactStr(s.title))}</td><td>${escapeHtml(redactStr(s.description))}</td><td>${escapeHtml(String(s.expected_duration_ms ?? ""))}</td><td>${escapeHtml((Array.isArray(s.expected_evidence)?s.expected_evidence.join(", "):""))}</td></tr>`).join("");
+    const body = `<p><strong>${summary}</strong></p><table><thead><tr><th>ID</th><th>Step</th><th>Description</th><th>Expected duration (ms)</th><th>Expected evidence</th></tr></thead><tbody>${rows}</tbody></table><details><summary>Preview JSON</summary><pre class="json">${fmtJson(preview)}</pre></details>`;
+    return renderSection("Command Preview (Lemma will:)", body);
+  })()}
+  ${(() => {
+    const checklist = (r as any).live_checklist || (r as any).checklist;
+    if (!Array.isArray(checklist) || checklist.length === 0) return "";
+    const rows = checklist.map((it: any) => `<tr><td>${escapeHtml(redactStr(it.id))}</td><td>${escapeHtml(redactStr(it.title))}</td><td>${escapeHtml(redactStr(it.state))}</td><td>${escapeHtml(redactStr(it.note || ""))}</td></tr>`).join("");
+    return renderSection("Live Checklist", `<table><thead><tr><th>ID</th><th>Title</th><th>State</th><th>Note</th></tr></thead><tbody>${rows}</tbody></table>`);
+  })()}
   ${renderSection("Limitations", limitationsHtml)}
   ${renderSection("Evidence", evidenceHtml)}
   ${renderSection("Full Report (redacted JSON)", `<details><summary>Show full redacted report JSON</summary><pre class="json">${fmtJson(r)}</pre></details>`)}

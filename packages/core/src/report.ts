@@ -269,6 +269,8 @@ export function buildReport(
   const perspectivesCount = (state as any).perspectives_count ?? (state.options as any)?.perspectives_count ?? ({quick:2,medium:4,large:6} as any)[runSize] ?? 4;
   const coverageNotes = Array.isArray((state as any).coverage_notes) ? (state as any).coverage_notes : [];
   const promotedRegressions = readPromotedRegressionsSync(state);
+  const commandPreview = (options as any).command_preview ?? (state as any).command_preview ?? null;
+  const liveChecklist = (options as any).live_checklist ?? (state as any).live_checklist ?? null;
   return {
     schema_version: REPORT_SCHEMA,
     generated_at: generatedAt ?? now(),
@@ -278,6 +280,8 @@ export function buildReport(
     run_size: runSize,
     perspectives_count: perspectivesCount,
     coverage_notes: coverageNotes,
+    ...(commandPreview ? { command_preview: commandPreview } : {}),
+    ...(Array.isArray(liveChecklist) ? { live_checklist: liveChecklist } : {}),
     determinism: {
       seed: state.seed ?? null,
       clock_mode: state.clock_mode ?? "real",

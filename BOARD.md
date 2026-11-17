@@ -509,7 +509,7 @@ auditable system.
 | LEM-187 | Add run-size scaling (Quick / Medium / Large) with perspective counts | P2 | 5 | LEM-015, LEM-044 | Done |
 | LEM-188 | Add E0–E3 truth-model classification to evidence | P2 | 5 | LEM-016, LEM-020 | Done |
 | LEM-189 | Add the regression-promotion lifecycle | P2 | 5 | LEM-171, LEM-188 | Done |
-| LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Backlog |
+| LEM-190 | Add command preview and live checklist | P2 | 3 | LEM-083, LEM-089 | Done |
 | LEM-191 | Build the CARBON Browser–style adapter contract | P2 | 8 | LEM-050, LEM-098 | Backlog |
 | LEM-192 | Add Vibium integration (native CLI + existing tests) | P3 | 5 | LEM-191 | Backlog |
 | LEM-193 | Add OpenAPI-driven API coverage | P2 | 8 | LEM-058, LEM-171 | Backlog |
@@ -2896,26 +2896,29 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P2
 - **Points:** 3
 - **Depends on:** LEM-083, LEM-089
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed command preview and live checklist (core/dashboard/report/tests/verification).
 - **Description:** Every command shows a "Lemma will:" plan before executing,
   and a live checklist distinguishes planned/observed/blocked/skipped. The
   preview is deterministic and never claims execution before it happens.
 - **Acceptance Criteria:**
-  - `@lemma/core` exports `previewCommand({ command, args, run })` returning a
+  - [x] `@lemma/core` exports `previewCommand({ command, args, run })` returning a
     typed `CommandPreview` (steps, expected evidence, expected duration) that
     is printed to stdout (JSON) and shown in the dashboard (LEM-143) and HTML
     report (LEM-142).
-  - A live checklist during execution distinguishes `planned`, `observed`,
+  - [x] A live checklist during execution distinguishes `planned`, `observed`,
     `blocked`, and `skipped` items; the checklist is streamed via
     `StateStore` events (LEM-011) and rendered in the dashboard.
-  - Preview content is deterministic given the same command + args + run
+  - [x] Preview content is deterministic given the same command + args + run
     state; nothing is fabricated.
-  - Tests cover preview content, live checklist states, dashboard rendering,
+  - [x] Tests cover preview content, live checklist states, dashboard rendering,
     HTML surfacing, and determinism.
-- **Verification (planned):** `pnpm test --filter @lemma/core -- command-preview`
-- **Evidence (planned):** `packages/core/src/command-preview.ts`,
-  `packages/core/test/command-preview/*`,
+- **Verification:** `pnpm --filter @lemma/core exec vitest run test/command-preview/command-preview.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/core -- command-preview` — `docs/parity/evidence/LEM-190-command-preview-test-output.txt`; `pnpm --filter @lemma/core build` (pass)
+- **Evidence:** `packages/core/src/command-preview.ts`,
+  `packages/core/test/command-preview/command-preview.test.ts`,
+  `packages/core/src/dashboard.ts`, `packages/core/src/html-report.ts`,
+  `packages/core/src/report.ts`, `packages/core/src/index.ts`,
+  `packages/core/package.json`,
   `docs/parity/evidence/LEM-190-command-preview-test-output.txt`
 
 ### LEM-191 — Build the CARBON Browser–style adapter contract

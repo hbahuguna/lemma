@@ -11,6 +11,7 @@ import { buildReleaseBrief } from "./release-brief.js";
 import { buildJourneyMap } from "./journey-map.js";
 import { loadSettings, saveSettings } from "./settings.js";
 import { readJsonFile } from "./state.js";
+import { previewCommand, readChecklistEvents, renderChecklist } from "./command-preview.js";
 
 export interface DashboardHandle {
   url: string;
@@ -123,10 +124,17 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
     const summary = report ? summarizeReport(report) : null;
     const noop = safeNoopLiveView() as any;
     if (noop.live && typeof noop.live === "object") noop.live.report_summary = summary;
+    let checklistEvents: any[] = [];
+    try { checklistEvents = await readChecklistEvents(stateStore); } catch { checklistEvents = []; }
+    const commandPreview = (r as any).command_preview ?? null;
+    const liveChecklist = renderChecklist(checklistEvents as any, commandPreview as any);
+    if (noop.live && typeof noop.live === "object") { noop.live.command_preview = commandPreview; noop.live.live_checklist = liveChecklist; }
     return {
       ...noop,
       evidence,
       report_summary: summary,
+      command_preview: commandPreview,
+      live_checklist: liveChecklist,
       review_notes: notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")),
       release_decision: r.release_decision ?? null,
       forever_mission: foreverMission,
@@ -182,6 +190,15 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
     }
   }
 
+  const commandPreview = (progress && progress.options && progress.options.command_preview)
+    ? progress.options.command_preview
+    : (report && (report as any).command_preview)
+      ? (report as any).command_preview
+      : (progress && progress.command ? previewCommand({ command: String(progress.command), args: Array.isArray(progress.args) ? progress.args : [], run: progress }) : null);
+  let checklistEvents: any[] = [];
+  try { checklistEvents = await readChecklistEvents(stateStore); } catch { checklistEvents = []; }
+  const liveChecklist = renderChecklist(checklistEvents as any, commandPreview as any);
+
   return {
     ok: true,
     live: {
@@ -197,8 +214,12 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
       completed_checks,
       report_summary: report ? summarizeReport(report) : summarizeReport(progress.report ?? null),
       review_notes: (() => { const r: any = report ?? (progress as any).report ?? {}; const notes = Array.isArray(r.review_notes) ? r.review_notes : []; return notes.filter((n: any) => n && (n.status === "contested" || n.type === "review_note")); })(),
+      command_preview: commandPreview,
+      live_checklist: liveChecklist,
     },
     evidence,
+    command_preview: commandPreview,
+    live_checklist: liveChecklist,
     release_decision: (() => { const r: any = report ?? (progress as any).report ?? {}; return r.release_decision ?? null; })(),
     forever_mission: foreverMission,
   };
@@ -263,6 +284,8 @@ function htmlPage(): string {
     <div class="card"><h2>Current check</h2><pre id="check">(none)</pre></div>
     <div class="card"><h2>Report summary</h2><pre id="report">(none)</pre></div>
   </div>
+  <div class="card" style="margin-top:1rem"><h2>Command preview (Lemma will:)</h2><div id="commandPreview" class="muted">(none)</div></div>
+  <div class="card" style="margin-top:1rem"><h2>Live checklist</h2><div id="liveChecklist" class="muted">(none)</div></div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Forever mission report</h2><pre id="foreverMission">(none)</pre></div>
   <div class="card" style="margin-top:1rem"><h2>Explicit release decision</h2><pre id="releaseDecision">(none)</pre></div>
@@ -292,8 +315,28 @@ function htmlPage(): string {
       document.getElementById('phase').textContent = live.current_phase ? JSON.stringify(live.current_phase, null, 2) : '(none)';
       document.getElementById('check').textContent = live.current_check ? JSON.stringify(live.current_check, null, 2) : '(none)';
       document.getElementById('report').textContent = live.report_summary ? JSON.stringify(live.report_summary, null, 2) : '(none)';
+      const preview = live.command_preview || data.command_preview || null;
+      const previewEl = document.getElementById('commandPreview');
+      if (previewEl) {
+        if (!preview) previewEl.innerHTML = '<span class="muted">(none)</span>';
+        else {
+          const steps = Array.isArray(preview.steps) ? preview.steps : [];
+          const summary = esc(preview.summary || ('Lemma will: ' + steps.map(s=>s.title||'').join(' → ')));
+          const meta = 'Expected duration: ' + esc(preview.expected_duration_ms ?? 0) + ' ms · Expected evidence: ' + esc((preview.expected_evidence||[]).join(', ') || '(none)');
+          previewEl.innerHTML = '<div><strong>'+summary+'</strong></div><div class="muted" style="margin:.25rem 0">'+meta+'</div><pre>'+esc(JSON.stringify(preview, null, 2))+'</pre>';
+        }
+      }
+      const checklist = live.live_checklist || data.live_checklist || [];
+      const checklistEl = document.getElementById('liveChecklist');
+      if (checklistEl) {
+        if (!Array.isArray(checklist) || !checklist.length) checklistEl.innerHTML = '<span class="muted">(none)</span>';
+        else {
+          const rows = checklist.map(it => '<tr><td>'+esc(it.id)+'</td><td>'+esc(it.title)+'</td><td>'+esc(it.state)+'</td><td>'+esc(it.note||'')+'</td></tr>').join('');
+          checklistEl.innerHTML = '<table><thead><tr><th>ID</th><th>Title</th><th>State</th><th>Note</th></tr></thead><tbody>'+rows+'</tbody></table>';
+        }
+      }
       const inflight = live.in_flight_evidence_refs || [];
-      document.getElementById('inflight').textContent = inflight.length ? inflight.join('\\n') : '(none)';
+      document.getElementById('inflight').textContent = inflight.length ? inflight.join('\n') : '(none)';
 
       const reviewNotes = (data.review_notes || (live && live.review_notes) || []);
       const contested = Array.isArray(reviewNotes) ? reviewNotes.filter(n => n && (n.status === 'contested' || n.type === 'review_note')) : [];
