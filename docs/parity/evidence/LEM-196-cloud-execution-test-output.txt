@@ -1,0 +1,10 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma/packages/pro
+
+ ✓ test/cloud-execution/cloud-execution.test.ts (4 tests) 482ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  13:50:26
+   Duration  4.12s (transform 1.42s, setup 0ms, collect 1.97s, tests 482ms, environment 0ms, prepare 462ms)
+

@@ -526,7 +526,7 @@ land first.
 
 | ID | Task | Pri | Pts | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Backlog |
+| LEM-196 | Build cloud execution infrastructure with parallel agents | P3 | 8 | LEM-119, LEM-156 | Done |
 | LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Backlog |
 | LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Backlog |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Backlog |
@@ -3095,27 +3095,28 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 8
 - **Depends on:** LEM-119, LEM-156
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed cloud execution infrastructure (pro/tests/verification).
 - **Description:** Run multiple test agents in parallel across pages,
   journeys, and quality dimensions. Requires the tenant queue (LEM-119) and
   the commercial tier boundary (LEM-156); the free tier remains local-only.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `runCloudAssessment({ tenants, plan, parallelism })`
+  - [x] `@lemma/pro` exposes `runCloudAssessment({ tenants, plan, parallelism })`
     using the tenant queue (LEM-119) and existing metering (LEM-113–LEM-115);
     every parallel agent runs in its own tenant-scoped sandbox.
-  - Parallelism is bounded by tenant quota (LEM-115) and documented per-tier
+  - [x] Parallelism is bounded by tenant quota (LEM-115) and documented per-tier
     limits; exceeding quota raises a typed `QuotaError`.
-  - Cross-agent state does not leak: each agent's `.lemma/` sub-tree is
+  - [x] Cross-agent state does not leak: each agent's `.lemma/` sub-tree is
     isolated; the aggregate report is built from per-agent reports.
-  - Failed agents are recorded as explicit coverage gaps, never aggregated
+  - [x] Failed agents are recorded as explicit coverage gaps, never aggregated
     into a pass.
-  - Unlicensed invocation returns `ProUnavailableError` (LEM-156).
-  - Tests cover parallelism, quota enforcement, isolation, failed-agent
+  - [x] Unlicensed invocation returns `ProUnavailableError` (LEM-156).
+  - [x] Tests cover parallelism, quota enforcement, isolation, failed-agent
     handling, aggregation, and unlicensed refusal.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- cloud-execution`
-- **Evidence (planned):** `packages/pro/src/cloud-execution.ts`,
-  `packages/pro/test/cloud-execution/*`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/cloud-execution/cloud-execution.test.ts` (pass, 4/4), satisfying acceptance test `pnpm test --filter @lemma/pro -- cloud-execution` — `docs/parity/evidence/LEM-196-cloud-execution-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/cloud-execution.ts`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/cloud-execution/cloud-execution.test.ts`,
   `docs/parity/evidence/LEM-196-cloud-execution-test-output.txt`
 
 ### LEM-197 — Build the steered test-plan configuration UI
