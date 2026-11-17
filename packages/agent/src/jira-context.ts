@@ -545,7 +545,7 @@ export interface JiraContextToolDefinition {
   execute: (input: JiraFormPrefill, context: JiraContextToolContext) => Promise<{ content: string }>;
 }
 
-function buildJiraContextToolDefinition(
+export function buildJiraContextToolDefinition(
   ctx: unknown,
   name: "assay_jira_context" | "lemma_jira_context",
 ): JiraContextToolDefinition {
@@ -654,17 +654,11 @@ function buildJiraContextToolDefinition(
   };
 }
 
-export async function registerJiraContextTool(ctx: unknown): Promise<boolean> {
-  const c = isRecord(ctx) ? ctx : {};
-  const tool = isRecord(c.tool) ? c.tool : undefined;
-  if (typeof tool?.transform !== "function") {
-    return false;
-  }
-
-  await (tool.transform as (editorFn: (editor: { add: (t: JiraContextToolDefinition) => void }) => void) => Promise<void>)((editor) => {
-    editor.add(buildJiraContextToolDefinition(ctx, "lemma_jira_context"));
-    editor.add(buildJiraContextToolDefinition(ctx, "assay_jira_context"));
-  });
-
-  return true;
+/**
+ * Context gathering is no longer part of any /lemma* command. Registration is
+ * intentionally a no-op so no host ever exposes a Jira context form. Kept as
+ * an exported symbol for backward compatibility with older installed plugins.
+ */
+export async function registerJiraContextTool(_ctx: unknown): Promise<boolean> {
+  return false;
 }

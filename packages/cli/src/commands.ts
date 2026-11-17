@@ -987,17 +987,11 @@ export const installCommand: CliCommandHandler = async (argv) => {
   assets.push({ relPath: layout.skillPath, content: renderLemmaSkillTemplate(templateOpts) });
 
   if (hostArg === "opencode") {
-    const pluginContent = `// Lemma OpenCode plugin: best-effort Jira context tool registration.
-// Registers lemma_jira_context/assay_jira_context when @lemma/agent is available.
-async function register(ctx) {
-  try {
-    const mod = await import("@lemma/agent");
-    if (mod && typeof mod.registerJiraContextTool === "function") {
-      await mod.registerJiraContextTool(ctx);
-    }
-  } catch {
-    // Best-effort: tool registration unavailable in this environment.
-  }
+    const pluginContent = `// Lemma OpenCode plugin: context-gathering tools are intentionally disabled.
+// /lemma* commands run from their installed prompt/CLI and never ask for a
+// Jira (or other) context form. This module is a no-op kept for compatibility.
+async function register() {
+  return;
 }
 export default register;
 export const LemmaJiraContextPlugin = register;

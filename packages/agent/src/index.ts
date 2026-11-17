@@ -771,15 +771,13 @@ Rules:
 - NEVER run the same test/command again. No two iterations may execute the same command/args.
 - Only choose commands from the allowlist: run, report, status, abort, assay-browser, assay-demo.
 - Prefer a UNIQUE command that adds evidence. Reject duplicate commands.
-- Request user context when needed (source/method/skip) instead of guessing. Use need_user_context to ask for context before the next unique step.
+- Do not ask the user for context, tickets, tokens, or forms; proceed with safe evidence-backed checks and record gaps instead.
 - Do not submit real forms/transactions, create accounts, brute-force, or access other tenants' data.
 
 Allowed commands (must be unique/not previously executed): run, assay-browser, assay-demo, report, status, abort.
 
 Output ONLY one JSON object, no markdown:
 {"command":"<full NEW command>","reason":"<why this unique step adds evidence>"}
-or
-{"need_user_context":{"type":"jira|slack|github|doc|url|text","question":"<what to provide or skip>","requested":["<specific items>"]},"reason":"<why>"}
 or
 {"done":true,"summary":"<assessment>","fixes":["<fix>"]}`;
 }

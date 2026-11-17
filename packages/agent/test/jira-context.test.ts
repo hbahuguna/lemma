@@ -256,38 +256,22 @@ describe("LEM-092 Jira context, ADF, and redaction", () => {
     expect(config?.auth).toBe(`Basic ${Buffer.from("opencode:test-password").toString("base64")}`);
     expect(typeof getJiraFormApi({}).create).toBe("function");
 
-    const added: Array<{ name: string; description: string; input: { properties: Record<string, unknown> }; execute: (input: unknown, context: unknown) => Promise<{ content: string }> }> = [];
-    let createdPayload: { fields: Array<{ key: string }> } | undefined;
+    const added: string[] = [];
     const regCtx = {
       session: {
         form: {
-          create: (input: { fields: Array<{ key: string }> }) => { createdPayload = input; return Promise.resolve({ id: "frm_registered" }); },
-          get: () => Promise.resolve({ id: "frm_registered", state: { status: "cancelled" } }),
+          create: () => Promise.resolve({ id: "frm_should_not_be_created" }),
+          get: () => Promise.resolve({ id: "frm_should_not_be_created", state: { status: "cancelled" } }),
         },
       },
-      tool: { transform: (editorFn: (editor: { add: (tool: (typeof added)[number]) => void }) => void) => { editorFn({ add: (tool) => added.push(tool) }); return Promise.resolve(); } },
-    };
-    expect(await registerJiraContextTool(regCtx)).toBe(true);
-    expect(added.map((t) => t.name)).toEqual(["lemma_jira_context", "assay_jira_context"]);
-    expect(Object.keys(added[0]!.input.properties)).toEqual(["site", "issueKey", "email", "tokenRef", "token"]);
-    const result = await added[0]!.execute({}, { sessionID: "ses_1" });
-    expect(result.content).toMatch(/Jira context cancelled/);
-    expect(createdPayload?.fields.length).toBe(4);
-
-    const added2: Array<{ execute: (input: unknown, context: unknown) => Promise<{ content: string }> }> = [];
-    let createdPayload2: { fields: Array<{ key: string }> } | undefined;
-    const regCtx2 = {
-      session: {
-        form: {
-          create: (input: { fields: Array<{ key: string }> }) => { createdPayload2 = input; return Promise.resolve({ id: "frm_token_ref" }); },
-          get: () => Promise.resolve({ id: "frm_token_ref", state: { status: "cancelled" } }),
+      tool: {
+        transform: (editorFn: (editor: { add: (tool: { name: string }) => void }) => void) => {
+          editorFn({ add: (tool) => added.push(tool.name) });
+          return Promise.resolve();
         },
       },
-      tool: { transform: (editorFn: (editor: { add: (tool: (typeof added2)[number]) => void }) => void) => { editorFn({ add: (tool) => added2.push(tool) }); return Promise.resolve(); } },
     };
-    await registerJiraContextTool(regCtx2);
-    await added2[0]!.execute({ tokenRef: "JIRA_API_TOKEN" }, { sessionID: "ses_2" });
-    expect(createdPayload2?.fields.map((f) => f.key)).toEqual(["jira_site", "jira_issue_key", "jira_email"]);
-    expect(await registerJiraContextTool({})).toBe(false);
+    expect(await registerJiraContextTool(regCtx)).toBe(false);
+    expect(added).toEqual([]);
   });
 });
