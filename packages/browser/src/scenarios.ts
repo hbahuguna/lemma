@@ -302,6 +302,21 @@ export async function executeScenarioPlan(
         if (!visible) throw new Error(`Expected element or text ${JSON.stringify(expected)} is not visible.`);
       } else if (action === "assert_no_errors") {
         // Evaluated at higher layers from captured page errors/console; execution step is a no-op pass.
+      } else if (action === "scroll") {
+        const dir = (value || target || "down").toLowerCase();
+        const pageAny = page as any;
+        if (typeof pageAny.scrollPage === "function") {
+          if (dir.includes("top")) await pageAny.scrollPage("top");
+          else if (dir.includes("bottom")) await pageAny.scrollPage("bottom");
+          else if (dir.includes("up")) await pageAny.scrollPage("up");
+          else await pageAny.scrollPage("down");
+        } else if (typeof pageAny.evaluate === "function") {
+          if (dir.includes("top")) await pageAny.evaluate("window.scrollTo(0,0)");
+          else if (dir.includes("bottom")) await pageAny.evaluate("window.scrollTo(0, document.body.scrollHeight)");
+          else if (dir.includes("up")) await pageAny.evaluate("window.scrollBy(0,-800)");
+          else await pageAny.evaluate("window.scrollBy(0,800)");
+        }
+        await page.waitForTimeout?.(300);
       } else if (action === "wait") {
         const ms = Number((step.options as Record<string, unknown> | undefined)?.ms ?? 1000);
         await page.waitForTimeout?.(Number.isFinite(ms) ? ms : 1000);

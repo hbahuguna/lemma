@@ -19,6 +19,7 @@ import {
   blockedBrowserOutcome,
   captureWithPlaywright,
   probeBrowserRuntime,
+  runAutomaticBrowserInteractionsForUrl,
   type BrowserRuntimeOptions,
 } from "./runtime.js";
 
@@ -118,21 +119,26 @@ function scopedCheckIds(all: Check[], checks?: string[], scope?: BrowserInspecti
 }
 
 function defaultBrowserChecks(url: string): Check[] {
-  // minimal scoped inspection set; runtime/evaluator will block unsupported/unevaluable cases explicitly
+  // default inspection set now includes automated interaction regression (clicks/forms/toggles/scroll/navigation)
   const ids = [
     "browser.load",
     "browser.console",
     "browser.network",
     "browser.content",
     "browser.links",
+    "browser.steps",
   ];
   return ids.map((id) => ({
     id,
-    title: id,
+    title: id === "browser.steps" ? "Automated interaction regression (clicks, forms, toggles, scroll, navigation)" : id,
     domain: "functional",
     kind: "browser",
-    intent: "Focused browser inspection",
-    expected: "Observable browser behavior captured with evidence",
+    intent: id === "browser.steps"
+      ? "Automatically exercise interactive UI flows (clicks, form fills/submits, toggles, selects, scrolling, navigation) and record evidence."
+      : "Focused browser inspection",
+    expected: id === "browser.steps"
+      ? "Interactive elements are exercised safely with evidence-backed step results; failures and coverage gaps are reported."
+      : "Observable browser behavior captured with evidence",
     requires: "url",
     persona: "",
     status: "planned",
@@ -256,6 +262,37 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
     if (!IMPLEMENTED_BROWSER_CHECKS.has(check.id)) {
       const out = blockedBrowserOutcome(check, `Browser check ${check.id} is not implemented in this runtime.`);
       observations.push(toObservation(check, out, primary));
+      continue;
+    }
+    if (check.id === "browser.steps") {
+      try {
+        // Run automated interaction regression (clicks, forms, toggles, scrolls, navigation) on crawled pages
+        const targets = Array.from(new Set([
+          url,
+          ...views.map((v) => v?.navigation?.finalUrl || v?.navigation?.url || "").filter(Boolean),
+        ])).slice(0, 8);
+        const outcomes = [];
+        for (let i = 0; i < targets.length; i++) {
+          const t = targets[i]!;
+          outcomes.push(await runAutomaticBrowserInteractionsForUrl(t, options, input.evidence as any, `auto-interactions-${i + 1}`));
+        }
+        // aggregate
+        const merged = outcomes[0] ?? blockedBrowserOutcome(check, "No interaction targets available.");
+        if (outcomes.length > 0) {
+          const allPassed = outcomes.every((o) => o.status === CheckStatus.PASSED || o.status === "passed");
+          const anyFailed = outcomes.some((o) => o.status === CheckStatus.FAILED || o.status === "failed");
+          const anyBlocked = outcomes.every((o) => o.status === CheckStatus.BLOCKED || o.status === "blocked");
+          merged.status = anyBlocked ? CheckStatus.BLOCKED : anyFailed ? CheckStatus.FAILED : allPassed ? CheckStatus.PASSED : CheckStatus.SKIPPED;
+          merged.actual = outcomes.map((o, i) => `[${targets[i]}] ${o.actual}`).join(" | ");
+          merged.evidence = Array.from(new Set(outcomes.flatMap((o) => o.evidence ?? [])));
+          merged.findings = outcomes.flatMap((o) => o.findings ?? []);
+          merged.metadata = { ...(merged.metadata ?? {}), interaction_targets: targets, per_target: outcomes.map((o) => ({ status: o.status, actual: o.actual })) };
+        }
+        observations.push(toObservation(check, merged, primary));
+      } catch (err) {
+        const reason = err instanceof BrowserUnavailableError ? err.reason : (err instanceof Error ? err.message : String(err));
+        observations.push(toObservation(check, blockedBrowserOutcome(check, reason), primary, reason));
+      }
       continue;
     }
     const out = primary

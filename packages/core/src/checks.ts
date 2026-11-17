@@ -1219,7 +1219,7 @@ function isApplicable(
   target: Target,
   noBrowser: boolean,
   intent: string,
-  scenario: boolean,
+  _scenario: boolean,
 ): boolean {
   const textIntent = intent || "";
   const liveBrowserAvailable = target.kind === "url" && !noBrowser;
@@ -1239,7 +1239,7 @@ function isApplicable(
     return true;
   }
 
-  if (definition.id === "browser.steps") return scenario;
+  if (definition.id === "browser.steps") return liveBrowserAvailable;
 
   const sourceAvailable = Boolean(inventory.available);
   const hasMarkup = Boolean(inventory.has_markup ?? inventory.hasMarkup);

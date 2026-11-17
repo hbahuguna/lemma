@@ -27,6 +27,7 @@ import {
 } from "./checks.js";
 // capture evidence store types are satisfied via BrowserEvidenceStoreLike in this module.
 import { executeScenarioPlan, loadScenarioPlan, loadScenarioPlanFromFile, type BrowserScenarioPageLike } from "./scenarios.js";
+import { runAutomaticInteractions } from "./interactions.js";
 
 /** Legacy type kept for API compatibility (Playwright removed; CDP runtime handle used internally). */
 export interface PlaywrightModuleLike {
@@ -557,18 +558,83 @@ function normalizeScenarioExecution(value: unknown): ScenarioExecutionResult | n
   return { title: typeof v.title === "string" ? v.title : "Scenario", target_url: typeof v.target_url === "string" ? v.target_url : (typeof v.targetUrl === "string" ? v.targetUrl : ""), passed: v.passed, total_steps: v.total_steps, passed_steps: typeof v.passed_steps === "number" ? v.passed_steps : 0, failed_steps: typeof v.failed_steps === "number" ? v.failed_steps : 0, skipped_steps: typeof v.skipped_steps === "number" ? v.skipped_steps : 0, duration_ms: typeof v.duration_ms === "number" ? v.duration_ms : 0, results: Array.isArray(v.results) ? (v.results as any) : [], evidence_refs: v.evidence_refs && typeof v.evidence_refs === "object" ? (v.evidence_refs as any) : {}, error: typeof v.error === "string" ? v.error : "" };
 }
 
+async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions | undefined, evidence: BrowserEvidenceStoreLike | undefined, label: string): Promise<CheckOutcome> {
+  const chromePath = detectChromePath(options?.chromePath);
+  if (!chromePath) return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Chrome/Chromium runtime is unavailable: no Chrome/Chromium executable found.");
+  const headless = resolveHeadless(options);
+  const timeoutMs = options?.timeoutMs ?? 30000;
+  const viewport = resolveBrowserViewport(options);
+  const userDataDir = mkdtempSync(join(tmpdir(), "lemma-cdp-steps-"));
+  let proc: ChildProcess | null = null; let ws: WebSocket | null = null; let cdp: FlatCdp | null = null;
+  try {
+    const launched = await launchChromeAndGetWsUrl(chromePath, headless, userDataDir, Math.max(timeoutMs, 15000));
+    proc = launched.proc;
+    ws = new WebSocket(launched.wsUrl);
+    await new Promise<void>((resolve, reject) => {
+      const t = setTimeout(() => reject(new BrowserUnavailableError("CDP websocket connect timeout")), 10000);
+      ws!.addEventListener("open", () => { clearTimeout(t); resolve(); });
+      ws!.addEventListener("error", () => { clearTimeout(t); reject(new BrowserUnavailableError("CDP websocket connection failed")); });
+    });
+    cdp = new FlatCdp(ws);
+    const target = await cdp.call("Target.createTarget", { url: "about:blank" });
+    const targetId = target?.targetId;
+    let sessionId: string | undefined;
+    try { const attached = await cdp.call("Target.attachToTarget", { targetId, flatten: true }); sessionId = attached?.sessionId; } catch {}
+    const sid = sessionId;
+    await cdp.call("Page.enable", {}, sid);
+    await cdp.call("Runtime.enable", {}, sid);
+    await cdp.call("Network.enable", {}, sid).catch(() => {});
+    try { await cdp.call("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: resolveMobileEnabled(options) }, sid); } catch {}
+    await cdp.call("Page.navigate", { url }, sid);
+    await new Promise<void>((resolve) => {
+      let done = false;
+      const off = cdp!.on((msg) => { if (sid && msg.sessionId !== sid) return; if (msg.method === "Page.loadEventFired") { if (!done) { done = true; off(); resolve(); } } });
+      setTimeout(() => { if (!done) { done = true; off(); resolve(); } }, Math.min(timeoutMs, 15000));
+    });
+    const exec = await runAutomaticInteractions({
+      call: (m, p, s) => cdp!.call(m, p, s),
+      ...(sid ? { sessionId: sid } : {}),
+      baseUrl: url,
+      ...(evidence ? { evidence } : {}),
+      timeoutMs: Math.min(timeoutMs, 10000),
+      label,
+    });
+    if (evidence) {
+      try { await evidence.saveJson(`${label}-interaction-plan`, exec.plan, "scenario", `Auto-discovered interaction plan for ${label}`); } catch {}
+      try { await evidence.saveJson(`${label}-interaction-results`, exec, "scenario_result", `Auto interaction execution results for ${label}`); } catch {}
+    }
+    try { if (targetId) await cdp.call("Target.closeTarget", { targetId }); } catch {}
+    return toScenarioOutcome(exec);
+  } catch (e) {
+    const reason = e instanceof BrowserUnavailableError ? e.reason : (e instanceof Error ? e.message : String(e));
+    return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, reason);
+  } finally {
+    try { cdp?.close(); } catch {}
+    try { ws?.close(); } catch {}
+    try { proc?.kill(); } catch {}
+    try { rmSync(userDataDir, { recursive: true, force: true }); } catch {}
+  }
+}
+
+export async function runAutomaticBrowserInteractionsForUrl(url: string, options: BrowserRuntimeOptions | undefined, evidence: BrowserEvidenceStoreLike | undefined, label = "interactions"): Promise<CheckOutcome> {
+  return runCdpAutomaticSteps(url, options, evidence, label);
+}
+
 async function resolveBrowserStepsOutcome(input: RunBrowserChecksInput, probeAvailable: boolean): Promise<CheckOutcome> {
   const opts = input.options ?? {};
   const injected = normalizeScenarioExecution((opts as any).scenarioExecution);
   if (injected) return toScenarioOutcome(injected);
   const plan = resolveScenarioPlanInput(input);
-  if (!plan) return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "No scenario plan or execution was provided for browser.steps.");
-  if ((input as any).scenarioPage) {
-    try { return toScenarioOutcome(await executeScenarioPlan((input as any).scenarioPage, plan, input.evidence, opts.timeoutMs === undefined ? {} : { timeoutMs: opts.timeoutMs })); }
-    catch (error) { return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, `Scenario execution could not run: ${error instanceof Error ? error.message : String(error)}`); }
+  if (plan) {
+    if ((input as any).scenarioPage) {
+      try { return toScenarioOutcome(await executeScenarioPlan((input as any).scenarioPage, plan, input.evidence, opts.timeoutMs === undefined ? {} : { timeoutMs: opts.timeoutMs })); }
+      catch (error) { return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, `Scenario execution could not run: ${error instanceof Error ? error.message : String(error)}`); }
+    }
+    // explicit plan provided but no CDP page adapter wired for it yet: fall back to auto interactions on target URL
   }
   if (!probeAvailable) return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Browser runtime is unavailable for scenario execution.");
-  return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Scenario execution via CDP runtime is not yet implemented in this build (Playwright removed). Provide scenarioExecution or a scenarioPage for browser.steps.");
+  // Auto-run interaction exploration (clicks, forms, toggles, scrolls, navigation) by default
+  return runCdpAutomaticSteps(input.url, opts, input.evidence, "auto-interactions");
 }
 
 export async function runBrowserChecks(input: RunBrowserChecksInput): Promise<void> {
