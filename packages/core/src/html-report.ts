@@ -261,6 +261,29 @@ export async function buildHtmlReport(
   const limitationsHtml = limitations.length
     ? `<ul>${limitations.map((l) => `<li>${escapeHtml(redactStr(l))}</li>`).join("")}</ul>`
     : `<p class="empty">No recorded limitations.</p>`;
+  const healthScore = isRecord((r as any).health_score) ? (r as any).health_score : null;
+  const severityRanked = healthScore && Array.isArray((healthScore as any).severity_ranked_findings)
+    ? (healthScore as any).severity_ranked_findings
+    : (Array.isArray((r as any).severity_ranked_findings) ? (r as any).severity_ranked_findings : []);
+  const healthScoreHtml = healthScore
+    ? `<div class="grid">
+        <div><strong>Overall health score:</strong> ${escapeHtml(String((healthScore as any).score ?? "n/a"))}/100</div>
+        <div><strong>Formula:</strong> ${escapeHtml(redactStr(isRecord((healthScore as any).formula) ? (healthScore as any).formula.id : ""))} v${escapeHtml(redactStr(isRecord((healthScore as any).formula) ? (healthScore as any).formula.version : ""))}</div>
+        <div><strong>Deterministic:</strong> ${escapeHtml(String((healthScore as any).deterministic ?? true))}</div>
+      </div>
+      <p class="note">${escapeHtml(redactStr(isRecord((healthScore as any).formula) ? (healthScore as any).formula.description : ""))}</p>
+      <h3>Breakdown (per dimension)</h3><pre class="json">${fmtJson(isRecord((healthScore as any).breakdown) ? (healthScore as any).breakdown.dimensions : {})}</pre>
+      <h3>Breakdown (per check family)</h3><pre class="json">${fmtJson(isRecord((healthScore as any).breakdown) ? (healthScore as any).breakdown.check_families : {})}</pre>
+      <h3>Breakdown (per persona)</h3><pre class="json">${fmtJson(isRecord((healthScore as any).breakdown) ? (healthScore as any).breakdown.personas : {})}</pre>`
+    : `<p class="empty">No overall health score computed.</p>`;
+  const severityRankedHtml = Array.isArray(severityRanked) && severityRanked.length
+    ? `<table><thead><tr><th>Rank</th><th>ID</th><th>Severity</th><th>Evidence level</th><th>Confidence</th><th>Title</th><th>Check</th></tr></thead><tbody>${(severityRanked as any[]).map((f) => {
+        const conf = f && f.confidence == null ? "n/a" : String(f?.confidence);
+        return `<tr><td>${escapeHtml(String(f?.rank ?? ""))}</td><td><code>${escapeHtml(redactStr(f?.id))}</code></td><td>${escapeHtml(redactStr(f?.severity))}</td><td>${escapeHtml(redactStr(f?.evidence_level))}</td><td>${escapeHtml(conf)}</td><td>${escapeHtml(redactStr(f?.title))}</td><td><code>${escapeHtml(redactStr(f?.check_id))}</code></td></tr>`;
+      }).join("")}</tbody></table>
+      <p class="note">Sorted by documented severity, evidence level (LEM-188, higher support first), and confidence (higher first; nulls last).</p>`
+    : `<p class="empty">No severity-ranked findings available.</p>`;
+
 
   const css = `
     :root { color-scheme: light dark; }
@@ -301,6 +324,8 @@ export async function buildHtmlReport(
   ${renderSection("Policy", policyHtml)}
   ${renderSection("Trend", trendHtml)}
   ${renderSection("Confidence / Coverage Details", `<pre class="json">${fmtJson({ confidence: confidenceObj, coverage: r.coverage })}</pre>`)}
+  ${renderSection("Overall Health Score", healthScoreHtml)}
+  ${renderSection("Severity-ranked Issues", severityRankedHtml)}
   ${renderSection("Findings", findingsHtml)}
   ${renderSection("Blockers", blockersHtml)}
 

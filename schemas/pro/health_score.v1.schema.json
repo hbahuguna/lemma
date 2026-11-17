@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://lemma.dev/schemas/pro/health_score.v1.json",
+  "title": "Lemma Pro Health Score v1",
+  "description": "Overall health score (0-100) computed deterministically from a lemma report. Formula (v1): let checks be report.checks (or derived from findings/coverage), base=100, subtract 25 per critical finding, 15 per high, 8 per medium, 3 per low, 1 per info (using finding severity); subtract 10 per failed/blocked/errored check not already represented, subtract 5 per skipped check as coverage gap pressure (capped contribution); add 0 (no positive inflation from gaps). Clamp to [0,100], round to nearest integer. Breakdowns: per dimension (domain), per check family (check id prefix/family), per persona (owner/persona). Changing this formula requires a new schema version.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "score", "formula", "breakdown", "severity_ranked_findings"],
+  "properties": {
+    "schema_version": { "const": "lemma.pro.health_score/v1" },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "formula": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "version", "description"],
+      "properties": {
+        "id": { "type": "string" },
+        "version": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "breakdown": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["dimensions", "check_families", "personas"],
+      "properties": {
+        "dimensions": { "type": "object", "additionalProperties": true },
+        "check_families": { "type": "object", "additionalProperties": true },
+        "personas": { "type": "object", "additionalProperties": true }
+      }
+    },
+    "severity_ranked_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["id", "severity", "evidence_level", "confidence", "rank"],
+        "properties": {
+          "id": { "type": "string" },
+          "severity": { "type": "string" },
+          "evidence_level": { "type": "string" },
+          "confidence": { "type": ["number", "null"] },
+          "rank": { "type": "integer", "minimum": 1 }
+        }
+      }
+    }
+  }
+}

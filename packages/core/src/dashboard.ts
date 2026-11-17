@@ -227,7 +227,7 @@ async function readLiveView(options: StartDashboardOptions): Promise<Record<stri
   };
 }
 
-function summarizeReport(report: unknown): Record<string, unknown> | null {
+export function summarizeReport(report: unknown): Record<string, unknown> | null {
   if (!report || typeof report !== "object") return null;
   const r = report as any;
   const decision = r.decision && typeof r.decision === "object" ? r.decision : {};
@@ -241,16 +241,22 @@ function summarizeReport(report: unknown): Record<string, unknown> | null {
     const lvl = f && typeof f === "object" ? (f.evidence_level || "E0") : "E0";
     if (lvl === "E0" || lvl === "E1" || lvl === "E2" || lvl === "E3") levelCounts[lvl] = (levelCounts[lvl] ?? 0) + 1;
   }
+  const hs = r.health_score && typeof r.health_score === "object" ? r.health_score : null;
+  const ranked = hs && Array.isArray((hs as any).severity_ranked_findings)
+    ? (hs as any).severity_ranked_findings
+    : (Array.isArray(r.severity_ranked_findings) ? r.severity_ranked_findings : []);
   return {
     run_id: r.run_id ?? null,
     status: r.status ?? null,
     decision: decision.decision ?? r.decision ?? null,
     confidence_score: confidence.score ?? null,
+    health_score: hs ? (hs as any).score ?? null : null,
     coverage: r.coverage ?? null,
     review_notes_count: reviewNotes.length,
     contested_count: contested.length,
     release_decision: rd ? { decision: (rd as any).decision ?? null, decision_id: (rd as any).decision_id ?? null } : null,
     finding_evidence_levels: levelCounts,
+    severity_ranked_findings: Array.isArray(ranked) ? ranked.slice(0, 25) : [],
   };
 }
 
@@ -286,6 +292,10 @@ function htmlPage(): string {
     <div class="card"><h2>Current check</h2><pre id="check">(none)</pre></div>
     <div class="card"><h2>Report summary</h2><pre id="report">(none)</pre></div>
   </div>
+  <div class="grid" style="margin-top:1rem">
+    <div class="card"><h2>Overall health score (Pro)</h2><pre id="healthScore">(none)</pre></div>
+    <div class="card"><h2>Severity-ranked issues</h2><div id="severityRanked" class="muted">(none)</div></div>
+  </div>
   <div class="card" style="margin-top:1rem"><h2>Command preview (Lemma will:)</h2><div id="commandPreview" class="muted">(none)</div></div>
   <div class="card" style="margin-top:1rem"><h2>Live checklist</h2><div id="liveChecklist" class="muted">(none)</div></div>
   <div class="card" style="margin-top:1rem"><h2>In-flight evidence refs</h2><pre id="inflight">(none)</pre></div>
@@ -317,6 +327,18 @@ function htmlPage(): string {
       document.getElementById('phase').textContent = live.current_phase ? JSON.stringify(live.current_phase, null, 2) : '(none)';
       document.getElementById('check').textContent = live.current_check ? JSON.stringify(live.current_check, null, 2) : '(none)';
       document.getElementById('report').textContent = live.report_summary ? JSON.stringify(live.report_summary, null, 2) : '(none)';
+      const hs = live.report_summary && (live.report_summary.health_score != null || (data.report && data.report.health_score)) ? { health_score: live.report_summary.health_score, ...(data.report && data.report.health_score ? { formula: data.report.health_score.formula, breakdown: data.report.health_score.breakdown } : {}) } : null;
+      const hsEl = document.getElementById('healthScore');
+      if (hsEl) hsEl.textContent = hs && hs.health_score != null ? JSON.stringify(hs, null, 2) : '(none)';
+      const ranked = (live.report_summary && live.report_summary.severity_ranked_findings) || [];
+      const rankedEl = document.getElementById('severityRanked');
+      if (rankedEl) {
+        if (!Array.isArray(ranked) || !ranked.length) rankedEl.innerHTML = '<span class="muted">(none)</span>';
+        else {
+          const rows = ranked.map(f => '<tr><td>'+esc(f.rank)+'</td><td>'+esc(f.id)+'</td><td>'+esc(f.severity)+'</td><td>'+esc(f.evidence_level)+'</td><td>'+esc(f.confidence==null?"n/a":f.confidence)+'</td><td>'+esc(f.title||'')+'</td></tr>').join('');
+          rankedEl.innerHTML = '<table><thead><tr><th>Rank</th><th>ID</th><th>Severity</th><th>Level</th><th>Confidence</th><th>Title</th></tr></thead><tbody>'+rows+'</tbody></table>';
+        }
+      }
       const preview = live.command_preview || data.command_preview || null;
       const previewEl = document.getElementById('commandPreview');
       if (previewEl) {

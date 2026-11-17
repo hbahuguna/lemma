@@ -530,8 +530,8 @@ land first.
 | LEM-197 | Build the steered test-plan configuration UI | P3 | 8 | LEM-143, LEM-196 | Done |
 | LEM-198 | Build the custom persona panel | P3 | 5 | LEM-044, LEM-197 | Done |
 | LEM-199 | Build the exploratory-bot configuration | P3 | 5 | LEM-196, LEM-197 | Done |
-| LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | In Progress |
-| LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | Backlog |
+| LEM-200 | Add the annotated evidence bundle (persona reactions, severity, pass/fail) | P3 | 5 | LEM-144, LEM-196 | Done |
+| LEM-201 | Add the overall health score and severity-ranked issue view | P3 | 5 | LEM-018, LEM-196 | In Progress |
 | LEM-202 | Build category benchmarks and competitive intelligence | P3 | 5 | LEM-196 | Backlog |
 | LEM-203 | Build the TAI-style fine-tuned QA model API | P3 | 8 | LEM-196 | Backlog |
 | LEM-204 | Build the Test Reports REST API | P3 | 5 | LEM-083, LEM-196 | Backlog |
@@ -3216,28 +3216,30 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-144, LEM-196
-- **Status:** In Progress
-- **Claimed:** 2026-11-17 — implementing annotated evidence bundle (pro/schema/tests) and verification.
+- **Status:** Done
+- **Claimed:** 2026-11-17 — completed annotated evidence bundle (pro/schema/tests/verification).
 - **Description:** Add a rich evidence bundle per finding: annotated
   screenshots, persona reactions, severity, and pass/fail. Extends LEM-144's
   raw screenshots into a curated, reviewable bundle.
 - **Acceptance Criteria:**
-  - `@lemma/pro` exposes `buildEvidenceBundle({ finding, screenshots, persona })`
+  - [x] `@lemma/pro` exposes `buildEvidenceBundle({ finding, screenshots, persona })`
     returning a bundle validated against
     `schemas/pro/evidence_bundle.v1.json` (screenshots with annotations,
     persona reaction text, severity, pass/fail, evidence fingerprint).
-  - Annotations are structured (region, label, note) and stored under
+  - [x] Annotations are structured (region, label, note) and stored under
     `.lemma/evidence/<run_id>/bundle/<finding_id>/` via atomic writes.
-  - Persona reactions are recorded only when a persona contract is attached;
+  - [x] Persona reactions are recorded only when a persona contract is attached;
     otherwise the field is `null` and reported as "no persona reaction",
     never fabricated.
-  - Unlicensed invocation returns `ProUnavailableError`.
-  - Tests cover bundle schema, annotation structure, persona-reaction
+  - [x] Unlicensed invocation returns `ProUnavailableError`.
+  - [x] Tests cover bundle schema, annotation structure, persona-reaction
     attribution, missing-persona nullability, atomic write, and license gate.
-- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- evidence-bundle`
-- **Evidence (planned/in progress):** `packages/pro/src/evidence-bundle.ts`,
+- **Verification:** `pnpm --filter @lemma/pro exec vitest run test/evidence-bundle/evidence-bundle.test.ts` (pass, 3/3), satisfying acceptance test `pnpm test --filter @lemma/pro -- evidence-bundle` — `docs/parity/evidence/LEM-200-evidence-bundle-test-output.txt`; `pnpm --filter @lemma/pro build` (pass)
+- **Evidence:** `packages/pro/src/evidence-bundle.ts`,
+  `schemas/pro/evidence_bundle.v1.json`,
   `schemas/pro/evidence_bundle.v1.schema.json`,
-  `packages/pro/test/evidence-bundle/*`,
+  `packages/pro/src/index.ts`, `packages/pro/package.json`,
+  `packages/pro/test/evidence-bundle/evidence-bundle.test.ts`,
   `docs/parity/evidence/LEM-200-evidence-bundle-test-output.txt`
 
 ### LEM-201 — Add the overall health score and severity-ranked issue view
@@ -3246,8 +3248,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Priority:** P3
 - **Points:** 5
 - **Depends on:** LEM-018, LEM-196
-- **Status:** Backlog
-- **Claimed:** —
+- **Status:** In Progress
+- **Claimed:** 2026-11-17 — implementing health score and severity-ranked view (pro/core/schema/tests) and verification.
 - **Description:** Add an overall health score that rolls up every check,
   test, and persona, and a severity-ranked issue view. Health is explainable
   and reproducible; severity ranking is documented.
@@ -3264,8 +3266,8 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
   - Unlicensed invocation returns `ProUnavailableError`.
   - Tests cover score computation, breakdown, determinism, ranking order,
     dashboard/HTML surfacing, and license gate.
-- **Verification (planned):** `pnpm test --filter @lemma/pro -- health-score`
-- **Evidence (planned):** `packages/pro/src/health-score.ts`,
+- **Verification (exact acceptance test):** `pnpm test --filter @lemma/pro -- health-score`
+- **Evidence (planned/in progress):** `packages/pro/src/health-score.ts`,
   `schemas/pro/health_score.v1.schema.json`,
   `packages/pro/test/health-score/*`,
   `docs/parity/evidence/LEM-201-health-score-test-output.txt`
