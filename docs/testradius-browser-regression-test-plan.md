@@ -113,11 +113,11 @@ Legend: **Automation** = `Automated (lemma browser)` | `Automatable (with intera
 
 ## 4. Execution strategy
 
-1. **Discovery & crawl (automated):** `lemma browser <url> --crawl --max-pages 25 --timeout-ms 120000` (repeat per major section if needed) to capture routes, load/console/network/content/link evidence and screenshots.
-2. **Automated regression checks (current tooling):** For every crawled route, execute `browser.load`, `browser.console`, `browser.network`, `browser.content`, `browser.links` and collect `.lemma/evidence/<run_id>/` artifacts.
-3. **Interactive scenarios (clicks/forms/toggles/scroll) — target state:** Execute via supported scenario/interaction tooling or agent-driven browser automation with evidence capture (screenshots/video/DOM/network/console) per step.
-4. **Manual/agent-assisted verification:** For interactions not automatable by current CLI, perform and record evidence explicitly; otherwise mark **Blocked/Not automated** with reason.
-5. **Gap handling:** Auth-gated, destructive, third-party, captcha-protected, or credential-dependent flows are reported as coverage gaps (never pass, never inflate confidence).
+1. **Discovery & crawl (automated):** `/lemma-browser https://testradius.dev` runs `lemma browser <url> --crawl --max-pages 25 --timeout-ms 120000`. Source scanning defaults to the current directory; the scanner derives public frontend routes from `App.tsx` and injects them into the crawl, so each public route is visited once with one persistent headed Chrome session.
+2. **Automated regression checks:** For every captured route, execute `browser.load`, `browser.console`, `browser.network`, `browser.content`, `browser.links` and collect `.lemma/evidence/<run_id>/` artifacts (screenshots, DOM snapshots, console/network logs).
+3. **Interactive scenarios (automated):** Route-matched source features are combined with visible live-DOM controls in a single `browser.steps` pass per route: scroll warm-up and scroll assertions, button/CTA clicks (with return-to-route recovery), switch/checkbox toggling (bidirectional), slider adjustment, tab switching, accordion expansion, safe empty-required form validation, field fills with synthetic `.invalid` values, and select/combobox selection. Steps are deduplicated across routes via `feature:<id>` so a shared layout control runs once. Each step emits a screenshot and per-step result in `auto-interactions-<n>-interaction-plan.json` / `-interaction-results.json`.
+4. **Manual/agent-assisted verification:** Auth-gated, destructive, third-party OAuth, captcha-protected, or credential-dependent flows are not auto-clicked; verify them explicitly or mark **Blocked/Not automated** with reason. Auth-gated source routes are listed in `browser.steps` metadata as `auth_gated_routes`.
+5. **Gap handling:** Coverage gaps are reported explicitly (never pass, never inflate confidence). Do not lower a severity to make a gate pass.
 
 ## 5. Deliverables
 
@@ -127,4 +127,4 @@ Legend: **Automation** = `Automated (lemma browser)` | `Automatable (with intera
 
 ## 6. Current automation capability note
 
-`lemma browser` currently provides automated, evidence-backed checks for **page load/navigation, console/page errors, network failures, content/title/heading sanity, and link integrity** with crawl/multi-page capture. **Rich UI interactions (button clicks, form filling/submission, toggles/switches, dropdowns/accordions/modals, scrolling assertions, drag/drop)** are not fully automated by the current CLI check set and require scenario/interaction tooling or agent-driven execution; such cases must be executed explicitly where supported or reported as coverage gaps in this plan.
+`lemma browser` provides automated, evidence-backed checks for **page load/navigation, console/page errors, network failures, content/title/heading sanity, and link integrity** with multi-page crawl, plus **route-matched rich UI interactions**: button/CTA clicks, safe form validation and synthetic field fills, switch/checkbox toggles, sliders, selects/comboboxes, tabs, accordions, and scroll assertions. Source features are discovered from the checkout in the current directory (override with `--source <dir>`), mapped from router declarations to page/child components, and executed with React-compatible native value setters through one persistent Chrome CDP session. Not automated (reported as explicit coverage gaps): real OAuth/credentialed login, destructive submit actions, third-party payment/checkout, and drag/drop.

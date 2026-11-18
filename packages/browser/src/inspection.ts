@@ -20,6 +20,7 @@ import {
   BrowserUnavailableError,
   blockedBrowserOutcome,
   captureWithPlaywright,
+  openCdpBrowserSession,
   probeBrowserRuntime,
   runAutomaticBrowserInteractionsForUrl,
   type BrowserRuntimeOptions,
@@ -189,6 +190,68 @@ function toObservation(check: Check, outcome: CheckOutcome, view: BrowserPageVie
   };
 }
 
+interface SourceScanResult {
+  features: SourceFeature[];
+  publicRoutes: string[];
+  authRoutes: string[];
+  inventoryRef: string;
+}
+
+/**
+ * Scan repository source once for the whole run. Derives public frontend routes
+ * (used to enrich the crawl target list) and records auth-gated routes as
+ * explicit coverage information. Backend API routes are excluded upstream by
+ * `discoverFeatures`.
+ */
+async function scanSourceForInspection(input: BrowserInspectionInput, options: BrowserRuntimeOptions): Promise<SourceScanResult> {
+  const provided = options.sourceFeatures ?? [];
+  const empty: SourceScanResult = { features: provided, publicRoutes: [], authRoutes: [], inventoryRef: "" };
+  if (provided.length > 0 || options.scanSource === false) return empty;
+  try {
+    const root = options.sourceDir || (options as any).root || process.cwd();
+    const inventory = discoverFeatures(root, {
+      ...(options.maxSourceFiles !== undefined ? { maxFiles: options.maxSourceFiles } : {}),
+      ...(options.maxSourceFileBytes !== undefined ? { maxFileBytes: options.maxSourceFileBytes } : {}),
+    });
+    let inventoryRef = "";
+    if (input.evidence?.saveJson) {
+      inventoryRef = await input.evidence.saveJson(
+        "feature-inventory",
+        inventory,
+        "feature_inventory",
+        `Source-derived testable features scanned from ${root}`,
+      );
+    }
+    const routeFeatures = inventory.features.filter((f) => f.kind === "route" && !/[:*${]/.test(f.label));
+    const publicRoutes = routeFeatures.filter((f) => !f.auth_required).map((f) => f.label);
+    const authRoutes = routeFeatures.filter((f) => f.auth_required).map((f) => f.label);
+    return { features: inventory.features, publicRoutes, authRoutes, inventoryRef };
+  } catch (error) {
+    return {
+      features: [],
+      publicRoutes: [],
+      authRoutes: [],
+      inventoryRef: `source scan unavailable: ${error instanceof Error ? error.message : String(error)}`,
+    };
+  }
+}
+
+/** Keep only source features relevant to a specific target URL path. */
+function featuresForTarget(features: SourceFeature[], targetUrl: string): SourceFeature[] {
+  let path = "";
+  try { path = new URL(targetUrl).pathname.replace(/\/+$/, "") || "/"; } catch { return features; }
+  return features.filter((f) => {
+    if (f.kind === "route") return f.label === path;
+    if (f.route_hint) {
+      const hint = f.route_hint.replace(/\/+$/, "") || "/";
+      if (hint === path) return true;
+      return Array.isArray(f.routes) && f.routes.some((r) => (r.replace(/\/+$/, "") || "/") === path);
+    }
+    // Unscoped/shared components (e.g. header, footer, shared form) apply everywhere.
+    return !Array.isArray(f.routes) || f.routes.length === 0;
+  });
+}
+
 export async function runBrowserInspectionInBrowser(input: BrowserInspectionInput): Promise<BrowserInspectionResult> {
   const runId = input.runId ?? String((input.options as any)?.runId || `browser-inspection-${Date.now()}`);
   const target = normalizeTarget(input.target as any);
@@ -201,6 +264,9 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
   const scopedChecks = selected.map((c) => c.id);
 
   const options = input.options ?? {};
+  // Scan source once up front so public routes can enrich the crawl target list
+  // and the same inventory is reused for every interaction pass.
+  const sourceScan = await scanSourceForInspection(input, options);
   const probe = await probeBrowserRuntime(options);
   if (!probe.available) {
     const reason = probe.reason ?? "Browser runtime is unavailable.";
@@ -235,14 +301,34 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
   }
 
   let views: BrowserPageView[] = [];
-  if (Array.isArray(input.pageViews) && input.pageViews.length > 0) {
-    views = input.pageViews.map(normalizePageView);
-  } else if (input.pageView) {
-    views = [normalizePageView(input.pageView)];
+  // Reuse one persistent Chrome CDP session across capture and all interaction
+  // passes instead of spawning/killing Chrome per page.
+  let sharedSession: Awaited<ReturnType<typeof openCdpBrowserSession>> | null = null;
+  const usesInjectedViews = (Array.isArray(input.pageViews) && input.pageViews.length > 0) || !!input.pageView;
+  const captureOptions: BrowserRuntimeOptions = {
+    ...options,
+    ...(sourceScan.publicRoutes.length > 0 ? { extraRoutes: sourceScan.publicRoutes } : {}),
+  };
+  if (!usesInjectedViews) {
+    try {
+      sharedSession = await openCdpBrowserSession(captureOptions);
+      captureOptions.cdpSession = sharedSession;
+    } catch {
+      sharedSession = null; // captureWithPlaywright will fall back to its own session
+    }
+  }
+  const finishSession = async (): Promise<void> => {
+    if (sharedSession) await sharedSession.close().catch(() => {});
+    sharedSession = null;
+  };
+  if (usesInjectedViews) {
+    if (Array.isArray(input.pageViews) && input.pageViews.length > 0) views = input.pageViews.map(normalizePageView);
+    else if (input.pageView) views = [normalizePageView(input.pageView)];
   } else {
     try {
-      views = await captureWithPlaywright(url, probe.playwright, options, input.evidence as any);
+      views = await captureWithPlaywright(url, probe.playwright, captureOptions, input.evidence as any);
     } catch (err) {
+      await finishSession();
       const reason = err instanceof BrowserUnavailableError ? err.reason : (err instanceof Error ? err.message : String(err));
       const observations = selected.map((check) => toObservation(check, blockedBrowserOutcome(check, reason), null, reason));
       const blocker = observations[0]?.blocker;
@@ -272,46 +358,39 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
     }
     if (check.id === "browser.steps") {
       try {
-        // Run automated interaction regression (clicks, forms, toggles, scrolls, navigation) on crawled pages
-        const targets = Array.from(new Set([
-          url,
-          ...views.map((v) => v?.navigation?.finalUrl || v?.navigation?.url || "").filter(Boolean),
-        ])).slice(0, 8);
-
-        // Build one source-backed inventory for the whole run and share a
-        // dedupe set so a feature is never exercised twice across crawled pages.
-        let features: SourceFeature[] = options?.sourceFeatures ?? [];
-        let inventoryRef = "";
-        if (features.length === 0 && options?.scanSource !== false) {
+        // Run automated interaction regression (clicks, forms, toggles, scrolls, navigation)
+        // on every captured/crawled page. Public source routes were already injected via
+        // `extraRoutes` during capture, so views include them.
+        const targetMap = new Map<string, string>();
+        for (const candidate of [url, ...views.map((v) => v?.navigation?.finalUrl || v?.navigation?.url || "").filter(Boolean)]) {
+          let key = candidate;
           try {
-            const root = options?.sourceDir || options?.root || process.cwd();
-            const inventory = discoverFeatures(root, {
-              ...(options?.maxSourceFiles !== undefined ? { maxFiles: options.maxSourceFiles } : {}),
-              ...(options?.maxSourceFileBytes !== undefined ? { maxFileBytes: options.maxSourceFileBytes } : {}),
-            });
-            features = inventory.features;
-            if (input.evidence?.saveJson) {
-              inventoryRef = await input.evidence.saveJson(
-                "feature-inventory",
-                inventory,
-                "feature_inventory",
-                `Source-derived testable features scanned from ${root}`,
-              );
-            }
-          } catch (error) {
-            features = [];
-            inventoryRef = `source scan unavailable: ${error instanceof Error ? error.message : String(error)}`;
+            const parsed = new URL(candidate);
+            key = `${parsed.origin}${parsed.pathname.replace(/\/+$/, "") || "/"}`;
+          } catch {
+            key = candidate.replace(/\/+$/, "") || "/";
           }
+          if (key && !targetMap.has(key)) targetMap.set(key, candidate);
         }
+        const targets = Array.from(targetMap.values()).slice(0, 10);
+
+        const allFeatures = sourceScan.features.length > 0 ? sourceScan.features : (options.sourceFeatures ?? []);
         const dedupe = new Set<string>();
-        const interactionOptions: BrowserRuntimeOptions = {
-          ...(options ?? {}),
-          sourceFeatures: features,
-          interactionDedupe: dedupe,
-        };
+        const multiTargetRun = targets.length > 1;
+
         const outcomes = [];
         for (let i = 0; i < targets.length; i++) {
           const t = targets[i]!;
+          const interactionOptions: BrowserRuntimeOptions = {
+            ...(options ?? {}),
+            ...(sharedSession ? { cdpSession: sharedSession } : {}),
+            multiTargetRun,
+            // Route-matched + shared/unscoped features only; this prevents
+            // cross-route actions (e.g. login form on pricing route) while still
+            // allowing global layout components.
+            sourceFeatures: featuresForTarget(allFeatures, t),
+            interactionDedupe: dedupe,
+          };
           outcomes.push(await runAutomaticBrowserInteractionsForUrl(t, interactionOptions, input.evidence as any, `auto-interactions-${i + 1}`));
         }
         // aggregate
@@ -328,11 +407,13 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
             ...(merged.metadata ?? {}),
             interaction_targets: targets,
             per_target: outcomes.map((o) => ({ status: o.status, actual: o.actual })),
-            source_features: features.length,
-            source_feature_kinds: Array.from(new Set(features.map((f) => f.kind))),
-            feature_inventory_ref: inventoryRef,
+            source_features: allFeatures.length,
+            source_feature_kinds: Array.from(new Set(allFeatures.map((f) => f.kind))),
+            feature_inventory_ref: sourceScan.inventoryRef,
             deduped_steps: dedupe.size,
             dedupe_enabled: true,
+            public_source_routes: sourceScan.publicRoutes,
+            auth_gated_routes: sourceScan.authRoutes,
           };
         }
         observations.push(toObservation(check, merged, primary));
@@ -362,6 +443,7 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
   );
   const anyBlocked = summary.blocked > 0 && summary.failed === 0 && summary.passed === 0;
 
+  await finishSession();
   return {
     schema_version: "lemma.browser_inspection/v1",
     run_id: runId,

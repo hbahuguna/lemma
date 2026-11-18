@@ -210,8 +210,20 @@ export async function executeScenarioPlan(
         if (!dest || typeof page.goto !== "function") throw new Error("goto is unavailable or destination is missing.");
         await page.goto(dest, { waitUntil: "domcontentloaded", timeout: Math.max(5000, timeoutMs) });
         try { await page.waitForTimeout?.(500); } catch { /* noop */ }
-      } else if (action === "click") {
+      } else if (action === "click" || action === "toggle") {
         const candidates: Array<LocatorLike | undefined> = [];
+        const looksLikeCss = /^[#.[a-z0-9_-]*[[#.:>]/i.test(target) || /^(?:button|input|a|summary|details)\b/i.test(target);
+        if (looksLikeCss && target && typeof page.locator === "function") {
+          try { candidates.push(page.locator(target)); } catch { /* noop */ }
+        }
+        if (action === "toggle" && typeof page.getByRole === "function") {
+          for (const role of ["switch", "checkbox", "button"]) {
+            try { candidates.push(page.getByRole(role, { name: target, exact: false })); } catch { /* noop */ }
+          }
+          if (target && typeof page.getByLabel === "function") {
+            try { candidates.push(page.getByLabel(target, { exact: false })); } catch { /* noop */ }
+          }
+        }
         if (target && typeof page.getByText === "function") candidates.push(page.getByText(target, { exact: false }));
         if (target && typeof page.getByRole === "function") {
           for (const role of ["button", "tab", "link", "switch"]) {
@@ -219,28 +231,69 @@ export async function executeScenarioPlan(
           }
         }
         if (target && typeof page.locator === "function") {
-          try { candidates.push(page.locator(target)); } catch { /* noop */ }
+          if (!looksLikeCss) {
+            try { candidates.push(page.locator(target)); } catch { /* noop */ }
+          }
           const esc = target.replace(/"/g, '\\"');
           try { candidates.push(page.locator(`button:has-text("${esc}"), a:has-text("${esc}"), [role=switch]:has-text("${esc}")`)); } catch { /* noop */ }
         }
         const locator = await firstVisibleLocator(candidates);
-        if (!locator || typeof locator.click !== "function") throw new Error(`Could not locate element to click with target: ${JSON.stringify(target)}`);
+        if (!locator || typeof locator.click !== "function") throw new Error(`Could not locate element to ${action} with target: ${JSON.stringify(target)}`);
         if (typeof locator.scrollIntoViewIfNeeded === "function") {
           try { await locator.scrollIntoViewIfNeeded({ timeout: 2000 }); } catch { /* noop */ }
         }
         await locator.click({ timeout: timeoutMs });
-        try { await page.waitForTimeout?.(600); } catch { /* noop */ }
+        try { await page.waitForTimeout?.(450); } catch { /* noop */ }
+        const stayOnPageUrl = asString((step.options as Record<string, unknown> | undefined)?.stayOnPageUrl);
+        if (stayOnPageUrl && typeof page.goto === "function" && typeof page.url === "function") {
+          try {
+            const afterHref = page.url();
+            if (afterHref) {
+              const expectedUrl = new URL(stayOnPageUrl);
+              const actualUrl = new URL(afterHref, stayOnPageUrl);
+              if (actualUrl.origin !== expectedUrl.origin || actualUrl.pathname !== expectedUrl.pathname) {
+                if ((step.options as Record<string, unknown> | undefined)?.captureNavigatedScreenshot === true) {
+                  const navRef = await saveStepScreenshot(page, evidence, label, step.step_number, "after-cta-route", `Destination reached by '${step.name}' before returning to ${expectedUrl.pathname}`);
+                  if (navRef) shotRefs.set(step.step_number, navRef);
+                }
+                await page.goto(stayOnPageUrl, { waitUntil: "domcontentloaded", timeout: Math.max(5000, timeoutMs) });
+                try { await page.waitForTimeout?.(350); } catch { /* noop */ }
+              }
+            }
+          } catch { /* noop */ }
+        }
+      } else if (action === "slide") {
+        const pageAny = page as any;
+        if (typeof pageAny.adjustSlider === "function") {
+          const ok = await pageAny.adjustSlider(target, value);
+          if (!ok) throw new Error(`Could not locate or adjust slider for target: ${JSON.stringify(target)}`);
+          try { await page.waitForTimeout?.(350); } catch { /* noop */ }
+        } else if (typeof page.locator === "function") {
+          const loc = page.locator(target || '[role="slider"], input[type="range"]');
+          const found = await firstVisibleLocator([loc]);
+          if (!found) throw new Error(`Could not locate slider for target: ${JSON.stringify(target)}`);
+          if (typeof found.click === "function") await found.click({ timeout: timeoutMs });
+        }
       } else if (action === "fill") {
         const candidates: Array<LocatorLike | undefined> = [];
+        const looksLikeCss = /^[#.[a-z0-9_-]*[[#.:>]/i.test(target);
+        if (looksLikeCss && target && typeof page.locator === "function") {
+          try { candidates.push(page.locator(target)); } catch { /* noop */ }
+        }
         if (target && typeof page.getByLabel === "function") candidates.push(page.getByLabel(target, { exact: false }));
         if (target && typeof page.getByPlaceholder === "function") candidates.push(page.getByPlaceholder(target, { exact: false }));
         if (target && typeof page.locator === "function") {
-          // Source-derived plans carry a CSS selector hint; try it verbatim first.
-          if (/^[#.[a-z]/i.test(target)) {
+          if (!looksLikeCss && /^[#.[a-z]/i.test(target)) {
             try { candidates.push(page.locator(target)); } catch { /* noop */ }
           }
           const esc = target.replace(/"/g, '\\"');
-          try { candidates.push(page.locator(`input[name*="${esc}"], input[id*="${esc}"], input[aria-label*="${esc}"]`)); } catch { /* noop */ }
+          try {
+            candidates.push(
+              page.locator(
+                `input[name*="${esc}"], textarea[name*="${esc}"], input[id*="${esc}"], textarea[id*="${esc}"], input[aria-label*="${esc}"], textarea[aria-label*="${esc}"]`,
+              ),
+            );
+          } catch { /* noop */ }
         }
         if (candidates.length === 0 && target && typeof page.locator === "function" && /calc|dev|count|seat/i.test(target)) {
           try { candidates.push(page.locator("input[type=number], input[type=range], input[type=text]")); } catch { /* noop */ }
@@ -253,12 +306,12 @@ export async function executeScenarioPlan(
         await locator.fill(value || "10", { timeout: timeoutMs });
         try { await locator.dispatchEvent?.("input"); } catch { /* noop */ }
         try { await locator.dispatchEvent?.("change"); } catch { /* noop */ }
-        try { await page.waitForTimeout?.(400); } catch { /* noop */ }
+        try { await page.waitForTimeout?.(300); } catch { /* noop */ }
       } else if (action === "select") {
         if (typeof page.locator !== "function") throw new Error("select action requires page.locator.");
         const esc = target.replace(/"/g, '\\"');
         const direct = /^[#.[a-z]/i.test(target) ? page.locator(target) : undefined;
-        const loc = page.locator(`select[name*="${esc}"], select[id*="${esc}"], select`);
+        const loc = page.locator(`select[name*="${esc}"], select[id*="${esc}"], button[role="combobox"], [role="combobox"], select`);
         const sel = await firstVisibleLocator([direct, loc]);
         if (!sel || typeof sel.selectOption !== "function") throw new Error(`Could not locate select element for target: ${JSON.stringify(target)}`);
         await sel.selectOption(value || { label: value });

@@ -67,6 +67,12 @@ export interface BrowserRuntimeOptions {
   scanSource?: boolean;
   maxSourceFiles?: number;
   maxSourceFileBytes?: number;
+  /** Additional same-origin routes (e.g. from source feature discovery) to include in crawl/inspection. */
+  extraRoutes?: string[];
+  /** True when caller is iterating across multiple route targets in a single run. */
+  multiTargetRun?: boolean;
+  /** Reusable persistent Chrome CDP session across capture and interaction passes. */
+  cdpSession?: CdpBrowserSession;
   storageState?: string | Record<string, unknown>;
   storage_state?: string | Record<string, unknown>;
   captureHar?: boolean;
@@ -345,16 +351,102 @@ async function launchChromeAndGetWsUrl(chromePath: string, headless: boolean, us
   if (headless) args.push("--headless=new", "--disable-gpu");
   const proc = spawn(chromePath, args, { stdio: ["ignore", "ignore", "pipe"] });
   let stderr = "";
+  let spawnError = "";
+  proc.on("error", (err) => { spawnError = err instanceof Error ? err.message : String(err); });
   proc.stderr?.on("data", (d) => { stderr += String(d); });
   const deadline = Date.now() + Math.max(2000, timeoutMs);
   while (Date.now() < deadline) {
+    if (spawnError) break;
     const m = /DevTools listening on (ws:\/\/[^\s]+)/.exec(stderr);
     if (m) return { wsUrl: m[1]!, proc };
     if (proc.exitCode !== null) break;
     await wait(50);
   }
   try { proc.kill(); } catch {}
-  throw new BrowserUnavailableError(`Failed to start Chrome DevTools endpoint. ${stderr.trim() ? `stderr: ${stderr.trim().slice(0, 300)}` : "No DevTools endpoint found."}`);
+  const detail = spawnError || (stderr.trim() ? `stderr: ${stderr.trim().slice(0, 300)}` : "No DevTools endpoint found.");
+  throw new BrowserUnavailableError(`Failed to start Chrome DevTools endpoint. ${detail}`);
+}
+
+export interface CdpBrowserSession {
+  call: (method: string, params?: any, sessionId?: string) => Promise<any>;
+  on: (fn: (msg: any) => void) => () => void;
+  sessionId: string | undefined;
+  targetId: string | undefined;
+  close: () => Promise<void>;
+}
+
+/** Open a single persistent Chrome CDP session that can be reused across route captures and interactions. */
+export async function openCdpBrowserSession(options?: BrowserRuntimeOptions): Promise<CdpBrowserSession> {
+  const chromePath = detectChromePath(options?.chromePath);
+  if (!chromePath) throw new BrowserUnavailableError("Chrome/Chromium runtime is unavailable: no Chrome/Chromium executable found.");
+  const headless = resolveHeadless(options);
+  const timeoutMs = options?.timeoutMs ?? 30000;
+  const viewport = resolveBrowserViewport(options);
+  const userDataDir = mkdtempSync(join(tmpdir(), "lemma-cdp-session-"));
+  let proc: ChildProcess | null = null;
+  let ws: WebSocket | null = null;
+  let cdp: FlatCdp | null = null;
+  try {
+    const launched = await launchChromeAndGetWsUrl(chromePath, headless, userDataDir, Math.max(timeoutMs, 15000));
+    proc = launched.proc;
+    ws = new WebSocket(launched.wsUrl);
+    await new Promise<void>((resolve, reject) => {
+      const t = setTimeout(() => reject(new BrowserUnavailableError("CDP websocket connect timeout")), 10000);
+      ws!.addEventListener("open", () => { clearTimeout(t); resolve(); });
+      ws!.addEventListener("error", () => { clearTimeout(t); reject(new BrowserUnavailableError("CDP websocket connection failed")); });
+    });
+    cdp = new FlatCdp(ws);
+    let targetId: string | undefined;
+    try {
+      const existing = await cdp.call("Target.getTargets", {});
+      const pageTarget = Array.isArray(existing?.targetInfos)
+        ? existing.targetInfos.find((t: any) => t?.type === "page" && !String(t?.url || "").startsWith("devtools://"))
+        : undefined;
+      targetId = pageTarget?.targetId;
+    } catch {}
+    if (!targetId) {
+      const created = await cdp.call("Target.createTarget", { url: "about:blank" });
+      targetId = created?.targetId;
+    }
+    let sessionId: string | undefined;
+    try {
+      const attached = await cdp.call("Target.attachToTarget", { targetId, flatten: true });
+      sessionId = attached?.sessionId;
+    } catch {}
+    await cdp.call("Page.enable", {}, sessionId);
+    await cdp.call("Runtime.enable", {}, sessionId);
+    await cdp.call("Network.enable", {}, sessionId).catch(() => {});
+    await cdp.call("Log.enable", {}, sessionId).catch(() => {});
+    try {
+      await cdp.call(
+        "Emulation.setDeviceMetricsOverride",
+        { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: resolveMobileEnabled(options) },
+        sessionId,
+      );
+    } catch {}
+    let closed = false;
+    return {
+      call: (m, p, s) => cdp!.call(m, p, s ?? sessionId),
+      on: (fn) => cdp!.on(fn),
+      sessionId,
+      targetId,
+      close: async () => {
+        if (closed) return;
+        closed = true;
+        try { cdp?.close(); } catch {}
+        try { ws?.close(); } catch {}
+        try { proc?.kill(); } catch {}
+        await wait(80);
+        try { rmSync(userDataDir, { recursive: true, force: true }); } catch {}
+      },
+    };
+  } catch (err) {
+    try { cdp?.close(); } catch {}
+    try { ws?.close(); } catch {}
+    try { proc?.kill(); } catch {}
+    try { rmSync(userDataDir, { recursive: true, force: true }); } catch {}
+    throw err;
+  }
 }
 
 // Flat CDP client supporting flattened sessions (used for browser capture).
@@ -390,90 +482,97 @@ class FlatCdp {
   close() { try { this.ws.close(); } catch {} }
 }
 
-async function captureOnePageCdp(url: string, options: BrowserRuntimeOptions | undefined, evidence: BrowserEvidenceStoreLike | undefined, label: string, chromePath: string): Promise<BrowserPageView> {
-  const headless = resolveHeadless(options);
+async function captureOnePageCdp(
+  url: string,
+  options: BrowserRuntimeOptions | undefined,
+  evidence: BrowserEvidenceStoreLike | undefined,
+  label: string,
+  chromePath: string,
+  sharedSession?: CdpBrowserSession,
+): Promise<BrowserPageView> {
   const timeoutMs = options?.timeoutMs ?? 30000;
-  const viewport = resolveBrowserViewport(options);
-  const userDataDir = mkdtempSync(join(tmpdir(), "lemma-cdp-profile-"));
-  let proc: ChildProcess | null = null; let ws: WebSocket | null = null; let cdp: FlatCdp | null = null;
   const consoleMessages: Array<Record<string, unknown>> = [];
   const pageErrors: Array<Record<string, unknown>> = [];
   const networkEntries: Array<Record<string, unknown>> = [];
   const navigation: { url: string; finalUrl: string; status?: number | null; headers?: Record<string, string>; error?: string } = { url, finalUrl: url };
   const evidenceRefs: Record<string, string> = {};
-  try {
-    const launched = await launchChromeAndGetWsUrl(chromePath, headless, userDataDir, Math.max(timeoutMs, 15000));
-    proc = launched.proc;
-    ws = new WebSocket(launched.wsUrl);
-    await new Promise<void>((resolve, reject) => {
-      const t = setTimeout(() => reject(new BrowserUnavailableError("CDP websocket connect timeout")), 10000);
-      ws!.addEventListener("open", () => { clearTimeout(t); resolve(); });
-      ws!.addEventListener("error", () => { clearTimeout(t); reject(new BrowserUnavailableError("CDP websocket connection failed")); });
-    });
-    cdp = new FlatCdp(ws);
-    const target = await cdp.call("Target.createTarget", { url: "about:blank" });
-    const targetId = target?.targetId;
-    let sessionId: string | undefined;
-    try { const attached = await cdp.call("Target.attachToTarget", { targetId, flatten: true }); sessionId = attached?.sessionId; } catch {}
-    const sid = sessionId;
-    const reqMeta = new Map<string, any>();
-    cdp.on((msg) => {
-      if (sid && msg.sessionId !== sid) return;
-      const m = msg.method; const p = msg.params || {};
-      if (m === "Runtime.consoleAPICalled") {
-        const text = (p.args || []).map((a: any) => (a?.value ?? a?.description ?? "")).join(" ");
-        consoleMessages.push({ type: p.type || "log", text: String(text) });
-      } else if (m === "Runtime.exceptionThrown") {
-        const d = p.exceptionDetails || {}; const txt = d.text || d.exception?.description || d.exception?.value || "page error";
-        pageErrors.push({ text: String(txt) });
-      } else if (m === "Log.entryAdded") {
-        const e = p.entry || {}; consoleMessages.push({ type: e.level || "log", text: String(e.text || "") });
-      } else if (m === "Network.requestWillBeSent") {
-        reqMeta.set(p.requestId, { url: p.request?.url, method: p.request?.method });
-      } else if (m === "Network.responseReceived") {
-        const meta = reqMeta.get(p.requestId) || {};
-        networkEntries.push({ url: String(p.response?.url || meta.url || ""), status: p.response?.status, failed: false });
-        if (p.type === "Document" && (!navigation.status || String(p.response?.url||"").startsWith("http"))) {
-          if (!navigation.status) navigation.status = p.response?.status;
-          const headers: Record<string,string> = {};
-          for (const [k,v] of Object.entries(p.response?.headers || {})) headers[String(k).toLowerCase()] = String(v);
-          navigation.headers = headers;
-        }
-      } else if (m === "Network.loadingFailed") {
-        const meta = reqMeta.get(p.requestId) || {};
-        networkEntries.push({ url: String(meta.url || ""), method: String(meta.method || "GET"), failed: true, failure: String(p.errorText || "request failed") });
+  const ownsSession = !sharedSession;
+  const session = sharedSession ?? (await openCdpBrowserSession({ ...(options ?? {}), chromePath }));
+  const sid = session.sessionId;
+  const reqMeta = new Map<string, any>();
+  const offTelemetry = session.on((msg) => {
+    if (sid && msg.sessionId !== sid) return;
+    const m = msg.method;
+    const p = msg.params || {};
+    if (m === "Runtime.consoleAPICalled") {
+      const text = (p.args || []).map((a: any) => (a?.value ?? a?.description ?? "")).join(" ");
+      consoleMessages.push({ type: p.type || "log", text: String(text) });
+    } else if (m === "Runtime.exceptionThrown") {
+      const d = p.exceptionDetails || {};
+      const txt = d.text || d.exception?.description || d.exception?.value || "page error";
+      pageErrors.push({ text: String(txt) });
+    } else if (m === "Log.entryAdded") {
+      const e = p.entry || {};
+      consoleMessages.push({ type: e.level || "log", text: String(e.text || "") });
+    } else if (m === "Network.requestWillBeSent") {
+      reqMeta.set(p.requestId, { url: p.request?.url, method: p.request?.method });
+    } else if (m === "Network.responseReceived") {
+      const meta = reqMeta.get(p.requestId) || {};
+      networkEntries.push({ url: String(p.response?.url || meta.url || ""), status: p.response?.status, failed: false });
+      if (p.type === "Document" && (!navigation.status || String(p.response?.url || "").startsWith("http"))) {
+        if (!navigation.status) navigation.status = p.response?.status;
+        const headers: Record<string, string> = {};
+        for (const [k, v] of Object.entries(p.response?.headers || {})) headers[String(k).toLowerCase()] = String(v);
+        navigation.headers = headers;
       }
-    });
-    await cdp.call("Page.enable", {}, sid);
-    await cdp.call("Runtime.enable", {}, sid);
-    await cdp.call("Network.enable", {}, sid);
-    await cdp.call("Log.enable", {}, sid).catch(() => {});
-    try { await cdp.call("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: resolveMobileEnabled(options) }, sid); } catch {}
+    } else if (m === "Network.loadingFailed") {
+      const meta = reqMeta.get(p.requestId) || {};
+      networkEntries.push({ url: String(meta.url || ""), method: String(meta.method || "GET"), failed: true, failure: String(p.errorText || "request failed") });
+    }
+  });
+  try {
     try {
-      const nav = await Promise.race([
-        cdp.call("Page.navigate", { url }, sid).then(async (r) => {
-          // wait for load a bit
+      const nav = (await Promise.race([
+        session.call("Page.navigate", { url }, sid).then(async (r) => {
           await new Promise<void>((resolve) => {
             let done = false;
-            const off = cdp!.on((msg) => { if (sid && msg.sessionId !== sid) return; if (msg.method === "Page.loadEventFired") { if (!done) { done = true; off(); resolve(); } } });
-            setTimeout(() => { if (!done) { done = true; off(); resolve(); } }, Math.min(timeoutMs, 15000));
+            const off = session.on((msg) => {
+              if (sid && msg.sessionId !== sid) return;
+              if (msg.method === "Page.loadEventFired") {
+                if (!done) {
+                  done = true;
+                  off();
+                  resolve();
+                }
+              }
+            });
+            setTimeout(() => {
+              if (!done) {
+                done = true;
+                off();
+                resolve();
+              }
+            }, Math.min(timeoutMs, 15000));
           });
           return r;
         }),
         new Promise((_, rej) => setTimeout(() => rej(new Error(`Navigation timeout after ${timeoutMs}ms`)), timeoutMs)),
-      ]) as any;
+      ])) as any;
       if (nav?.errorText) navigation.error = String(nav.errorText);
     } catch (e: any) {
       navigation.error = String(e?.message || e || "navigation failed");
     }
-    try { const res = await cdp.call("Runtime.evaluate", { expression: "location.href", returnByValue: true }, sid); if (res?.result?.value) navigation.finalUrl = String(res.result.value); } catch {}
+    try {
+      const res = await session.call("Runtime.evaluate", { expression: "location.href", returnByValue: true }, sid);
+      if (res?.result?.value) navigation.finalUrl = String(res.result.value);
+    } catch {}
     if (!navigation.finalUrl) navigation.finalUrl = url;
 
     let snapshot: Record<string, unknown> = {};
     try {
       if (!navigation.error) {
         const expr = `(() => { try { const doc = document; const bodyText = doc?.body?.innerText ?? doc?.body?.textContent ?? ""; const h1s = Array.from(doc?.querySelectorAll?.('h1') ?? []).map(n => String(n?.innerText ?? n?.textContent ?? '').trim()).filter(t => t.length>0); const links = Array.from(doc?.querySelectorAll?.('a') ?? []).map((a,i)=>({selector: 'a:nth-of-type('+(i+1)+')', href: String(a?.getAttribute?.('href') ?? ''), target: String(a?.getAttribute?.('target') ?? ''), rel: String(a?.getAttribute?.('rel') ?? ''), download: a?.hasAttribute?.('download') ? true : false })); return { title: String(doc?.title ?? ''), bodyTextLength: String(bodyText).trim().length, h1s, links }; } catch(e){ return {}; } })()`;
-        const res = await cdp.call("Runtime.evaluate", { expression: expr, returnByValue: true }, sid);
+        const res = await session.call("Runtime.evaluate", { expression: expr, returnByValue: true }, sid);
         if (res?.result?.value && typeof res.result.value === "object") snapshot = res.result.value as Record<string, unknown>;
       }
     } catch {}
@@ -489,7 +588,7 @@ async function captureOnePageCdp(url: string, options: BrowserRuntimeOptions | u
       } catch {}
       try {
         if (evidence.saveScreenshot) {
-          const shot = await cdp.call("Page.captureScreenshot", { format: "png", captureBeyondViewport: true }, sid);
+          const shot = await session.call("Page.captureScreenshot", { format: "png", captureBeyondViewport: true }, sid);
           if (shot?.data) {
             const buf = Buffer.from(String(shot.data), "base64");
             evidenceRefs.screenshot = await evidence.saveScreenshot(shotName, buf, label === "landing" ? "Landing page screenshot" : `Screenshot for ${label}`);
@@ -497,17 +596,16 @@ async function captureOnePageCdp(url: string, options: BrowserRuntimeOptions | u
         }
       } catch {}
     }
-    try { if (targetId) await cdp.call("Target.closeTarget", { targetId }); } catch {}
     return normalizePageView({ navigation, snapshot, consoleMessages, pageErrors, networkEntries, evidenceRefs, label });
   } finally {
-    try { cdp?.close(); } catch {}
-    try { ws?.close(); } catch {}
-    try { proc?.kill(); } catch {}
-    try { rmSync(userDataDir, { recursive: true, force: true }); } catch {}
+    try { offTelemetry(); } catch {}
+    if (ownsSession) {
+      await session.close().catch(() => {});
+    }
   }
 }
 
-/** Capture using Chrome DevTools Protocol (replaces Playwright). Second arg kept for API compatibility. */
+/** Capture using Chrome DevTools Protocol (replaces Playwright). Reuses a single Chrome session across crawled routes. */
 export async function captureWithPlaywright(
   url: string,
   runtimeOrPlaywright: PlaywrightModuleLike | undefined,
@@ -517,23 +615,50 @@ export async function captureWithPlaywright(
   const chromePath = (runtimeOrPlaywright as any)?.__cdp?.chromePath || detectChromePath(options?.chromePath);
   if (!chromePath) throw new BrowserUnavailableError("Chrome/Chromium runtime is unavailable: no Chrome/Chromium executable found.");
 
-  const seed = await captureOnePageCdp(url, options, evidence, "landing", chromePath);
-  const views: BrowserPageView[] = [seed];
-  const crawl = options?.crawl === true;
-  const maxPages = resolveBrowserMaxPages(options);
-  if (crawl && maxPages > 1) {
-    const discovered = discoverRoutes(seed.navigation.finalUrl || seed.navigation.url || url, seed.snapshot ?? {}, maxPages);
-    for (let i = 0; i < discovered.length; i++) {
-      const routeUrl = discovered[i]!;
-      const label = routeLabel(routeUrl, i + 1);
-      try {
-        views.push(await captureOnePageCdp(routeUrl, options, evidence, label, chromePath));
-      } catch {
-        // best-effort crawl
+  const ownsSession = !options?.cdpSession;
+  const session = options?.cdpSession ?? (await openCdpBrowserSession({ ...(options ?? {}), chromePath }));
+  try {
+    const seed = await captureOnePageCdp(url, options, evidence, "landing", chromePath, session);
+    const views: BrowserPageView[] = [seed];
+    const crawl = options?.crawl === true;
+    const maxPages = resolveBrowserMaxPages(options);
+    if (crawl && maxPages > 1) {
+      const seedUrl = seed.navigation.finalUrl || seed.navigation.url || url;
+      const seedOrigin = (() => {
+        try { return new URL(seedUrl).origin; } catch { return ""; }
+      })();
+      const discovered = discoverRoutes(seedUrl, seed.snapshot ?? {}, maxPages);
+      const seenNorm = new Set<string>([
+        (() => { try { const u = new URL(seedUrl); return `${u.origin}${u.pathname.replace(/\/+$/, "") || "/"}`; } catch { return seedUrl; } })(),
+      ]);
+      const combinedRoutes: string[] = [];
+      for (const candidate of [...discovered, ...(options?.extraRoutes ?? [])]) {
+        if (combinedRoutes.length >= maxPages - 1) break;
+        try {
+          const resolved = new URL(candidate, seedUrl);
+          if (seedOrigin && resolved.origin !== seedOrigin) continue;
+          const normKey = `${resolved.origin}${resolved.pathname.replace(/\/+$/, "") || "/"}`;
+          if (seenNorm.has(normKey)) continue;
+          seenNorm.add(normKey);
+          combinedRoutes.push(resolved.href);
+        } catch {}
+      }
+      for (let i = 0; i < combinedRoutes.length; i++) {
+        const routeUrl = combinedRoutes[i]!;
+        const label = routeLabel(routeUrl, i + 1);
+        try {
+          views.push(await captureOnePageCdp(routeUrl, options, evidence, label, chromePath, session));
+        } catch {
+          // best-effort crawl
+        }
       }
     }
+    return views;
+  } finally {
+    if (ownsSession) {
+      await session.close().catch(() => {});
+    }
   }
-  return views;
 }
 
 /** Legacy alias maintained for compatibility. */
@@ -568,62 +693,55 @@ function normalizeScenarioExecution(value: unknown): ScenarioExecutionResult | n
 }
 
 async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions | undefined, evidence: BrowserEvidenceStoreLike | undefined, label: string): Promise<CheckOutcome> {
-  const chromePath = detectChromePath(options?.chromePath);
-  if (!chromePath) return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Chrome/Chromium runtime is unavailable: no Chrome/Chromium executable found.");
-  const headless = resolveHeadless(options);
   const timeoutMs = options?.timeoutMs ?? 30000;
-  const viewport = resolveBrowserViewport(options);
-  const userDataDir = mkdtempSync(join(tmpdir(), "lemma-cdp-steps-"));
-  let proc: ChildProcess | null = null; let ws: WebSocket | null = null; let cdp: FlatCdp | null = null;
+  const ownsSession = !options?.cdpSession;
+  let session: CdpBrowserSession;
+  if (options?.cdpSession) {
+    session = options.cdpSession;
+  } else {
+    const chromePath = detectChromePath(options?.chromePath);
+    if (!chromePath) return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, "Chrome/Chromium runtime is unavailable: no Chrome/Chromium executable found.");
+    try {
+      session = await openCdpBrowserSession({ ...(options ?? {}), chromePath });
+    } catch (e) {
+      const reason = e instanceof BrowserUnavailableError ? e.reason : (e instanceof Error ? e.message : String(e));
+      return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, reason);
+    }
+  }
+  const sid = session.sessionId;
   try {
-    const launched = await launchChromeAndGetWsUrl(chromePath, headless, userDataDir, Math.max(timeoutMs, 15000));
-    proc = launched.proc;
-    ws = new WebSocket(launched.wsUrl);
-    await new Promise<void>((resolve, reject) => {
-      const t = setTimeout(() => reject(new BrowserUnavailableError("CDP websocket connect timeout")), 10000);
-      ws!.addEventListener("open", () => { clearTimeout(t); resolve(); });
-      ws!.addEventListener("error", () => { clearTimeout(t); reject(new BrowserUnavailableError("CDP websocket connection failed")); });
-    });
-    cdp = new FlatCdp(ws);
-    const target = await cdp.call("Target.createTarget", { url: "about:blank" });
-    const targetId = target?.targetId;
-    let sessionId: string | undefined;
-    try { const attached = await cdp.call("Target.attachToTarget", { targetId, flatten: true }); sessionId = attached?.sessionId; } catch {}
-    const sid = sessionId;
-    await cdp.call("Page.enable", {}, sid);
-    await cdp.call("Runtime.enable", {}, sid);
-    await cdp.call("Network.enable", {}, sid).catch(() => {});
-    try { await cdp.call("Emulation.setDeviceMetricsOverride", { width: viewport.width, height: viewport.height, deviceScaleFactor: 1, mobile: resolveMobileEnabled(options) }, sid); } catch {}
-    await cdp.call("Page.navigate", { url }, sid);
+    await session.call("Page.navigate", { url }, sid);
     await new Promise<void>((resolve) => {
       let done = false;
-      const off = cdp!.on((msg) => { if (sid && msg.sessionId !== sid) return; if (msg.method === "Page.loadEventFired") { if (!done) { done = true; off(); resolve(); } } });
+      const off = session.on((msg) => {
+        if (sid && msg.sessionId !== sid) return;
+        if (msg.method === "Page.loadEventFired") {
+          if (!done) { done = true; off(); resolve(); }
+        }
+      });
       setTimeout(() => { if (!done) { done = true; off(); resolve(); } }, Math.min(timeoutMs, 15000));
     });
     const exec = await runAutomaticInteractions({
-      call: (m, p, s) => cdp!.call(m, p, s),
+      call: session.call,
       ...(sid ? { sessionId: sid } : {}),
       baseUrl: url,
       ...(evidence ? { evidence } : {}),
-      timeoutMs: Math.min(timeoutMs, 10000),
+      timeoutMs: Math.min(timeoutMs, 30000),
       label,
       ...(options?.sourceFeatures?.length ? { features: options.sourceFeatures } : {}),
       ...(options?.interactionDedupe ? { dedupe: options.interactionDedupe } : {}),
+      ...(options?.multiTargetRun !== undefined ? { multiTargetRun: options.multiTargetRun } : {}),
     });
     if (evidence) {
       try { await evidence.saveJson(`${label}-interaction-plan`, exec.plan, "scenario", `Auto-discovered interaction plan for ${label}`); } catch {}
       try { await evidence.saveJson(`${label}-interaction-results`, exec, "scenario_result", `Auto interaction execution results for ${label}`); } catch {}
     }
-    try { if (targetId) await cdp.call("Target.closeTarget", { targetId }); } catch {}
     return toScenarioOutcome(exec);
   } catch (e) {
     const reason = e instanceof BrowserUnavailableError ? e.reason : (e instanceof Error ? e.message : String(e));
     return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, reason);
   } finally {
-    try { cdp?.close(); } catch {}
-    try { ws?.close(); } catch {}
-    try { proc?.kill(); } catch {}
-    try { rmSync(userDataDir, { recursive: true, force: true }); } catch {}
+    if (ownsSession) await session.close().catch(() => {});
   }
 }
 
