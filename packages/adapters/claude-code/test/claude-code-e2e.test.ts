@@ -63,7 +63,7 @@ describe("LEM-110 Claude Code end-to-end suite", () => {
   it("installs Claude Code assets with packaging/template parity", async () => {
     await withTempDir("lemma-cc-install-", async (dir) => {
       const { io, stdout, stderr } = makeIo();
-      const code = await cliMain(["install", "claude-code", "--dir", dir], io);
+      const code = await cliMain(["install", "claude-code", "--dir", dir, "--cli", "lemma"], io);
       expect(code).toBe(0);
       expect(stderr).toEqual([]);
       const payload = parseSingleJson(stdout);
@@ -75,8 +75,8 @@ describe("LEM-110 Claude Code end-to-end suite", () => {
         dry_run: false,
         force: false,
       });
-      expect(payload.planned).toBe(65);
-      expect(payload.written).toBe(65);
+      expect(payload.planned).toBe(66); // 60 catalog + 5 operational + 1 skill
+      expect(payload.written).toBe(66);
       expect(payload.skipped).toBe(0);
       expect(payload.dir).toBe(path.resolve(dir));
 
@@ -90,34 +90,37 @@ describe("LEM-110 Claude Code end-to-end suite", () => {
       const commandsDir = path.join(dir, layout.commandsDir);
       const files = (await readdir(commandsDir)).sort();
       expect(files).toHaveLength(commands.catalogCount + commands.operationalNames.length);
-      for (const name of [...commands.catalogNames, ...commands.operationalNames]) {
+      const operationalFileNames = commands.operationalNames.map((name) =>
+        name.replace(/^assay-/, "lemma-").replace(/^assay$/, "lemma"),
+      );
+      for (const name of [...commands.catalogNames, ...operationalFileNames]) {
         expect(files).toContain(`${name}.md`);
       }
 
-      const browser = await readFile(path.join(commandsDir, "assay-browser.md"), "utf8");
+      const browser = await readFile(path.join(commandsDir, "lemma-browser.md"), "utf8");
       expect(browser).toContain("Require a reachable `http(s)` URL");
-      expect(browser).toContain("live browser assessment");
+      expect(browser).toContain("browser regression");
       expect(browser).not.toContain("/Users/");
-      const demo = await readFile(path.join(commandsDir, "assay-demo.md"), "utf8");
+      const demo = await readFile(path.join(commandsDir, "lemma-demo.md"), "utf8");
       expect(demo).toContain("static");
       expect(demo).toContain("live browser");
       expect(demo).toContain("--no-browser");
-      const security = await readFile(path.join(commandsDir, "assay-security.md"), "utf8");
-      expect(security).toContain("Assay security");
+      const security = await readFile(path.join(commandsDir, "lemma-security.md"), "utf8");
+      expect(security).toContain("Lemma security");
       expect(security).toContain("```bash");
       expect(security).toContain("lemma run");
-      const assay = await readFile(path.join(commandsDir, "assay.md"), "utf8");
-      expect(assay).toContain("$ARGUMENTS");
-      const statusCmd = await readFile(path.join(commandsDir, "assay-status.md"), "utf8");
+      const lemma = await readFile(path.join(commandsDir, "lemma.md"), "utf8");
+      expect(lemma).toContain("$ARGUMENTS");
+      const statusCmd = await readFile(path.join(commandsDir, "lemma-status.md"), "utf8");
       expect(statusCmd).toContain("lemma status --root .lemma");
-      const verify = await readFile(path.join(commandsDir, "assay-verify-evidence.md"), "utf8");
+      const verify = await readFile(path.join(commandsDir, "lemma-verify-evidence.md"), "utf8");
       expect(verify).toContain("lemma verify-evidence --root .lemma");
 
       const skillPath = path.join(dir, layout.skillPath);
       expect(await exists(skillPath)).toBe(true);
       const skillContent = await readFile(skillPath, "utf8");
       expect(skillContent).toContain("name: lemma");
-      expect(skillContent).toContain("60 assay-style commands");
+      expect(skillContent).toContain("60 Lemma commands");
       expect(skillContent).toContain("Deterministic harness owns execution, evidence, and scoring");
       expect(skillContent).not.toContain("/Users/");
     });
@@ -161,20 +164,20 @@ describe("LEM-110 Claude Code end-to-end suite", () => {
 
     const descriptors = createClaudeCodeCommandDescriptors();
     expect(descriptors).toHaveLength(ASSAY_COMMAND_CATALOG.length);
-    expect(descriptors.find((c) => c.name === "assay-browser")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-browser")).toMatchObject({
       mode: "browser",
-      intent: "Assay browser assessment",
+      intent: "Lemma browser assessment",
       arguments: { kind: "raw", required: true },
       allowedSubcommands: ["run", "report", "status", "abort"],
     });
-    expect(descriptors.find((c) => c.name === "assay-demo")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-demo")).toMatchObject({
       mode: "demo",
-      intent: "Assay demo assessment",
+      intent: "Lemma demo assessment",
       arguments: { kind: "raw", required: false },
     });
-    expect(descriptors.find((c) => c.name === "assay-security")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-security")).toMatchObject({
       mode: "static",
-      intent: "Assay security assessment",
+      intent: "Lemma security assessment",
     });
 
     const commandsBefore = (registered.commands as unknown[]).length;
@@ -189,13 +192,13 @@ describe("LEM-110 Claude Code end-to-end suite", () => {
     const resources = await host.listMcpResources?.();
     expect(resources?.[0]).toMatchObject({ uri: "mcp://docs/spec", server: "docs" });
 
-    const browser = resolveClaudeCodeCatalogInvocation("assay-browser", "https://example.com", "/personas");
+    const browser = resolveClaudeCodeCatalogInvocation("lemma-browser", "https://example.com", "/personas");
     expect(browser?.kind).toBe("browser");
     expect(browser?.invocation.args).toContain("https://example.com");
-    const demo = resolveClaudeCodeCatalogInvocation("assay-demo", "", "/personas");
+    const demo = resolveClaudeCodeCatalogInvocation("lemma-demo", "", "/personas");
     expect(demo?.kind).toBe("demo");
     expect(demo?.invocation.args).toContain("--no-browser");
-    const security = resolveClaudeCodeCatalogInvocation("assay-security", "", "/personas");
+    const security = resolveClaudeCodeCatalogInvocation("lemma-security", "", "/personas");
     expect(security?.kind).toBe("static");
     expect(security?.invocation.args).toEqual(expect.arrayContaining(["--no-browser", "--intent"]));
 

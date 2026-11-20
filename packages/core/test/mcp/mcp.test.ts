@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { PassThrough } from "node:stream";
 
 import { afterEach, describe, expect, it } from "vitest";
 
@@ -8,6 +9,7 @@ import {
   MCP_PROTOCOL_REVISION,
   getMcpToolDefinitions,
   handleMcpRequest,
+  serveStdioMcp,
   toolLemmaDemo,
   toolLemmaKnowledge,
   toolLemmaReport,
@@ -24,6 +26,13 @@ const tempDirs: string[] = [];
 afterEach(async () => {
   await Promise.all(tempDirs.splice(0).map((d) => fs.rm(d, { recursive: true, force: true })));
 });
+
+interface JsonRpcLine {
+  jsonrpc: string;
+  id: number | null;
+  result?: { protocolVersion?: string; tools?: Array<{ name: string }> };
+  error?: { code: number };
+}
 
 function isJsonRpcResponse(v: any): v is { jsonrpc: "2.0"; id: any } {
   return v && v.jsonrpc === "2.0" && Object.prototype.hasOwnProperty.call(v, "id");
@@ -153,6 +162,32 @@ describe("LEM-151 MCP server", () => {
 
     const reportViaTool = await toolLemmaReport({ root: targetA });
     expect((reportViaTool as any).ok).toBe(true);
+  });
+
+  it("drives the full stdio loop through injected streams without extra output", async () => {
+    const input = new PassThrough();
+    const output = new PassThrough();
+    const chunks: string[] = [];
+    output.on("data", (c: Buffer) => chunks.push(c.toString("utf8")));
+
+    const serving = serveStdioMcp({ input, output });
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} })}\n`);
+    input.write("not-json\n");
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized", params: {} })}\n`);
+    input.write(`${JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })}\n`);
+    input.end();
+    await serving;
+
+    const lines = chunks
+      .join("")
+      .split("\n")
+      .filter(Boolean)
+      .map((line): JsonRpcLine => JSON.parse(line) as JsonRpcLine);
+    expect(lines).toHaveLength(3);
+    expect(lines[0]).toMatchObject({ jsonrpc: "2.0", id: 1, result: { protocolVersion: MCP_PROTOCOL_REVISION } });
+    expect(lines[1]).toMatchObject({ jsonrpc: "2.0", id: null, error: { code: -32700 } });
+    expect(lines[2]).toMatchObject({ jsonrpc: "2.0", id: 2 });
+    expect(lines[2]?.result?.tools?.map((tool) => tool.name) ?? []).toContain("lemma_start");
   });
 
   it("does not import adapter packages (dependency-direction assertion)", async () => {

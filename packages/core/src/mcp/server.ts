@@ -97,8 +97,23 @@ export async function handleMcpRequest(req: unknown): Promise<JsonRpcResponse | 
   }
 }
 
-export async function serveStdioMcp(): Promise<void> {
-  const rl = readline.createInterface({ input: process.stdin, crlfDelay: Infinity });
+/** Optional streams let hosts and tests drive the same JSON-RPC loop. */
+export interface McpStdioOptions {
+  input?: NodeJS.ReadableStream;
+  output?: NodeJS.WritableStream;
+}
+
+export async function serveStdioMcp(options: McpStdioOptions = {}): Promise<void> {
+  const input = options.input ?? process.stdin;
+  const output = options.output;
+  // One JSON-RPC message per line, one write per message. When no output stream
+  // is injected, stdout carries protocol data only (never human progress).
+  const write = (obj: unknown): void => {
+    const line = `${JSON.stringify(obj)}\n`;
+    if (output) output.write(line);
+    else writeStdoutJson(obj);
+  };
+  const rl = readline.createInterface({ input, crlfDelay: Infinity });
   for await (const line of rl) {
     const trimmed = line.trim();
     if (!trimmed) continue;
@@ -106,10 +121,10 @@ export async function serveStdioMcp(): Promise<void> {
     try {
       msg = JSON.parse(trimmed);
     } catch {
-      writeStdoutJson(jsonRpcError(null, -32700, "Parse error"));
+      write(jsonRpcError(null, -32700, "Parse error"));
       continue;
     }
     const res = await handleMcpRequest(msg);
-    if (res) writeStdoutJson(res);
+    if (res) write(res);
   }
 }

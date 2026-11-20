@@ -1,0 +1,38 @@
+#!/bin/sh
+# Lemma CLI launcher bundled with the Claude Code plugin.
+# Resolution happens at runtime; no checkout path is persisted here.
+set -eu
+
+if [ -n "${LEMMA_CLI_BIN:-}" ]; then
+  case "$LEMMA_CLI_BIN" in
+    *.js|*.mjs) exec node "$LEMMA_CLI_BIN" "$@" ;;
+    *) exec "$LEMMA_CLI_BIN" "$@" ;;
+  esac
+fi
+
+# Resolve this script even when Claude Code puts bin/ on PATH without CLAUDE_PLUGIN_ROOT.
+script_path=$0
+case "$script_path" in
+  */*) ;;
+  *) script_path=$(command -v "$script_path" 2>/dev/null || printf '%s' "$script_path") ;;
+esac
+plugin_root=$(CDPATH= cd -- "$(dirname -- "$script_path")/.." && pwd)
+repo_root=$(CDPATH= cd -- "$plugin_root/../../../.." 2>/dev/null && pwd) || repo_root=""
+
+# 1. Inside a lemma checkout (local --plugin-dir or git marketplace install).
+if [ -n "$repo_root" ] && [ -f "$repo_root/packages/cli/dist/cli.js" ]; then
+  exec node "$repo_root/packages/cli/dist/cli.js" "$@"
+fi
+
+# 2. Project-local install of @lemma/cli.
+if [ -x "./node_modules/.bin/lemma" ]; then
+  exec "./node_modules/.bin/lemma" "$@"
+fi
+
+# 3. Published package (available once npm publish is unblocked).
+if command -v npx >/dev/null 2>&1; then
+  exec npx -y @lemma/cli "$@"
+fi
+
+printf '%s\n' "lemma CLI not found: build @lemma/cli, install @lemma/cli in this project, or set LEMMA_CLI_BIN" >&2
+exit 1

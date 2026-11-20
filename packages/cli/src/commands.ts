@@ -43,6 +43,7 @@ import {
   loadSettings,
   saveSettings,
   validateSettings,
+  serveStdioMcp,
   type RunStateDomain,
 } from "@lemma/core";
 
@@ -352,6 +353,16 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
   else if (state.status === RunStatus.FAILED) exitCode = EXIT_CODES.harnessError;
 
   return { exitCode, stdoutJson: report };
+};
+
+/**
+ * Start the stdio MCP server. The JSON-RPC loop owns stdout completely, so this
+ * handler must not return a second JSON report for `dispatch` to print.
+ */
+export const mcpCommand: CliCommandHandler = async (_argv, io) => {
+  io.stderr("lemma MCP server started (stdio JSON-RPC on stdout)\n");
+  await serveStdioMcp();
+  return {};
 };
 
 export const statusCommand: CliCommandHandler = async (argv) => {
@@ -1724,6 +1735,7 @@ export const doctorCommand: CliCommandHandler = async (argv) => {
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
+    { name: "mcp", description: "Serve Lemma MCP tools over stdio JSON-RPC.", handler: mcpCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },
     { name: "auto", description: "Run bounded auto test-fix-retest loop (run intent).", handler: autoCommand },

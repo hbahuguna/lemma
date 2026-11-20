@@ -1,0 +1,15 @@
+{
+  "name": "lemma",
+  "owner": {
+    "name": "Lemma"
+  },
+  "description": "Deterministic release confidence plugin for Claude Code.",
+  "version": "0.0.0",
+  "plugins": [
+    {
+      "name": "lemma",
+      "description": "Evidence-backed release confidence and source-derived browser regression.",
+      "source": "./packages/adapters/claude-code/plugin"
+    }
+  ]
+}

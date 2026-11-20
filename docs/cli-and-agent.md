@@ -37,6 +37,9 @@ inventory). Current/ported command families include:
 
 - **Core run lifecycle:** `run`, `status`, `report`, `abort`, `prune`
   - `run`: execute an assessment and produce the machine-readable report contract.
+  - `mcp`: start the stdio MCP server (`@lemma/core/mcp`). stdout carries
+    JSON-RPC protocol lines only; progress goes to stderr. Host plugins launch
+    `lemma mcp` rather than importing core directly.
   - `status`/`report`: inspect persisted run/report state.
   - `abort`: request/record abort semantics (kill-switch/halt behavior remains
     core-owned and fail-closed).
@@ -193,6 +196,10 @@ into a project directory using shared templates and packaging manifests (JSON st
 `--dir`/`--root`, `--dry-run`, `--force`). See the published
 [adapter compatibility matrix and host integration docs](./adapters.md) for per-host
 packages, declared capabilities/degradation, install layouts, and verification status.
+
+For Claude Code, use the real plugin instead of loose `.claude/` files:
+[`docs/claude-code-plugin.md`](./claude-code-plugin.md) covers local install,
+marketplace registration, the bundled `lemma-*` commands/skill, and the MCP server.
 
 
 ## Related references

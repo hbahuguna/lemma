@@ -59,25 +59,25 @@ describe("LEM-102 Claude Code adapter", () => {
   it("maps catalog commands and browser prompt/helpers via @lemma/agent primitives", async () => {
     const descriptors = createClaudeCodeCommandDescriptors();
     expect(descriptors).toHaveLength(ASSAY_COMMAND_CATALOG.length);
-    expect(descriptors.find((c) => c.name === "assay-browser")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-browser")).toMatchObject({
       mode: "browser",
       arguments: { kind: "raw", required: true },
       allowedSubcommands: ["run", "report", "status", "abort"],
     });
-    expect(descriptors.find((c) => c.name === "assay-demo")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-demo")).toMatchObject({
       mode: "demo",
       arguments: { kind: "raw", required: false },
     });
-    expect(descriptors.find((c) => c.name === "assay-security")).toMatchObject({
+    expect(descriptors.find((c) => c.name === "lemma-security")).toMatchObject({
       mode: "static",
-      intent: "Assay security assessment",
+      intent: "Lemma security assessment",
     });
 
-    const browser = resolveClaudeCodeCatalogInvocation("assay-browser", "https://example.com", "/personas");
+    const browser = resolveClaudeCodeCatalogInvocation("lemma-browser", "https://example.com", "/personas");
     expect(browser?.kind).toBe("browser");
     expect(browser?.invocation.args).toContain("https://example.com");
 
-    const demo = resolveClaudeCodeCatalogInvocation("assay-demo", "", "/personas");
+    const demo = resolveClaudeCodeCatalogInvocation("lemma-demo", "", "/personas");
     expect(demo?.kind).toBe("demo");
     expect(demo?.invocation.args).toContain("--no-browser");
 

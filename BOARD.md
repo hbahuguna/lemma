@@ -3490,6 +3490,7 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 | DL20 | 2026-11-16 | Execution modes (LEM-186), run sizes (LEM-187), E0–E3 truth model (LEM-188), regression lifecycle (LEM-189), command preview (LEM-190), browser adapter contract (LEM-191), and OpenAPI coverage (LEM-193) ship in the core, not the Pro tier. | These turn the deterministic engine into a disciplined, auditable system and are prerequisites for both tiers; putting them behind a paywall would make the free tier unable to produce trustworthy evidence. | Reconsider only if the E0–E3 truth model turns out to be a differentiating Pro-tier feature in a future ADR. |
 | DL21 | 2026-11-16 | Cloud execution (LEM-196), steered plans (LEM-197), custom personas (LEM-198), exploratory bots (LEM-199), annotated evidence bundles (LEM-200), health scores (LEM-201), benchmarks (LEM-202), fine-tuned QA model API (LEM-203), reports REST API (LEM-204), private cloud (LEM-205), and human-expert review (LEM-206) ship in `@lemma/pro` (or the `@lemma/cloud/pro` subpath per ADR 0006), never in `@lemma/core`. | These require metering, quota, tenant isolation, and/or a fine-tuned model; they cannot be safely provided without the Pro-tier infrastructure. Keeping them out of the free tier protects the core's air-gapped, account-free posture (DL4, DL8). | Revisit per feature if a subset can be offered account-free without regressing the free tier's privacy posture. |
 | DL22 | 2026-11-18 | Browser regression is route-mapped and source-backed: one persistent Chrome CDP session serves capture + all interaction passes, each public frontend route is visited once, and source features are filtered per route and combined with live visible DOM controls. Auth-gated routes are reported as coverage metadata, never exercised silently. | Page-load-only crawls produced screenshots but no real feature coverage. A shared session avoids Chrome window thrashing; per-route feature mapping prevents cross-route actions (e.g. a login form on the pricing page) while global layout components remain deduped exactly once. | Revisit if a host adapter needs a different session model or if route discovery must include authenticated flows. |
+| DL23 | 2026-11-20 | The Claude Code distribution is a real plugin (`plugin.json`, `marketplace.json`, bundled commands/skill, MCP server) generated from the shared `@lemma/agent` templates. A `bin/lemma` launcher resolves the CLI at runtime (`LEMMA_CLI_BIN` → repo-local build → project-local install → published `npx`); no plugin file contains a checkout path. | `lemma install claude-code` only produced loose `.claude/` assets and could not be installed through `/plugin`. Generating the plugin from the same templates keeps one source of truth and avoids `assay-*`/`lemma-*` drift. Runtime resolution preserves DL5/DL10 (thin, capability-honest adapter) while allowing repo-local installs before npm publish is unblocked (LEM-134). | Replace the `npx` fallback with the published package once LEM-134 is unblocked, and revisit if Claude Code changes plugin `bin/` PATH semantics. |
 
 ## Done
 
@@ -8571,3 +8572,45 @@ explicit; they remain `Backlog` until their dependencies are `Done`.
 - **Depends on:** LEM-050
 - **Status:** Backlog
 - **Description:** `pnpm typecheck` fails in `packages/browser` on three stale test files left over from the Playwright-to-CDP runtime migration: `test/browser-evidence-linkage.test.ts` and `test/browser-smoke-leg.test.ts` import a `playwright` module that is no longer a dependency, and `test/vibium/vibium.test.ts` passes `cwd: string | undefined` to a `cwd?: string` parameter under `exactOptionalPropertyTypes`. Replace/remove the stale imports and narrow the optional property so a clean checkout typechecks. This is separate from LEM-209's route-mapped interaction work and does not affect that acceptance suite.
+
+### LEM-211 — Add a `lemma mcp` stdio entrypoint
+- **Epic:** E3 CLI and Agent Interface
+- **Priority:** P1
+- **Points:** 3
+- **Depends on:** LEM-151
+- **Status:** Done
+- **Claimed:** 2026-11-20 — user-requested prerequisite for the Claude Code plugin. Acceptance test: `pnpm exec vitest run packages/cli/test/mcp-command.test.ts packages/core/test/mcp/mcp.test.ts`. Taken out of order: it is a lower-numbered dependency of LEM-212, which the user explicitly requested.
+- **Description:** Expose the existing `@lemma/core/mcp` JSON-RPC server as a real CLI subcommand so host integrations can launch it without a checkout path.
+- **Acceptance Criteria:**
+  - [x] `lemma mcp` starts `serveStdioMcp()` and emits only JSON-RPC on stdout; progress/errors stay on stderr.
+  - [x] `mcp` is present in the CLI command registry/help and produces no second JSON report on stdout.
+  - [x] `serveStdioMcp` accepts optional injected input/output streams (backward-compatible) so the full JSON-RPC loop is deterministically testable.
+  - [x] Tests cover `initialize`/`tools/list` over the CLI entrypoint and assert tool names plus no non-protocol stdout.
+- **Verification:** `pnpm exec vitest run packages/cli/test/mcp-command.test.ts packages/core/test/mcp/mcp.test.ts --testTimeout 30000` — **PASS** (2 files, 7 tests). `pnpm --filter @lemma/core typecheck` and `pnpm --filter @lemma/cli typecheck` still report long-standing unrelated test-file errors (core: `src/test-intent/parsers/index.ts` and many legacy tests; CLI: 15 old call-signature tests); no errors in LEM-211 sources/tests.
+- **Evidence:** `packages/core/src/mcp/server.ts` (`McpStdioOptions` with injected streams), `packages/cli/src/commands.ts` (`mcpCommand`, command spec), `packages/cli/test/mcp-command.test.ts`, `packages/core/test/mcp/mcp.test.ts`, `docs/cli-and-agent.md`.
+
+### LEM-212 — Claude Code plugin package and marketplace manifest
+- **Epic:** G4 Host surface
+- **Priority:** P1
+- **Points:** 8
+- **Depends on:** LEM-211
+- **Status:** Done
+- **Claimed:** 2026-11-20 — acceptance test: `pnpm exec vitest run packages/adapters/claude-code/test/claude-code-plugin.test.ts packages/adapters/claude-code/test/claude-code-adapter.test.ts packages/adapters/claude-code/test/claude-code-e2e.test.ts`. Taken out of order with LEM-211 because the user explicitly requested a working Claude Code plugin and local deployment instructions.
+- **Description:** Ship a valid Claude Code plugin with a marketplace catalog, bundled `lemma-*` commands and skill generated from `@lemma/agent`, a stdio MCP server, and a runtime CLI launcher with no checkout paths.
+- **Acceptance Criteria:**
+  - [x] `.claude-plugin/plugin.json` and root `.claude-plugin/marketplace.json` validate with required fields and relative plugin source.
+  - [x] No plugin file contains an absolute path; `.mcp.json` uses `${CLAUDE_PLUGIN_ROOT}` and starts `lemma mcp`.
+  - [x] Plugin commands/skill are byte-for-byte generated from `renderAllCatalogCommandTemplates`, `renderOperationalCommandTemplate`, and `renderLemmaSkillTemplate`, and match `CLAUDE_CODE_PACKAGING_MANIFEST` names.
+  - [x] The bundled launcher resolves `LEMMA_CLI_BIN`, a repo-local build, a project-local install, or the published package, and reports a clear error when none exist.
+  - [x] Tests cover manifest shape, no absolute paths, generator parity, launcher resolution, and an MCP `tools/list` smoke through the declared server command shape.
+  - [x] Local deployment instructions are documented for both `--plugin-dir` and a local marketplace.
+- **Verification:** `pnpm exec vitest run packages/adapters/claude-code/test/claude-code-plugin.test.ts packages/adapters/claude-code/test/claude-code-adapter.test.ts packages/adapters/claude-code/test/claude-code-e2e.test.ts --testTimeout 30000` — **PASS** (3 files, 12 tests). `pnpm --filter @lemma/adapters-claude-code build` — PASS. `claude plugin validate` could not be executed locally because the `claude` binary is not on PATH; manifest shape is covered deterministically by `claude-code-plugin.test.ts`. Stale `assay-*`/count assertions in the pre-existing LEM-102/LEM-110 Claude Code tests were corrected to the current `lemma-*` surface and a portable `--cli lemma` install.
+- **Evidence:** `packages/adapters/claude-code/plugin/` (69 files: 65 generated commands, skill, `plugin.json`, `.mcp.json`, executable `bin/lemma`), `.claude-plugin/marketplace.json`, `packages/adapters/claude-code/src/plugin.ts`, `packages/adapters/claude-code/scripts/generate-plugin.mjs`, `packages/adapters/claude-code/test/claude-code-plugin.test.ts`, `docs/claude-code-plugin.md`, `docs/cli-and-agent.md`, `docs/parity/assay-feature-inventory.md`, DL23.
+
+### LEM-213 — Refresh stale assay-* assertions in non-Claude host adapter tests
+- **Epic:** G4 Host surface
+- **Priority:** P2
+- **Points:** 3
+- **Depends on:** LEM-110
+- **Status:** Backlog
+- **Description:** Discovered during LEM-212: `pnpm exec vitest run packages/adapters` fails in 12 pre-existing tests for OpenCode, Codex, Antigravity, and Cursor because they still assert `assay-browser`/`assay-demo`/`assay-security` descriptor names and `Assay ... assessment` intents after the catalog was renamed to `lemma-*`. The Claude Code equivalents were corrected under LEM-212; apply the same mechanical rename and portable `--cli lemma` install option to the other four hosts so `test:e2e` is green. No product behavior changes.

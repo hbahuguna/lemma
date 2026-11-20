@@ -283,3 +283,5 @@ export async function registerClaudeCodeCommands(
 ): Promise<void> {
   await host.registerCommands(commands);
 }
+
+export * from "./plugin.js";
