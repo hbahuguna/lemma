@@ -435,10 +435,16 @@ function buildSelectExpr(_kind: string, query: string, value: string): string {
     const pick = (els) => Array.from(els || []).find(isVisible) || null;
     let el = null;
     const q = ${q}, val = ${v};
-    try { el = pick(document.querySelectorAll(q)); } catch (e) {}
+    try {
+      const direct = pick(document.querySelectorAll(q));
+      // Text inputs with role=combobox (jQuery autocomplete, etc.) are filled,
+      // not selected. Treat them as "not a select target".
+      if (direct && direct.tagName !== 'INPUT') el = direct;
+    } catch (e) {}
     if (!el) {
       const t = norm(q);
       el = pick(Array.from(document.querySelectorAll('select,button[role="combobox"],[role="combobox"]')).filter((n) =>
+        n.tagName !== 'INPUT' &&
         norm((n.getAttribute('aria-label') || '') + ' ' + (n.getAttribute('name') || '') + ' ' + (n.id || '')).includes(t)
       ));
     }
@@ -661,12 +667,16 @@ export async function discoverInteractionPlan(
         inChrome: inGlobalChrome(el),
         isSubmit: (el.getAttribute('type') || '').toLowerCase() === 'submit' || Boolean(el.closest('form') && /submit|send|apply|request|join|continue|save/i.test(textOf(el))),
       }));
-    const links = Array.from(document.querySelectorAll('a[href]')).filter(isVisible).slice(0, 30).map((el) => ({
-      text: textOf(el),
-      href: el.getAttribute('href') || '',
-      selector: selFor(el),
-      inChrome: inGlobalChrome(el),
-    }));
+    const links = Array.from(document.querySelectorAll('a[href]')).filter(isVisible).slice(0, 30).map((el) => {
+      const href = el.getAttribute('href') || '';
+      const escapedHref = href.replace(/"/g, '\\\\"');
+      return {
+        text: textOf(el),
+        href,
+        selector: selFor(el) || (href ? 'a[href="' + escapedHref + '"]' : ''),
+        inChrome: inGlobalChrome(el),
+      };
+    });
     const inputs = Array.from(document.querySelectorAll('input, textarea')).filter(isVisible).slice(0, 20).map((el) => ({
       type: (el.tagName === 'TEXTAREA' ? 'textarea' : (el.getAttribute('type') || 'text')).toLowerCase(),
       name: el.getAttribute('name') || '',
@@ -676,7 +686,8 @@ export async function discoverInteractionPlan(
       required: Boolean(el.required || el.hasAttribute('required')),
       selector: selFor(el),
     }));
-    const selects = selectEls.slice(0, 10).map((el, i) => ({
+    const selects = selectEls.filter((el) => el.tagName !== 'INPUT').slice(0, 10).map((el, i) => ({
+      tag: el.tagName.toLowerCase(),
       name: el.getAttribute('name') || '',
       id: el.id || '',
       label: labelFor(el),
@@ -714,7 +725,9 @@ export async function discoverInteractionPlan(
   const push = (
     step: Omit<StepAction, "step_number" | "options" | "raw_instruction"> & { options?: Record<string, unknown>; raw_instruction?: string },
   ) => {
-    steps.push({ step_number: n++, options: step.options ?? {}, raw_instruction: step.raw_instruction ?? step.name, ...step });
+    // Auto-discovered steps are exploratory. If a control disappears after an
+    // earlier interaction, that is a coverage gap rather than a product failure.
+    steps.push({ step_number: n++, raw_instruction: step.raw_instruction ?? step.name, ...step, options: { soft: true, ...(step.options ?? {}) } });
   };
 
   const pageUrl = safeStr(discovery?.url) || baseUrl;
@@ -784,12 +797,23 @@ export async function discoverInteractionPlan(
 
   // Filter source features relevant to `routePath`: explicit route match OR unscoped/shared components.
   const routeApplies = (f: SourceFeature): boolean => {
-    if (f.route_hint === routePath) return true;
-    if (Array.isArray(f.routes) && f.routes.includes(routePath)) return true;
+    const normalized = routePath.replace(/\/+$/, "") || "/";
+    const routesMatch = Array.isArray(f.routes) && f.routes.some((r) => (r.replace(/\/+$/, "") || "/") === normalized);
+    // For links, `route_hint` is the destination; only `routes` identifies the
+    // source page that owns the control.
+    if (f.kind === "link") return routesMatch;
+    if (f.route_hint && (f.route_hint.replace(/\/+$/, "") || "/") === normalized) return true;
+    if (routesMatch) return true;
     return !f.route_hint && (!f.routes || f.routes.length === 0);
   };
   const candidateFeatures = features.filter(routeApplies);
   const byKind = (kind: SourceFeature["kind"]) => candidateFeatures.filter((f) => f.kind === kind);
+  // A source feature may only pair with a live control through an exact selector
+  // or exact accessible label. Loose substring/positional matches caused steps
+  // from one snapshot page to be executed against another page's control.
+  const matchesFeature = (f: SourceFeature, selector: string, label: string): boolean =>
+    Boolean(f.selector_hint && selector && f.selector_hint === selector) ||
+    Boolean(f.label && label && normalizeMatchText(f.label) === normalizeMatchText(label));
 
   // Track which live DOM items were already paired with a source feature so we never double-click/double-fill.
   const usedToggles = new Set<number>();
@@ -807,7 +831,12 @@ export async function discoverInteractionPlan(
   const liveInputs = asArray<any>(discovery?.inputs).filter(
     (inp) => !["hidden", "file", "submit", "button", "image", "checkbox", "radio", "range"].includes(safeStr(inp?.type)),
   );
-  const liveSelects = asArray<any>(discovery?.selects);
+  // jQuery-style autocomplete widgets expose role=combobox on a text input.
+  // Those are filled, never selected; treating them as selects caused false
+  // "select failed" steps in the the-internet run.
+  const liveSelects = asArray<any>(discovery?.selects).filter(
+    (ls) => safeStr(ls?.tag).toLowerCase() !== "input",
+  );
   const liveButtons = asArray<any>(discovery?.buttons);
 
   // 2. Toggles / Switches (source-backed + remaining visible toggles on page)
@@ -826,14 +855,7 @@ export async function discoverInteractionPlan(
       const text = safeStr(lt?.text);
       const sel = safeStr(lt?.selector) || text;
       if (!sel || destructive.test(text)) continue;
-      const matched = srcToggles.find(
-        (f) =>
-          !dedupe.has(`feature:${f.id}`) &&
-          ((f.selector_hint && sel && f.selector_hint.includes(sel)) ||
-            normalizeMatchText(text).includes(normalizeMatchText(f.label)) ||
-            normalizeMatchText(f.label).includes(normalizeMatchText(text)) ||
-            srcToggles.length === 1),
-      );
+      const matched = srcToggles.find((f) => !dedupe.has(`feature:${f.id}`) && matchesFeature(f, sel, text));
       const scope = matched ? `feature:${matched.id}` : lt?.inChrome ? `global-toggle:${normalizeMatchText(text)}` : `${routePath}|toggle:${sel}`;
       const stepName = matched
         ? `Source toggle: ${matched.label} (${matched.source.path}:${matched.source.line})`
@@ -889,9 +911,7 @@ export async function discoverInteractionPlan(
       const text = safeStr(tab?.text);
       const sel = safeStr(tab?.selector) || text;
       if (!sel) continue;
-      const matched = srcTabs.find(
-        (f) => !dedupe.has(`feature:${f.id}`) && normalizeMatchText(f.label) === normalizeMatchText(text),
-      );
+      const matched = srcTabs.find((f) => !dedupe.has(`feature:${f.id}`) && matchesFeature(f, sel, text));
       const scope = matched ? `feature:${matched.id}` : `${routePath}|tab:${text || sel}`;
       const stepName = matched
         ? `Source tab: ${matched.label} (${matched.source.path}:${matched.source.line})`
@@ -922,15 +942,10 @@ export async function discoverInteractionPlan(
       const text = safeStr(acc?.text);
       const sel = safeStr(acc?.selector) || text;
       if (!text && !sel) continue;
-      const exactMatch = srcAccordions.find(
-        (f) =>
-          !dedupe.has(`feature:${f.id}`) &&
-          f.label !== "Accordion section" &&
-          (normalizeMatchText(text).includes(normalizeMatchText(f.label).slice(0, 24)) ||
-            normalizeMatchText(f.label).includes(normalizeMatchText(text).slice(0, 24))),
+      const templateMatch = srcAccordions.find(
+        (f) => !dedupe.has(`feature:${f.id}`) && f.label !== "Accordion section" && matchesFeature(f, sel, text),
       );
-      const templateMatch = exactMatch ?? srcAccordions[0];
-      const scope = exactMatch ? `feature:${exactMatch.id}` : `${routePath}|accordion:${normalizeMatchText(text || sel)}`;
+      const scope = templateMatch ? `feature:${templateMatch.id}` : `${routePath}|accordion:${normalizeMatchText(text || sel)}`;
       const stepName = templateMatch
         ? `Source accordion: ${(text || templateMatch.label).slice(0, 48)} (${templateMatch.source.path}:${templateMatch.source.line})`
         : `Expand accordion: ${(text || sel).slice(0, 48)}`;
@@ -991,13 +1006,7 @@ export async function discoverInteractionPlan(
       const sel = safeStr(ls?.selector) || safeStr(ls?.name) || safeStr(ls?.id);
       const label = safeStr(ls?.label) || sel;
       if (!sel) continue;
-      const matched = srcSelects.find(
-        (f) =>
-          !dedupe.has(`feature:${f.id}`) &&
-          ((f.selector_hint && sel && f.selector_hint === sel) ||
-            normalizeMatchText(label).includes(normalizeMatchText(f.label)) ||
-            normalizeMatchText(f.label).includes(normalizeMatchText(label))),
-      );
+      const matched = srcSelects.find((f) => !dedupe.has(`feature:${f.id}`) && matchesFeature(f, sel, label));
       const opt = matched?.option_hint || safeStr(asArray<string>(ls?.options)[0]) || "";
       const scope = matched ? `feature:${matched.id}` : `${routePath}|select:${sel}`;
       const stepName = matched
@@ -1010,6 +1019,7 @@ export async function discoverInteractionPlan(
 
     // Inputs & Textareas
     let filledAny = false;
+    const filterTargets: string[] = [];
     for (let i = 0; i < liveInputs.length && i < 10; i++) {
       const inp = liveInputs[i];
       const sel = safeStr(inp?.selector);
@@ -1018,9 +1028,8 @@ export async function discoverInteractionPlan(
       if (!target) continue;
       const matched = srcInputs.find(
         (f) =>
-          ((f.selector_hint && sel && f.selector_hint === sel) ||
-            (f.placeholder && inp?.placeholder && f.placeholder === inp.placeholder) ||
-            (label && normalizeMatchText(label) === normalizeMatchText(f.label))),
+          matchesFeature(f, sel, label) ||
+          Boolean(f.placeholder && inp?.placeholder && f.placeholder === inp.placeholder),
       );
       // Shared layout forms (e.g. EarlyAccessForm in Layout.tsx) are deduped globally via `feature:<id>`;
       // page-specific forms (e.g. Careers application form on `/careers`) execute on their route.
@@ -1042,11 +1051,24 @@ export async function discoverInteractionPlan(
         if (matched) dedupe.add(`feature:${matched.id}`);
         usedInputs.add(i);
         filledAny = true;
+        const filterContext = [
+          label,
+          safeStr(inp?.placeholder),
+          safeStr(inp?.name),
+          safeStr(inp?.id),
+          safeStr(inp?.type),
+        ].join(" ");
+        if (/filter|search/i.test(filterContext)) filterTargets.push(target);
       }
     }
     if (filledAny) {
       push({ name: `Screenshot of populated form fields (${routePath})`, action: "screenshot", target: "", value: "" });
       push({ name: `Assert no page errors after form interaction (${routePath})`, action: "assert_no_errors", target: "", value: "" });
+      // A filled filter/search box can hide the links exercised later in the
+      // pass; restore it so subsequent steps observe the unfiltered page.
+      for (const filterTarget of filterTargets) {
+        push({ name: `Clear filter after form interaction (${routePath})`, action: "fill", target: filterTarget, value: "" });
+      }
     }
   }
 
@@ -1080,12 +1102,7 @@ export async function discoverInteractionPlan(
       const sel = safeStr(b?.selector);
       const target = sel || text;
       if (!target) continue;
-      const matched = srcButtons.find(
-        (f) =>
-          (f.selector_hint && sel && f.selector_hint === sel) ||
-          (text && normalizeMatchText(f.label) === normalizeMatchText(text)) ||
-          (text && f.label.length >= 4 && normalizeMatchText(text).includes(normalizeMatchText(f.label))),
-      );
+      const matched = srcButtons.find((f) => matchesFeature(f, sel, text));
       if (b?.inChrome && dedupe.has(`global-btn:${normalizeMatchText(text || target)}`)) continue;
       if (matched && matched.shared_layout && dedupe.has(`feature:${matched.id}`)) continue;
 
@@ -1123,6 +1140,127 @@ export async function discoverInteractionPlan(
       }
     }
   }
+
+  // 7b. Every route-relevant source feature is either paired with a live control
+  // or recorded as a coverage gap. A source snippet may not match the deployed
+  // DOM (different fixture revision); emitting an unmatched step as a product
+  // failure would be a false positive, so it is skipped with an explicit reason.
+  const liveSignatures = new Set<string>();
+  const liveSelectorsByHref = new Map<string, string>();
+  const liveSelectorsByLabel = new Map<string, string>();
+  for (const item of [
+    ...asArray<any>(discovery?.links),
+    ...asArray<any>(discovery?.forms),
+    ...liveButtons,
+    ...liveInputs,
+    ...liveSelects,
+    ...liveToggles,
+    ...liveSliders,
+    ...liveTabs,
+    ...liveAccordions,
+  ]) {
+    const selector = safeStr(item?.selector);
+    const href = safeStr(item?.href);
+    const text = safeStr(item?.text || item?.label || item?.name || item?.placeholder);
+    if (selector) {
+      liveSignatures.add(`selector:${selector}`);
+      if (href && !liveSelectorsByHref.has(href)) liveSelectorsByHref.set(href, selector);
+      const normalizedText = normalizeMatchText(text);
+      if (normalizedText && !liveSelectorsByLabel.has(normalizedText)) liveSelectorsByLabel.set(normalizedText, selector);
+    }
+    if (href) {
+      liveSignatures.add(`href:${href}`);
+      liveSignatures.add(`label:${normalizeMatchText(href)}`);
+    }
+    const normalizedText = normalizeMatchText(text);
+    if (normalizedText) liveSignatures.add(`label:${normalizedText}`);
+  }
+  const skippedSourceFeatures: Array<{ id: string; reason: string }> = [];
+  const coveredByCrawl: Array<{ id: string; route: string }> = [];
+  for (const f of candidateFeatures) {
+    if (f.kind === "route") continue;
+    const key = `feature:${f.id}`;
+    if (dedupe.has(key)) continue;
+    const normalizedRoutePath = routePath.replace(/\/+$/, "") || "/";
+    const hint = (f.route_hint || "").replace(/\/+$/, "") || "/";
+    if (
+      f.kind === "link" &&
+      planOptions.multiTargetRun &&
+      normalizedRoutePath === "/" &&
+      hint.startsWith("/") &&
+      !hint.startsWith("//")
+    ) {
+      // Homepage/example catalog links are navigation to routes already visited
+      // by the bounded crawl. Clicking all of them would churn the single CDP
+      // session and is redundant; record the destination as crawl-covered.
+      coveredByCrawl.push({ id: f.id, route: hint });
+      dedupe.add(key);
+      continue;
+    }
+    if (destructive.test(f.label) || externalOauth.test(f.label)) {
+      skippedSourceFeatures.push({ id: f.id, reason: "unsafe or destructive action" });
+      continue;
+    }
+    if (f.kind === "input" && /file/i.test(f.input_type ?? "")) {
+      skippedSourceFeatures.push({ id: f.id, reason: "file upload would write to the live target" });
+      continue;
+    }
+    const target = f.selector_hint || f.label;
+    if (!target) {
+      skippedSourceFeatures.push({ id: f.id, reason: "no selector or label" });
+      continue;
+    }
+    if (isLiveDom) {
+      const present =
+        (f.selector_hint && liveSignatures.has(`selector:${f.selector_hint}`)) ||
+        (f.label && liveSignatures.has(`label:${normalizeMatchText(f.label)}`)) ||
+        (f.label && liveSignatures.has(`href:${f.label}`));
+      if (!present) {
+        skippedSourceFeatures.push({ id: f.id, reason: "source feature not present in live DOM" });
+        continue;
+      }
+    }
+    let resolvedTarget = target;
+    if (f.kind === "link" && !f.selector_hint && f.label) {
+      resolvedTarget =
+        liveSelectorsByHref.get(f.label) ||
+        liveSelectorsByLabel.get(normalizeMatchText(f.label)) ||
+        target;
+    }
+    let action: StepAction["action"];
+    let value = "";
+    if (f.kind === "toggle") action = "toggle";
+    else if (f.kind === "slider") { action = "slide"; value = "30"; }
+    else if (f.kind === "input") { action = "fill"; value = syntheticValueForField(f.label, f.input_type ?? "", f.placeholder ?? ""); }
+    else if (f.kind === "select") {
+      if (!f.option_hint) {
+        skippedSourceFeatures.push({ id: f.id, reason: "no option hint" });
+        continue;
+      }
+      action = "select";
+      value = f.option_hint;
+    } else if (f.kind === "form") action = "assert_no_errors";
+    else action = "click";
+    const stepName = `Source ${f.kind}: ${f.label} (${f.source.path}:${f.source.line})`;
+    pushUnique(
+      {
+        name: stepName,
+        action,
+        target: resolvedTarget,
+        value,
+        options: { stayOnPageUrl: pageUrl },
+      },
+      key,
+    );
+  }
+  const sourceFeatureCoverage = candidateFeatures.filter((f) => f.kind !== "route").reduce(
+    (acc, f) => {
+      if (dedupe.has(`feature:${f.id}`)) acc.covered += 1;
+      else acc.uncovered += 1;
+      return acc;
+    },
+    { total: candidateFeatures.filter((f) => f.kind !== "route").length, covered: 0, uncovered: 0 },
+  );
 
   // 8. Link navigation probes ONLY when running on a single target (avoid redundant goto loops during multi-page crawl)
   if (!planOptions.multiTargetRun) {
@@ -1181,6 +1319,14 @@ export async function discoverInteractionPlan(
     source: features.length ? "source-backed+cdp-auto" : "auto-discovered",
     model: "cdp-auto",
     target_url: pageUrl || baseUrl,
+    coverage: {
+      route: routePath,
+      source_features_on_route: sourceFeatureCoverage.total,
+      source_features_covered: sourceFeatureCoverage.covered,
+      source_features_uncovered: sourceFeatureCoverage.uncovered,
+      skipped_source_features: skippedSourceFeatures,
+      covered_by_crawl: coveredByCrawl,
+    },
   };
 }
 

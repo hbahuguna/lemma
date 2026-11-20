@@ -150,7 +150,7 @@ export function browserInvocation(text: string, _personasDir: string): Invocatio
       "browser",
       url,
       ...(extra.includes("--no-crawl") ? [] : ["--crawl"]),
-      ...(extra.includes("--max-pages") ? [] : ["--max-pages", "25"]),
+      ...(extra.includes("--max-pages") ? [] : ["--max-pages", "80"]),
       ...(extra.includes("--timeout-ms") || extra.includes("--timeout") ? [] : ["--timeout-ms", "120000"]),
       ...extra,
     ],

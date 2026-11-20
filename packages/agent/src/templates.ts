@@ -65,7 +65,7 @@ export function renderCatalogCommandTemplate(
       "- The CLI reference below is concrete and executable in this environment; run it as-is (replace `<URL>` with the URL from `$ARGUMENTS`).",
       "- **Do not substitute** `lemma run`, `lemma hunt`, or any other subcommand. `/lemma-browser` must call the `browser` subcommand; only `lemma browser` executes the headed browser regression with clicks, form fills, toggles, scrolls, and navigation.",
       "  ```bash",
-      `  ${cli} browser <URL> --crawl --max-pages 25 --timeout-ms 120000`,
+      `  ${cli} browser <URL> --crawl --max-pages 80 --timeout-ms 120000`,
       "  ```",
       "- Record and report the command, run ID, status, and `.lemma/evidence/<run_id>/` path(s). If it fails or is blocked/unavailable, report the exact error/output as a coverage gap and continue with the best safe alternative.",
       "- **Verify the interaction regression actually ran:** inspect the run's JSON and confirm `observations` includes `browser.steps`, and that `.lemma/evidence/<run_id>/` contains `feature-inventory.json` (source-derived features), `auto-interactions-*-interaction-plan.json`, `auto-interactions-*-interaction-results.json`, and per-step screenshots. If those artifacts are missing, no source-backed clicks/scrolls/form fills/toggles/navigation ran — report a coverage gap and rerun with the exact `browser` command above.",

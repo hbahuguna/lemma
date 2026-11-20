@@ -115,7 +115,7 @@ describe("LEM-051 browser check evaluators", () => {
       }),
     );
     expect(failed.status).toBe(CheckStatus.FAILED);
-    expect(failed.actual).toBe("2 console/page error(s) observed.");
+    expect(failed.actual).toBe("2 actionable console/page error(s) observed.");
     expect(failed.findings.length).toBe(2);
     expect(failed.findings[0]?.title).toContain("Runtime console error");
     expect(failed.findings[0]?.domain).toBe("reliability");
@@ -153,6 +153,91 @@ describe("LEM-051 browser check evaluators", () => {
     expect(failed.findings.find((f) => f.title.includes("/api/data"))?.severity).toBe(Severity.HIGH);
     expect(failed.findings.find((f) => f.title.includes("/app.js"))?.severity).toBe(Severity.MEDIUM);
     expect(failed.findings.find((f) => f.title.includes("/ws"))?.severity).toBe(Severity.HIGH);
+  });
+
+  it("classifies third-party telemetry and intentional fixture errors as non-blocking evidence", () => {
+    const telemetryUrl = "https://298279967.log.optimizely.com/event?a=298279967";
+    const network = evaluateBrowserCheck(
+      "browser.network",
+      baseView({
+        navigation: { url: "https://the-internet.herokuapp.com/abtest", finalUrl: "https://the-internet.herokuapp.com/abtest", status: 200 },
+        networkEntries: [
+          { url: "https://the-internet.herokuapp.com/abtest", status: 200, failed: false, method: "GET" },
+          { url: telemetryUrl, status: null, failed: true, failure: "net::ERR_NAME_NOT_RESOLVED", method: "GET" },
+        ],
+      }),
+    );
+    expect(network.status).toBe(CheckStatus.PASSED);
+    expect(network.findings).toEqual([]);
+    expect(network.metadata.classified_non_blocking).toEqual([
+      expect.objectContaining({ kind: "third_party_telemetry" }),
+    ]);
+
+    const consoleTelemetry = evaluateBrowserCheck(
+      "browser.console",
+      baseView({
+        navigation: { url: "https://the-internet.herokuapp.com/abtest", finalUrl: "https://the-internet.herokuapp.com/abtest", status: 200 },
+        consoleMessages: [{ type: "error", text: "Failed to load resource: net::ERR_NAME_NOT_RESOLVED", url: telemetryUrl }],
+      }),
+    );
+    expect(consoleTelemetry.status).toBe(CheckStatus.PASSED);
+    expect(consoleTelemetry.findings).toEqual([]);
+
+    const favicon404 = evaluateBrowserCheck(
+      "browser.console",
+      baseView({
+        consoleMessages: [{ type: "error", text: "Failed to load resource: the server responded with a status of 404 ()", url: "https://the-internet.herokuapp.com/favicon.ico" }],
+      }),
+    );
+    expect(favicon404.status).toBe(CheckStatus.PASSED);
+    expect(favicon404.findings).toEqual([]);
+    expect(favicon404.metadata.classified_non_blocking).toEqual([
+      expect.objectContaining({ kind: "non_blocking_asset" }),
+    ]);
+
+    const brokenImages = evaluateBrowserCheck(
+      "browser.network",
+      baseView({
+        navigation: { url: "https://the-internet.herokuapp.com/broken_images", finalUrl: "https://the-internet.herokuapp.com/broken_images", status: 200 },
+        networkEntries: [{ url: "https://the-internet.herokuapp.com/img/asdf.jpg", status: 404, failed: false, method: "GET" }],
+      }),
+    );
+    expect(brokenImages.status).toBe(CheckStatus.PASSED);
+    expect(brokenImages.findings).toEqual([]);
+
+    const brokenImageConsole = evaluateBrowserCheck(
+      "browser.console",
+      baseView({
+        navigation: { url: "https://the-internet.herokuapp.com/broken_images", finalUrl: "https://the-internet.herokuapp.com/broken_images", status: 200 },
+        consoleMessages: [{ type: "error", text: "Failed to load resource: the server responded with a status of 404 ()", url: "https://the-internet.herokuapp.com/hjkl.jpg" }],
+      }),
+    );
+    expect(brokenImageConsole.status).toBe(CheckStatus.PASSED);
+    expect(brokenImageConsole.findings).toEqual([]);
+    expect(brokenImageConsole.metadata.classified_non_blocking).toEqual([
+      expect.objectContaining({ kind: "intentional_fixture" }),
+    ]);
+
+    const authChallenge = evaluateBrowserCheck(
+      "browser.load",
+      baseView({
+        navigation: { url: "https://the-internet.herokuapp.com/basic_auth", finalUrl: "https://the-internet.herokuapp.com/basic_auth", status: 401 },
+      }),
+    );
+    expect(authChallenge.status).toBe(CheckStatus.PASSED);
+    expect(authChallenge.findings).toEqual([]);
+    expect(authChallenge.metadata.classified_non_blocking).toEqual([
+      expect.objectContaining({ kind: "intentional_fixture" }),
+    ]);
+
+    const realFailure = evaluateBrowserCheck(
+      "browser.network",
+      baseView({
+        networkEntries: [{ url: "https://example.test/api/cart", status: 500, failed: false, method: "GET" }],
+      }),
+    );
+    expect(realFailure.status).toBe(CheckStatus.FAILED);
+    expect(realFailure.findings).toHaveLength(1);
   });
 
   it("browser.content checks heading and title structure", () => {

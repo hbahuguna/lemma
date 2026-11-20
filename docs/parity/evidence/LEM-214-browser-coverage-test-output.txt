@@ -1,0 +1,84 @@
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/interactions-deep.test.ts (10 tests) 542ms
+   ✓ CDP interaction expressions > emits valid JavaScript for select and slider evaluation through the page adapter  503ms
+ ✓ packages/agent/test/jira-context.test.ts (4 tests) 525ms
+   ✓ LEM-092 Jira context, ADF, and redaction > collects and fetches Jira context via injectable APIs with token-safe errors  504ms
+ ✓ packages/core/test/feature-discovery/feature-discovery-routes.test.ts (5 tests) 940ms
+   ✓ route-mapped source feature discovery > scopes server-rendered catalog and alias views to their owner routes  611ms
+ ✓ packages/agent/test/mcp-secret-ref.test.ts (4 tests) 636ms
+   ✓ LEM-093 MCP resource discovery and secret references > includes normalized MCP resources in loop context prompts  617ms
+ ✓ packages/agent/test/slash-commands/slash-commands.test.ts (8 tests) 929ms
+   ✓ LEM-154 slash command router > manager-flow integration: slash help and dashboard routes flow through manager narration without exposing token  402ms
+   ✓ LEM-154 slash command router > agent-loop honors router decisions for slash-command goals (help/unknown routed without fabricated harness execution)  479ms
+ ✓ packages/agent/test/agent-state.test.ts (3 tests) 1371ms
+   ✓ LEM-087 agent state persistence and in-session resume > persists and resumes progress without rerunning executed steps  812ms
+   ✓ LEM-087 agent state persistence and in-session resume > redacts secrets from persisted agent state  403ms
+ ✓ packages/agent/test/context-flow.test.ts (3 tests) 2802ms
+   ✓ LEM-091 context protocol and question flow > integrates with loop: need_user_context pauses/resumes via userInput and interactive wait  2783ms
+ ✓ packages/agent/test/agent-loop.test.ts (5 tests) 117ms
+ ✓ packages/agent/test/agent-loop-prompt-contract.test.ts (3 tests) 2889ms
+   ✓ LEM-096 agent-loop and prompt-contract tests > agent-loop contract: need-context pause/resume, interactive wait, min runs, and final narrative hooks  2866ms
+ ✓ packages/adapters/claude-code/test/claude-code-plugin.test.ts (5 tests) 2768ms
+   ✓ LEM-212 Claude Code plugin package > launches the resolved CLI with the MCP subcommand  2617ms
+ ✓ packages/agent/test/manager/manager-session.test.ts (5 tests) 3219ms
+   ✓ LEM-141 manager session > routes plan/progress/summary messages to a host-neutral sink and redacts emitted/persisted content  1189ms
+   ✓ LEM-141 manager session > emits a redacted question message when context is requested and persists awaiting state  904ms
+   ✓ LEM-141 manager session > is deterministic and resumable with same seed/frozen clock and same assessment (manager state/messages replay)  1067ms
+ ✓ packages/browser/test/browser-scenarios.test.ts (7 tests) 25ms
+ ✓ packages/browser/test/inspection/inspection.test.ts (8 tests) 1319ms
+   ✓ LEM-167 browser inspection (browser package) > collects classified fixture evidence from crawled views without promoting child-route quirks to findings  354ms
+   ✓ LEM-167 browser inspection (browser package) > treats an invalid check filter as unscoped so interaction coverage is not silently dropped  376ms
+ ✓ packages/core/test/feature-discovery/feature-discovery.test.ts (2 tests) 297ms
+ ✓ packages/adapters/claude-code/test/claude-code-adapter.test.ts (4 tests) 317ms
+ ✓ packages/agent/test/command-catalog-parity.test.ts (5 tests) 299ms
+ ✓ packages/adapters/claude-code/test/claude-code-e2e.test.ts (3 tests) 1407ms
+   ✓ LEM-110 Claude Code end-to-end suite > runs deterministic CLI assessment and preserves status/report parity  1104ms
+ ✓ packages/agent/test/catalog.test.ts (4 tests) 39ms
+ ✓ packages/browser/test/interactions-source.test.ts (2 tests) 69ms
+ ✓ packages/agent/test/bug-hunt/catalog-wiring.test.ts (1 test) 7ms
+ ✓ packages/agent/test/specialist-routing/specialist-routing.test.ts (1 test) 151ms
+ ✓ packages/agent/test/command-args.test.ts (6 tests) 47ms
+ ✓ packages/agent/test/progress-narrative.test.ts (4 tests) 73ms
+ ✓ packages/agent/test/model-eval-routing/model-eval-routing.test.ts (1 test) 186ms
+ ✓ packages/agent/test/pro-command/pro-command.test.ts (2 tests) 246ms
+ ✓ packages/agent/test/templates.test.ts (3 tests) 18ms
+ ✓ packages/agent/test/browser-agent-prompt.test.ts (3 tests) 13ms
+ ✓ packages/agent/test/proof-routing/proof-routing.test.ts (1 test) 37ms
+ ✓ packages/browser/test/runtime-navigation.test.ts (1 test) 5ms
+
+ Test Files  29 passed (29)
+      Tests  113 passed (113)
+   Start at  17:44:10
+   Duration  16.05s (transform 6.16s, setup 0ms, collect 76.31s, tests 21.29s, environment 24ms, prepare 20.42s)
+
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-checks.test.ts (9 tests | 3 skipped) 24ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed | 3 skipped (9)
+   Start at  17:44:28
+   Duration  3.29s (transform 1.41s, setup 0ms, collect 1.93s, tests 24ms, environment 0ms, prepare 330ms)
+
+
+ RUN  v3.2.7 /Users/skaparwan/github/lemma
+
+ ✓ packages/browser/test/browser-crawl.test.ts (5 tests | 3 skipped) 8ms
+
+ Test Files  1 passed (1)
+      Tests  2 passed | 3 skipped (5)
+   Start at  17:44:34
+   Duration  3.34s (transform 1.36s, setup 0ms, collect 1.86s, tests 8ms, environment 0ms, prepare 275ms)
+
+Final headed real-site verification (LEM-214):
+  command: LEMMA_CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" node packages/cli/dist/cli.js browser https://the-internet.herokuapp.com --crawl --max-pages 80 --timeout-ms 120000
+  run_id: browser-312f46e5-af99-47c7-b740-4017ce052b68
+  report: /private/var/folders/6v/tfg439pn4zz20w5hyvgcm69c0000gq/T/opencode/lem214-the-internet/report-final6.json
+  result: 81 interaction targets (all 76 examples), 78 interaction plans/results, 245 step screenshots
+  coverage: 76 covered_by_crawl links, 146 skipped_source_features, 3 chrome-error blocked auth targets, 5 skipped target plans with explicit gap metadata
+  classification: third_party_telemetry, intentional_fixture (broken images), non_blocking_asset (favicon 404) — all non-blocking
+  findings: 1 genuine low-severity browser.links finding (new-tab links omit noopener/noreferrer); no false-positive interaction or fixture findings
+  route scoping: /autocomplete has no select step sourced from custom_dropdown.html

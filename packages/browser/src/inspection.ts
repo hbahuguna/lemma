@@ -12,6 +12,7 @@ import {
 
 import {
   IMPLEMENTED_BROWSER_CHECKS,
+  evaluateBrowserCheckAcrossViews,
   evaluateBrowserCheckForCheck,
   normalizePageView,
   type BrowserPageView,
@@ -155,6 +156,23 @@ function defaultBrowserChecks(url: string): Check[] {
   } as unknown as Check));
 }
 
+/**
+ * Unique same-origin HTTP(S) targets for interaction passes. One pass per
+ * captured route; no arbitrary 10-page cap and no browser error pages.
+ */
+export function collectInteractionTargets(url: string, views: BrowserPageView[] = []): string[] {
+  const targetMap = new Map<string, string>();
+  for (const candidate of [url, ...views.flatMap((v) => [v?.navigation?.finalUrl, v?.navigation?.url].filter(Boolean) as string[])]) {
+    let parsed: URL;
+    try { parsed = new URL(candidate); } catch { continue; }
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") continue;
+    const key = `${parsed.origin}${parsed.pathname.replace(/\/+$/, "") || "/"}`;
+    if (!key || targetMap.has(key)) continue;
+    targetMap.set(key, candidate);
+  }
+  return Array.from(targetMap.values());
+}
+
 function pickObservationEvidence(view: BrowserPageView | null, outcome: CheckOutcome): BrowserInspectionObservation["evidence"] {
   const refs = Array.isArray(outcome.evidence) ? outcome.evidence.filter((x): x is string => typeof x === "string") : [];
   const viewRefs = view?.evidenceRefs ?? {};
@@ -197,6 +215,21 @@ interface SourceScanResult {
   inventoryRef: string;
 }
 
+/** Canonical example catalogs outrank internal contract pages in a bounded crawl. */
+export function prioritizeSourceRoutes(routeFeatures: SourceFeature[]): SourceFeature[] {
+  const deduped = new Map<string, { feature: SourceFeature; priority: number; order: number }>();
+  routeFeatures.forEach((feature, order) => {
+    const existing = deduped.get(feature.label);
+    const priority = /(?:^|\/)examples\.csv$/i.test(feature.source.path) ? 0 : 1;
+    if (!existing || priority < existing.priority) {
+      deduped.set(feature.label, { feature, priority, order });
+    }
+  });
+  return Array.from(deduped.values())
+    .sort((a, b) => a.priority - b.priority || a.order - b.order)
+    .map((entry) => entry.feature);
+}
+
 /**
  * Scan repository source once for the whole run. Derives public frontend routes
  * (used to enrich the crawl target list) and records auth-gated routes as
@@ -223,8 +256,9 @@ async function scanSourceForInspection(input: BrowserInspectionInput, options: B
       );
     }
     const routeFeatures = inventory.features.filter((f) => f.kind === "route" && !/[:*${]/.test(f.label));
-    const publicRoutes = routeFeatures.filter((f) => !f.auth_required).map((f) => f.label);
-    const authRoutes = routeFeatures.filter((f) => f.auth_required).map((f) => f.label);
+    const orderedRoutes = prioritizeSourceRoutes(routeFeatures);
+    const publicRoutes = orderedRoutes.filter((f) => !f.auth_required).map((f) => f.label);
+    const authRoutes = orderedRoutes.filter((f) => f.auth_required).map((f) => f.label);
     return { features: inventory.features, publicRoutes, authRoutes, inventoryRef };
   } catch (error) {
     return {
@@ -237,17 +271,24 @@ async function scanSourceForInspection(input: BrowserInspectionInput, options: B
 }
 
 /** Keep only source features relevant to a specific target URL path. */
-function featuresForTarget(features: SourceFeature[], targetUrl: string): SourceFeature[] {
+export function featuresForTarget(features: SourceFeature[], targetUrl: string): SourceFeature[] {
   let path = "";
   try { path = new URL(targetUrl).pathname.replace(/\/+$/, "") || "/"; } catch { return features; }
+  const normalizedPath = path.replace(/\/+$/, "") || "/";
+  const routesMatch = (routes: string[] | undefined): boolean =>
+    Array.isArray(routes) && routes.some((r) => (r.replace(/\/+$/, "") || "/") === normalizedPath);
   return features.filter((f) => {
-    if (f.kind === "route") return f.label === path;
+    if (f.kind === "route") return (f.label.replace(/\/+$/, "") || "/") === normalizedPath;
+    // A link's `route_hint` is its destination, not the page that owns it.
+    // Replaying homepage/example catalog links on every destination page caused
+    // dozens of false "could not locate element" failures in the live run.
+    if (f.kind === "link") return routesMatch(f.routes);
     if (f.route_hint) {
       const hint = f.route_hint.replace(/\/+$/, "") || "/";
-      if (hint === path) return true;
-      return Array.isArray(f.routes) && f.routes.some((r) => (r.replace(/\/+$/, "") || "/") === path);
+      if (hint === normalizedPath) return true;
     }
-    // Unscoped/shared components (e.g. header, footer, shared form) apply everywhere.
+    if (routesMatch(f.routes)) return true;
+    // Unscoped/shared components (e.g. header, footer) apply everywhere.
     return !Array.isArray(f.routes) || f.routes.length === 0;
   });
 }
@@ -361,18 +402,7 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
         // Run automated interaction regression (clicks, forms, toggles, scrolls, navigation)
         // on every captured/crawled page. Public source routes were already injected via
         // `extraRoutes` during capture, so views include them.
-        const targetMap = new Map<string, string>();
-        for (const candidate of [url, ...views.map((v) => v?.navigation?.finalUrl || v?.navigation?.url || "").filter(Boolean)]) {
-          let key = candidate;
-          try {
-            const parsed = new URL(candidate);
-            key = `${parsed.origin}${parsed.pathname.replace(/\/+$/, "") || "/"}`;
-          } catch {
-            key = candidate.replace(/\/+$/, "") || "/";
-          }
-          if (key && !targetMap.has(key)) targetMap.set(key, candidate);
-        }
-        const targets = Array.from(targetMap.values()).slice(0, 10);
+        const targets = collectInteractionTargets(url, views);
 
         const allFeatures = sourceScan.features.length > 0 ? sourceScan.features : (options.sourceFeatures ?? []);
         const dedupe = new Set<string>();
@@ -403,10 +433,24 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
           merged.actual = outcomes.map((o, i) => `[${targets[i]}] ${o.actual}`).join(" | ");
           merged.evidence = Array.from(new Set(outcomes.flatMap((o) => o.evidence ?? [])));
           merged.findings = outcomes.flatMap((o) => o.findings ?? []);
+          const coverageFor = (o: CheckOutcome): Record<string, unknown> | null => {
+            const value = (o.metadata as Record<string, unknown> | undefined)?.coverage;
+            return value && typeof value === "object" ? (value as Record<string, unknown>) : null;
+          };
+          const coverages = outcomes.map(coverageFor).filter((c): c is Record<string, unknown> => c !== null);
           merged.metadata = {
             ...(merged.metadata ?? {}),
             interaction_targets: targets,
-            per_target: outcomes.map((o) => ({ status: o.status, actual: o.actual })),
+            interaction_target_count: targets.length,
+            per_target: outcomes.map((o) => ({
+              status: o.status,
+              actual: o.actual,
+              coverage: coverageFor(o) ?? {},
+            })),
+            covered_by_crawl: coverages.flatMap((c) => (Array.isArray(c.covered_by_crawl) ? c.covered_by_crawl : [])),
+            skipped_source_features: coverages.flatMap((c) =>
+              Array.isArray(c.skipped_source_features) ? c.skipped_source_features : [],
+            ),
             source_features: allFeatures.length,
             source_feature_kinds: Array.from(new Set(allFeatures.map((f) => f.kind))),
             feature_inventory_ref: sourceScan.inventoryRef,
@@ -426,6 +470,29 @@ export async function runBrowserInspectionInBrowser(input: BrowserInspectionInpu
     const out = primary
       ? evaluateBrowserCheckForCheck(check, primary)
       : blockedBrowserOutcome(check, "No browser page view could be captured.");
+    if (primary && views.length > 1) {
+      // Findings stay scoped to the landing page: fixture pages have different
+      // semantics (empty frames, missing headings, deliberate errors). Crawled
+      // views still contribute their classified non-blocking observations so
+      // intentional errors are never silently replaced by a clean pass.
+      const across = evaluateBrowserCheckAcrossViews(check, views);
+      const classified = across.metadata.classified_non_blocking;
+      if (Array.isArray(classified) && classified.length > 0) {
+        const seen = new Set<string>();
+        const unique = classified.filter((entry) => {
+          const e = entry as Record<string, unknown>;
+          const key = `${String(e.kind ?? "")}|${String(e.reason ?? "")}|${String(e.detail ?? "")}`;
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+        out.metadata = {
+          ...(out.metadata ?? {}),
+          classified_non_blocking: unique,
+          classified_route_count: views.length,
+        };
+      }
+    }
     // ensure observation references include screenshot/console/network when captured
     observations.push(toObservation(check, out, primary));
   }

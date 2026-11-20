@@ -506,14 +506,17 @@ async function captureOnePageCdp(
     const p = msg.params || {};
     if (m === "Runtime.consoleAPICalled") {
       const text = (p.args || []).map((a: any) => (a?.value ?? a?.description ?? "")).join(" ");
-      consoleMessages.push({ type: p.type || "log", text: String(text) });
+      const url = String(p.callFrames?.[0]?.url || "");
+      consoleMessages.push({ type: p.type || "log", text: String(text), ...(url ? { url } : {}) });
     } else if (m === "Runtime.exceptionThrown") {
       const d = p.exceptionDetails || {};
       const txt = d.text || d.exception?.description || d.exception?.value || "page error";
-      pageErrors.push({ text: String(txt) });
+      const url = String(d.url || "");
+      pageErrors.push({ text: String(txt), ...(url ? { url } : {}) });
     } else if (m === "Log.entryAdded") {
       const e = p.entry || {};
-      consoleMessages.push({ type: e.level || "log", text: String(e.text || "") });
+      const url = String(e.url || "");
+      consoleMessages.push({ type: e.level || "log", text: String(e.text || ""), ...(url ? { url } : {}) });
     } else if (m === "Network.requestWillBeSent") {
       reqMeta.set(p.requestId, { url: p.request?.url, method: p.request?.method });
     } else if (m === "Network.responseReceived") {
@@ -632,6 +635,8 @@ export async function captureWithPlaywright(
         (() => { try { const u = new URL(seedUrl); return `${u.origin}${u.pathname.replace(/\/+$/, "") || "/"}`; } catch { return seedUrl; } })(),
       ]);
       const combinedRoutes: string[] = [];
+      // Seed-page links are public UI routes and are covered first; source-derived
+      // routes then fill any gaps without letting internal pages crowd them out.
       for (const candidate of [...discovered, ...(options?.extraRoutes ?? [])]) {
         if (combinedRoutes.length >= maxPages - 1) break;
         try {
@@ -692,6 +697,12 @@ function normalizeScenarioExecution(value: unknown): ScenarioExecutionResult | n
   return { title: typeof v.title === "string" ? v.title : "Scenario", target_url: typeof v.target_url === "string" ? v.target_url : (typeof v.targetUrl === "string" ? v.targetUrl : ""), passed: v.passed, total_steps: v.total_steps, passed_steps: typeof v.passed_steps === "number" ? v.passed_steps : 0, failed_steps: typeof v.failed_steps === "number" ? v.failed_steps : 0, skipped_steps: typeof v.skipped_steps === "number" ? v.skipped_steps : 0, duration_ms: typeof v.duration_ms === "number" ? v.duration_ms : 0, results: Array.isArray(v.results) ? (v.results as any) : [], evidence_refs: v.evidence_refs && typeof v.evidence_refs === "object" ? (v.evidence_refs as any) : {}, error: typeof v.error === "string" ? v.error : "" };
 }
 
+/** CDP error pages are browser chrome, not the target document. */
+export function isBrowserErrorUrl(url: string): boolean {
+  const value = String(url || "").trim();
+  return /^(?:chrome-error:|about:blank)/i.test(value);
+}
+
 async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions | undefined, evidence: BrowserEvidenceStoreLike | undefined, label: string): Promise<CheckOutcome> {
   const timeoutMs = options?.timeoutMs ?? 30000;
   const ownsSession = !options?.cdpSession;
@@ -721,6 +732,17 @@ async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions 
       });
       setTimeout(() => { if (!done) { done = true; off(); resolve(); } }, Math.min(timeoutMs, 15000));
     });
+    let finalUrl = "";
+    try {
+      const res = await session.call("Runtime.evaluate", { expression: "location.href", returnByValue: true }, sid);
+      finalUrl = String((res as any)?.result?.value || "");
+    } catch {}
+    if (!finalUrl || isBrowserErrorUrl(finalUrl)) {
+      return blockedBrowserOutcome(
+        { id: "browser.steps", title: "Scenario steps" } as Check,
+        `Target navigation did not reach a document (${finalUrl || "no URL"}); browser error page is a coverage gap.`,
+      );
+    }
     const exec = await runAutomaticInteractions({
       call: session.call,
       ...(sid ? { sessionId: sid } : {}),
@@ -736,7 +758,11 @@ async function runCdpAutomaticSteps(url: string, options: BrowserRuntimeOptions 
       try { await evidence.saveJson(`${label}-interaction-plan`, exec.plan, "scenario", `Auto-discovered interaction plan for ${label}`); } catch {}
       try { await evidence.saveJson(`${label}-interaction-results`, exec, "scenario_result", `Auto interaction execution results for ${label}`); } catch {}
     }
-    return toScenarioOutcome(exec);
+    const outcome = toScenarioOutcome(exec);
+    if (exec.plan?.coverage && typeof exec.plan.coverage === "object") {
+      outcome.metadata = { ...(outcome.metadata ?? {}), coverage: exec.plan.coverage };
+    }
+    return outcome;
   } catch (e) {
     const reason = e instanceof BrowserUnavailableError ? e.reason : (e instanceof Error ? e.message : String(e));
     return blockedBrowserOutcome({ id: "browser.steps", title: "Scenario steps" } as Check, reason);

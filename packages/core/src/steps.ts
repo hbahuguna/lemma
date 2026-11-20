@@ -18,6 +18,8 @@ export interface ScenarioPlan {
   source: string; // llm | heuristic | explicit
   model: string;
   target_url: string;
+  /** Optional additive coverage metadata emitted by deterministic planners. */
+  coverage?: Record<string, unknown>;
 }
 
 export interface StepResult {
@@ -355,9 +357,14 @@ export function evaluateScenarioCheck(
   };
 
   if (execution.passed && execution.total_steps > 0) {
+    // A skipped step is a coverage gap: it must never be reported as a clean pass.
+    const skipped = Number(execution.skipped_steps || 0);
     return {
-      status: CheckStatus.PASSED,
-      actual: `All ${execution.passed_steps} scenario step(s) executed successfully.`,
+      status: skipped > 0 ? CheckStatus.SKIPPED : CheckStatus.PASSED,
+      actual:
+        skipped > 0
+          ? `${execution.passed_steps} scenario step(s) executed successfully; ${skipped} step(s) skipped as coverage gaps.`
+          : `All ${execution.passed_steps} scenario step(s) executed successfully.`,
       evidence,
       metadata,
       findings: [],

@@ -130,6 +130,54 @@ describe("scenario execution and browser.steps", () => {
     expect(result.evidence_refs.scenario_results).toContain("sc-results");
   });
 
+  it("records a missing auto-discovered control as a skipped coverage gap when the step is soft", async () => {
+    const { page } = makePage();
+    page.getByText = () => ({ count: () => Promise.resolve(0) });
+    page.locator = () => ({ count: () => Promise.resolve(0) });
+    const plan = loadScenarioPlan({
+      title: "Auto",
+      target_url: "https://example.test/",
+      steps: [
+        { step_number: 1, name: "wait", action: "wait", options: { ms: 1 } },
+        { step_number: 2, name: "missing", action: "click", target: "Nope", options: { soft: true } },
+      ],
+    });
+    const result = await executeScenarioPlan(page, plan, undefined, { label: "soft" });
+    expect(result.failed_steps).toBe(0);
+    expect(result.skipped_steps).toBe(1);
+    expect(result.passed).toBe(true);
+    expect(result.results.find((r) => r.step_number === 2)?.status).toBe("skipped");
+  });
+
+  it("maps scenario skips to a SKIPPED check outcome instead of a clean pass", async () => {
+    const outcomes = new Map<string, CheckOutcome>();
+    const pageView = { navigation: { url: "https://example.test", finalUrl: "https://example.test", status: 200 }, snapshot: { title: "T", bodyTextLength: 100 }, consoleMessages: [], pageErrors: [], networkEntries: [], evidenceRefs: {} };
+    await runBrowserChecks({
+      url: "https://example.test/",
+      checks: [makeCheck("browser.steps")],
+      pageView,
+      options: {
+        scenarioExecution: {
+          title: "auto",
+          target_url: "https://example.test/",
+          passed: true,
+          total_steps: 2,
+          passed_steps: 1,
+          failed_steps: 0,
+          skipped_steps: 1,
+          duration_ms: 1,
+          results: [],
+          evidence_refs: {},
+          error: "",
+        },
+      },
+      onOutcome: (c, o) => outcomes.set(c.id, o),
+    });
+    const out = outcomes.get("browser.steps");
+    expect(out?.status).toBe(CheckStatus.SKIPPED);
+    expect(out?.actual).toContain("coverage gaps");
+  });
+
   it("integrates browser.steps via runBrowserChecks with injected scenarioExecution (pass/fail/blocked)", async () => {
     expect(IMPLEMENTED_BROWSER_CHECKS.has("browser.steps")).toBe(true);
     const outcomes = new Map<string, CheckOutcome>();

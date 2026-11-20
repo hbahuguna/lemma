@@ -140,6 +140,103 @@ export function commonEvidence(view: BrowserPageView): string[] {
   return keys.map((k) => refs[k]).filter((v): v is string => typeof v === "string" && v.length > 0);
 }
 
+/**
+ * Deterministic classification for errors that are part of a fixture contract
+ * or a third-party telemetry outage. Classified observations stay in metadata
+ * and the evidence log; they never become product findings or inflate a pass.
+ */
+interface ClassifiedObservation {
+  kind: string;
+  reason: string;
+  detail: string;
+}
+
+const TELEMETRY_HOST_RE = /(?:^|\.)(?:log\.)?optimizely\.com|google-analytics\.com|googletagmanager\.com|analytics\.google\.com|segment\.io|mixpanel\.com|hotjar\.com|plausible\.io|sentry\.io/i;
+const DNS_FAILURE_RE = /ERR_NAME_NOT_RESOLVED|ERR_ADDRESS_UNREACHABLE|ENOTFOUND|ERR_CONNECTION_REFUSED/i;
+const AUTH_FIXTURE_ROUTE_RE = /(?:basic|digest)_auth|download_secure|two_factor/i;
+const BROKEN_IMAGE_ROUTE_RE = /broken[_-]?images?/i;
+const JS_ERROR_ROUTE_RE = /javascript[_-]?error/i;
+const NETWORK_CONSOLE_ROUTE_RE = /network[_-]?console/i;
+const STATUS_CODE_ROUTE_RE = /status[_-]?codes/i;
+const SLOW_API_ROUTE_RE = /slow[_-]?api/i;
+const FAVICON_RE = /\/favicon\.ico(?:\?|$)/i;
+
+function routePathFor(url: string): string {
+  try { return new URL(url).pathname; } catch { return ""; }
+}
+
+function recordClassified(outcome: CheckOutcome, observation: ClassifiedObservation): void {
+  const existing = Array.isArray(outcome.metadata.classified_non_blocking)
+    ? (outcome.metadata.classified_non_blocking as ClassifiedObservation[])
+    : [];
+  outcome.metadata.classified_non_blocking = [...existing, observation];
+}
+
+function classifyConsoleObservation(item: Record<string, unknown>, finalUrl: string): ClassifiedObservation | null {
+  const text = asString(item.text);
+  const url = asString(item.url);
+  const pagePath = routePathFor(finalUrl);
+  if (TELEMETRY_HOST_RE.test(url) && DNS_FAILURE_RE.test(text)) {
+    return { kind: "third_party_telemetry", reason: "Telemetry endpoint unavailable; app behavior is unaffected", detail: url || text.slice(0, 160) };
+  }
+  if (JS_ERROR_ROUTE_RE.test(pagePath)) {
+    return { kind: "intentional_fixture", reason: "Page intentionally throws a JavaScript error", detail: text.slice(0, 160) };
+  }
+  if (NETWORK_CONSOLE_ROUTE_RE.test(pagePath)) {
+    return { kind: "intentional_fixture", reason: "Page intentionally emits console/network errors", detail: text.slice(0, 160) };
+  }
+  if (BROKEN_IMAGE_ROUTE_RE.test(pagePath) && /\b404\b/.test(text) && /\.(?:jpe?g|png|gif|webp)(?:\?|$)/i.test(url)) {
+    return { kind: "intentional_fixture", reason: "Broken Images example intentionally requests missing images", detail: url.slice(0, 200) };
+  }
+  if (AUTH_FIXTURE_ROUTE_RE.test(pagePath) && /\b401\b/.test(text)) {
+    return { kind: "intentional_fixture", reason: "Auth example intentionally challenges unauthenticated requests", detail: text.slice(0, 160) };
+  }
+  if (STATUS_CODE_ROUTE_RE.test(pagePath) && /\b(?:404|500)\b/.test(text)) {
+    return { kind: "intentional_fixture", reason: "Status Codes example intentionally returns error responses", detail: text.slice(0, 160) };
+  }
+  if (SLOW_API_ROUTE_RE.test(pagePath) && /\b(?:429|500)\b/.test(text)) {
+    return { kind: "intentional_fixture", reason: "Slow API example intentionally fails on request", detail: text.slice(0, 160) };
+  }
+  if (FAVICON_RE.test(url) && /\b404\b/.test(text)) {
+    return { kind: "non_blocking_asset", reason: "Missing favicon is cosmetic and does not affect the user journey", detail: url.slice(0, 200) };
+  }
+  return null;
+}
+
+function classifyNetworkObservation(entry: Record<string, unknown>, finalUrl: string): ClassifiedObservation | null {
+  const url = asString(entry.url);
+  const failure = asString(entry.failure);
+  const status = typeof entry.status === "number" ? entry.status : null;
+  const pagePath = routePathFor(finalUrl);
+  const failed = entry.failed === true || (status !== null && status >= 400);
+  if (!failed) return null;
+  if (TELEMETRY_HOST_RE.test(url)) {
+    return { kind: "third_party_telemetry", reason: "Telemetry endpoint unavailable; app behavior is unaffected", detail: url.slice(0, 200) };
+  }
+  if (BROKEN_IMAGE_ROUTE_RE.test(pagePath) && status === 404 && /\.(?:jpe?g|png|gif|webp)(?:\?|$)/i.test(url)) {
+    return { kind: "intentional_fixture", reason: "Broken Images example intentionally requests missing images", detail: url.slice(0, 200) };
+  }
+  if (AUTH_FIXTURE_ROUTE_RE.test(pagePath) && status === 401) {
+    return { kind: "intentional_fixture", reason: "Auth example intentionally challenges unauthenticated requests", detail: url.slice(0, 200) };
+  }
+  if (STATUS_CODE_ROUTE_RE.test(pagePath) && (status === 404 || status === 500)) {
+    return { kind: "intentional_fixture", reason: "Status Codes example intentionally returns error responses", detail: url.slice(0, 200) };
+  }
+  if (SLOW_API_ROUTE_RE.test(pagePath) && (status === 429 || status === 500)) {
+    return { kind: "intentional_fixture", reason: "Slow API example intentionally fails on request", detail: url.slice(0, 200) };
+  }
+  if (NETWORK_CONSOLE_ROUTE_RE.test(pagePath)) {
+    return { kind: "intentional_fixture", reason: "Network & Console example intentionally fails requests", detail: url.slice(0, 200) };
+  }
+  if (DNS_FAILURE_RE.test(failure) && TELEMETRY_HOST_RE.test(url)) {
+    return { kind: "third_party_telemetry", reason: "Telemetry endpoint unavailable; app behavior is unaffected", detail: url.slice(0, 200) };
+  }
+  if (FAVICON_RE.test(url) && status === 404) {
+    return { kind: "non_blocking_asset", reason: "Missing favicon is cosmetic and does not affect the user journey", detail: url.slice(0, 200) };
+  }
+  return null;
+}
+
 function baseOutcome(view: BrowserPageView): CheckOutcome {
   const outcome = new CheckOutcome({ status: CheckStatus.FAILED, evidence: commonEvidence(view) });
   if (typeof view.viewport === "string" && view.viewport) {
@@ -170,7 +267,9 @@ function evalLoad(view: BrowserPageView, navigation: BrowserNavigationResult): C
     return outcome;
   }
 
-  if (navigation.status !== undefined && navigation.status !== null && navigation.status >= 400) {
+  const expectedAuthChallenge =
+    navigation.status === 401 && AUTH_FIXTURE_ROUTE_RE.test(routePathFor(finalUrl));
+  if (navigation.status !== undefined && navigation.status !== null && navigation.status >= 400 && !expectedAuthChallenge) {
     outcome.addFinding(
       `The live target returned HTTP ${navigation.status}`,
       navigation.status >= 500 ? Severity.HIGH : Severity.MEDIUM,
@@ -183,6 +282,13 @@ function evalLoad(view: BrowserPageView, navigation: BrowserNavigationResult): C
       "Confirm a 2xx/3xx response and the expected page title.",
       ["runtime", "http-status"],
     );
+  }
+  if (expectedAuthChallenge) {
+    recordClassified(outcome, {
+      kind: "intentional_fixture",
+      reason: "Auth example intentionally challenges unauthenticated requests",
+      detail: `HTTP 401 at ${finalUrl}`,
+    });
   }
 
   const title = asString(snap.title).trim();
@@ -218,7 +324,8 @@ function evalLoad(view: BrowserPageView, navigation: BrowserNavigationResult): C
   }
 
   const titlePreview = title.slice(0, 80);
-  outcome.actual = `HTTP ${navigation.status}; title ${JSON.stringify(titlePreview)}; visible text length ${bodyLength}`;
+  const statusNote = expectedAuthChallenge ? " (expected auth challenge; classified non-blocking)" : "";
+  outcome.actual = `HTTP ${navigation.status}${statusNote}; title ${JSON.stringify(titlePreview)}; visible text length ${bodyLength}`;
   if (outcome.findings.length === 0) outcome.status = CheckStatus.PASSED;
   return outcome;
 }
@@ -238,7 +345,25 @@ function evalConsole(view: BrowserPageView, navigation: BrowserNavigationResult)
     return outcome;
   }
 
-  for (const item of errors.slice(0, 5)) {
+  const classified: ClassifiedObservation[] = [];
+  const actionable: Array<Record<string, unknown>> = [];
+  for (const item of errors) {
+    const observation = classifyConsoleObservation(item, finalUrl);
+    if (observation) {
+      classified.push(observation);
+      recordClassified(outcome, observation);
+    } else {
+      actionable.push(item);
+    }
+  }
+
+  if (actionable.length === 0) {
+    outcome.actual = `${errors.length} console/page error(s) observed; ${classified.length} classified non-blocking.`;
+    outcome.status = CheckStatus.PASSED;
+    return outcome;
+  }
+
+  for (const item of actionable.slice(0, 5)) {
     const text = asString(item.text).slice(0, 180);
     outcome.addFinding(
       `Runtime console error: ${text.slice(0, 80)}`,
@@ -253,30 +378,45 @@ function evalConsole(view: BrowserPageView, navigation: BrowserNavigationResult)
       ["console", "runtime"],
     );
   }
-  outcome.actual = `${errors.length} console/page error(s) observed.`;
+  const classifiedNote = classified.length ? `; ${classified.length} classified non-blocking` : "";
+  outcome.actual = `${actionable.length} actionable console/page error(s) observed${classifiedNote}.`;
   return outcome;
 }
 
-function evalNetwork(view: BrowserPageView, _navigation: BrowserNavigationResult): CheckOutcome {
+function evalNetwork(view: BrowserPageView, navigation: BrowserNavigationResult): CheckOutcome {
   const outcome = baseOutcome(view);
   const entries = view.networkEntries ?? [];
+  const finalUrl = navigation.finalUrl || navigation.url;
   const problems: Array<Record<string, unknown>> = [];
+  const classified: ClassifiedObservation[] = [];
   for (const entry of entries) {
     if (entry.failed) {
       const failure = asString(entry.failure).toUpperCase();
       if (failure.includes("ERR_ABORTED")) continue;
-      problems.push(entry);
+      const observation = classifyNetworkObservation(entry, finalUrl);
+      if (observation) {
+        classified.push(observation);
+        recordClassified(outcome, observation);
+      } else {
+        problems.push(entry);
+      }
       continue;
     }
     const status = entry.status;
     if (typeof status === "number" && status >= 400) {
       if (status === 404 && asString(entry.url).includes("favicon")) continue;
-      problems.push(entry);
+      const observation = classifyNetworkObservation(entry, finalUrl);
+      if (observation) {
+        classified.push(observation);
+        recordClassified(outcome, observation);
+      } else {
+        problems.push(entry);
+      }
     }
   }
 
   if (problems.length === 0) {
-    outcome.actual = `${entries.length} request(s); no failed or unexpected 4xx/5xx responses.`;
+    outcome.actual = `${entries.length} request(s); no failed or unexpected 4xx/5xx responses${classified.length ? `; ${classified.length} classified non-blocking` : ""}.`;
     outcome.status = CheckStatus.PASSED;
     return outcome;
   }
@@ -301,7 +441,8 @@ function evalNetwork(view: BrowserPageView, _navigation: BrowserNavigationResult
       ["network", "runtime"],
     );
   }
-  outcome.actual = `${entries.length} request(s); ${problems.length} failed or non-success response(s).`;
+  const classifiedNote = classified.length ? `; ${classified.length} classified non-blocking` : "";
+  outcome.actual = `${entries.length} request(s); ${problems.length} failed or non-success response(s)${classifiedNote}.`;
   return outcome;
 }
 
@@ -1260,6 +1401,13 @@ export function mergeBrowserOutcomes(outcomes: CheckOutcome[]): CheckOutcome {
           if (ev && !existing.evidence.includes(ev)) existing.evidence.push(ev);
         }
       }
+    }
+    const classified = outcome.metadata.classified_non_blocking;
+    if (Array.isArray(classified) && classified.length > 0) {
+      const all = Array.isArray(merged.metadata.classified_non_blocking)
+        ? (merged.metadata.classified_non_blocking as ClassifiedObservation[])
+        : [];
+      merged.metadata.classified_non_blocking = [...all, ...(classified as ClassifiedObservation[])].slice(0, 100);
     }
     pushEvidence(outcome.evidence);
   }

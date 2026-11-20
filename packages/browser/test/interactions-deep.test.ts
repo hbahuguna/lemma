@@ -199,6 +199,159 @@ describe("deep per-route interaction planning", () => {
     const firstFeatureSteps = first.steps.filter((s) => s.name.startsWith("Source "));
     const secondFeatureSteps = second.steps.filter((s) => s.name.startsWith("Source "));
     expect(firstFeatureSteps.length).toBeGreaterThan(0);
-    expect(secondFeatureSteps.length).toBe(0);
+    // Pricing features are deduplicated globally. A new route's own source
+    // feature is considered, but when it is absent from the live DOM it is an
+    // explicit coverage gap rather than a fabricated failing step.
+    expect(second.coverage?.skipped_source_features?.some((f) => f.id === "input-email")).toBe(true);
+    expect(secondFeatureSteps.some((s) => /Source input: Email/.test(s.name))).toBe(false);
+    expect(secondFeatureSteps.some((s) => /Annual billing|Developer seats|Choose Pro/.test(s.name))).toBe(false);
+  });
+
+  it("records unmatched source controls as coverage gaps instead of failing steps", async () => {
+    const features: SourceFeature[] = [
+      { id: "button-stale", kind: "button", label: "Stale CTA", selector_hint: "#stale-cta", route_hint: "", routes: ["/snapshot"], source: { path: "spec/contract/snapshots/snapshot.html", line: 7 } },
+    ];
+    const page: any = {
+      refreshUrl: async () => {},
+      evaluate: async (expression: string) => {
+        if (String(expression).includes("const buttons =")) {
+          return {
+            liveDom: true,
+            url: "https://example.test/snapshot",
+            title: "Snapshot",
+            buttons: [],
+            links: [],
+            inputs: [],
+            selects: [],
+            toggles: [],
+            sliders: [],
+            tabs: [],
+            accordions: [],
+            forms: [],
+            scrollHeight: 400,
+            innerHeight: 900,
+          };
+        }
+        if (String(expression).includes("scrollHeight")) return { sh: 400, ih: 900 };
+        return "https://example.test/snapshot";
+      },
+    };
+    const plan = await discoverInteractionPlan(page, "https://example.test/snapshot", features, new Set(), { multiTargetRun: true });
+    expect(plan.steps.some((s) => /Stale CTA/.test(s.name))).toBe(false);
+    expect(plan.coverage?.skipped_source_features).toEqual([
+      expect.objectContaining({ id: "button-stale", reason: "source feature not present in live DOM" }),
+    ]);
+  });
+
+  it("restores filter inputs and records catalog links as crawl-covered", async () => {
+    const features: SourceFeature[] = [
+      { id: "filter-input", kind: "input", label: "Filter examples", selector_hint: "#example-filter", route_hint: "", routes: ["/"], source: { path: "views/index.erb", line: 12 } },
+      { id: "catalog-link", kind: "link", label: "A/B Testing", selector_hint: "", route_hint: "/abtest", routes: ["/"], source: { path: "views/examples.erb", line: 2 } },
+    ];
+    const page: any = {
+      refreshUrl: async () => {},
+      evaluate: async (expression: string) => {
+        if (String(expression).includes("const buttons =")) {
+          return {
+            liveDom: true,
+            url: "https://example.test/",
+            title: "Home",
+            buttons: [],
+            links: [{ selector: 'a[href="/abtest"]', text: "A/B Testing", href: "/abtest" }],
+            inputs: [{ type: "text", label: "Filter examples", placeholder: "Filter examples", selector: "#example-filter" }],
+            selects: [],
+            toggles: [],
+            sliders: [],
+            tabs: [],
+            accordions: [],
+            forms: [],
+            scrollHeight: 400,
+            innerHeight: 900,
+          };
+        }
+        if (String(expression).includes("scrollHeight")) return { sh: 400, ih: 900 };
+        return "https://example.test/";
+      },
+    };
+    const plan = await discoverInteractionPlan(page, "https://example.test/", features, new Set(), { multiTargetRun: true });
+    expect(plan.steps.some((s) => s.name.startsWith("Clear filter") && s.action === "fill" && s.value === "")).toBe(true);
+    expect(plan.steps.some((s) => s.name.includes("A/B Testing"))).toBe(false);
+    expect(plan.coverage?.covered_by_crawl).toEqual([{ id: "catalog-link", route: "/abtest" }]);
+  });
+
+  it("targets non-catalog source links with the live href selector", async () => {
+    const features: SourceFeature[] = [
+      { id: "fixed-link", kind: "link", label: "/accessibility_issues?fixed=true", selector_hint: "", route_hint: "/accessibility_issues?fixed=true", routes: ["/accessibility_issues"], source: { path: "spec/contract/snapshots/accessibility_issues.html", line: 7 } },
+    ];
+    const page: any = {
+      refreshUrl: async () => {},
+      evaluate: async (expression: string) => {
+        if (String(expression).includes("const buttons =")) {
+          return {
+            liveDom: true,
+            url: "https://example.test/accessibility_issues",
+            title: "Accessibility Issues",
+            buttons: [],
+            links: [{ selector: 'a[href="/accessibility_issues?fixed=true"]', text: "Fixed version", href: "/accessibility_issues?fixed=true" }],
+            inputs: [],
+            selects: [],
+            toggles: [],
+            sliders: [],
+            tabs: [],
+            accordions: [],
+            forms: [],
+            scrollHeight: 400,
+            innerHeight: 900,
+          };
+        }
+        if (String(expression).includes("scrollHeight")) return { sh: 400, ih: 900 };
+        return "https://example.test/accessibility_issues";
+      },
+    };
+    const plan = await discoverInteractionPlan(page, "https://example.test/accessibility_issues", features, new Set(), { multiTargetRun: true });
+    const linkStep = plan.steps.find((s) => s.name.includes("fixed=true"));
+    expect(linkStep?.target).toBe('a[href="/accessibility_issues?fixed=true"]');
+  });
+
+  it("never pairs an autocomplete text input with a custom-dropdown source feature", async () => {
+    const autocompleteFeatures: SourceFeature[] = [
+      { id: "route-autocomplete", kind: "route", label: "/autocomplete", selector_hint: "", route_hint: "/autocomplete", source: { path: "examples.csv", line: 3 } },
+      { id: "input-autocomplete", kind: "input", label: "autocomplete", selector_hint: "#autocomplete", route_hint: "/autocomplete", source: { path: "spec/contract/snapshots/autocomplete.html", line: 15 } },
+      { id: "select-fruit-combo", kind: "select", label: "fruit-combo", selector_hint: "#fruit-combo", route_hint: "/custom_dropdown", option_hint: "Apple", source: { path: "spec/contract/snapshots/custom_dropdown.html", line: 15 } },
+    ];
+    const page: any = {
+      refreshUrl: async () => {},
+      evaluate: async (expression: string) => {
+        if (String(expression).includes("const buttons =")) {
+          return {
+            liveDom: true,
+            url: "https://example.test/autocomplete",
+            title: "Autocomplete",
+            buttons: [],
+            links: [],
+            inputs: [{ type: "text", label: "autocomplete", selector: "#autocomplete", placeholder: "" }],
+            // jQuery UI autocomplete adds role=combobox to an INPUT.
+            selects: [{ label: "", selector: "#autocomplete", tag: "input" }],
+            toggles: [],
+            sliders: [],
+            tabs: [],
+            accordions: [],
+            forms: [],
+            scrollHeight: 400,
+            innerHeight: 900,
+          };
+        }
+        if (String(expression).includes("scrollHeight")) return { sh: 400, ih: 900 };
+        return "https://example.test/autocomplete";
+      },
+    };
+
+    const plan = await discoverInteractionPlan(page, "https://example.test/autocomplete", autocompleteFeatures, new Set(), {
+      multiTargetRun: true,
+    });
+
+    expect(plan.steps.some((s) => s.action === "select")).toBe(false);
+    expect(plan.steps.some((s) => /fruit-combo|custom_dropdown/i.test(s.name))).toBe(false);
+    expect(plan.steps.some((s) => s.action === "fill" && s.target === "#autocomplete")).toBe(true);
   });
 });

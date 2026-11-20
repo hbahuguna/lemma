@@ -57,12 +57,12 @@ export interface DiscoverFeaturesOptions {
   include?: string[];
 }
 
-const DEFAULT_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue", ".svelte", ".html", ".mdx"];
+const DEFAULT_EXTENSIONS = [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".vue", ".svelte", ".html", ".mdx", ".erb", ".csv", ".rb"];
 const IGNORED_DIRS = new Set([
   "node_modules", ".git", ".lemma", "dist", "build", "coverage", ".next", ".turbo", "out", "vendor",
 ]);
 const NON_APP_UI_PATH_RE = /(^|\/)(?:__tests__|tests?|test-fixtures|fixtures|migrations|drizzle|prisma)(\/|$)|\.(?:test|spec|stories|d)\.[a-z0-9]+$/i;
-const BACKEND_DIR_RE = /(^|\/)(?:api-server|backend|server)(\/|$)/i;
+const BACKEND_DIR_RE = /(^|\/)(?:api-server|backend|server)(\/|$)|(?:^|\/)server\.rb$/i;
 const DEFAULT_MAX_FILES = 600;
 const DEFAULT_MAX_FILE_BYTES = 200_000;
 
@@ -385,6 +385,14 @@ interface DiscoveredRouteEntry {
   line: number;
   authRequired: boolean;
   componentRels: string[];
+  /** Route inferred from a page/snapshot filename rather than a router declaration. */
+  fileScoped?: boolean;
+}
+
+interface CanonicalRouteEntry {
+  path: string;
+  authRequired: boolean;
+  sourceRel: string;
 }
 
 function lineAt(text: string, index: number): number {
@@ -395,11 +403,114 @@ function lineAt(text: string, index: number): number {
   return line;
 }
 
+/** Read only the first N CSV cells so note/credential columns never leave the parser. */
+function parseCsvPrefix(line: string, count: number): string[] {
+  const out: string[] = [];
+  let cell = "";
+  let quoted = false;
+  for (let i = 0; i < line.length && out.length < count; i++) {
+    const ch = line[i]!;
+    if (ch === '"') {
+      if (quoted && line[i + 1] === '"') { cell += '"'; i++; }
+      else quoted = !quoted;
+      continue;
+    }
+    if (ch === "," && !quoted) {
+      out.push(cell.trim());
+      cell = "";
+      continue;
+    }
+    cell += ch;
+  }
+  if (out.length < count) out.push(cell.trim());
+  return out;
+}
+
+function normalizeRouteKey(route: string): string {
+  return route
+    .split(/[?#]/)[0]!
+    .replace(/\/+$/, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+/**
+ * Canonical frontend routes declared by repository route catalogs. `examples.csv`
+ * is read via a two-column prefix so credentials/notes are never captured.
+ */
+function collectCanonicalRoutes(fileContents: Map<string, string>): Map<string, CanonicalRouteEntry> {
+  const routes = new Map<string, CanonicalRouteEntry>();
+  const add = (path: string, sourceRel: string, authRequired = false): void => {
+    if (!/^\//.test(path) || /[:*${]/.test(path)) return;
+    const clean = path.split(/[?#]/)[0] || "/";
+    const key = normalizeRouteKey(clean) || "root";
+    if (!routes.has(key)) {
+      routes.set(key, { path: clean, authRequired, sourceRel });
+    } else if (authRequired) {
+      const existing = routes.get(key)!;
+      routes.set(key, { ...existing, authRequired: true });
+    }
+  };
+
+  for (const [rel, content] of fileContents) {
+    const normalizedRel = rel.replace(/\\/g, "/");
+    if (/(?:^|\/)examples\.csv$/i.test(normalizedRel)) {
+      for (const line of content.split(/\r?\n/)) {
+        const cells = parseCsvPrefix(line, 2);
+        if (cells[0]?.toLowerCase() === "title" || !cells[1]) continue;
+        add(cells[1], rel, /(?:basic|digest)_auth|download_secure|two_factor/i.test(cells[1]));
+      }
+    }
+    if (/(?:^|\/)pages\.rb$/i.test(normalizedRel)) {
+      const routeRe = /^\s*["']([^"']+)["']\s*=>/gm;
+      let m: RegExpExecArray | null;
+      while ((m = routeRe.exec(content))) {
+        add(m[1] ?? "", rel, /(?:basic|digest)_auth|download_secure|two_factor/i.test(m[1] ?? ""));
+      }
+    }
+  }
+  return routes;
+}
+
+/**
+ * Template files whose filename is not the canonical route. These are common in
+ * server-rendered fixtures where an index catalog or a named error view backs a
+ * differently named public route.
+ */
+const SOURCE_FILE_ROUTE_ALIASES: Record<string, string> = {
+  examples: "/",
+  two_factor_code: "/two_factor",
+  upload_error: "/upload",
+};
+
+/** Map `spec/contract/snapshots/jqueryui_menu.html` to canonical `/jqueryui/menu`. */
+function routeForSourceFile(rel: string, canonicalRoutes: Map<string, CanonicalRouteEntry>): CanonicalRouteEntry | null {
+  if (NON_APP_UI_PATH_RE.test(rel) || BACKEND_DIR_RE.test(rel)) return null;
+  const normalizedRel = rel.replace(/\\/g, "/");
+  const base = path.posix.basename(rel).replace(/\.[a-z0-9]+$/i, "");
+  if (!base || /^(?:layout|application|app|index|home|default)$/i.test(base)) return null;
+  // Only server-rendered page views use filename aliases; never map a route
+  // catalog like examples.csv onto the homepage itself.
+  if (/(?:^|\/)views\/[^/]+\.erb$/i.test(normalizedRel)) {
+    const alias = SOURCE_FILE_ROUTE_ALIASES[base];
+    if (alias) {
+      return {
+        path: alias,
+        authRequired: /(?:basic|digest)_auth|download_secure|two_factor/i.test(alias),
+        sourceRel: rel,
+      };
+    }
+  }
+  const entry = canonicalRoutes.get(normalizeRouteKey(`/${base}`));
+  return entry ?? null;
+}
+
 function extractRoutesFromFile(
   content: string,
   rel: string,
   tags: ScannedTag[],
   importMap: Map<string, string>,
+  canonicalRoutes: Map<string, CanonicalRouteEntry>,
 ): DiscoveredRouteEntry[] {
   if (NON_APP_UI_PATH_RE.test(rel) || BACKEND_DIR_RE.test(rel)) return [];
   const entries: DiscoveredRouteEntry[] = [];
@@ -487,6 +598,18 @@ function extractRoutesFromFile(
       .filter((s) => s && !/^\(.*\)$/.test(s))
       .join("/");
     entries.push({ path: `/${rawSeg}`, rel, line: 1, authRequired: false, componentRels: [rel] });
+  }
+
+  const fileRoute = routeForSourceFile(rel, canonicalRoutes);
+  if (fileRoute && !entries.some((e) => normalizeRouteKey(e.path) === normalizeRouteKey(fileRoute.path))) {
+    entries.push({
+      path: fileRoute.path,
+      rel,
+      line: 1,
+      authRequired: fileRoute.authRequired,
+      componentRels: [rel],
+      fileScoped: true,
+    });
   }
 
   return entries;
@@ -751,6 +874,7 @@ export function discoverFeatures(root: string, options: DiscoverFeaturesOptions 
 
   const fileSet = new Set(fileContents.keys());
   const srcRoots = Array.from(srcRootsSet);
+  const canonicalRoutes = collectCanonicalRoutes(fileContents);
   const fileImports = new Map<string, Map<string, string>>();
   const childFilesByParent = new Map<string, Set<string>>();
 
@@ -771,8 +895,20 @@ export function discoverFeatures(root: string, options: DiscoverFeaturesOptions 
     childFilesByParent.set(rel, children);
   }
 
-  // Extract frontend routes and seed file -> routes mapping
+  // Extract frontend routes and seed file -> routes mapping. Canonical catalog
+  // routes are emitted first so full-site crawls prioritize public examples.
   const routeFeatures: SourceFeature[] = [];
+  for (const route of canonicalRoutes.values()) {
+    routeFeatures.push({
+      id: stableId("route", route.path, route.path, route.sourceRel, 1),
+      kind: "route",
+      label: route.path,
+      selector_hint: "",
+      route_hint: route.path,
+      ...(route.authRequired ? { auth_required: true } : {}),
+      source: { path: route.sourceRel, line: 1 },
+    });
+  }
   const routesByFile = new Map<string, Set<string>>();
   const addRouteForFile = (targetRel: string, routePath: string): void => {
     let set = routesByFile.get(targetRel);
@@ -787,7 +923,7 @@ export function discoverFeatures(root: string, options: DiscoverFeaturesOptions 
     const tags = fileTags.get(rel);
     const imports = fileImports.get(rel);
     if (!tags || !imports) continue;
-    const discovered = extractRoutesFromFile(content, rel, tags, imports);
+    const discovered = extractRoutesFromFile(content, rel, tags, imports, canonicalRoutes);
     for (const r of discovered) {
       routeFeatures.push({
         id: stableId("route", r.path, r.path, r.rel, r.line),
@@ -798,6 +934,7 @@ export function discoverFeatures(root: string, options: DiscoverFeaturesOptions 
         ...(r.authRequired ? { auth_required: true } : {}),
         source: { path: r.rel, line: r.line },
       });
+      if (r.fileScoped) addRouteForFile(r.rel, r.path);
       for (const compRel of r.componentRels) {
         addRouteForFile(compRel, r.path);
       }

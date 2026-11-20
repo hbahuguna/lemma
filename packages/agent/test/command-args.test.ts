@@ -37,7 +37,7 @@ describe("LEM-088 command argument builders", () => {
       "http://localhost:3000",
       "--crawl",
       "--max-pages",
-      "25",
+      "80",
       "--timeout-ms",
       "120000",
     ]);

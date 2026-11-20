@@ -200,6 +200,7 @@ export async function executeScenarioPlan(
   for (const step of plan.steps ?? []) {
     const stepStart = Date.now();
     let stepError = "";
+    let stepSkipped = false;
     const action = step.action;
     const target = cleanStr(step.target ?? "");
     const value = cleanStr(step.value ?? "");
@@ -311,7 +312,7 @@ export async function executeScenarioPlan(
         if (typeof page.locator !== "function") throw new Error("select action requires page.locator.");
         const esc = target.replace(/"/g, '\\"');
         const direct = /^[#.[a-z]/i.test(target) ? page.locator(target) : undefined;
-        const loc = page.locator(`select[name*="${esc}"], select[id*="${esc}"], button[role="combobox"], [role="combobox"], select`);
+        const loc = page.locator(`select[name*="${esc}"], select[id*="${esc}"], button[role="combobox"], [role="combobox"]:not(input), select`);
         const sel = await firstVisibleLocator([direct, loc]);
         if (!sel || typeof sel.selectOption !== "function") throw new Error(`Could not locate select element for target: ${JSON.stringify(target)}`);
         await sel.selectOption(value || { label: value });
@@ -387,12 +388,19 @@ export async function executeScenarioPlan(
       }
     } catch (error) {
       stepError = redactText(error instanceof Error ? error.message : String(error));
-      overallPassed = false;
-      if (!primaryError) primaryError = `Step ${step.step_number} (${step.name}) failed: ${stepError}`;
-      try {
-        const ref = await saveStepScreenshot(page, evidence, label, step.step_number, "failure", `Failure screenshot for scenario step ${step.step_number}: ${stepError.slice(0, 100)}`);
-        if (ref) shotRefs.set(step.step_number, ref);
-      } catch { /* noop */ }
+      const stepOptions = step.options as Record<string, unknown> | undefined;
+      const isMissingControl = /could not locate|could not find|not found/i.test(stepError);
+      if (stepOptions?.soft === true && isMissingControl) {
+        stepSkipped = true;
+        stepError = "";
+      } else {
+        overallPassed = false;
+        if (!primaryError) primaryError = `Step ${step.step_number} (${step.name}) failed: ${stepError}`;
+        try {
+          const ref = await saveStepScreenshot(page, evidence, label, step.step_number, "failure", `Failure screenshot for scenario step ${step.step_number}: ${stepError.slice(0, 100)}`);
+          if (ref) shotRefs.set(step.step_number, ref);
+        } catch { /* noop */ }
+      }
     }
 
     const durationMs = Date.now() - stepStart;
@@ -400,7 +408,7 @@ export async function executeScenarioPlan(
       step_number: step.step_number,
       name: step.name,
       action: step.action,
-      status: stepError ? "failed" : "passed",
+      status: stepError ? "failed" : stepSkipped ? "skipped" : "passed",
       duration_ms: durationMs,
       error: stepError,
       screenshot_ref: shotRefs.get(step.step_number) ?? "",

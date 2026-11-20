@@ -151,4 +151,94 @@ describe("route-mapped source feature discovery", () => {
       expect(pricing?.auth_required).toBeFalsy();
     });
   });
+
+  it("derives canonical routes from examples.csv and scopes snapshot controls to their page", async () => {
+    await withRouteFixture(async (dir) => {
+      await mkdir(path.join(dir, "spec", "contract", "snapshots"), { recursive: true });
+      await writeFile(
+        path.join(dir, "examples.csv"),
+        [
+          "title,url_path,notes,description",
+          "Autocomplete,/autocomplete,,Search with suggestions",
+          "Custom Dropdown,/custom_dropdown,,ARIA dropdown",
+          "JQuery UI Menus,/jqueryui/menu,,Nested menu",
+          "Basic Auth,/basic_auth,user and pass: admin,Browser auth prompt",
+        ].join("\n"),
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "spec", "contract", "snapshots", "autocomplete.html"),
+        '<input id="autocomplete" type="text" placeholder="Type a fruit" />',
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "spec", "contract", "snapshots", "custom_dropdown.html"),
+        '<div id="fruit-combo" role="combobox" aria-label="Fruit combo">Fruit combo</div>',
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "spec", "contract", "snapshots", "jqueryui_menu.html"),
+        '<button id="menu-item">Item one</button>',
+        "utf8",
+      );
+
+      const inventory = discoverFeatures(dir);
+      const routes = inventory.features.filter((f) => f.kind === "route").map((f) => f.label);
+      expect(routes).toEqual(expect.arrayContaining(["/autocomplete", "/custom_dropdown", "/jqueryui/menu", "/basic_auth"]));
+
+      const autocomplete = inventory.features.find((f) => f.selector_hint === "#autocomplete");
+      expect(autocomplete?.route_hint).toBe("/autocomplete");
+      const fruitCombo = inventory.features.find((f) => f.selector_hint === "#fruit-combo");
+      expect(fruitCombo?.route_hint).toBe("/custom_dropdown");
+      const menuItem = inventory.features.find((f) => f.selector_hint === "#menu-item");
+      expect(menuItem?.route_hint).toBe("/jqueryui/menu");
+
+      expect(inventory.features.some((f) => JSON.stringify(f).includes("user and pass"))).toBe(false);
+      expect(inventory.features.find((f) => f.label === "/basic_auth")?.auth_required).toBe(true);
+    });
+  });
+
+  it("scopes server-rendered catalog and alias views to their owner routes", async () => {
+    await withRouteFixture(async (dir) => {
+      await mkdir(path.join(dir, "views"), { recursive: true });
+      await writeFile(
+        path.join(dir, "examples.csv"),
+        ["title,url_path,notes", "Autocomplete,/autocomplete,", "Upload,/upload,", "Two-Factor,/two_factor,"].join("\n"),
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "views", "examples.erb"),
+        '<a href="/autocomplete">Autocomplete</a><a href="/upload">File Upload</a>',
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "views", "two_factor_code.erb"),
+        '<form id="two-factor-code"><button type="submit">Verify</button></form>',
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "views", "upload_error.erb"),
+        '<a href="/upload">Back to the File Uploader</a>',
+        "utf8",
+      );
+      await writeFile(
+        path.join(dir, "server.rb"),
+        '<a href="/about/">About</a>',
+        "utf8",
+      );
+
+      const inventory = discoverFeatures(dir);
+      const catalogLink = inventory.features.find((f) => f.label === "Autocomplete" && f.source.path === "views/examples.erb");
+      expect(catalogLink?.route_hint).toBe("/autocomplete");
+      expect(catalogLink?.routes).toEqual(["/"]);
+
+      const verify = inventory.features.find((f) => f.label === "Verify");
+      expect(verify?.routes).toEqual(["/two_factor"]);
+
+      const backLink = inventory.features.find((f) => f.label === "Back to the File Uploader");
+      expect(backLink?.routes).toEqual(["/upload"]);
+
+      expect(inventory.features.some((f) => f.source.path === "server.rb")).toBe(false);
+    });
+  });
 });

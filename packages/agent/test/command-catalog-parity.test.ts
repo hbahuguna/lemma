@@ -122,7 +122,7 @@ describe("LEM-095 command-builder and catalog parity", () => {
       "http://localhost:3000",
       "--crawl",
       "--max-pages",
-      "25",
+      "80",
       "--timeout-ms",
       "120000",
     ]);
