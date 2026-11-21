@@ -10,14 +10,20 @@ Run a Lemma **hunt** assessment for: $ARGUMENTS
 
 ## Steps
 1. **Identify target/context**: parse `$ARGUMENTS` for URL(s), paths, scope, and goals. If a reachable `http(s)` URL is provided and relevant, treat it as a live target and also inspect local source in the current workspace.
-2. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run
+2. **Create and show the hunt test plan first**: run
+   ```bash
+   lemma plan --target <TARGET_OR_URL> --intent "Lemma hunt assessment" --command hunt
+   ```
+   Present the comprehensive hunt plan (objective, preconditions, steps, expected results, automation status, and coverage gaps) before executing checks.
+3. **Execute the plan**: run the selected command(s) and reconcile each plan scenario with observed results.
+4. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run
    ```bash
    lemma browser <URL>
    ```
    from the target workspace in a **headed/visible browser** (never `--headless`, never `--no-browser`; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.
-3. **Inspect project source/config/artifacts** relevant to **hunt**: use available tools to read and search code, configs, tests, CI, docs, and existing `.lemma/` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).
-4. **Assess and report**: provide a structured assessment covering findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **hunt** intent based on what can be observed.
-5. **Optional CLI status** (if prior runs exist):
+5. **Inspect project source/config/artifacts** relevant to **hunt**: use available tools to read and search code, configs, tests, CI, docs, and existing `.lemma/` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).
+6. **Assess and report**: show the plan first, then a per-scenario result table from the final JSON `test_plan`, followed by findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **hunt** intent based on what can be observed.
+7. **Optional CLI status** (if prior runs exist):
    ```bash
    lemma status --root .
    lemma report --root .

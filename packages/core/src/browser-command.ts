@@ -5,6 +5,7 @@ import { EvidenceStore } from "./evidence.js";
 import { StateError } from "./errors.js";
 import { atomicWriteJson, ensureDir } from "./state.js";
 import { normalizeTarget, type Target } from "./models.js";
+import { buildTestPlan, finalizeTestPlan, checksFromObservations } from "./test-plan.js";
 
 export interface RunBrowserInspectionParams {
   target: Target | string | Record<string, unknown>;
@@ -30,6 +31,8 @@ export interface BrowserInspectionCommandResult {
   evidence_dir: string;
   evidence_manifest?: string;
   summary: Record<string, unknown>;
+  /** Deterministic intent-specific plan created before execution and linked to results. */
+  test_plan: ReturnType<typeof buildTestPlan>;
   deterministic: { fix_prompts: "check-derived" };
 }
 
@@ -39,6 +42,14 @@ export async function runBrowserInspection(params: RunBrowserInspectionParams): 
   const target = normalizeTarget(params.target as any) as any;
   const evidence = new EvidenceStore(root, runId);
   await evidence.init();
+
+  // Created in the Test Planning phase, before any browser runtime is started.
+  const testPlan = buildTestPlan({
+    intent: "Lemma browser assessment",
+    target,
+    inventory: (params.options?.sourceDir ? { root: String(params.options.sourceDir) } : {}) as Record<string, unknown>,
+    command: "browser",
+  });
 
   let browserMod: any;
   try {
@@ -75,6 +86,7 @@ export async function runBrowserInspection(params: RunBrowserInspectionParams): 
       observations: obs,
       evidence_dir: `.lemma/evidence/${runId}`,
       summary: { total: obs.length, passed: 0, failed: 0, blocked: obs.length, errored: 0 },
+      test_plan: finalizeTestPlan(testPlan, checksFromObservations(obs)),
       deterministic: { fix_prompts: "check-derived" },
     };
     // persist durable inspection result under evidence/<run_id>/browser/
@@ -103,10 +115,14 @@ export async function runBrowserInspection(params: RunBrowserInspectionParams): 
   // persist durable evidence under .lemma/evidence/<run_id>/browser/
   const browserDir = path.join(root, ".lemma", "evidence", runId, "browser");
   await ensureDir(browserDir);
+  const observations = Array.isArray(inspection?.observations)
+    ? inspection.observations as Array<Record<string, unknown>>
+    : [];
   const out: BrowserInspectionCommandResult = {
     ...inspection,
     run_id: runId,
     evidence_dir: `.lemma/evidence/${runId}/browser`,
+    test_plan: finalizeTestPlan(testPlan, checksFromObservations(observations)),
   };
   await atomicWriteJson(path.join(browserDir, "inspection.json"), out);
   // also checkpoint evidence manifest if supported

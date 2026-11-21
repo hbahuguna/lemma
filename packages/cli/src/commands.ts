@@ -29,9 +29,15 @@ import {
   buildJunit,
   buildReport,
   buildSarif,
+  buildTestPlan,
+  checkOwnership,
   lintPersonas,
   loadPersonas,
   normalizeTarget,
+  planChecks,
+  analyzeRisk,
+  SourceInspector,
+  getMaxInventoryFiles,
   now as coreNow,
   runBugHunt,
   scaffoldPersona,
@@ -269,6 +275,7 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
   }
   const root = path.resolve(getString(flags, "root") ?? ".");
   const intent = getString(flags, "intent", "i") ?? "Assess release readiness of the target.";
+  const command = getString(flags, "command") ?? "";
   const resume = getBool(flags, "resume");
   const quiet = getBool(flags, "quiet");
   const maxChecksStr = getString(flags, "max-checks");
@@ -313,6 +320,7 @@ export const runCommand: CliCommandHandler = async (argv, io) => {
     maxChecks,
     resume,
     runSize,
+    ...(command ? { options: { command } } : {}),
     ...(resolvedPersonasDir ? { personasDir: resolvedPersonasDir } : {}),
     ...(getBool(flags, "no-browser") ? { noBrowser: true } : {}),
     ...(seed !== undefined ? { seed } : {}),
@@ -1422,6 +1430,79 @@ export const autoCommand: CliCommandHandler = async (argv) => {
 };
 
 
+/**
+ * Produce the deterministic, intent-specific test plan without executing checks.
+ * Plugin commands show this plan first, then run the intent's real command.
+ */
+export const planCommand: CliCommandHandler = async (argv) => {
+  const { flags } = parseArgs(argv);
+  const targetRaw = getString(flags, "target", "t", "url") ?? "";
+  if (!targetRaw) throw new CliUsageError("Missing required --target", { flag: "target" });
+  const root = path.resolve(getString(flags, "root") ?? process.cwd());
+  const intent = getString(flags, "intent", "i") ?? "Assess release readiness of the target.";
+  const command = getString(flags, "command") ?? "";
+  const sourceRaw = getString(flags, "source", "source-dir", "sourceDir");
+  const target = normalizeTarget(normalizeCliTarget(targetRaw));
+  const sourceRoot = sourceRaw
+    ? path.resolve(root, sourceRaw)
+    : target.kind === "url"
+      ? root
+      : path.resolve(target.resolved || root);
+  let inventory: Record<string, unknown> = { available: false, root: sourceRoot, files: [] };
+  try {
+    inventory = new SourceInspector(sourceRoot, { maxFiles: getMaxInventoryFiles() }).discover() as unknown as Record<string, unknown>;
+  } catch {
+    // Source absence is a coverage fact, not a reason to fail planning.
+  }
+  const personasDirArg = getString(flags, "personas-dir");
+  const resolvedPersonasDir = resolvePersonasDir(root, personasDirArg);
+  let personas: Awaited<ReturnType<typeof loadPersonas>> = [];
+  try {
+    if (resolvedPersonasDir) personas = await loadPersonas(resolvedPersonasDir, { requireMinimum: 0 } as any);
+  } catch {
+    personas = [];
+  }
+  let ownership: Record<string, string[]> = {};
+  try {
+    ownership = personas.length ? checkOwnership(personas as any) : {};
+  } catch {
+    ownership = {};
+  }
+  const noBrowser = getBool(flags, "no-browser") || target.kind !== "url";
+  const maxChecksStr = getString(flags, "max-checks");
+  const maxChecks = maxChecksStr !== undefined ? toInt(maxChecksStr, "--max-checks") : 100;
+  let checks: ReturnType<typeof planChecks> = [];
+  try {
+    checks = planChecks({
+      target,
+      inventory,
+      selectedPersonas: personas.map((p) => p.id),
+      ownership,
+      maxChecks,
+      noBrowser,
+      intent,
+    });
+  } catch {
+    checks = [];
+  }
+  let risks: ReturnType<typeof analyzeRisk> = [];
+  try {
+    risks = analyzeRisk(target, intent, inventory, !noBrowser);
+  } catch {
+    risks = [];
+  }
+  return {
+    stdoutJson: buildTestPlan({
+      intent,
+      target,
+      inventory,
+      checks,
+      risks,
+      ...(command ? { command } : {}),
+    }),
+  };
+};
+
 export const browserCommand: CliCommandHandler = async (argv) => {
   const { flags, positionals } = parseArgs(argv);
   const root = path.resolve(getString(flags, "root") ?? process.cwd());
@@ -1735,6 +1816,7 @@ export const doctorCommand: CliCommandHandler = async (argv) => {
 export function coreCommandSpecs(): CliCommandSpec[] {
   return [
     { name: "run", description: "Run the release-confidence workflow.", handler: runCommand },
+    { name: "plan", description: "Create the deterministic intent-specific test plan without executing checks.", handler: planCommand },
     { name: "mcp", description: "Serve Lemma MCP tools over stdio JSON-RPC.", handler: mcpCommand },
     { name: "status", description: "Print persisted run state or history.", handler: statusCommand },
     { name: "more", description: "Continue a bounded run with the next deferred checks (same run).", handler: moreCommand },

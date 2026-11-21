@@ -5,6 +5,7 @@
 
 export const SUBCOMMANDS = new Set([
   "run",
+  "plan",
   "status",
   "report",
   "abort",

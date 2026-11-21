@@ -24,7 +24,7 @@ const PROMPT_INPUT = {
     "--personas-dir",
     "/repo/personas",
     "--intent",
-    "Assay browser assessment",
+    "Lemma browser assessment",
     "--crawl",
     "--max-pages",
     "8",
@@ -44,7 +44,8 @@ describe("LEM-096 agent-loop and prompt-contract tests", () => {
 
     const prompt = buildBrowserAgentPrompt(PROMPT_INPUT);
     expect(prompt).toMatch(/https:\/\/testradius\.dev/);
-    expect(prompt).toMatch(/python3\.11 -P -m harness/);
+    expect(prompt).toMatch(/'lemma' 'plan'/);
+    expect(prompt).toMatch(/'lemma' 'browser'/);
     expect(prompt).toMatch(/--crawl/);
     expect(prompt).toMatch(/--max-pages/);
     expect(prompt).toMatch(/--mobile/);

@@ -741,6 +741,26 @@ export function summarizeRunOutput(output: string): string {
   return lines.join("\n");
 }
 
+export function extractTestPlanSummary(output: string): string | null {
+  const report = parseHarnessJsonOutput(output);
+  const plan = report?.test_plan;
+  if (!isRecord(plan) || !Array.isArray(plan.scenarios)) return null;
+  const title = typeof plan.title === "string" ? plan.title : "Comprehensive test plan";
+  const objective = typeof plan.objective === "string" ? plan.objective : "";
+  const lines = [`${title}${objective ? `\n${objective}` : ""}`];
+  for (const raw of plan.scenarios) {
+    if (!isRecord(raw)) continue;
+    const id = typeof raw.id === "string" ? raw.id : "scenario";
+    const scenarioTitle = typeof raw.title === "string" ? raw.title : id;
+    const result = isRecord(raw.result) ? raw.result : null;
+    const status = result && typeof result.status === "string" ? result.status : "planned";
+    const evidence = result && Array.isArray(result.evidence) ? result.evidence.length : 0;
+    const detail = result && typeof result.coverage_gap_reason === "string" ? result.coverage_gap_reason : "";
+    lines.push(`- [${status}] ${id}: ${redactTranscriptText(scenarioTitle)} (evidence=${evidence})${detail ? ` — ${redactTranscriptText(detail)}` : ""}`);
+  }
+  return lines.join("\n");
+}
+
 export function buildExecutionSummary(state: AgentState): string {
   const runIds = Array.isArray(state.runIds) ? state.runIds : [];
   const runSummaries = Array.isArray(state.runSummaries) ? state.runSummaries : [];
@@ -1209,6 +1229,10 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
       state.executedCommands = [...executed];
       const output = await deps.runHarness(initialArgs, options.initialEnv);
       state.currentReport = output;
+      const deterministicPlan = extractTestPlanSummary(output);
+      if (deterministicPlan && (!state.testPlan || state.testPlan.startsWith("Slash command"))) {
+        state.testPlan = deterministicPlan;
+      }
       for (const id of extractRunIds(output)) if (!state.runIds.includes(id)) state.runIds.push(id);
       state.runSummaries.push(`Command: ${initialArgs.join(" ")}\n${summarizeRunOutput(output)}`);
     } else {
@@ -1327,6 +1351,8 @@ export async function runStrictJudgeLoop(options: AgentOptions, deps: AgentDeps)
     state.executedCommands = [...executed];
     const output = await deps.runHarness(invocation.args, invocation.env);
     state.currentReport = output;
+    const deterministicPlan = extractTestPlanSummary(output);
+    if (deterministicPlan && !state.testPlan) state.testPlan = deterministicPlan;
     for (const id of extractRunIds(output)) if (!state.runIds.includes(id)) state.runIds.push(id);
     state.runSummaries.push(`Command: ${cmd}\n${summarizeRunOutput(output)}`);
     state.iteration += 1;

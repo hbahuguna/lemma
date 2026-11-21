@@ -158,6 +158,24 @@
       "additionalProperties": true
     },
     "checks": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+    "test_plan": {
+      "type": "object",
+      "required": ["schema_version", "intent", "label", "profile", "title", "objective", "target", "source_facts", "scope_notes", "scenarios", "summary"],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "intent": { "type": "string" },
+        "label": { "type": "string" },
+        "profile": { "type": "string" },
+        "title": { "type": "string" },
+        "objective": { "type": "string" },
+        "target": { "type": "object", "additionalProperties": true },
+        "source_facts": { "type": "object", "additionalProperties": true },
+        "scope_notes": { "type": "array", "items": { "type": "string" } },
+        "scenarios": { "type": "array", "items": { "type": "object", "additionalProperties": true } },
+        "summary": { "type": "object", "additionalProperties": true }
+      },
+      "additionalProperties": true
+    },
     "coverage": {
       "type": "object",
       "required": [

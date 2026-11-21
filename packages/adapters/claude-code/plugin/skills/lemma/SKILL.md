@@ -10,6 +10,7 @@ Use Lemma to run deterministic, evidence-backed quality/release assessments. The
 ## Commands and modes
 - Primary CLI: `lemma` (JSON report to stdout for `run`; progress/warnings to stderr).
 - Personas dir (configurable): `<personas-dir>`.
+- All catalog commands are plan-first: run `lemma plan --target <target> --intent "<Lemma label assessment>" --command <label>` and show its comprehensive, intent-specific test plan before executing. The final report must contain that plan plus per-scenario results from `test_plan`.
 - Catalog assessments: 60 Lemma commands.
   - `lemma-browser`: live browser assessment, requires `http(s)` URL.
   - `lemma-demo`: static when no URL, live browser when URL provided.

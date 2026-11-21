@@ -481,6 +481,7 @@ export interface RunStateDomain {
   run_size: string;
   perspectives_count: number;
   coverage_notes: string[];
+  test_plan?: unknown;
 }
 
 export function createRunState(input: {
@@ -562,6 +563,7 @@ export function normalizeRunState(data: unknown): RunStateDomain {
     run_size: (runSizeRaw || "medium").toLowerCase(),
     perspectives_count: typeof perspectivesRaw === "number" && Number.isFinite(perspectivesRaw) ? perspectivesRaw : ({quick:2,medium:4,large:6} as any)[(runSizeRaw || "medium").toLowerCase()] ?? 4,
     coverage_notes: Array.isArray((d as any).coverage_notes) ? (d as any).coverage_notes.filter((x: any) => typeof x === "string") : [],
+    ...((d as any).test_plan !== undefined ? { test_plan: (d as any).test_plan } : {}),
   };
 }
 

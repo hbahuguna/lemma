@@ -192,6 +192,12 @@ describe("LEM-020 report builder and schema validation", () => {
     const state = baseState({ options: { policy: { id: "advisory-v1", version: "1.0" }, metering: { event_count: 5, event_types: { run_started: 1 }, sink: ".harness/metering/events.jsonl", workspace: "local", schema_version: "quality-harness.metering/v1" }, trend: { baseline: true, previous_run_id: null, new: [], resolved: [], persistent: [], score_delta: 0, coverage_delta: 0 } } });
     const report = buildReport(state, workflow(), { artifacts: 2, manifest: "ok" }, "2026-01-01T00:10:00Z");
     expect(report.schema_version).toBe(REPORT_SCHEMA);
+    expect(report.test_plan).toMatchObject({
+      schema_version: "lemma.test_plan/v1",
+      title: expect.stringContaining("Comprehensive"),
+      summary: expect.objectContaining({ total: expect.any(Number), coverage_gaps: expect.any(Number) }),
+    });
+    expect(Array.isArray((report.test_plan as { scenarios?: unknown[] }).scenarios)).toBe(true);
     expect(report.generated_at).toBe("2026-01-01T00:10:00Z");
     expect(report.determinism).toEqual({ seed: 7, clock_mode: "injected", entropy: "seeded" });
     expect(report.workflow).toEqual({ id: "software", name: "Software", version: "1.0", phases: ["risk_analysis", "test_planning", "execution", "evidence_collection", "confidence_scoring"] });

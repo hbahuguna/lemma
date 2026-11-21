@@ -72,6 +72,25 @@ describe("LEM-084 core CLI commands", () => {
     });
   });
 
+  it("plan emits an intent-specific comprehensive plan before execution", async () => {
+    await withTempDir(async (root) => {
+      const { io, stdout } = makeIo();
+      const code = await main([
+        "plan", "--target", root, "--root", root,
+        "--intent", "Lemma security assessment", "--command", "security",
+      ], io);
+      expect(code).toBe(EXIT_CODES.pass);
+      const plan = asObj(parseSingleJson(stdout));
+      expect(plan.schema_version).toBe("lemma.test_plan/v1");
+      expect(plan.label).toBe("security");
+      expect(plan.profile).toBe("security");
+      expect(plan.title).toBe("Comprehensive security test plan");
+      expect(Array.isArray(plan.scenarios)).toBe(true);
+      expect((plan.scenarios as unknown[]).length).toBeGreaterThan(5);
+      expect(asObj(plan.summary).executed).toBe(0);
+    });
+  });
+
   it("run emits JSON report to stdout, can write --output, and status/report/abort/prune operate on state", async () => {
     await withTempDir(async (root) => {
       const outPath = path.join(root, "report-out.json");
@@ -88,6 +107,8 @@ describe("LEM-084 core CLI commands", () => {
       expect(runStderr).toContain("[lemma]");
       const report = asObj(parseSingleJson(runIo.stdout));
       expect(report.schema_version).toBe("quality-harness.report/v1");
+      expect(asObj(report.test_plan).schema_version).toBe("lemma.test_plan/v1");
+      expect(Array.isArray(asObj(report.test_plan).scenarios)).toBe(true);
       expect(typeof report.run_id).toBe("string");
       expect((report.run_id as string).length).toBeGreaterThan(0);
       const target = asObj(report.target);

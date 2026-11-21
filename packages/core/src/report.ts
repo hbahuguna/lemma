@@ -12,6 +12,7 @@ import {
   type Finding,
   type RunStateDomain,
 } from "./models.js";
+import { buildTestPlan, finalizeTestPlan, type TestPlan } from "./test-plan.js";
 import type { Workflow } from "./workflows.js";
 
 export const REPORT_SCHEMA = "quality-harness.report/v1" as const;
@@ -155,6 +156,20 @@ function readPromotedRegressionsSync(state: RunStateDomain): Array<Record<string
     }
   } catch { /* ignore */ }
   return [];
+}
+
+function resolveTestPlan(state: RunStateDomain): TestPlan {
+  const candidate = state.test_plan;
+  if (candidate && typeof candidate === "object" && !Array.isArray(candidate) && Array.isArray((candidate as TestPlan).scenarios)) {
+    return candidate as TestPlan;
+  }
+  return buildTestPlan({
+    intent: state.intent ?? "",
+    target: state.target,
+    inventory: state.inventory,
+    checks: state.checks,
+    risks: state.risks ?? [],
+  });
 }
 
 export function buildReport(
@@ -326,6 +341,7 @@ export function buildReport(
       degraded_personas: [...(state.degraded_personas ?? [])],
     },
     checks,
+    test_plan: finalizeTestPlan(resolveTestPlan(state), state.checks, state.findings),
     coverage: coverage(state),
     risks: state.risks.map((r) => ({ ...r })),
     personas,

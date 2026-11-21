@@ -6,6 +6,7 @@ import { planChecks } from "./checks.js";
 import { normalizeTarget, CheckStatus, type Check, type Finding, type RunStateDomain } from "./models.js";
 import { checkOwnership, loadPersonas, type Persona } from "./personas.js";
 import { analyzeRisk } from "./risk.js";
+import { buildTestPlan } from "./test-plan.js";
 import { scoreConfidence } from "./scoring.js";
 import { SourceInspector, StaticCheckRunner, getMaxInventoryFiles, type InventoryData } from "./static.js";
 import type { PhaseHandlerContext, PhaseHandlers } from "./orchestrator.js";
@@ -125,8 +126,26 @@ export function createDefaultPhaseHandlers(options: DefaultPhaseHandlersOptions 
         ctx.phase.summary = `Test planning completed with limitations: ${e instanceof Error ? e.message : String(e)}`;
       }
       ctx.state.checks = planned.map((c) => ({ ...c, status: c.status || "planned" })) as any;
-      ctx.phase.details = { planned_checks: ctx.state.checks.length, personas_loaded: personas.length };
-      if (!ctx.phase.summary) ctx.phase.summary = `Planned ${ctx.state.checks.length} check(s) from ${personas.length} persona(s)`;
+      const testPlan = buildTestPlan({
+        intent: ctx.options.intent ?? ctx.state.intent ?? "",
+        target: ctx.state.target as any,
+        inventory: inventory as unknown as Record<string, unknown>,
+        checks: ctx.state.checks,
+        risks: (ctx.state as any).risks ?? [],
+        command: typeof (ctx.options as any).command === "string"
+          ? (ctx.options as any).command
+          : typeof (ctx.options.options as any)?.command === "string"
+            ? (ctx.options.options as any).command
+            : undefined,
+      });
+      (ctx.state as any).test_plan = testPlan;
+      ctx.phase.details = {
+        planned_checks: ctx.state.checks.length,
+        personas_loaded: personas.length,
+        test_plan_profile: testPlan.profile,
+        test_plan_scenarios: testPlan.scenarios.length,
+      };
+      if (!ctx.phase.summary) ctx.phase.summary = `Planned ${ctx.state.checks.length} check(s) and ${testPlan.scenarios.length} test scenario(s) from ${personas.length} persona(s)`;
     },
 
     async execution(ctx: PhaseHandlerContext) {

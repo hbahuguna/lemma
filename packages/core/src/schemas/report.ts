@@ -121,6 +121,22 @@ export const EvidenceRefSchema = z
   })
   .passthrough();
 
+export const TestPlanSchema = z
+  .object({
+    schema_version: z.string(),
+    intent: z.string(),
+    label: z.string(),
+    profile: z.string(),
+    title: z.string(),
+    objective: z.string(),
+    target: JsonObjectSchema,
+    source_facts: JsonObjectSchema,
+    scope_notes: z.array(z.string()),
+    scenarios: z.array(JsonObjectSchema),
+    summary: JsonObjectSchema,
+  })
+  .passthrough();
+
 export const ContractFailuresSchema = z
   .object({
     total: z.number().int(),
@@ -150,6 +166,7 @@ export const ReportV1Schema = z
     blockers: z.array(BlockerSchema),
     contract_failures: ContractFailuresSchema,
     checks: z.array(CheckResultSchema),
+    test_plan: TestPlanSchema.optional(),
     coverage: z.record(z.unknown()),
     risks: z.array(RiskSchema),
     personas: z.array(PersonaResultSchema),

@@ -83,3 +83,4 @@ export * from "./browser-adapter.js";
 export * from "./api-coverage.js";
 export * from "./continuous.js";
 export * from "./project-state.js";
+export * from "./test-plan.js";

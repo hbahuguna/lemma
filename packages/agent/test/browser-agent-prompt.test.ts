@@ -11,7 +11,7 @@ const INPUT = {
     "--personas-dir",
     "/repo/personas",
     "--intent",
-    "Assay browser assessment",
+    "Lemma browser assessment",
     "--crawl",
     "--max-pages",
     "8",
@@ -33,7 +33,8 @@ describe("browser agent prompt (context gathering removed)", () => {
   it("browser agent prompt embeds target, command, and invariants without context gathering", () => {
     const prompt = buildBrowserAgentPrompt(INPUT);
     expect(prompt).toMatch(/https:\/\/testradius\.dev/);
-    expect(prompt).toMatch(/python3\.11 -P -m harness/);
+    expect(prompt).toMatch(/'lemma' 'plan'/);
+    expect(prompt).toMatch(/'lemma' 'browser'/);
     expect(prompt).toMatch(/--crawl/);
     expect(prompt).toMatch(/--max-pages/);
     expect(prompt).toMatch(/--mobile/);

@@ -84,6 +84,8 @@ Top-level commands available in this build include:
 | Command | Purpose |
 | --- | --- |
 | `run` | Run the release-confidence workflow and emit report JSON |
+| `plan` | Emit the deterministic, intent-specific test plan before execution |
+| `browser` | Run a headed, source-derived browser regression and emit JSON |
 | `status` | Print persisted run state/history summary |
 | `report` | Print the latest saved report |
 | `abort` | Request a manual kill of the current run |
@@ -105,7 +107,9 @@ contracts, agent loop/context/catalog semantics, and implementation pointers.
 - **Evidence:** per-run artifacts under `.lemma/evidence/<run_id>/` with hashed
   manifests and verification support (`verify-evidence`)
 - **Report contract:** machine-readable JSON report emitted by `lemma run`
-  (schema/contract coverage in `schemas/` and core report builders/validation)
+  (schema/contract coverage in `schemas/` and core report builders/validation).
+  Reports and `lemma browser` results include `test_plan`: the deterministic
+  intent-specific plan created in Test Planning plus per-scenario results.
 - **Decision semantics:** completed runs produce inspectable confidence/decision
   data; halted/failed/coverage-gapped conditions are represented honestly
   (coverage gaps never become passes, halted runs hold)

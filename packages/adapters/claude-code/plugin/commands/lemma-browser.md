@@ -4,8 +4,16 @@ description: Run long-running comprehensive Lemma browser regression (requires a
 
 Run a **long-running, comprehensive, agent-driven full browser regression** for: $ARGUMENTS
 
-## Immediate first action (do not skip)
-- **Start now by executing** the Lemma browser CLI against the provided URL to open/capture the browser and collect evidence (do not only plan).
+## Step 1 — create and show the browser test plan first (do not skip)
+- **Create the deterministic browser test plan before any execution** and show it to the user. Run:
+  ```bash
+  lemma plan --target <URL> --intent "Lemma browser assessment" --command browser
+  ```
+- The plan must cover route discovery, navigation, page content, source-backed clicks/form fills/selects/toggles/sliders/scrolls, console/network classification, links/new-tab safety, responsive/focus behavior, auth/destructive gaps, and hashed evidence integrity.
+- Present the plan as a prioritized checklist with objective, preconditions, steps, expected result, automation status, and explicit coverage gaps. Do not execute the browser regression until the plan has been shown.
+
+## Step 2 — execute the planned browser regression once
+- **Start the planned execution** by running the Lemma browser CLI against the provided URL to open/capture the browser and collect evidence.
 - Run in a **headed/visible browser at all times** (never use `--headless`, never use `--no-browser`).
 - The CLI reference below is concrete and executable in this environment; run it as-is (replace `<URL>` with the URL from `$ARGUMENTS`).
 - **Do not substitute** `lemma run`, `lemma hunt`, or any other subcommand. `/lemma-browser` must call the `browser` subcommand; only `lemma browser` executes the headed browser regression with clicks, form fills, toggles, scrolls, and navigation.
@@ -21,9 +29,10 @@ Run a **long-running, comprehensive, agent-driven full browser regression** for:
 - Crawl all reachable same-origin pages/routes (nav, footer, docs/help, forms, modals, and key user journeys). **Do not stop at the homepage**.
 - If the target source repo/workspace is available locally, inspect it first (routes, components, configs, feature flags, forms, auth/API flows, docs/tests) to build a complete feature inventory and map features to browser scenarios.
 
-## Test planning (before/during execution)
-- Produce a comprehensive, prioritized test plan covering all discovered features (landing/content, navigation, auth/signup/login/logout/reset if present, core workflows, forms/validation, search/filter/sort/pagination, CRUD actions, uploads/downloads, settings/profile, dashboards/reports, notifications/toasts, modals/dialogs, tabs/accordions/dropdowns/toggles, responsive/mobile behavior, error/empty states, and discoverable integrations).
-- For each feature/scenario include: goal, preconditions/test data, steps, expected result, and whether automatable now. Mark auth-gated/destructive/environment-dependent/not-automatable cases as explicit coverage gaps (never guess, never pass).
+## Test planning contract
+- The CLI creates the plan deterministically in the fixed Test Planning phase before Execution; never hand-write results or let a model set status, evidence, or confidence.
+- Enrich the plan from local source and live discovery, but preserve its scenarios: landing/content, navigation, auth/signup/login/logout/reset if present, core workflows, forms/validation, search/filter/sort/pagination, CRUD actions, uploads/downloads, settings/profile, dashboards/reports, notifications/toasts, modals/dialogs, tabs/accordions/dropdowns/toggles, responsive/mobile behavior, error/empty states, and discoverable integrations.
+- Each scenario includes objective, preconditions/test data, steps, expected result, automation status, linked check IDs, and explicit coverage gaps. Auth-gated/destructive/environment-dependent/not-automatable cases are gaps (never guesses, never passes).
 
 ## Execution (maximize automated coverage and runtime)
 - Run thorough, long browser passes in a **headed/visible browser at all times** (never `--headless`, never `--no-browser`). Use crawl/multi-page coverage and repeat across key routes/viewports where useful.
@@ -45,5 +54,6 @@ Run a **long-running, comprehensive, agent-driven full browser regression** for:
 - Never persist or echo secrets/credentials/tokens.
 
 ## Reporting
-- Return an evidence-backed regression report: feature inventory, executed checks/scenarios and status per page/route, findings (severity, repro, impacted feature/page, evidence paths), console/network error summary, coverage summary (tested vs blocked vs not automatable), total pages/routes checked, run IDs, and `.lemma/evidence/<run_id>/` locations.
+- Return an evidence-backed regression report that starts with the comprehensive browser test plan, then a result table for every scenario (status, linked checks, evidence paths, findings, and gap reason), followed by the feature inventory, findings, console/network summary, coverage totals, pages/routes checked, run IDs, and `.lemma/evidence/<run_id>/` locations.
+- Read `test_plan` from the final browser JSON; do not invent or omit scenarios. Show blocked/skipped/errored/coverage-gap scenarios as gaps, never passes.
 - Personas dir (if needed): `<personas-dir>`. Intent: `Lemma browser assessment`.

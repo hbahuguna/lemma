@@ -51,6 +51,29 @@ example:
 Use `/lemma:<command>` for all 60 catalog commands plus the five operational
 commands. Claude Code prefixes every plugin component with `lemma:`.
 
+## Plan-first reports
+
+Every command is plan-first. The command template makes the agent create and
+show an intent-specific plan before execution, then execute once, then report
+the plan with per-scenario results:
+
+```bash
+# Browser command: comprehensive browser plan, then headed crawl
+lemma plan --target https://example.test --intent "Lemma browser assessment" --command browser
+lemma browser https://example.test --crawl --max-pages 80 --timeout-ms 120000
+
+# Security command: comprehensive security plan, then the intent run
+lemma plan --target . --intent "Lemma security assessment" --command security
+lemma run --target . --no-browser --personas-dir ./personas --intent "Lemma security assessment"
+```
+
+`/lemma:lemma-browser <URL>` and `/lemma:lemma-security <URL|path>` follow this
+contract. The final JSON contains `test_plan` with `title`, `objective`,
+`scenarios`, per-scenario `result` (status, linked checks, evidence, findings,
+gap reason), and `summary`. Blocked, skipped, errored, and unlinked scenarios
+are reported as coverage gaps, never passes. The final human report must show
+the plan first and then the result table from `test_plan`.
+
 The `bin/` launcher is a Claude Code CLI feature; Claude.ai and Cowork do not
 install plugins that contain an executable `bin/` directory. Those hosts can
 use the legacy loose-file install with an explicitly configured CLI instead.

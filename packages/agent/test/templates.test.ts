@@ -19,6 +19,11 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     expect(browser?.markdown).toContain("Require a reachable `http(s)` URL");
     expect(browser?.markdown).toContain("Do not substitute");
     expect(browser?.markdown).toContain("lemma browser <URL>");
+    expect(browser?.markdown).toContain("lemma plan --target <URL>");
+    expect(browser?.markdown).toContain("--command browser");
+    expect(browser?.markdown).toContain("test_plan");
+    expect(browser?.markdown).toContain("Step 1");
+    expect(browser?.markdown).toContain("Step 2");
     expect(browser?.markdown).not.toContain("Context gathering");
     expect(browser?.markdown).not.toContain("context protocol");
     expect(browser?.markdown).not.toContain("/Users/");
@@ -29,11 +34,16 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     expect(demo?.markdown).toContain("static");
     expect(demo?.markdown).toContain("live browser");
     expect(demo?.markdown).toContain("--no-browser");
+    expect(demo?.markdown).toContain("lemma plan --target <TARGET_OR_URL>");
+    expect(demo?.markdown).toContain("--command demo");
 
     const security = renderCatalogCommandTemplate("assay-security", { cli: "lemma", personasDir: "./personas" });
     expect(security?.kind).toBe("static");
     expect(security?.markdown).toContain("Run a Lemma **security** assessment");
     expect(security?.markdown).toContain("lemma browser <URL>");
+    expect(security?.markdown).toContain("lemma plan --target <TARGET_OR_URL>");
+    expect(security?.markdown).toContain("--command security");
+    expect(security?.markdown).toContain("test_plan");
     expect(security?.markdown).not.toContain("Context gathering");
     expect(security?.markdown).not.toContain("context protocol");
   });
@@ -64,6 +74,8 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     const skill = renderLemmaSkillTemplate({ cli: "lemma", personasDir: "./personas" });
     expect(skill).toContain("name: lemma");
     expect(skill).toContain("60 Lemma commands");
+    expect(skill).toContain("lemma plan --target <target>");
+    expect(skill).toContain("per-scenario results from `test_plan`");
     expect(skill).not.toContain("Context protocol");
     expect(skill).not.toContain("Context gathering");
     expect(skill).toContain("Deterministic harness owns execution, evidence, and scoring");

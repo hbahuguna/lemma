@@ -78,6 +78,7 @@ describe("LEM-014 check catalog, registry, and intent planning", () => {
     expect(isTestCategoryIntent("assay test assessment")).toBe(true);
     expect(isFunctionalityCategoryIntent("functionality category assessment")).toBe(true);
     expect(isBrowserCategoryIntent("assay browser assessment")).toBe(true);
+    expect(isBrowserCategoryIntent("lemma browser assessment")).toBe(true);
     expect(isIssuesCategoryIntent("issues category assessment")).toBe(true);
     expect(isDemoCategoryIntent("assay demo assessment")).toBe(true);
     expect(isMoreCategoryIntent("assay more assessment")).toBe(true);

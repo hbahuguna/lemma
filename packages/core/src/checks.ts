@@ -144,6 +144,7 @@ function normIntent(intent: string): string {
 function matchesAssayLabelIntent(textLower: string, label: string): boolean {
   const phrase = `assay ${label} assessment`;
   if (textLower.includes(phrase)) return true;
+  if (textLower.includes(`lemma ${label} assessment`)) return true;
   if (textLower.includes(`${label} category assessment`)) return true;
   return false;
 }
