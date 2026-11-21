@@ -40,12 +40,29 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     const security = renderCatalogCommandTemplate("assay-security", { cli: "lemma", personasDir: "./personas" });
     expect(security?.kind).toBe("static");
     expect(security?.markdown).toContain("Run a Lemma **security** assessment");
-    expect(security?.markdown).toContain("lemma browser <URL>");
+    expect(security?.markdown).toContain(
+      "lemma browser <URL> --no-crawl --check browser.security --check browser.links",
+    );
     expect(security?.markdown).toContain("lemma plan --target <TARGET_OR_URL>");
     expect(security?.markdown).toContain("--command security");
     expect(security?.markdown).toContain("test_plan");
     expect(security?.markdown).not.toContain("Context gathering");
     expect(security?.markdown).not.toContain("context protocol");
+  });
+
+  it("bounds security browser evidence without widening other static intents", () => {
+    const security = renderCatalogCommandTemplate("assay-security", { cli: "lemma", personasDir: "./personas" });
+    expect(security?.markdown).not.toMatch(/^ {3}lemma browser <URL>\s*$/m);
+    expect(security?.markdown).not.toContain("lemma browser <URL> --crawl --max-pages 80");
+    expect(security?.markdown).toContain("Do **not** run a crawl");
+    expect(security?.markdown).toContain("full route/feature coverage belongs to `/lemma-browser`");
+
+    const usability = renderCatalogCommandTemplate("assay-usability", { cli: "lemma", personasDir: "./personas" });
+    expect(usability?.markdown).toMatch(/^ {3}lemma browser <URL>\s*$/m);
+    expect(usability?.markdown).not.toContain("--check browser.security");
+
+    const browser = renderCatalogCommandTemplate("assay-browser", { cli: "lemma", personasDir: "./personas" });
+    expect(browser?.markdown).toContain("lemma browser <URL> --crawl --max-pages 80 --timeout-ms 120000");
   });
 
   it("renders key operational command templates", () => {
@@ -74,6 +91,7 @@ describe("LEM-106 shared prompt/skill/command templates", () => {
     const skill = renderLemmaSkillTemplate({ cli: "lemma", personasDir: "./personas" });
     expect(skill).toContain("name: lemma");
     expect(skill).toContain("60 Lemma commands");
+    expect(skill).toContain("--no-crawl --check browser.security --check browser.links");
     expect(skill).toContain("lemma plan --target <target>");
     expect(skill).toContain("per-scenario results from `test_plan`");
     expect(skill).not.toContain("Context protocol");

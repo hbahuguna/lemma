@@ -65,6 +65,11 @@ describe("LEM-107 install command", () => {
       const demo = await readFile(path.join(commandsDir, "lemma-demo.md"), "utf8");
       expect(demo).toContain("static");
       expect(demo).toContain("live browser");
+      const security = await readFile(path.join(commandsDir, "lemma-security.md"), "utf8");
+      expect(security).toContain(
+        "lemma browser <URL> --no-crawl --check browser.security --check browser.links",
+      );
+      expect(security).not.toMatch(/^ {3}lemma browser <URL>\s*$/m);
       const status = await readFile(path.join(commandsDir, "lemma-status.md"), "utf8");
       expect(status).toContain("lemma status --root .lemma");
 

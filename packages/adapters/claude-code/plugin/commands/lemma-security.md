@@ -16,11 +16,12 @@ Run a Lemma **security** assessment for: $ARGUMENTS
    ```
    Present the comprehensive security plan (objective, preconditions, steps, expected results, automation status, and coverage gaps) before executing checks.
 3. **Execute the plan**: run the selected command(s) and reconcile each plan scenario with observed results.
-4. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run
+4. **Collect bounded security runtime evidence when a URL is supplied** (security intent only): run
    ```bash
-   lemma browser <URL>
+   lemma browser <URL> --no-crawl --check browser.security --check browser.links
    ```
-   from the target workspace in a **headed/visible browser** (never `--headless`, never `--no-browser`; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.
+   - This landing-page-only inspection covers browser-observable security concerns (headers, mixed content, insecure exposure) and link safety. Do **not** run a crawl, `--max-pages 80`, or an interaction regression for `/lemma-security`; full route/feature coverage belongs to `/lemma-browser` and is an explicit gap here unless separately requested.
+   - Run from the target workspace in a **headed/visible browser**; never add `--headless` or `--no-browser`. Record command, run ID, status, and evidence paths; unavailable/blocked checks are coverage gaps, never passes.
 5. **Inspect project source/config/artifacts** relevant to **security**: use available tools to read and search code, configs, tests, CI, docs, and existing `.lemma/` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).
 6. **Assess and report**: show the plan first, then a per-scenario result table from the final JSON `test_plan`, followed by findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **security** intent based on what can be observed.
 7. **Optional CLI status** (if prior runs exist):

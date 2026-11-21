@@ -62,13 +62,17 @@ the plan with per-scenario results:
 lemma plan --target https://example.test --intent "Lemma browser assessment" --command browser
 lemma browser https://example.test --crawl --max-pages 80 --timeout-ms 120000
 
-# Security command: comprehensive security plan, then the intent run
-lemma plan --target . --intent "Lemma security assessment" --command security
+# Security command with URL: comprehensive security plan, then bounded runtime evidence
+lemma plan --target https://example.test --intent "Lemma security assessment" --command security
+lemma browser https://example.test --no-crawl --check browser.security --check browser.links
 lemma run --target . --no-browser --personas-dir ./personas --intent "Lemma security assessment"
 ```
 
-`/lemma:lemma-browser <URL>` and `/lemma:lemma-security <URL|path>` follow this
-contract. The final JSON contains `test_plan` with `title`, `objective`,
+`/lemma:lemma-browser <URL>` remains the full headed crawl/interaction regression.
+`/lemma:lemma-security <URL>` does **not** run that regression: browser evidence is
+limited to the supplied landing page's security/link checks, and route or
+interaction coverage is an explicit gap unless `/lemma-browser` is requested
+separately. The final JSON contains `test_plan` with `title`, `objective`,
 `scenarios`, per-scenario `result` (status, linked checks, evidence, findings,
 gap reason), and `summary`. Blocked, skipped, errored, and unlinked scenarios
 are reported as coverage gaps, never passes. The final human report must show

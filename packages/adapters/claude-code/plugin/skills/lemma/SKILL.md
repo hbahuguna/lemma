@@ -14,6 +14,7 @@ Use Lemma to run deterministic, evidence-backed quality/release assessments. The
 - Catalog assessments: 60 Lemma commands.
   - `lemma-browser`: live browser assessment, requires `http(s)` URL.
   - `lemma-demo`: static when no URL, live browser when URL provided.
+  - `lemma-security` with a URL adds bounded landing-page runtime evidence (`--no-crawl --check browser.security --check browser.links`), not a full browser regression.
   - Other catalog commands: static intent-driven runs (`Lemma <label> assessment`).
 - Operational commands include status/report/abort/verify-evidence and other management surfaces as available.
 

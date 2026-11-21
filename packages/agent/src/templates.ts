@@ -36,6 +36,30 @@ function shellArgs(args: string[]): string {
     .join(" ");
 }
 
+/**
+ * Security intent needs runtime-observable evidence, not a full regression.
+ * Keep the full browser guidance for every other static catalog command.
+ */
+function browserEvidenceStep(cli: string, label: string): string[] {
+  if (label === "security") {
+    return [
+      "4. **Collect bounded security runtime evidence when a URL is supplied** (security intent only): run",
+      "   ```bash",
+      `   ${cli} browser <URL> --no-crawl --check browser.security --check browser.links`,
+      "   ```",
+      "   - This landing-page-only inspection covers browser-observable security concerns (headers, mixed content, insecure exposure) and link safety. Do **not** run a crawl, `--max-pages 80`, or an interaction regression for `/lemma-security`; full route/feature coverage belongs to `/lemma-browser` and is an explicit gap here unless separately requested.",
+      "   - Run from the target workspace in a **headed/visible browser**; never add `--headless` or `--no-browser`. Record command, run ID, status, and evidence paths; unavailable/blocked checks are coverage gaps, never passes.",
+    ];
+  }
+  return [
+    "4. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run",
+    "   ```bash",
+    `   ${cli} browser <URL>`,
+    "   ```",
+    "   from the target workspace in a **headed/visible browser** (never `--headless`, never `--no-browser`; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.",
+  ];
+}
+
 export function renderBrowserPromptTemplateNotes(): string {
   return [
     "Do not ask for or persist raw secrets/tokens; prefer secure env/secret references.",
@@ -156,11 +180,7 @@ export function renderCatalogCommandTemplate(
     "   ```",
     `   Present the comprehensive ${command.label} plan (objective, preconditions, steps, expected results, automation status, and coverage gaps) before executing checks.`,
     "3. **Execute the plan**: run the selected command(s) and reconcile each plan scenario with observed results.",
-    "4. **Collect live/browser evidence when applicable** (for web/UI or runtime-observable concerns): run",
-    "   ```bash",
-    `   ${cli} browser <URL>`,
-    "   ```",
-    "   from the target workspace in a **headed/visible browser** (never `--headless`, never `--no-browser`; requires Chrome/Chromium). Record command, run ID, status, and evidence paths. If blocked/unavailable, report as a coverage gap.",
+    ...browserEvidenceStep(cli, command.label),
     `5. **Inspect project source/config/artifacts** relevant to **${command.label}**: use available tools to read and search code, configs, tests, CI, docs, and existing \`.lemma/\` reports/evidence. Ground observations in cited files/paths (and lines/snippets where useful).`,
     `6. **Assess and report**: show the plan first, then a per-scenario result table from the final JSON \`test_plan\`, followed by findings/issues (severity, impact, location/evidence, recommendation, verification), positive signals, and explicit coverage gaps/limitations. Tailor analysis to the **${command.label}** intent based on what can be observed.`,
     "7. **Optional CLI status** (if prior runs exist):",
@@ -281,6 +301,7 @@ export function renderLemmaSkillTemplate(options: CommandTemplateOptions = {}): 
     "- Catalog assessments: 60 Lemma commands.",
     "  - `lemma-browser`: live browser assessment, requires `http(s)` URL.",
     "  - `lemma-demo`: static when no URL, live browser when URL provided.",
+    "  - `lemma-security` with a URL adds bounded landing-page runtime evidence (`--no-crawl --check browser.security --check browser.links`), not a full browser regression.",
     "  - Other catalog commands: static intent-driven runs (`Lemma <label> assessment`).",
     "- Operational commands include status/report/abort/verify-evidence and other management surfaces as available.",
     "",
